@@ -1,0 +1,27 @@
+
+Osmium
+======
+
+http://wiki.openstreetmap.org/wiki/Osmium
+
+C++ framework for working with OSM XML files.
+
+Can optionally include Javascript code using Google's v8 javascript implementation.
+
+http://code.google.com/apis/v8/
+
+
+COMPILING
+---------
+
+Type
+
+make osmium_tagstats
+
+to compile the tag statistics stuff needed for Taginfo (http://wiki.openstreetmap.org/wiki/taginfo).
+
+To compile in the javascript engine, you need libv8.a and v8.h from the Google
+site in the current directory. Then type
+
+make osmium_js
+
