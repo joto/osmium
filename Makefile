@@ -12,7 +12,7 @@ CXXFLAGS = -O3 -Wall -W -pedantic -Wredundant-decls -Wdisabled-optimization
 
 LDFLAGS = -lexpat -lpthread
 
-LIB_V8     = -L/usr/local/lib libv8.a
+LIB_V8     = -L/usr/local/lib -lv8
 LIB_SQLITE = -lsqlite3
 LIB_GD     = -lgd -lpng -lz -lm
 

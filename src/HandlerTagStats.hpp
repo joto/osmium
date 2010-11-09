@@ -32,7 +32,7 @@ union counter_t {
     } by_type;
 };
 
-typedef google::sparse_hash_map<const char *, counter_t, __gnu_cxx::hash<const char*>, eqstr> value_hash_map;
+typedef google::sparse_hash_map<const char *, counter_t, HASH_NAMESPACE::hash<const char*>, eqstr> value_hash_map;
 typedef google::sparse_hash_map<osm_user_id_t, uint32_t> user_hash_map;
 
 // XXX these do not work (segfault) for some reason

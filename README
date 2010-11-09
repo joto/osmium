@@ -6,6 +6,8 @@ http://wiki.openstreetmap.org/wiki/Osmium
 
 C++ framework for working with OSM XML files.
 
+You need Googles sparsehash: apt-get install libsparsehash-dev
+
 Can optionally include Javascript code using Google's v8 javascript implementation.
 
 http://code.google.com/apis/v8/
