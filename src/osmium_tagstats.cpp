@@ -104,7 +104,8 @@ int main(int argc, char *argv[])
     close(fd);
 
     if (! parseok) {
-        std::cerr << "Error occurred while parsing: " << osmfilename << '\n';
+        std::cerr << "Error occurred while parsing file " << osmfilename << ": " << Osmium::XMLParser::error << "\n";
+        return 1;
     }
 	
     return 0;

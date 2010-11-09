@@ -17,9 +17,9 @@ namespace Osmium {
         static void startElement(void *data, const XML_Char* element, const XML_Char** attrs);
         static void   endElement(void *data, const XML_Char* element);
 
-        static std::string error;
-
     public:
+
+        static std::string error;
 
         static bool parse(int fd, Osmium::OSM::Node *in_node, Osmium::OSM::Way *in_way, Osmium::OSM::Relation *in_relation);
         static std::string getError() {
