@@ -71,8 +71,8 @@ namespace Osmium {
 
     namespace Handler {
 
-        typedef google::sparse_hash_map<const char *, ObjectTagStat *, HASH_NAMESPACE::hash<const char*>, eqstr> tag_hash_map;
-        //typedef std::map<const char *, ObjectTagStat *, less_str> tag_hash_map;
+        //typedef google::sparse_hash_map<const char *, ObjectTagStat *, HASH_NAMESPACE::hash<const char*>, eqstr> tag_hash_map;
+        typedef std::map<const char *, ObjectTagStat *, less_str> tag_hash_map;
 
         class TagStats : public Base {
 
@@ -257,9 +257,9 @@ namespace Osmium {
             }
 
             void print_memory_usage() {
-                std::cerr << "string_store: chunk_size=" << string_store->get_chunk_size() / 1024 << "kB"
+                std::cerr << "string_store: chunk_size=" << string_store->get_chunk_size() / 1024 / 1024 << "MB"
                           <<                  " chunks=" << string_store->get_chunk_count()
-                          <<                  " memory=" << string_store->get_chunk_size() * string_store->get_chunk_count() / 1024 << "kB"
+                          <<                  " memory=" << (string_store->get_chunk_size() / 1024 / 1024) * string_store->get_chunk_count() << "MB"
                           <<           " bytes_in_last=" << string_store->get_used_bytes_in_last_chunk() / 1024 << "kB"
                           << "\n";
 
@@ -306,6 +306,7 @@ namespace Osmium {
 
             void callback_after_ways() {
                 timer_info("processing ways");
+                print_memory_usage();
             }
 
             void callback_before_relations() {
@@ -354,7 +355,7 @@ namespace Osmium {
                 statement_update_meta->bind_text(max_timestamp)->bind_text(max_timestamp)->execute();
 
                 long tags_hash_map_size=tags_stat.size();
-                long tags_hash_map_buckets=tags_stat.bucket_count();
+                long tags_hash_map_buckets=tags_stat.size()*2; //bucket_count();
 
                 long values_hash_map_size=0;
                 long values_hash_map_buckets=0;

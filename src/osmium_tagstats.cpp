@@ -11,7 +11,7 @@
 
 Osmium::Handler::Statistics      *osmium_handler_stats;
 Osmium::Handler::TagStats        *osmium_handler_tagstats;
-Osmium::Handler::NLS_Sparsetable *osmium_handler_node_location_store;
+//Osmium::Handler::NLS_Sparsetable *osmium_handler_node_location_store;
 
 namespace Osmium {
 
@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
 
     osmium_handler_stats               = new Osmium::Handler::Statistics;
     osmium_handler_tagstats            = new Osmium::Handler::TagStats;
-    osmium_handler_node_location_store = new Osmium::Handler::NLS_Sparsetable;
+//    osmium_handler_node_location_store = new Osmium::Handler::NLS_Sparsetable;
 
     Osmium::OSM::Node     *node     = new Osmium::OSM::Node;
     Osmium::OSM::Way      *way      = new Osmium::OSM::Way;
