@@ -57,11 +57,11 @@ namespace Osmium {
         switch (object->type()) {
             case NODE:
                 osmium_handler_stats->callback_node((OSM::Node *) object);
-                osmium_handler_node_location_store->callback_node((OSM::Node *) object);
+//                osmium_handler_node_location_store->callback_node((OSM::Node *) object);
                 break;
             case WAY:
                 osmium_handler_stats->callback_way((OSM::Way *) object);
-                osmium_handler_node_location_store->callback_way((OSM::Way *) object);
+//                osmium_handler_node_location_store->callback_way((OSM::Way *) object);
                 break;
             case RELATION:
                 osmium_handler_stats->callback_relation((OSM::Relation *) object);

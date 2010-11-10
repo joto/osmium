@@ -71,8 +71,8 @@ namespace Osmium {
 
     namespace Handler {
 
-        //typedef google::sparse_hash_map<const char *, ObjectTagStat *, __gnu_cxx::hash<const char*>, eqstr> tag_hash_map;
-        typedef std::map<const char *, ObjectTagStat *, less_str> tag_hash_map;
+        typedef google::sparse_hash_map<const char *, ObjectTagStat *, __gnu_cxx::hash<const char*>, eqstr> tag_hash_map;
+        //typedef std::map<const char *, ObjectTagStat *, less_str> tag_hash_map;
 
         class TagStats : public Base {
 
@@ -125,7 +125,7 @@ namespace Osmium {
                 stat->users_stat[object->get_uid()]++;
 
                 if (object->type() == NODE) {
-                    int x =                         int(2 * (((OSM::Node *)object)->get_lon() + 180));
+                    int x =                                                int(2 * (((OSM::Node *)object)->get_lon() + 180));
                     int y = Osmium::ObjectTagStat::location_image_y_size - int(2 * (((OSM::Node *)object)->get_lat() +  90));
                     stat->location[Osmium::ObjectTagStat::location_image_x_size * y + x] = true;
                 }
@@ -188,6 +188,7 @@ namespace Osmium {
 
             void print_images() {
                 std::bitset<Osmium::ObjectTagStat::location_image_x_size * Osmium::ObjectTagStat::location_image_y_size> location_all;
+                int sum_size=0;
 
                 Sqlite::Statement *statement_insert_into_key_distributions = db->prepare("INSERT INTO key_distributions (key, png) VALUES (?, ?);");
                 db->begin_transaction();
@@ -215,6 +216,7 @@ namespace Osmium {
 
                     int size;
                     void *ptr = gdImagePngPtr(im, &size);
+                    sum_size += size;
                     statement_insert_into_key_distributions
                         ->bind_text(key)
                         ->bind_blob(ptr, size)
@@ -246,6 +248,10 @@ namespace Osmium {
                     ->bind_blob(ptr, size)
                     ->execute();
                 gdFree(ptr);
+
+                gdImageDestroy(im_all);
+
+                std::cerr << "sum of location image sizes: " << sum_size + size << "\n";
 
                 db->commit();
             }
@@ -287,9 +293,11 @@ namespace Osmium {
 
             void callback_after_nodes() {
                 timer_info("processing nodes");
+                print_memory_usage();
                 timer = time(0);
                 print_images();
                 timer_info("dumping images");
+                print_memory_usage();
             }
 
             void callback_before_ways() {
@@ -310,6 +318,15 @@ namespace Osmium {
 
             void callback_init() {
                 db = new Sqlite::Database("taginfo-db.db");
+
+                std::cerr << "sizeof(counter_t) = " << sizeof(counter_t) << "\n";
+                std::cerr << "sizeof(value_hash_map) = " << sizeof(value_hash_map) << "\n";
+                std::cerr << "sizeof(user_hash_map) = " << sizeof(user_hash_map) << "\n";
+                std::cerr << "sizeof(std::bitset<x_size*y_size>) = " << sizeof(std::bitset<Osmium::ObjectTagStat::location_image_x_size * Osmium::ObjectTagStat::location_image_y_size>) << "\n";
+                std::cerr << "sizeof(ObjectTagStat) = " << sizeof(ObjectTagStat) << "\n\n";
+
+                print_memory_usage();
+                std::cerr << "init done\n\n";
             }
 
             void callback_final() {
@@ -336,8 +353,23 @@ namespace Osmium {
 
                 statement_update_meta->bind_text(max_timestamp)->bind_text(max_timestamp)->execute();
 
+                long tags_hash_map_size=tags_stat.size();
+                long tags_hash_map_buckets=tags_stat.bucket_count();
+
+                long values_hash_map_size=0;
+                long values_hash_map_buckets=0;
+
+                long keypairs_hash_map_size=0;
+                long keypairs_hash_map_buckets=0;
+
+                long users_hash_map_size=0;
+                long users_hash_map_buckets=0;
+
                 for (tags_iterator = tags_stat.begin(); tags_iterator != tags_stat.end(); tags_iterator++) {
                     ObjectTagStat *stat = tags_iterator->second;
+    
+                    values_hash_map_size    += stat->values_stat.size();
+                    values_hash_map_buckets += stat->values_stat.bucket_count();
 
                     for (values_iterator = stat->values_stat.begin(); values_iterator != stat->values_stat.end(); values_iterator++) {
                         statement_insert_into_tags
@@ -351,6 +383,8 @@ namespace Osmium {
                     }
 
                     stat->users.by_type.all = stat->users_stat.size();
+                    users_hash_map_size    += stat->users.by_type.all;
+                    users_hash_map_buckets += stat->users_stat.bucket_count();
 
                     statement_insert_into_keys
                         ->bind_text(tags_iterator->first)
@@ -369,6 +403,9 @@ namespace Osmium {
                         ->bind_int(stat->grids)
                         ->execute();
 
+                    keypairs_hash_map_size    += stat->keypairs_stat.size();
+                    keypairs_hash_map_buckets += stat->keypairs_stat.bucket_count();
+
                     for (values_iterator = stat->keypairs_stat.begin(); values_iterator != stat->keypairs_stat.end(); values_iterator++) {
                         statement_insert_into_keypairs
                             ->bind_text(tags_iterator->first)
@@ -385,6 +422,23 @@ namespace Osmium {
                 db->commit();
                 db->close();
                 timer_info("dumping to db");
+
+                std::cerr << "\nhash map sizes:\n";
+                std::cerr << "  tags:     size=" <<     tags_hash_map_size << " buckets=" <<     tags_hash_map_buckets << " sizeof(ObjectTagStat)=" << sizeof(ObjectTagStat) << " *=" <<     tags_hash_map_size * sizeof(ObjectTagStat) << "\n";
+                std::cerr << "  values:   size=" <<   values_hash_map_size << " buckets=" <<   values_hash_map_buckets << " sizeof(counter_t)="     << sizeof(counter_t)     << " *=" <<   values_hash_map_size * sizeof(counter_t) << "\n";
+                std::cerr << "  keypairs: size=" << keypairs_hash_map_size << " buckets=" << keypairs_hash_map_buckets << " sizeof(counter_t)="     << sizeof(counter_t)     << " *=" << keypairs_hash_map_size * sizeof(counter_t) << "\n";
+                std::cerr << "  users:    size=" <<    users_hash_map_size << " buckets=" <<    users_hash_map_buckets << " sizeof(uint32_t)="      << sizeof(uint32_t)      << " *=" <<    users_hash_map_size * sizeof(uint32_t) << "\n";
+                std::cerr << "  sum: " << tags_hash_map_size * sizeof(ObjectTagStat) + values_hash_map_size * sizeof(counter_t) + keypairs_hash_map_size * sizeof(counter_t) + users_hash_map_size * sizeof(uint32_t) << "\n";
+
+                std::cerr << "\ntotal memory for hashes:\n";
+                std::cerr << "  (sizeof(hash key) + sizeof(hash value *) + 2.5 bit overhead) * bucket_count + sizeof(hash value) * size \n";
+                std::cerr << " tags:     " << ((sizeof(const char*)*8 + sizeof(ObjectTagStat *)*8 + 3) * tags_hash_map_buckets / 8 ) + sizeof(ObjectTagStat) * tags_hash_map_size << "\n";
+                std::cerr << "  (sizeof(hash key) + sizeof(hash value  ) + 2.5 bit overhead) * bucket_count\n";
+                std::cerr << " values:   " << ((sizeof(const char*)*8 + sizeof(counter_t)*8 + 3) * values_hash_map_buckets / 8 ) << "\n";
+                std::cerr << " keypairs: " << ((sizeof(const char*)*8 + sizeof(counter_t)*8 + 3) * keypairs_hash_map_buckets / 8 ) << "\n";
+                std::cerr << " users:    " << ((sizeof(osm_user_id_t)*8 + sizeof(uint32_t)*8 + 3) * users_hash_map_buckets / 8 )  << "\n";
+                std::cerr << "\n";
+
                 print_memory_usage();
             }
 
