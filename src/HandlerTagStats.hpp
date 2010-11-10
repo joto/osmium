@@ -71,7 +71,7 @@ namespace Osmium {
 
     namespace Handler {
 
-        typedef google::sparse_hash_map<const char *, ObjectTagStat *, __gnu_cxx::hash<const char*>, eqstr> tag_hash_map;
+        typedef google::sparse_hash_map<const char *, ObjectTagStat *, HASH_NAMESPACE::hash<const char*>, eqstr> tag_hash_map;
         //typedef std::map<const char *, ObjectTagStat *, less_str> tag_hash_map;
 
         class TagStats : public Base {
