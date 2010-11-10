@@ -86,7 +86,7 @@ namespace Osmium {
             char max_timestamp[Osmium::OSM::Object::max_length_timestamp];
 
             // this must be much bigger than the largest string we want to store
-            static const int string_store_size = 1024 * 1204 * 10;
+            static const int string_store_size = 1024 * 1024 * 10;
             StringStore *string_store;
 
             Sqlite::Database *db;
