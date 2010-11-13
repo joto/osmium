@@ -32,7 +32,23 @@ union counter_t {
     } by_type;
 };
 
-typedef google::sparse_hash_map<const char *, counter_t, HASH_NAMESPACE::hash<const char*>, eqstr> value_hash_map;
+struct djb2_hash {
+    size_t operator()(const char *str) const {
+        size_t hash = 5381;
+        int c;
+
+        while ((c = *str++)) {
+            hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+        }
+
+        return hash;
+    }
+};
+
+
+typedef google::sparse_hash_map<const char *, counter_t, djb2_hash, eqstr> value_hash_map;
+//typedef google::sparse_hash_map<const char *, counter_t> value_hash_map;
+//typedef google::sparse_hash_map<const char *, counter_t, HASH_NAMESPACE::hash<const char*>, eqstr> value_hash_map;
 typedef google::sparse_hash_map<osm_user_id_t, uint32_t> user_hash_map;
 
 // XXX these do not work (segfault) for some reason
@@ -348,7 +364,7 @@ namespace Osmium {
                     "count_all, count_nodes, count_ways, count_relations) " \
                     "VALUES (?, ?, ?, ?, ?, ?);");
 
-                Sqlite::Statement *statement_update_meta = db->prepare("UPDATE meta SET data_until=(date(?) || ' ' || time(?))");
+                Sqlite::Statement *statement_update_meta = db->prepare("UPDATE source SET data_until=(date(?) || ' ' || time(?))");
 
                 db->begin_transaction();
 
