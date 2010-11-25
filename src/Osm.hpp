@@ -1,31 +1,27 @@
 #ifndef OSMIUM_OSM_HPP
 #define OSMIUM_OSM_HPP
 
-/**
+/*
 * The following typedefs are chosen so that they can represent all needed
 * numbers and still be reasonably space efficient. As the OSM database is
 * growing rapidly, 64 bit ids will be needed at some point!
 */
-typedef int32_t osm_object_id_t;    //< type for OSM object (node, way, or relation) ids
-typedef int     osm_version_t;      //< type for OSM object version number
-typedef int32_t osm_changeset_id_t; //< type for OSM changeset ids
-typedef int32_t osm_user_id_t;      //< type for OSM user ids
-typedef int     osm_sequence_id_t;  //< type for OSM nodes and members sequence ids
+typedef int32_t osm_object_id_t;    ///< type for OSM object (node, way, or relation) ids
+typedef int     osm_version_t;      ///< type for OSM object version number
+typedef int32_t osm_changeset_id_t; ///< type for OSM changeset ids
+typedef int32_t osm_user_id_t;      ///< type for OSM user ids
+typedef int     osm_sequence_id_t;  ///< type for OSM nodes and members sequence ids
 
 namespace Osmium {
 
     /**
-    *
-    *  Namespace for basic OSM objects such as Tag, Node, ...
-    *
+    *  @brief Namespace for basic OSM objects such as Tag, Node, ...
     */
     namespace OSM {
 
         /**
-        *
         *  An OSM tag. Has static allocation with enough memory to hold key and
         *  value strings.
-        *
         */
         class Tag {
 

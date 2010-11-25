@@ -20,11 +20,10 @@ namespace Osmium {
                         std::ostringstream oss;
                         oss << "LINESTRING(";
                         for (osm_sequence_id_t i=0; i < num_nodes; i++) {
-                            struct node_coordinates c = self->object->node_coordinates[i];
                             if (i != 0) {
                                 oss << ",";
                             }
-                            oss << c.lon << " " << c.lat;
+                            oss << self->object->lon[i] << " " << self->object->lat[i];
                         }
                         oss << ")";
                         return v8::String::New(oss.str().c_str());

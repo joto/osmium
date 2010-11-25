@@ -58,6 +58,17 @@ namespace Osmium {
                 }
             }
 
+            static v8::Handle<v8::Value> OutputShapefileOpen(const v8::Arguments& args) {
+                if (args.Length() != 2) {
+                    return v8::Undefined();
+                } else {
+                    v8::String::Utf8Value str(args[0]);
+                    v8::String::Utf8Value type(args[1]);
+                    Osmium::Output::Shapefile *oc = new Osmium::Output::Shapefile(*str, *type);
+                    return oc->get_js_object();
+                }
+            }
+
         public:
 
             Javascript(const char *filename) {
@@ -72,6 +83,10 @@ namespace Osmium {
                 v8::Handle<v8::ObjectTemplate> output_csv_template = v8::ObjectTemplate::New();
                 output_csv_template->Set(v8::String::New("open"), v8::FunctionTemplate::New(OutputCSVOpen));
                 output_object->Set(v8::String::New("CSV"), output_csv_template->NewInstance());
+
+                v8::Handle<v8::ObjectTemplate> output_shapefile_template = v8::ObjectTemplate::New();
+                output_shapefile_template->Set(v8::String::New("open"), v8::FunctionTemplate::New(OutputShapefileOpen));
+                output_object->Set(v8::String::New("Shapefile"), output_shapefile_template->NewInstance());
 
                 callbacks_object = v8::Persistent<v8::Object>::New(v8::Object::New());
                 global_context->Global()->Set(v8::String::New("callbacks"), callbacks_object);

@@ -1,6 +1,10 @@
 #ifndef OSMIUM_OSM_NODE_HPP
 #define OSMIUM_OSM_NODE_HPP
 
+/** @file
+*   @brief Contains the Osmium::OSM::Node class.
+*/
+
 namespace Osmium {
 
     namespace OSM {

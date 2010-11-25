@@ -7,6 +7,7 @@
 #include <sstream>
 #include <fstream>
 #include <iostream>
+#include <assert.h>
 
 #include "wkb.hpp"
 #include "StringStore.hpp"
@@ -41,6 +42,7 @@ struct node_coordinates {
 #include "HandlerNodeLocationStore.hpp"
 
 #include "JavascriptOutputCSV.hpp"
+#include "JavascriptOutputShapefile.hpp"
 
 #include "HandlerJavascript.hpp"
 

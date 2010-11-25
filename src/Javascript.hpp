@@ -3,7 +3,6 @@
 
 #include "v8.h"
 
-#include "osmium.hpp"
 #include "JavascriptTemplate.hpp"
 
 namespace Osmium {

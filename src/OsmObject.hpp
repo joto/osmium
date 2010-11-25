@@ -1,6 +1,10 @@
 #ifndef OSMIUM_OSM_OBJECT_HPP
 #define OSMIUM_OSM_OBJECT_HPP
 
+/** @file
+*   @brief Contains the Osmium::OSM::Object class.
+*/
+
 #include <stdexcept>
 #include <vector>
 

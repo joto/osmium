@@ -15,6 +15,7 @@ LDFLAGS = -lexpat -lpthread
 LIB_V8     = -L/usr/local/lib -lv8
 LIB_SQLITE = -lsqlite3
 LIB_GD     = -lgd -lpng -lz -lm
+LIB_SHAPE  = -lshp
 
 CPP = XMLParser.cpp HandlerStatistics.cpp wkb.cpp
 CPP_JS = JavascriptTemplate.cpp
@@ -46,7 +47,7 @@ src/%.o: src/%.cpp $(SRC_HPP)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 osmium_js: src/osmium_js.cpp $(SRC_OBJ) $(SRC_OBJ_JS) $(SRC_HPP) $(SRC_HPP_JS)
-	$(CXX) $(CXXFLAGS) -o $@ $< $(SRC_OBJ) $(SRC_OBJ_JS) $(LDFLAGS) $(LIB_V8)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(SRC_OBJ) $(SRC_OBJ_JS) $(LDFLAGS) $(LIB_V8) $(LIB_SHAPE)
 
 osmium_tagstats: src/osmium_tagstats.cpp $(SRC_OBJ) $(SRC_HPP)
 	$(CXX) $(CXXFLAGS) -o $@ $< $(SRC_OBJ) $(LDFLAGS) $(LIB_GD) $(LIB_SQLITE)

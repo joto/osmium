@@ -55,6 +55,8 @@ namespace Osmium {
 
             v8::Local<v8::Object> create_output_csv_instance(void *wrapper);
 
+            v8::Local<v8::Object> create_output_shapefile_instance(void *wrapper);
+
             void init();
 
             void cleanup();

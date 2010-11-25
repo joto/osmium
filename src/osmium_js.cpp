@@ -14,7 +14,7 @@ Osmium::Handler::Javascript      *osmium_handler_javascript;
 namespace Osmium {
 
     void init_handler() {
-        // osmium_handler_node_location_store->callback_init();
+        osmium_handler_node_location_store->callback_init();
         osmium_handler_javascript->callback_init();
     }
 
@@ -37,18 +37,18 @@ namespace Osmium {
     }
 
     void final_handler() {
-        // osmium_handler_node_location_store->callback_final();
+        osmium_handler_node_location_store->callback_final();
         osmium_handler_javascript->callback_final();
     }
 
     void object_handler(OSM::Object *object) {
         switch (object->type()) {
             case NODE:
-                // osmium_handler_node_location_store->callback_node((OSM::Node *) object);
+                osmium_handler_node_location_store->callback_node((OSM::Node *) object);
                 osmium_handler_javascript->callback_node((OSM::Node *) object);
                 break;
             case WAY:
-                // osmium_handler_node_location_store->callback_way((OSM::Way *) object);
+                osmium_handler_node_location_store->callback_way((OSM::Way *) object);
                 osmium_handler_javascript->callback_way((OSM::Way *) object);
                 break;
             case RELATION:
