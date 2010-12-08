@@ -42,12 +42,16 @@ class StringStore {
     }
 
     bool _add(const char *string) {
+        if (current_rest_length <= 1) {
+            _add_chunk();
+        }
         char *next_ptr = (char *) memccpy(current_ptr, string, 0, current_rest_length);
         if (next_ptr) {
             current_rest_length -= (next_ptr - current_ptr);
             current_ptr = next_ptr;
+            return true;
         }
-        return next_ptr != 0;
+        return false;
     }
 
     public:
