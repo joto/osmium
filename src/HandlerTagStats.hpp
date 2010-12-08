@@ -370,17 +370,17 @@ namespace Osmium {
 
                 statement_update_meta->bind_text(max_timestamp)->bind_text(max_timestamp)->execute();
 
-                long tags_hash_map_size=tags_stat.size();
-                long tags_hash_map_buckets=tags_stat.size()*2; //bucket_count();
+                uint64_t tags_hash_map_size=tags_stat.size();
+                uint64_t tags_hash_map_buckets=tags_stat.size()*2; //bucket_count();
 
-                long values_hash_map_size=0;
-                long values_hash_map_buckets=0;
+                uint64_t values_hash_map_size=0;
+                uint64_t values_hash_map_buckets=0;
 
-                long keypairs_hash_map_size=0;
-                long keypairs_hash_map_buckets=0;
+                uint64_t keypairs_hash_map_size=0;
+                uint64_t keypairs_hash_map_buckets=0;
 
-                long users_hash_map_size=0;
-                long users_hash_map_buckets=0;
+                uint64_t users_hash_map_size=0;
+                uint64_t users_hash_map_buckets=0;
 
                 for (tags_iterator = tags_stat.begin(); tags_iterator != tags_stat.end(); tags_iterator++) {
                     ObjectTagStat *stat = tags_iterator->second;
@@ -392,10 +392,10 @@ namespace Osmium {
                         statement_insert_into_tags
                             ->bind_text(tags_iterator->first)
                             ->bind_text(values_iterator->first)
-                            ->bind_int(values_iterator->second.by_type.all)
-                            ->bind_int(values_iterator->second.by_type.nodes)
-                            ->bind_int(values_iterator->second.by_type.ways)
-                            ->bind_int(values_iterator->second.by_type.relations)
+                            ->bind_int64(values_iterator->second.by_type.all)
+                            ->bind_int64(values_iterator->second.by_type.nodes)
+                            ->bind_int64(values_iterator->second.by_type.ways)
+                            ->bind_int64(values_iterator->second.by_type.relations)
                             ->execute();
                     }
 
@@ -405,19 +405,19 @@ namespace Osmium {
 
                     statement_insert_into_keys
                         ->bind_text(tags_iterator->first)
-                        ->bind_int(stat->key.by_type.all)
-                        ->bind_int(stat->key.by_type.nodes)
-                        ->bind_int(stat->key.by_type.ways)
-                        ->bind_int(stat->key.by_type.relations)
-                        ->bind_int(stat->values.by_type.all)
-                        ->bind_int(stat->values.by_type.nodes)
-                        ->bind_int(stat->values.by_type.ways)
-                        ->bind_int(stat->values.by_type.relations)
-                        ->bind_int(stat->users.by_type.all)
-                        ->bind_int(stat->users.by_type.nodes)
-                        ->bind_int(stat->users.by_type.ways)
-                        ->bind_int(stat->users.by_type.relations)
-                        ->bind_int(stat->grids)
+                        ->bind_int64(stat->key.by_type.all)
+                        ->bind_int64(stat->key.by_type.nodes)
+                        ->bind_int64(stat->key.by_type.ways)
+                        ->bind_int64(stat->key.by_type.relations)
+                        ->bind_int64(stat->values.by_type.all)
+                        ->bind_int64(stat->values.by_type.nodes)
+                        ->bind_int64(stat->values.by_type.ways)
+                        ->bind_int64(stat->values.by_type.relations)
+                        ->bind_int64(stat->users.by_type.all)
+                        ->bind_int64(stat->users.by_type.nodes)
+                        ->bind_int64(stat->users.by_type.ways)
+                        ->bind_int64(stat->users.by_type.relations)
+                        ->bind_int64(stat->grids)
                         ->execute();
 
                     keypairs_hash_map_size    += stat->keypairs_stat.size();
@@ -427,10 +427,10 @@ namespace Osmium {
                         statement_insert_into_keypairs
                             ->bind_text(tags_iterator->first)
                             ->bind_text(values_iterator->first)
-                            ->bind_int(values_iterator->second.by_type.all)
-                            ->bind_int(values_iterator->second.by_type.nodes)
-                            ->bind_int(values_iterator->second.by_type.ways)
-                            ->bind_int(values_iterator->second.by_type.relations)
+                            ->bind_int64(values_iterator->second.by_type.all)
+                            ->bind_int64(values_iterator->second.by_type.nodes)
+                            ->bind_int64(values_iterator->second.by_type.ways)
+                            ->bind_int64(values_iterator->second.by_type.relations)
                             ->execute();
                     }
 
