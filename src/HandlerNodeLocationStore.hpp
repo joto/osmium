@@ -33,7 +33,7 @@ namespace Osmium {
             struct coordinates *coordinates;
 
             NLS_Array() {
-                const int max_nodes = 700 * 1000 * 1000; // XXX make configurable, or autosizing?
+                const int max_nodes = 1.2 * 1024 * 1024 * 1024; // XXX make configurable, or autosizing?
                 coordinates = (struct coordinates *) malloc(sizeof(struct coordinates) * max_nodes);
                 if (!coordinates) {
                     throw std::bad_alloc();
