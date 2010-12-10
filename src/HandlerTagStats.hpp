@@ -2,19 +2,12 @@
 #define OSMIUM_HANDLER_TAGSTATS_HPP
 
 #include <google/sparse_hash_map>
-#include <map>
 #include <bitset>
 #include <string>
 
 #include <gd.h>
 
 #include "Sqlite.hpp"
-
-struct eqstr {
-    bool operator()(const char* s1, const char* s2) const {
-        return (s1 == s2) || (s1 && s2 && strcmp(s1, s2) == 0);
-    }
-};
 
 union counter_t {
     uint32_t count[4];
@@ -26,6 +19,7 @@ union counter_t {
     } by_type;
 };
 
+/* hash function that seems to work well with tag key/value strings */
 struct djb2_hash {
     size_t operator()(const char *str) const {
         size_t hash = 5381;
@@ -39,6 +33,12 @@ struct djb2_hash {
     }
 };
 
+/* string comparison for google hash map */
+struct eqstr {
+    bool operator()(const char* s1, const char* s2) const {
+        return (s1 == s2) || (s1 && s2 && strcmp(s1, s2) == 0);
+    }
+};
 
 typedef google::sparse_hash_map<const char *, counter_t, djb2_hash, eqstr> value_hash_map;
 typedef google::sparse_hash_map<osm_user_id_t, uint32_t> user_hash_map;
@@ -420,7 +420,6 @@ namespace Osmium {
                             ->bind_int64(values_iterator->second.by_type.relations)
                             ->execute();
                     }
-
                 }
 
                 db->commit();
