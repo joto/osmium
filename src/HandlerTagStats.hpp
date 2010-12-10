@@ -16,12 +16,6 @@ struct eqstr {
     }
 };
 
-struct less_str {
-    bool operator()(const char* s1, const char* s2) const {
-        return strcmp(s1, s2) < 0;
-    }
-};
-
 union counter_t {
     uint32_t count[4];
     struct {
@@ -47,13 +41,7 @@ struct djb2_hash {
 
 
 typedef google::sparse_hash_map<const char *, counter_t, djb2_hash, eqstr> value_hash_map;
-//typedef google::sparse_hash_map<const char *, counter_t> value_hash_map;
-//typedef google::sparse_hash_map<const char *, counter_t, HASH_NAMESPACE::hash<const char*>, eqstr> value_hash_map;
 typedef google::sparse_hash_map<osm_user_id_t, uint32_t> user_hash_map;
-
-// XXX these do not work (segfault) for some reason
-//typedef std::map<const char *, counter_t, less_str> value_hash_map;
-//typedef std::map<osm_user_id_t, uint32_t> user_hash_map;
 
 namespace Osmium {
 
@@ -87,8 +75,7 @@ namespace Osmium {
 
     namespace Handler {
 
-        //typedef google::sparse_hash_map<const char *, ObjectTagStat *, HASH_NAMESPACE::hash<const char*>, eqstr> tag_hash_map;
-        typedef std::map<const char *, ObjectTagStat *, less_str> tag_hash_map;
+        typedef google::sparse_hash_map<const char *, ObjectTagStat *, djb2_hash, eqstr> tag_hash_map;
 
         class TagStats : public Base {
 
