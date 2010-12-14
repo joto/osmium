@@ -12,6 +12,12 @@
 #include "wkb.hpp"
 #include "StringStore.hpp"
 
+/// OSM file format
+enum osm_file_format_t {
+    xml, ///< XML format (see http://wiki.openstreetmap.org/wiki/Data_Primitives)
+    pbf  ///< PBF format (see http://wiki.openstreetmap.org/wiki/PBF_Format)
+};
+
 enum osm_object_type_t {
     NODE     = 1,
     WAY      = 2,

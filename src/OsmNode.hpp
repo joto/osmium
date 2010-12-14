@@ -1,6 +1,8 @@
 #ifndef OSMIUM_OSM_NODE_HPP
 #define OSMIUM_OSM_NODE_HPP
 
+#include <cmath>
+
 /** @file
 *   @brief Contains the Osmium::OSM::Node class.
 */
@@ -29,8 +31,8 @@ namespace Osmium {
                 Object::reset();
                 lon_str[0] = 0;
                 lat_str[0] = 0;
-                geom.point.x = 0;
-                geom.point.y = 0;
+                geom.point.x = NAN;
+                geom.point.y = NAN;
             }
 
             osm_object_type_t type() const {
@@ -51,6 +53,20 @@ namespace Osmium {
                 } else {
                     Object::set_attribute(attr, value);
                 }
+            }
+
+            const char *get_lon_str() {
+                if (lon_str[0] == '\0') {
+                    snprintf(lon_str, max_length_coordinate, "%.7f", geom.point.x);
+                }
+                return lon_str;
+            }
+
+            const char *get_lat_str() {
+                if (lat_str[0] == '\0') {
+                    snprintf(lat_str, max_length_coordinate, "%.7f", geom.point.y);
+                }
+                return lat_str;
             }
 
             double get_lon() const {

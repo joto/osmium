@@ -7,6 +7,7 @@
 
 #include <stdexcept>
 #include <vector>
+#include <time.h>
 
 namespace Osmium {
 
@@ -31,6 +32,7 @@ namespace Osmium {
 
             // timestamp is stored as string, no need to parse it in most cases
             char timestamp_str[max_length_timestamp];
+            time_t timestamp;
             char user[max_length_username]; ///< name of user who last changed this object
 
             // how many tags are there on this object (XXX we could probably live without this and just use tags.size())
@@ -57,8 +59,9 @@ namespace Osmium {
                 version          = 0;
                 uid              = 0;
                 changeset        = 0;
-                timestamp_str[0] = 0;
-                user[0]          = 0;
+                timestamp_str[0] = '\0';
+                timestamp        = 0;
+                user[0]          = '\0';
                 num_tags         = 0;
                 tags.clear();
             }
@@ -98,6 +101,33 @@ namespace Osmium {
 
             osm_changeset_id_t get_changeset() const {
                 return changeset;
+            }
+
+            time_t get_timestamp() {
+                if (timestamp == 0) {
+                    if (timestamp_str[0] == '\0') {
+                        return 0;
+                    }
+                    struct tm tm;
+                    if (strptime(timestamp_str, "%Y-%m-%dT%H:%M:%SZ", &tm) == NULL) {
+                        timestamp = -1;
+                    } else {
+                        timestamp = mktime(&tm);
+                    }
+                }
+                return timestamp;
+            }
+
+            const char *get_timestamp_str() {
+                if (timestamp_str[0] == '\0') {
+                    if (timestamp == 0) {
+                        return "";
+                    }
+                    struct tm *tm;
+                    tm = gmtime(&timestamp);
+                    strftime(timestamp_str, sizeof(timestamp_str), "%Y-%m-%dT%H:%M:%SZ", tm);
+                }
+                return timestamp_str;
             }
 
             void add_tag(const char *key, const char *value) {

@@ -107,7 +107,7 @@ namespace Osmium {
         }
     }
 
-    bool XMLParser::parse(int fd, Osmium::OSM::Node *in_node, Osmium::OSM::Way *in_way, Osmium::OSM::Relation *in_relation) {
+    void XMLParser::parse(int fd, Osmium::OSM::Node *in_node, Osmium::OSM::Way *in_way, Osmium::OSM::Relation *in_relation) {
         int done;
         Osmium::OSM::Object *current_object = 0;
 
@@ -119,8 +119,7 @@ namespace Osmium {
 
         XML_Parser parser = XML_ParserCreate(0);
         if (!parser) {
-            error = "Error creating parser";
-            return false;
+            throw std::runtime_error("Error creating parser");
         }
 
         XML_SetUserData(parser, (void *) &current_object);
@@ -133,8 +132,7 @@ namespace Osmium {
         do {
             void *buffer = XML_GetBuffer(parser, OSMIUM_XMLPARSER_BUFFER_SIZE);
             if (buffer == 0) {
-                error = "out of memory";
-                return false;
+                throw std::runtime_error("out of memory");
             }
 
             int result = read(fd, buffer, OSMIUM_XMLPARSER_BUFFER_SIZE);
@@ -152,8 +150,7 @@ namespace Osmium {
                 std::stringstream errorDesc;
                 errorDesc << "XML parsing error at line " << errorLine << ":" << errorCol;
                 errorDesc << ": " << errorString;
-                error = errorDesc.str();
-                return false;
+                throw std::runtime_error(errorDesc.str());
             }
         } while (!done);
 
@@ -162,8 +159,6 @@ namespace Osmium {
 
         after_relations_handler();
         final_handler();
-
-        return true;
     }
 }
 

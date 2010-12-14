@@ -21,7 +21,7 @@ namespace Osmium {
 
                 static v8::Handle<v8::Value> GetTimestamp(v8::Local<v8::String> /*property*/, const v8::AccessorInfo &info) {
                     Osmium::Javascript::Object::Wrapper *self = (Osmium::Javascript::Object::Wrapper *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
-                    return v8::String::New(self->get_object()->timestamp_str);
+                    return v8::String::New(self->get_object()->get_timestamp_str());
                 }
 
                 static v8::Handle<v8::Value> GetUid(v8::Local<v8::String> /*property*/, const v8::AccessorInfo &info) {

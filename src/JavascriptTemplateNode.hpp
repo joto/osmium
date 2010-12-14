@@ -13,7 +13,7 @@ namespace Osmium {
                     v8::HandleScope handle_scope;
 
                     Osmium::Javascript::Node::Wrapper *self = (Osmium::Javascript::Node::Wrapper *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
-                    char *value = self->object->lon_str;
+                    const char *value = self->object->get_lon_str();
                     return v8::String::New(value);
                 }
 
@@ -21,7 +21,7 @@ namespace Osmium {
                     v8::HandleScope handle_scope;
 
                     Osmium::Javascript::Node::Wrapper *self = (Osmium::Javascript::Node::Wrapper *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
-                    char *value = self->object->lat_str;
+                    const char *value = self->object->get_lat_str();
                     return v8::String::New(value);
                 }
 

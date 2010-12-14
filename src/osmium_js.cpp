@@ -3,9 +3,11 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <time.h>
+#include <errno.h>
 
 #include "osmium.hpp"
 #include "XMLParser.hpp"
+#include "PBFParser.hpp"
 #include "Javascript.hpp"
 
 Osmium::Handler::NLS_Sparsetable *osmium_handler_node_location_store;
@@ -95,20 +97,45 @@ int main(int argc, char *argv[])
 //    Osmium::OSM::Way      *way      = new Osmium::OSM::Way;
 //    Osmium::OSM::Relation *relation = new Osmium::OSM::Relation;
 
-    const char *filename = argv[2];
+    char *osmfilename = argv[2];
     int fd = 0;
-    if (filename[0] == '-' && filename[1] == 0) {
+    if (osmfilename[0] == '-' && osmfilename[1] == 0) {
         // fd is already 0, read STDIN
     } else {
-        fd = open(filename, O_RDONLY);
+        fd = open(osmfilename, O_RDONLY);
+        if (fd < 0) {
+            std::cerr << "Can't open osm file: " << strerror(errno) << '\n';
+            exit(1);
+        }
     }
 
-    bool parseok = Osmium::XMLParser::parse(fd, node, way, relation);
+    osm_file_format_t file_format;
+    char *suffix = strrchr(osmfilename, '.');
+
+    if (suffix == NULL) {
+        file_format = xml;
+    } else {
+        if (!strcmp(suffix, ".osm")) {
+            file_format = xml;
+        } else if (!strcmp(suffix, ".pbf")) {
+            file_format = pbf;
+        } else {
+            std::cerr << "Unknown file suffix: " << suffix << "\n";
+            exit(1);
+        }
+    }
+
+    switch (file_format) {
+        case xml:
+            Osmium::XMLParser::parse(fd, node, way, relation);
+            break;
+        case pbf:
+            Osmium::PBFParser *pbf_parser = new Osmium::PBFParser(fd);
+            pbf_parser->parse(node, way, relation);
+            break;
+    }
+
     close(fd);
-
-    if (! parseok) {
-        std::cerr << "Error occurred while parsing: " << filename << std::endl;
-    }
 	
     global_context.Dispose();
 

@@ -21,7 +21,7 @@ namespace Osmium {
 
         static std::string error;
 
-        static bool parse(int fd, Osmium::OSM::Node *in_node, Osmium::OSM::Way *in_way, Osmium::OSM::Relation *in_relation);
+        static void parse(int fd, Osmium::OSM::Node *in_node, Osmium::OSM::Way *in_way, Osmium::OSM::Relation *in_relation);
         static std::string getError() {
             return error;
         }

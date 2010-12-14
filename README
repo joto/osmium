@@ -6,11 +6,24 @@ http://wiki.openstreetmap.org/wiki/Osmium
 
 C++ framework for working with OSM XML files.
 
+
+PREREQUISITES
+-------------
+
 You need Googles sparsehash: apt-get install libsparsehash-dev
 
 Can optionally include Javascript code using Google's v8 javascript implementation.
-
 http://code.google.com/apis/v8/
+
+Google protocol buffers for PBF support
+    Version 2.3.0
+    see http://wiki.openstreetmap.org/wiki/PBF_Format
+
+libz for PBF-Support
+
+libshp for Shapefile-Support
+
+libsqlite3 for TagStats
 
 
 COMPILING
