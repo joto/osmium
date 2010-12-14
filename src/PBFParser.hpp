@@ -29,8 +29,6 @@ along with MoNav.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace Osmium {
 
-    extern void object_handler(OSM::Object *object);
-
     class PBFParser {
 
       protected:
@@ -46,12 +44,15 @@ namespace Osmium {
         char buffer[MAX_BLOB_SIZE];
         int fd;
         std::ostringstream errmsg;
+        struct callbacks *callbacks;
 
       public:
 
-        PBFParser(int in_fd) {
+        PBFParser(int in_fd, struct callbacks *cb) {
             GOOGLE_PROTOBUF_VERIFY_VERSION;
             fd = in_fd;
+            callbacks = cb;
+            last_mode = ModeNode;
 
             readBlockHeader();
 
@@ -83,31 +84,51 @@ namespace Osmium {
         }
 
         void parse(Osmium::OSM::Node *in_node, Osmium::OSM::Way *in_way, Osmium::OSM::Relation *in_relation) {
+            if (callbacks->before_nodes) { callbacks->before_nodes(); }
             while (1) {
                 if (m_loadBlock) {
                     if (!readNextBlock()) {
+                        if (callbacks->after_relations) { callbacks->after_relations(); }
                         return; // EOF
                     }
                     loadBlock();
                     loadGroup();
                 }
 
+                if (last_mode != m_mode) {
+                    switch (m_mode) {
+                        case ModeNode:
+                            break;
+                        case ModeDense:
+                            break;
+                        case ModeWay:
+                            if (callbacks->after_nodes) { callbacks->after_nodes(); }
+                            if (callbacks->before_ways) { callbacks->before_nodes(); }
+                            break;
+                        case ModeRelation:
+                            if (callbacks->after_ways) { callbacks->after_ways(); }
+                            if (callbacks->before_relations) { callbacks->before_relations(); }
+                            break;
+                    }
+                    last_mode = m_mode;
+                }
+
                 switch (m_mode) {
                     case ModeNode:
                         parseNode(in_node);
-                        Osmium::object_handler(in_node);
+                        if (callbacks->node) { callbacks->node(in_node); }
                         break;
                     case ModeWay:
                         parseWay(in_way);
-                        Osmium::object_handler(in_way);
+                        if (callbacks->way) { callbacks->way(in_way); }
                         break;
                     case ModeRelation:
                         parseRelation(in_relation);
-                        Osmium::object_handler(in_relation);
+                        if (callbacks->relation) { callbacks->relation(in_relation); }
                         break;
                     case ModeDense:
                         parseDense(in_node);
-                        Osmium::object_handler(in_node);
+                        if (callbacks->node) { callbacks->node(in_node); }
                         break;
                 }
 
@@ -394,6 +415,7 @@ namespace Osmium {
         bool m_loadBlock;
 
         Mode m_mode;
+        Mode last_mode;
 
         std::map< std::string, int > m_nodeTags;
         std::map< std::string, int > m_wayTags;

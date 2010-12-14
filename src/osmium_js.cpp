@@ -13,53 +13,60 @@
 Osmium::Handler::NLS_Sparsetable *osmium_handler_node_location_store;
 Osmium::Handler::Javascript      *osmium_handler_javascript;
 
-namespace Osmium {
+void init_handler() {
+    osmium_handler_node_location_store->callback_init();
+    osmium_handler_javascript->callback_init();
+}
 
-    void init_handler() {
-        osmium_handler_node_location_store->callback_init();
-        osmium_handler_javascript->callback_init();
-    }
+void before_nodes_handler() {
+}
 
-    void before_nodes_handler() {
-    }
+void after_nodes_handler() {
+}
 
-    void after_nodes_handler() {
-    }
+void before_ways_handler() {
+}
 
-    void before_ways_handler() {
-    }
+void after_ways_handler() {
+}
 
-    void after_ways_handler() {
-    }
+void before_relations_handler() {
+}
 
-    void before_relations_handler() {
-    }
+void after_relations_handler() {
+}
 
-    void after_relations_handler() {
-    }
+void final_handler() {
+    osmium_handler_node_location_store->callback_final();
+    osmium_handler_javascript->callback_final();
+}
 
-    void final_handler() {
-        osmium_handler_node_location_store->callback_final();
-        osmium_handler_javascript->callback_final();
-    }
+void node_handler(Osmium::OSM::Node *node) {
+    osmium_handler_node_location_store->callback_node((Osmium::OSM::Node *) node);
+    osmium_handler_javascript->callback_node((Osmium::OSM::Node *) node);
+}
 
-    void object_handler(OSM::Object *object) {
-        switch (object->type()) {
-            case NODE:
-                osmium_handler_node_location_store->callback_node((OSM::Node *) object);
-                osmium_handler_javascript->callback_node((OSM::Node *) object);
-                break;
-            case WAY:
-                osmium_handler_node_location_store->callback_way((OSM::Way *) object);
-                osmium_handler_javascript->callback_way((OSM::Way *) object);
-                break;
-            case RELATION:
-                osmium_handler_javascript->callback_relation((OSM::Relation *) object);
-                break;
-        }
-    }
+void way_handler(Osmium::OSM::Way *way) {
+    osmium_handler_node_location_store->callback_way((Osmium::OSM::Way *) way);
+    osmium_handler_javascript->callback_way((Osmium::OSM::Way *) way);
+}
 
-} // namespace Osmium
+void relation_handler(Osmium::OSM::Relation *relation) {
+    osmium_handler_javascript->callback_relation((Osmium::OSM::Relation *) relation);
+}
+
+
+struct callbacks callbacks = {
+    before_nodes_handler,
+    after_nodes_handler,
+    before_ways_handler,
+    after_ways_handler,
+    before_relations_handler,
+    after_relations_handler,
+    node_handler,
+    way_handler,
+    relation_handler
+};
 
 /* ================================================== */
 
@@ -125,15 +132,17 @@ int main(int argc, char *argv[])
         }
     }
 
+    init_handler();
     switch (file_format) {
         case xml:
-            Osmium::XMLParser::parse(fd, node, way, relation);
+            Osmium::XMLParser::parse(fd, &callbacks, node, way, relation);
             break;
         case pbf:
-            Osmium::PBFParser *pbf_parser = new Osmium::PBFParser(fd);
+            Osmium::PBFParser *pbf_parser = new Osmium::PBFParser(fd, &callbacks);
             pbf_parser->parse(node, way, relation);
             break;
     }
+    final_handler();
 
     close(fd);
 	

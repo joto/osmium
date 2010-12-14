@@ -42,6 +42,18 @@ struct node_coordinates {
 
 #include "Osm.hpp"
 
+struct callbacks {
+    void (*before_nodes)();
+    void (*after_nodes)();
+    void (*before_ways)();
+    void (*after_ways)();
+    void (*before_relations)();
+    void (*after_relations)();
+    void (*node)(Osmium::OSM::Node *node);
+    void (*way)(Osmium::OSM::Way *way);
+    void (*relation)(Osmium::OSM::Relation *relation);
+};
+
 #include "Handler.hpp"
 #include "HandlerStatistics.hpp"
 #include "HandlerTagStats.hpp"

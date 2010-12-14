@@ -11,19 +11,11 @@
 
 namespace Osmium {
 
-    extern void init_handler();
-    extern void before_nodes_handler();
-    extern void after_nodes_handler();
-    extern void before_ways_handler();
-    extern void after_ways_handler();
-    extern void before_relations_handler();
-    extern void after_relations_handler();
-    extern void final_handler();
-    extern void object_handler(OSM::Object *object);
-
     OSM::Node     *node;
     OSM::Way      *way;
     OSM::Relation *relation;
+
+    struct callbacks *callbacks;
 
     osm_object_type_t last_object_type;
 
@@ -66,9 +58,9 @@ namespace Osmium {
         }
         else if (!strcmp(element, "way")) {
             if (last_object_type != WAY) {
-                after_nodes_handler();
+                if (callbacks->after_nodes) { callbacks->after_nodes(); }
                 last_object_type = WAY;
-                before_ways_handler();
+                if (callbacks->before_ways) { callbacks->before_ways(); }
             }
             init_object(data, way, attrs);
         }
@@ -92,24 +84,34 @@ namespace Osmium {
         }
         else if (!strcmp(element, "relation")) {
             if (last_object_type != RELATION) {
-                after_ways_handler();
+                if (callbacks->after_ways) { callbacks->after_ways(); }
                 last_object_type = RELATION;
-                before_relations_handler();
+                if (callbacks->before_relations) { callbacks->before_relations(); }
             }
             init_object(data, relation, attrs);
         }
     }
 
     void XMLCALL XMLParser::endElement(void *data, const XML_Char* element) {
-        if (!strcmp(element, "node") || !strcmp(element, "way") || !strcmp(element, "relation")) {
-            Osmium::object_handler(OBJECT);
+        if (!strcmp(element, "node")) {
+            if (callbacks->node) { callbacks->node(*((Osmium::OSM::Node **) data)); }
+            OBJECT = 0;
+        }
+        if (!strcmp(element, "way")) {
+            if (callbacks->way) { callbacks->way(*((Osmium::OSM::Way **) data)); }
+            OBJECT = 0;
+        }
+        if (!strcmp(element, "relation")) {
+            if (callbacks->relation) { callbacks->relation(*((Osmium::OSM::Relation **) data)); }
             OBJECT = 0;
         }
     }
 
-    void XMLParser::parse(int fd, Osmium::OSM::Node *in_node, Osmium::OSM::Way *in_way, Osmium::OSM::Relation *in_relation) {
+    void XMLParser::parse(int fd, struct callbacks *cb, Osmium::OSM::Node *in_node, Osmium::OSM::Way *in_way, Osmium::OSM::Relation *in_relation) {
         int done;
         Osmium::OSM::Object *current_object = 0;
+
+        callbacks = cb;
 
         node     = in_node;
         way      = in_way;
@@ -126,8 +128,7 @@ namespace Osmium {
 
         XML_SetElementHandler(parser, XMLParser::startElement, XMLParser::endElement);
 
-        init_handler();
-        before_nodes_handler();
+        if (callbacks->before_nodes) { callbacks->before_nodes(); }
 
         do {
             void *buffer = XML_GetBuffer(parser, OSMIUM_XMLPARSER_BUFFER_SIZE);
@@ -157,8 +158,7 @@ namespace Osmium {
         XML_ParserFree(parser);
         error = "";
 
-        after_relations_handler();
-        final_handler();
+        if (callbacks->after_relations) { callbacks->after_relations(); }
     }
 }
 

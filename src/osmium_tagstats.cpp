@@ -14,63 +14,74 @@ Osmium::Handler::Statistics      *osmium_handler_stats;
 Osmium::Handler::TagStats        *osmium_handler_tagstats;
 //Osmium::Handler::NLS_Sparsetable *osmium_handler_node_location_store;
 
-namespace Osmium {
+void init_handler() {
+    // osmium_handler_stats->callback_init();
+    osmium_handler_tagstats->callback_init();
+    // osmium_handler_node_location_store->callback_init();
+}
 
-    void init_handler() {
-        // osmium_handler_stats->callback_init();
-        osmium_handler_tagstats->callback_init();
-        // osmium_handler_node_location_store->callback_init();
-    }
+void before_nodes_handler() {
+    osmium_handler_tagstats->callback_before_nodes();
+}
 
-    void before_nodes_handler() {
-        osmium_handler_tagstats->callback_before_nodes();
-    }
+void after_nodes_handler() {
+    osmium_handler_tagstats->callback_after_nodes();
+}
 
-    void after_nodes_handler() {
-        osmium_handler_tagstats->callback_after_nodes();
-    }
+void before_ways_handler() {
+    osmium_handler_tagstats->callback_before_ways();
+}
 
-    void before_ways_handler() {
-        osmium_handler_tagstats->callback_before_ways();
-    }
+void after_ways_handler() {
+    osmium_handler_tagstats->callback_after_ways();
+}
 
-    void after_ways_handler() {
-        osmium_handler_tagstats->callback_after_ways();
-    }
+void before_relations_handler() {
+    osmium_handler_tagstats->callback_before_relations();
+}
 
-    void before_relations_handler() {
-        osmium_handler_tagstats->callback_before_relations();
-    }
+void after_relations_handler() {
+    osmium_handler_tagstats->callback_after_relations();
+}
 
-    void after_relations_handler() {
-        osmium_handler_tagstats->callback_after_relations();
-    }
+void final_handler() {
+    // osmium_handler_node_location_store->callback_final();
+    osmium_handler_stats->callback_final();
+    osmium_handler_tagstats->callback_final();
+}
 
-    void final_handler() {
-        // osmium_handler_node_location_store->callback_final();
-        osmium_handler_stats->callback_final();
-        osmium_handler_tagstats->callback_final();
-    }
+void node_handler(Osmium::OSM::Node *object) {
+    osmium_handler_stats->callback_object(object);
+    osmium_handler_tagstats->callback_object(object);
+    osmium_handler_stats->callback_node((Osmium::OSM::Node *) object);
+//    osmium_handler_node_location_store->callback_node((Osmium::OSM::Node *) object);
+}
 
-    void object_handler(OSM::Object *object) {
-        osmium_handler_stats->callback_object(object);
-        osmium_handler_tagstats->callback_object(object);
-        switch (object->type()) {
-            case NODE:
-                osmium_handler_stats->callback_node((OSM::Node *) object);
-//                osmium_handler_node_location_store->callback_node((OSM::Node *) object);
-                break;
-            case WAY:
-                osmium_handler_stats->callback_way((OSM::Way *) object);
-//                osmium_handler_node_location_store->callback_way((OSM::Way *) object);
-                break;
-            case RELATION:
-                osmium_handler_stats->callback_relation((OSM::Relation *) object);
-                break;
-        }
-    }
+void way_handler(Osmium::OSM::Way *object) {
+    osmium_handler_stats->callback_object(object);
+    osmium_handler_tagstats->callback_object(object);
+    osmium_handler_stats->callback_way((Osmium::OSM::Way *) object);
+//    osmium_handler_node_location_store->callback_way((Osmium::OSM::Way *) object);
+}
 
-} // namespace Osmium
+void relation_handler(Osmium::OSM::Relation *object) {
+    osmium_handler_stats->callback_object(object);
+    osmium_handler_tagstats->callback_object(object);
+    osmium_handler_stats->callback_relation((Osmium::OSM::Relation *) object);
+}
+
+
+struct callbacks callbacks = {
+    before_nodes_handler,
+    after_nodes_handler,
+    before_ways_handler,
+    after_ways_handler,
+    before_relations_handler,
+    after_relations_handler,
+    node_handler,
+    way_handler,
+    relation_handler
+};
 
 /* ================================================== */
 
@@ -117,15 +128,17 @@ int main(int argc, char *argv[])
         }
     }
 
+    init_handler();
     switch (file_format) {
         case xml:
-            Osmium::XMLParser::parse(fd, node, way, relation);
+            Osmium::XMLParser::parse(fd, &callbacks, node, way, relation);
             break;
         case pbf:
-            Osmium::PBFParser *pbf_parser = new Osmium::PBFParser(fd);
+            Osmium::PBFParser *pbf_parser = new Osmium::PBFParser(fd, &callbacks);
             pbf_parser->parse(node, way, relation);
             break;
     }
+    final_handler();
 
     close(fd);
 
