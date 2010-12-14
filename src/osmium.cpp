@@ -37,7 +37,7 @@ void parse_osmfile(char *osmfilename, struct callbacks *callbacks, Osmium::OSM::
         }
     }
 
-    callbacks->init();
+    if (callbacks->init) { callbacks->init(); }
     switch (file_format) {
         case xml:
             Osmium::XMLParser::parse(fd, callbacks, node, way, relation);
@@ -47,7 +47,7 @@ void parse_osmfile(char *osmfilename, struct callbacks *callbacks, Osmium::OSM::
             pbf_parser->parse(node, way, relation);
             break;
     }
-    callbacks->final();
+    if (callbacks->final) { callbacks->final(); }
 
     close(fd);
 }

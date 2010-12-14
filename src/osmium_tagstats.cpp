@@ -50,24 +50,24 @@ void final_handler() {
     osmium_handler_tagstats->callback_final();
 }
 
-void node_handler(Osmium::OSM::Node *object) {
-    osmium_handler_stats->callback_object(object);
-    osmium_handler_tagstats->callback_object(object);
-    osmium_handler_stats->callback_node((Osmium::OSM::Node *) object);
-//    osmium_handler_node_location_store->callback_node((Osmium::OSM::Node *) object);
+void node_handler(Osmium::OSM::Node *node) {
+    osmium_handler_stats->callback_object(node);
+    osmium_handler_tagstats->callback_object(node);
+    osmium_handler_stats->callback_node(node);
+//    osmium_handler_node_location_store->callback_node(node);
 }
 
-void way_handler(Osmium::OSM::Way *object) {
-    osmium_handler_stats->callback_object(object);
-    osmium_handler_tagstats->callback_object(object);
-    osmium_handler_stats->callback_way((Osmium::OSM::Way *) object);
-//    osmium_handler_node_location_store->callback_way((Osmium::OSM::Way *) object);
+void way_handler(Osmium::OSM::Way *way) {
+    osmium_handler_stats->callback_object(way);
+    osmium_handler_tagstats->callback_object(way);
+    osmium_handler_stats->callback_way(way);
+//    osmium_handler_node_location_store->callback_way(way);
 }
 
-void relation_handler(Osmium::OSM::Relation *object) {
-    osmium_handler_stats->callback_object(object);
-    osmium_handler_tagstats->callback_object(object);
-    osmium_handler_stats->callback_relation((Osmium::OSM::Relation *) object);
+void relation_handler(Osmium::OSM::Relation *relation) {
+    osmium_handler_stats->callback_object(relation);
+    osmium_handler_tagstats->callback_object(relation);
+    osmium_handler_stats->callback_relation(relation);
 }
 
 

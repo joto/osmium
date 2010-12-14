@@ -42,17 +42,17 @@ void final_handler() {
 }
 
 void node_handler(Osmium::OSM::Node *node) {
-    osmium_handler_node_location_store->callback_node((Osmium::OSM::Node *) node);
-    osmium_handler_javascript->callback_node((Osmium::OSM::Node *) node);
+    osmium_handler_node_location_store->callback_node(node);
+    osmium_handler_javascript->callback_node(node);
 }
 
 void way_handler(Osmium::OSM::Way *way) {
-    osmium_handler_node_location_store->callback_way((Osmium::OSM::Way *) way);
-    osmium_handler_javascript->callback_way((Osmium::OSM::Way *) way);
+    osmium_handler_node_location_store->callback_way(way);
+    osmium_handler_javascript->callback_way(way);
 }
 
 void relation_handler(Osmium::OSM::Relation *relation) {
-    osmium_handler_javascript->callback_relation((Osmium::OSM::Relation *) relation);
+    osmium_handler_javascript->callback_relation(relation);
 }
 
 

@@ -64,9 +64,10 @@ struct callbacks {
 void parse_osmfile(char *osmfilename, struct callbacks *callbacks, Osmium::OSM::Node *node, Osmium::OSM::Way *way, Osmium::OSM::Relation *relation);
 
 #include "Handler.hpp"
+#include "HandlerMultipolygon.hpp"
+#include "HandlerNodeLocationStore.hpp"
 #include "HandlerStatistics.hpp"
 #include "HandlerTagStats.hpp"
-#include "HandlerNodeLocationStore.hpp"
 
 #include "JavascriptOutputCSV.hpp"
 #include "JavascriptOutputShapefile.hpp"

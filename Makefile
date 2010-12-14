@@ -6,7 +6,8 @@
 
 CXX = g++
 
-CXXFLAGS = -O3 -Wall -W -Wredundant-decls -Wdisabled-optimization -pedantic
+CXXFLAGS = -g -Wall -W -Wredundant-decls -Wdisabled-optimization -pedantic
+#CXXFLAGS = -O3 -Wall -W -Wredundant-decls -Wdisabled-optimization -pedantic
 #CXXFLAGS = -g -fPIC
 #CXXFLAGS = -Wpadded -Winline
 
@@ -26,7 +27,7 @@ OBJ = XMLParser.o wkb.o protobuf/fileformat.pb.o protobuf/osmformat.pb.o osmium.
 OBJ_TAGSTAT = HandlerStatistics.o
 OBJ_JS = JavascriptTemplate.o
 
-HPP = osmium.hpp Osm.hpp OsmObject.hpp OsmNode.hpp OsmWay.hpp OsmRelation.hpp XMLParser.hpp wkb.hpp StringStore.hpp Handler.hpp HandlerStatistics.hpp HandlerTagStats.hpp HandlerNodeLocationStore.hpp PBFParser.hpp
+HPP = osmium.hpp Osm.hpp OsmObject.hpp OsmNode.hpp OsmWay.hpp OsmRelation.hpp XMLParser.hpp wkb.hpp StringStore.hpp Handler.hpp HandlerMultipolygon.hpp HandlerStatistics.hpp HandlerTagStats.hpp HandlerNodeLocationStore.hpp PBFParser.hpp
 
 SRC_CPP = $(patsubst %,src/%,$(CPP))
 SRC_OBJ = $(patsubst %,src/%,$(OBJ))
@@ -45,7 +46,7 @@ SRC_HPP_JS = $(wildcard src/*Javascript*.hpp)
 
 .PHONY: all clean doc
 
-all: osmium_js osmium_tagstats
+all: osmium_js osmium_js_2pass osmium_tagstats
 
 #src/%.d: src/%.cpp
 #	$(SHELL) -ec "$(CXX) -MM -MT '$(patsubst %.cpp,%.o,$<) $(patsubst %.cpp,%.d,$<)' $< >$@; [ -s $@ ] || rm -f $@"
@@ -62,11 +63,14 @@ src/%.o: src/%.cpp $(SRC_HPP)
 osmium_js: src/osmium_js.cpp $(SRC_OBJ) $(SRC_OBJ_JS) $(SRC_HPP) $(SRC_HPP_JS)
 	$(CXX) $(CXXFLAGS) -o $@ $< $(SRC_OBJ) $(SRC_OBJ_JS) $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_V8) $(LIB_SHAPE)
 
+osmium_js_2pass: src/osmium_js_2pass.cpp $(SRC_OBJ) $(SRC_OBJ_JS) $(SRC_HPP) $(SRC_HPP_JS)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(SRC_OBJ) $(SRC_OBJ_JS) $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_V8) $(LIB_SHAPE)
+
 osmium_tagstats: src/osmium_tagstats.cpp $(SRC_OBJ) $(SRC_OBJ_TAGSTAT) $(SRC_HPP)
 	$(CXX) $(CXXFLAGS) -o $@ $< $(SRC_OBJ) $(SRC_OBJ_TAGSTAT) $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_GD) $(LIB_SQLITE)
     
 clean:
-	rm -f src/protobuf/*format.pb.* src/*.o src/*.d osmium_js osmium_tagstats
+	rm -f src/protobuf/*format.pb.* src/*.o src/*.d osmium_js osmium_js_2pass osmium_tagstats
 
 doc: doc/html/files.html
 
