@@ -73,14 +73,16 @@ void relation_handler(Osmium::OSM::Relation *object) {
 
 struct callbacks callbacks = {
     before_nodes_handler,
-    after_nodes_handler,
-    before_ways_handler,
-    after_ways_handler,
-    before_relations_handler,
-    after_relations_handler,
     node_handler,
+    after_nodes_handler,
+
+    before_ways_handler,
     way_handler,
-    relation_handler
+    after_ways_handler,
+
+    before_relations_handler,
+    relation_handler,
+    after_relations_handler
 };
 
 /* ================================================== */

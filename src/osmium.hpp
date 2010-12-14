@@ -42,16 +42,19 @@ struct node_coordinates {
 
 #include "Osm.hpp"
 
+// callbacks that should be called from OSM file parser
 struct callbacks {
     void (*before_nodes)();
-    void (*after_nodes)();
-    void (*before_ways)();
-    void (*after_ways)();
-    void (*before_relations)();
-    void (*after_relations)();
     void (*node)(Osmium::OSM::Node *node);
+    void (*after_nodes)();
+
+    void (*before_ways)();
     void (*way)(Osmium::OSM::Way *way);
+    void (*after_ways)();
+
+    void (*before_relations)();
     void (*relation)(Osmium::OSM::Relation *relation);
+    void (*after_relations)();
 };
 
 #include "Handler.hpp"
