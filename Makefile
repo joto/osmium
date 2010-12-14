@@ -10,9 +10,9 @@ CXXFLAGS = -O3 -Wall -W -Wredundant-decls -Wdisabled-optimization -pedantic
 #CXXFLAGS = -g -fPIC
 #CXXFLAGS = -Wpadded -Winline
 
-LDFLAGS = -lexpat -lpthread
+LDFLAGS = -L/usr/local/lib -lexpat -lpthread
 
-LIB_V8       = -L/usr/local/lib -lv8
+LIB_V8       = -lv8
 LIB_SQLITE   = -lsqlite3
 LIB_GD       = -lgd -lpng -lz -lm
 LIB_SHAPE    = -lshp
