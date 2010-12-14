@@ -18,11 +18,11 @@ LIB_GD       = -lgd -lpng -lz -lm
 LIB_SHAPE    = -lshp
 LIB_PROTOBUF = -lz -lprotobuf
 
-CPP = XMLParser.cpp wkb.cpp
+CPP = XMLParser.cpp wkb.cpp osmium.cpp
 CPP_TAGSTAT = HandlerStatistics.cpp
 CPP_JS = JavascriptTemplate.cpp
 
-OBJ = XMLParser.o wkb.o protobuf/fileformat.pb.o protobuf/osmformat.pb.o
+OBJ = XMLParser.o wkb.o protobuf/fileformat.pb.o protobuf/osmformat.pb.o osmium.o 
 OBJ_TAGSTAT = HandlerStatistics.o
 OBJ_JS = JavascriptTemplate.o
 

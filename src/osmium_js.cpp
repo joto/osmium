@@ -57,6 +57,8 @@ void relation_handler(Osmium::OSM::Relation *relation) {
 
 
 struct callbacks callbacks = {
+    init_handler,
+
     before_nodes_handler,
     node_handler,
     after_nodes_handler,
@@ -67,7 +69,9 @@ struct callbacks callbacks = {
 
     before_relations_handler,
     relation_handler,
-    after_relations_handler
+    after_relations_handler,
+
+    final_handler
 };
 
 /* ================================================== */
@@ -102,51 +106,7 @@ int main(int argc, char *argv[])
     Osmium::OSM::Way      *way      = wrap_way->object;
     Osmium::OSM::Relation *relation = wrap_relation->object;
 
-//    Osmium::OSM::Node     *node     = new Osmium::OSM::Node;
-//    Osmium::OSM::Way      *way      = new Osmium::OSM::Way;
-//    Osmium::OSM::Relation *relation = new Osmium::OSM::Relation;
-
-    char *osmfilename = argv[2];
-    int fd = 0;
-    if (osmfilename[0] == '-' && osmfilename[1] == 0) {
-        // fd is already 0, read STDIN
-    } else {
-        fd = open(osmfilename, O_RDONLY);
-        if (fd < 0) {
-            std::cerr << "Can't open osm file: " << strerror(errno) << '\n';
-            exit(1);
-        }
-    }
-
-    osm_file_format_t file_format;
-    char *suffix = strrchr(osmfilename, '.');
-
-    if (suffix == NULL) {
-        file_format = xml;
-    } else {
-        if (!strcmp(suffix, ".osm")) {
-            file_format = xml;
-        } else if (!strcmp(suffix, ".pbf")) {
-            file_format = pbf;
-        } else {
-            std::cerr << "Unknown file suffix: " << suffix << "\n";
-            exit(1);
-        }
-    }
-
-    init_handler();
-    switch (file_format) {
-        case xml:
-            Osmium::XMLParser::parse(fd, &callbacks, node, way, relation);
-            break;
-        case pbf:
-            Osmium::PBFParser *pbf_parser = new Osmium::PBFParser(fd, &callbacks);
-            pbf_parser->parse(node, way, relation);
-            break;
-    }
-    final_handler();
-
-    close(fd);
+    parse_osmfile(argv[2], &callbacks, node, way, relation);
 	
     global_context.Dispose();
 
