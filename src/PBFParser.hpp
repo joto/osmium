@@ -57,7 +57,7 @@ namespace Osmium {
             readBlockHeader();
 
             if (m_blockHeader.type() != "OSMHeader") {
-                errmsg << "OSMHeader missing, found" << m_blockHeader.type().data() << "instead";
+                errmsg << "OSMHeader missing, found " << m_blockHeader.type().data() << " instead";
                 throw std::runtime_error(errmsg.str());
             }
 
@@ -103,7 +103,7 @@ namespace Osmium {
                             break;
                         case ModeWay:
                             if (callbacks->after_nodes) { callbacks->after_nodes(); }
-                            if (callbacks->before_ways) { callbacks->before_nodes(); }
+                            if (callbacks->before_ways) { callbacks->before_ways(); }
                             break;
                         case ModeRelation:
                             if (callbacks->after_ways) { callbacks->after_ways(); }
@@ -319,7 +319,7 @@ namespace Osmium {
             }
 
             if (m_blockHeader.type() != "OSMData") {
-                errmsg << "invalid block type, found" << m_blockHeader.type().data() << "instead of OSMData";
+                errmsg << "invalid block type, found " << m_blockHeader.type().data() << " instead of OSMData";
                 throw std::runtime_error(errmsg.str());
             }
 

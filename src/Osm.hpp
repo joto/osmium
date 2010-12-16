@@ -32,7 +32,16 @@ namespace Osmium {
 
             char key[max_length_key];     ///< Tag key
             char value[max_length_value]; ///< Tag value
-            
+          
+/*            Tag() {
+                key[0] = '\0';
+                value[0] = '\0';
+            }
+
+            Tag(const Tag &o) {
+                strncpy(key, o.key, max_length_key);
+                strncpy(value, o.value, max_length_value);
+            }*/
         };
 
     } // namespace OSM
@@ -43,5 +52,6 @@ namespace Osmium {
 #include "OsmNode.hpp"
 #include "OsmWay.hpp"
 #include "OsmRelation.hpp"
+#include "OsmMultipolygon.hpp"
 
 #endif // OSMIUM_OSM_HPP

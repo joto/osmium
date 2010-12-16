@@ -16,6 +16,7 @@ namespace Osmium {
             osm_object_id_t ref;
             char            type;
             char            role[max_length_role];
+            Object         *object;
 
         };
 
@@ -29,6 +30,11 @@ namespace Osmium {
         public:
 
             Relation() : Object(), members() {
+            }
+
+            Relation(Relation *r) : Object(r) {
+                num_members = r->num_members;
+                members = r->members;
             }
 
             osm_object_type_t type() const {

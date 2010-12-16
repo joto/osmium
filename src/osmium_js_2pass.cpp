@@ -23,7 +23,6 @@ void before_nodes_handler1() {
 }
 
 void node_handler1(Osmium::OSM::Node *node) {
-    osmium_handler_node_location_store->callback_node(node);
     osmium_handler_javascript->callback_node(node);
 }
 
@@ -34,8 +33,6 @@ void before_ways_handler1() {
 }
 
 void way_handler1(Osmium::OSM::Way *way) {
-    osmium_handler_node_location_store->callback_way(way);
-    osmium_handler_javascript->callback_way(way);
 }
 
 void after_ways_handler1() {
@@ -58,16 +55,20 @@ void before_nodes_handler2() {
 }
 
 void node_handler2(Osmium::OSM::Node *node) {
+    osmium_handler_node_location_store->callback_node(node);
 }
 
 void after_nodes_handler2() {
 }
 
 void before_ways_handler2() {
+    osmium_handler_multipolygon->callback_before_ways();
 }
 
 void way_handler2(Osmium::OSM::Way *way) {
+    osmium_handler_node_location_store->callback_way(way);
     osmium_handler_multipolygon->callback_way(way);
+    osmium_handler_javascript->callback_way(way);
 }
 
 void after_ways_handler2() {
@@ -147,6 +148,7 @@ int main(int argc, char *argv[])
     Osmium::Javascript::Template::init();
 
     osmium_handler_node_location_store = new Osmium::Handler::NLS_Sparsetable;
+    osmium_handler_multipolygon        = new Osmium::Handler::Multipolygon;
     osmium_handler_javascript          = new Osmium::Handler::Javascript(argv[1]);
 
     Osmium::Javascript::Node::Wrapper     *wrap_node     = new Osmium::Javascript::Node::Wrapper;

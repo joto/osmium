@@ -6,12 +6,16 @@
 
 CXX = g++
 
-CXXFLAGS = -g -Wall -W -Wredundant-decls -Wdisabled-optimization -pedantic
+CXXFLAGS = -g -Wall -W -Wredundant-decls -Wdisabled-optimization #-pedantic
 #CXXFLAGS = -O3 -Wall -W -Wredundant-decls -Wdisabled-optimization -pedantic
 #CXXFLAGS = -g -fPIC
 #CXXFLAGS = -Wpadded -Winline
 
+CXXFLAGS += -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
+CXXFLAGS += -DWITH_GEOS $(shell geos-config --cflags)
+
 LDFLAGS = -L/usr/local/lib -lexpat -lpthread
+LDFLAGS += $(shell geos-config --libs)
 
 LIB_V8       = -lv8
 LIB_SQLITE   = -lsqlite3
@@ -19,15 +23,15 @@ LIB_GD       = -lgd -lpng -lz -lm
 LIB_SHAPE    = -lshp
 LIB_PROTOBUF = -lz -lprotobuf
 
-CPP = XMLParser.cpp wkb.cpp osmium.cpp
+CPP = XMLParser.cpp wkb.cpp osmium.cpp OsmObject.cpp OsmMultipolygon.cpp
 CPP_TAGSTAT = HandlerStatistics.cpp
 CPP_JS = JavascriptTemplate.cpp
 
-OBJ = XMLParser.o wkb.o protobuf/fileformat.pb.o protobuf/osmformat.pb.o osmium.o 
+OBJ = XMLParser.o wkb.o protobuf/fileformat.pb.o protobuf/osmformat.pb.o osmium.o OsmObject.o OsmMultipolygon.o
 OBJ_TAGSTAT = HandlerStatistics.o
 OBJ_JS = JavascriptTemplate.o
 
-HPP = osmium.hpp Osm.hpp OsmObject.hpp OsmNode.hpp OsmWay.hpp OsmRelation.hpp XMLParser.hpp wkb.hpp StringStore.hpp Handler.hpp HandlerMultipolygon.hpp HandlerStatistics.hpp HandlerTagStats.hpp HandlerNodeLocationStore.hpp PBFParser.hpp
+HPP = osmium.hpp Osm.hpp OsmObject.hpp OsmNode.hpp OsmWay.hpp OsmRelation.hpp OsmMultipolygon.hpp XMLParser.hpp wkb.hpp StringStore.hpp Handler.hpp HandlerMultipolygon.hpp HandlerStatistics.hpp HandlerTagStats.hpp HandlerNodeLocationStore.hpp PBFParser.hpp
 
 SRC_CPP = $(patsubst %,src/%,$(CPP))
 SRC_OBJ = $(patsubst %,src/%,$(OBJ))
