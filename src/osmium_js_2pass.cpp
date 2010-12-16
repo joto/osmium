@@ -84,6 +84,14 @@ void relation_handler2(Osmium::OSM::Relation *relation) {
 void after_relations_handler2() {
 }
 
+void multipolygon_handler(Osmium::OSM::Multipolygon *multipolygon) {
+    std::cerr << " MP HANDLER " << multipolygon->get_id() << "\n";
+
+    Osmium::Javascript::Multipolygon::Wrapper *mpw = new Osmium::Javascript::Multipolygon::Wrapper(multipolygon);
+    osmium_handler_javascript->callback_multipolygon(multipolygon);
+    delete mpw;
+}
+
 void final_handler() {
     osmium_handler_node_location_store->callback_final();
     osmium_handler_javascript->callback_final();
@@ -105,6 +113,8 @@ struct callbacks callbacks_1st_pass = {
     relation_handler1,
     after_relations_handler1,
 
+    NULL,
+
     NULL
 };
 
@@ -122,6 +132,8 @@ struct callbacks callbacks_2nd_pass = {
     before_relations_handler2,
     relation_handler2,
     after_relations_handler2,
+
+    multipolygon_handler,
 
     final_handler
 };
@@ -148,7 +160,7 @@ int main(int argc, char *argv[])
     Osmium::Javascript::Template::init();
 
     osmium_handler_node_location_store = new Osmium::Handler::NLS_Sparsetable;
-    osmium_handler_multipolygon        = new Osmium::Handler::Multipolygon;
+    osmium_handler_multipolygon        = new Osmium::Handler::Multipolygon(&callbacks_2nd_pass);
     osmium_handler_javascript          = new Osmium::Handler::Javascript(argv[1]);
 
     Osmium::Javascript::Node::Wrapper     *wrap_node     = new Osmium::Javascript::Node::Wrapper;

@@ -71,6 +71,8 @@ struct callbacks callbacks = {
     relation_handler,
     after_relations_handler,
 
+    NULL, // multipolygon
+
     final_handler
 };
 

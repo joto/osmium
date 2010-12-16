@@ -53,7 +53,7 @@ namespace Osmium {
 
         bool same_tags(const Object *a, const Object *b)
         {
-            map<string,string> aTags;
+            std::map<std::string, std::string> aTags;
             for (int i = 0; i < a->tag_count(); i++)
             {
                 if (ignore_tag(a->get_tag_key(i))) continue;
@@ -73,7 +73,7 @@ namespace Osmium {
         bool merge_tags(Object *a, const Object *b)
         {
             bool rv = true;
-            map<string,string> aTags;
+            std::map<std::string, std::string> aTags;
             for (int i = 0; i < a->tag_count(); i++)
             {
                 if (ignore_tag(a->get_tag_key(i))) continue;
@@ -115,7 +115,7 @@ namespace Osmium {
         * may be called again to find further rings.) If this is not possible, 
         * return NULL.
         */
-        RingInfo *Multipolygon::make_one_ring(vector<WayInfo> &ways, osm_object_id_t first, osm_object_id_t last, int ringcount, int sequence)
+        RingInfo *Multipolygon::make_one_ring(std::vector<WayInfo> &ways, osm_object_id_t first, osm_object_id_t last, int ringcount, int sequence)
         {
 
             // have we found a loop already?
@@ -242,7 +242,7 @@ namespace Osmium {
         */
         bool Multipolygon::build_geometry(Relation *r)
         {
-            vector<WayInfo> ways;
+            std::vector<WayInfo> ways;
             time_t timestamp = r->timestamp;
 
             // assemble all ways which are members of this relation into a 
@@ -250,7 +250,7 @@ namespace Osmium {
             // and some extra flags.
             
             START_TIMER(assemble_ways);
-            for (vector<Way>::iterator i = member_ways.begin(); i != member_ways.end(); i++)
+            for (std::vector<Way>::iterator i = member_ways.begin(); i != member_ways.end(); i++)
             {       
                 if (i->timestamp > timestamp) timestamp = i->timestamp;
                 ways.push_back(WayInfo(&(*i), UNSET));
@@ -259,7 +259,7 @@ namespace Osmium {
             }
             STOP_TIMER(assemble_ways);
 
-            vector<RingInfo *> ringlist;
+            std::vector<RingInfo *> ringlist;
 
             // try and create as many closed rings as possible from the assortment
             // of ways. make_one_ring will automatically flag those that have been
@@ -282,11 +282,11 @@ namespace Osmium {
 
             // collect the remaining debris.
             
-            map<int,bool> dangling_node;
+            std::map<int,bool> dangling_node;
 
-            vector<Geometry *> v;
+            std::vector<Geometry *> v;
                         
-            for (vector<WayInfo>::iterator i = ways.begin(); i != ways.end(); i++)
+            for (std::vector<WayInfo>::iterator i = ways.begin(); i != ways.end(); i++)
             {       
                 if (i->used < 0)
                 {
@@ -303,7 +303,7 @@ namespace Osmium {
                 return geometry_error("unconnected ways");
             }
 
-            vector<Geometry *> *polygons = new vector<Geometry *>();
+            std::vector<Geometry *> *polygons = new std::vector<Geometry *>();
 
             MultiPolygon *mp = NULL;
 
@@ -407,7 +407,7 @@ namespace Osmium {
                 {
                     if (ringlist[i]->ways.size() == 1 && !untagged(ringlist[i]->ways[0]->way))
                     {
-                        vector<Geometry *> *g = new vector<Geometry *>;
+                        std::vector<Geometry *> *g = new std::vector<Geometry *>;
                         if (ringlist[i]->direction == CLOCKWISE)
                         {
                             g->push_back(ringlist[i]->polygon->clone());
@@ -461,7 +461,7 @@ namespace Osmium {
                 if (ringlist[i] == NULL) continue; // can happen if ring has been deleted
                 if (ringlist[i]->contained_by) continue;
 
-                vector<Geometry *> *holes = new vector<Geometry *>(); // ownership is later transferred to polygon
+                std::vector<Geometry *> *holes = new std::vector<Geometry *>(); // ownership is later transferred to polygon
 
                 START_TIMER(inner_ring_touch)
                 for (int j=0; j<((int)ringlist[i]->inner_rings.size()-1); j++)
@@ -578,7 +578,7 @@ namespace Osmium {
                 catch (const geos::util::GEOSException& exc) 
                 {
                     // nop
-                    cerr << "Exception during creation of polygon for relation #" << r->id << ": " << exc.what() << " (treating as invalid polygon)" << endl;
+                    std::cerr << "Exception during creation of polygon for relation #" << r->id << ": " << exc.what() << " (treating as invalid polygon)" << std::endl;
                 }
                 if (!valid)
                 {

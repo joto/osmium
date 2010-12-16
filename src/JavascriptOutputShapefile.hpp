@@ -4,6 +4,10 @@
 #include <shapefil.h>
 #include "Javascript.hpp"
 
+#include <geos/geom/Geometry.h>
+#include <geos/geom/Polygon.h>
+#include <geos/geom/LineString.h>
+
 namespace Osmium {
 
     namespace Output {
@@ -99,6 +103,92 @@ namespace Osmium {
                 num_fields++;
             }
 
+            bool dumpGeometry(const geos::geom::Geometry *g, std::vector<int>& partStart, std::vector<double>& x, std::vector<double>& y)
+            {
+                switch(g->getGeometryTypeId())
+                {
+                    case GEOS_MULTIPOLYGON:
+                    case GEOS_MULTILINESTRING:
+                    {
+                        for (size_t i=0; i<g->getNumGeometries(); i++)
+                        {
+                            if (!dumpGeometry(g->getGeometryN(i), partStart, x, y)) return false;
+                        }
+                        break;
+                    }
+                    case GEOS_POLYGON:
+                    {
+                        geos::geom::Polygon *p = (geos::geom::Polygon *) g;
+                        if (!dumpGeometry(p->getExteriorRing(), partStart, x, y)) return false;
+                        for (size_t i=0; i<p->getNumInteriorRing(); i++)
+                        {
+                            if (!dumpGeometry(p->getInteriorRingN(i), partStart, x, y)) return false; 
+                        }
+                        break;
+                    }
+                    case GEOS_LINESTRING:
+                    case GEOS_LINEARRING:
+                    {
+                        partStart.push_back(x.size());
+                        const geos::geom::CoordinateSequence *cs = ((LineString *) g)->getCoordinatesRO();
+                        for (size_t i = 0; i < cs->getSize(); i++)
+                        {
+                            x.push_back(cs->getX(i));
+                            y.push_back(cs->getY(i));
+                        }
+                        break;
+                    }
+                    default:
+                        throw std::runtime_error("invalid geometry type encountered");
+                }
+                return true;
+            }
+
+            int create_multipolygon_shape(SHPHandle shp_handle, Osmium::OSM::Multipolygon *mp) {
+                int newindex;
+                if (mp->is_simple()) {
+                    Osmium::OSM::Way *way = mp->way;
+                    SHPObject *shp_object = SHPCreateSimpleObject(shp_type, way->num_nodes, way->lon, way->lat, NULL);
+                    assert(shp_object);
+                    newindex = SHPWriteObject(shp_handle, -1, shp_object);
+                    SHPDestroyObject(shp_object);
+                } else {
+                    const geos::geom::Geometry *g = mp->get_geometry();
+                    std::vector<double> x;
+                    std::vector<double> y;
+                    std::vector<int> partStart;
+
+                    dumpGeometry(g, partStart, x, y);
+
+                    int *ps = new int[partStart.size()];
+                    for (size_t i=0; i<partStart.size(); i++) ps[i]=partStart[i];
+                    double *xx = new double[x.size()];
+                    for (size_t i=0; i<x.size(); i++) xx[i]=x[i];
+                    double *yy = new double[y.size()];
+                    for (size_t i=0; i<y.size(); i++) yy[i]=y[i];
+
+                    SHPObject *o = SHPCreateObject(
+                        SHPT_POLYGON,       // type
+                        -1,                 // id
+                        partStart.size(),   // nParts
+                        ps,                 // panPartStart
+                        NULL,               // panPartType
+                        x.size(),           // nVertices,
+                        xx, 
+                        yy,
+                        NULL,
+                        NULL);
+                    //cout << "rewind: " << SHPRewindObject(h, o) << endl;
+                    
+                    newindex = SHPWriteObject(shp_handle, -1, o);
+                    SHPDestroyObject(o);
+                    delete[] ps;
+                    delete[] xx;
+                    delete[] yy;
+                }
+                return newindex;
+            }
+
             /**
             * Add an %OSM object to the shapefile.
             */
@@ -107,26 +197,42 @@ namespace Osmium {
                      ) {
 
                 SHPObject *shp_object = 0;
+                int ishape;
+
                 switch (object->type()) {
                     case NODE:
                         if (shp_type != SHPT_POINT) {
                             throw std::runtime_error("a node can only be added to a shapefile with type point");
                         }
                         shp_object = SHPCreateSimpleObject(shp_type, 1, &(((Osmium::OSM::Node *)object)->geom.point.x), &(((Osmium::OSM::Node *)object)->geom.point.y), NULL);
+                        assert(shp_object);
+                        ishape = SHPWriteObject(shp_handle, -1, shp_object);
+                        SHPDestroyObject(shp_object);
                         break;
                     case WAY:
                         if (shp_type != SHPT_ARC && shp_type != SHPT_POLYGON) {
                             throw std::runtime_error("a way can only be added to a shapefile with type line or polygon");
                         }
                         shp_object = SHPCreateSimpleObject(shp_type, ((Osmium::OSM::Way *)object)->num_nodes, ((Osmium::OSM::Way *)object)->lon, ((Osmium::OSM::Way *)object)->lat, NULL);
+                        assert(shp_object);
+                        ishape = SHPWriteObject(shp_handle, -1, shp_object);
+                        SHPDestroyObject(shp_object);
                         break;
                     case RELATION:
                         throw std::runtime_error("a relation can not be added to a shapefile");
                         break;
+                    case MULTIPOLYGON:
+                        if (shp_type != SHPT_POLYGON) {
+                            throw std::runtime_error("a multipolygon can only be added to a shapefile with type polygon");
+                        }
+                        try {
+                            ishape = create_multipolygon_shape(shp_handle, (Osmium::OSM::Multipolygon *)object);
+                        } catch(std::exception& e) { // XXX ignore errors when creating geometry
+                            std::cerr << "ignoring error\n";
+                            return;
+                        }
+                        break;
                 }
-                assert(shp_object);
-                int ishape = SHPWriteObject(shp_handle, -1, shp_object);
-                SHPDestroyObject(shp_object);
 
                 int ok = 0;
                 for (int n=0; n < num_fields; n++) {

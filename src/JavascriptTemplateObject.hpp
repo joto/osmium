@@ -11,7 +11,7 @@ namespace Osmium {
 
                 static v8::Handle<v8::Value> GetId(v8::Local<v8::String> /*property*/, const v8::AccessorInfo &info) {
                     Osmium::Javascript::Object::Wrapper *self = (Osmium::Javascript::Object::Wrapper *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
-                    return v8::Number::New(self->get_object()->id);
+                    return v8::Number::New(self->get_object()->get_id());
                 }
 
                 static v8::Handle<v8::Value> GetVersion(v8::Local<v8::String> /*property*/, const v8::AccessorInfo &info) {

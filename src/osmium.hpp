@@ -19,9 +19,10 @@ enum osm_file_format_t {
 };
 
 enum osm_object_type_t {
-    NODE     = 1,
-    WAY      = 2,
-    RELATION = 3
+    NODE         = 1,
+    WAY          = 2,
+    RELATION     = 3,
+    MULTIPOLYGON = 4
 };
 #define OSM_OBJECT_TYPES_COUNT 4
 
@@ -57,6 +58,8 @@ struct callbacks {
     void (*before_relations)();
     void (*relation)(Osmium::OSM::Relation *relation);
     void (*after_relations)();
+
+    void (*multipolygon)(Osmium::OSM::Multipolygon *multipolygon);
 
     void (*final)();
 };

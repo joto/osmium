@@ -24,6 +24,7 @@ namespace Osmium {
                 v8::Handle<v8::Function> node;
                 v8::Handle<v8::Function> way;
                 v8::Handle<v8::Function> relation;
+                v8::Handle<v8::Function> multipolygon;
                 v8::Handle<v8::Function> end;
             } cb;
 
@@ -121,6 +122,10 @@ namespace Osmium {
                 if (cc->IsFunction()) {
                     cb.relation = v8::Handle<v8::Function>::Cast(cc);
                 }
+                cc = callbacks_object->Get(v8::String::New("multipolygon"));
+                if (cc->IsFunction()) {
+                    cb.multipolygon = v8::Handle<v8::Function>::Cast(cc);
+                }
                 cc = callbacks_object->Get(v8::String::New("end"));
                 if (cc->IsFunction()) {
                     cb.end = v8::Handle<v8::Function>::Cast(cc);
@@ -162,6 +167,13 @@ namespace Osmium {
                 if (!cb.relation.IsEmpty()) {
                     Osmium::Javascript::Relation::Wrapper *wrapper = (Osmium::Javascript::Relation::Wrapper *) object->wrapper;
                     (void) cb.relation->Call(wrapper->get_instance(), 0, 0);
+                }
+            }
+
+            void callback_multipolygon(OSM::Multipolygon *object) {
+                if (!cb.multipolygon.IsEmpty()) {
+                    Osmium::Javascript::Multipolygon::Wrapper *wrapper = (Osmium::Javascript::Multipolygon::Wrapper *) object->wrapper;
+                    (void) cb.multipolygon->Call(wrapper->get_instance(), 0, 0);
                 }
             }
 

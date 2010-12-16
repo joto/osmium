@@ -19,7 +19,6 @@
 enum innerouter { UNSET, INNER, OUTER };
 enum direction { NO_DIRECTION, CLOCKWISE, COUNTERCLOCKWISE };
 
-using namespace std;
 using namespace geos::geom;
 
 /*
@@ -56,8 +55,8 @@ struct RingInfo
 {
     geos::geom::Polygon *polygon;
     enum direction direction;
-    vector<WayInfo *> ways;
-    vector<RingInfo *> inner_rings;
+    std::vector<WayInfo *> ways;
+    std::vector<RingInfo *> inner_rings;
     bool nested;
     RingInfo *contained_by;
     RingInfo() { direction = NO_DIRECTION; contained_by = NULL; polygon = NULL; nested = false; ring_id = -1; }
@@ -68,7 +67,7 @@ namespace Osmium {
 
     namespace OSM {
 
-        class Multipolygon {
+        class Multipolygon : public Object {
 
             enum polygon_type_t { simple, multi } polygon_type;
             bool boundary;
@@ -129,7 +128,15 @@ namespace Osmium {
                 }
             }
 
-            osm_object_id_t get_id() {
+            bool is_simple() {
+                return polygon_type == simple;
+            }
+
+            osm_object_type_t type() const {
+                return MULTIPOLYGON;
+            }
+
+            osm_object_id_t get_id() const {
                 if (polygon_type == multi) {
                     return relation->get_id();
                 } else {
@@ -139,9 +146,18 @@ namespace Osmium {
 
             bool build_geometry(Relation *r);
 
+            void build_geometry() {
+                if (polygon_type == multi) {
+                    std::cerr << "going to build multipolygon geometry\n";
+                    build_geometry(relation);
+                } else {
+// do nothing                    throw std::runtime_error("Can´t build way geometry");
+                }
+            }
+
           private:
 
-            RingInfo *make_one_ring(vector<WayInfo> &ways, osm_object_id_t first, osm_object_id_t last, int ringcount, int sequence);
+            RingInfo *make_one_ring(std::vector<WayInfo> &ways, osm_object_id_t first, osm_object_id_t last, int ringcount, int sequence);
             bool geometry_error(const char *message);
 
             void init() {

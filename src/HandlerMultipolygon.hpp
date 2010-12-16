@@ -16,7 +16,13 @@ namespace Osmium {
             typedef google::sparse_hash_map<osm_object_id_t, std::vector<std::pair<osm_object_id_t, osm_sequence_id_t> > > way2rel_t;
             way2rel_t way2rel;
 
+            struct callbacks *cb;
+
           public:
+
+            Multipolygon(struct callbacks *cb) : cb(cb) {
+            }
+
 // TODO destructor that deletes multipolygons in vector
             // in pass 1
             void callback_before_relations() {
@@ -92,6 +98,7 @@ namespace Osmium {
                     if (way->is_closed()) { // way is closed, build simple multipolygon
                         mp = new OSM::Multipolygon(way);
                         std::cerr << "MP simple way=" << way->get_id() << "\n";
+                        callback_multipolygon(mp);
                     }
                 } else { // is in at least one multipolygon relation
                     std::vector<std::pair<osm_object_id_t, osm_sequence_id_t> > v = way2rel_iterator->second;
@@ -121,13 +128,13 @@ namespace Osmium {
                                 }
                             }
                             if (way_geometries_are_ok) {
-                                // XXX do something
                                 if (m->build_geometry(m->relation)) {
                                     geos::io::WKTWriter wkt;
                                     std::cerr << "  mp geometry: " << wkt.write(m->geometry) << std::endl;
                                 } else {
                                     std::cerr << "  geom build error: " << m->geometry_error_message << "\n";
                                 }
+                                callback_multipolygon(m);
                             } else {
                                 std::cerr << "  can´t build mp geometry because at least one way geometry is broken\n";
                             }
@@ -137,6 +144,11 @@ namespace Osmium {
                     }
 
                 }
+            }
+
+            // in pass 2
+            void callback_multipolygon(Osmium::OSM::Multipolygon *multipolygon) {
+                cb->multipolygon(multipolygon);
             }
 
             // in pass 2

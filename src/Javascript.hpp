@@ -121,6 +121,30 @@ namespace Osmium {
 
         } // namespace Relation
 
+        namespace Multipolygon {
+
+            class Wrapper : public Osmium::Javascript::Object::Wrapper {
+
+                public:
+
+                Osmium::OSM::Multipolygon *object;
+
+                Wrapper(Osmium::OSM::Multipolygon *mp) : Osmium::Javascript::Object::Wrapper() {
+                    object = mp;
+                    object->wrapper = this;
+
+                    js_tags_instance    = Osmium::Javascript::Template::create_tags_instance(this);
+                    js_object_instance  = Osmium::Javascript::Template::create_multipolygon_instance(this);
+                }
+
+                Osmium::OSM::Multipolygon *get_object() {
+                    return object;
+                }
+
+            }; // class Wrapper
+
+        } // namespace Multipolygon
+
     } // namespace Javascript
 
 } // namespace Osmium

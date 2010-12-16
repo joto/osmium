@@ -13,6 +13,7 @@
 #include "JavascriptTemplateMember.hpp"
 #include "JavascriptTemplateMembers.hpp"
 #include "JavascriptTemplateRelation.hpp"
+#include "JavascriptTemplateMultipolygon.hpp"
 #include "JavascriptTemplateOutputCSV.hpp"
 #include "JavascriptTemplateOutputShapefile.hpp"
 
@@ -31,6 +32,7 @@ namespace Osmium {
             Member          *js_template_member;
             Members         *js_template_members;
             Relation        *js_template_relation;
+            Multipolygon    *js_template_multipolygon;
             OutputCSV       *js_template_output_csv;
             OutputShapefile *js_template_output_shapefile;
 
@@ -70,6 +72,10 @@ namespace Osmium {
                 return js_template_relation->create_instance(wrapper);
             }
 
+            v8::Local<v8::Object> create_multipolygon_instance(void *wrapper) {
+                return js_template_multipolygon->create_instance(wrapper);
+            }
+
             v8::Local<v8::Object> create_output_csv_instance(void *wrapper) {
                 return js_template_output_csv->create_instance(wrapper);
             }
@@ -88,6 +94,7 @@ namespace Osmium {
                 js_template_member           = new Osmium::Javascript::Template::Member;
                 js_template_members          = new Osmium::Javascript::Template::Members;
                 js_template_relation         = new Osmium::Javascript::Template::Relation;
+                js_template_multipolygon     = new Osmium::Javascript::Template::Multipolygon;
                 js_template_output_csv       = new Osmium::Javascript::Template::OutputCSV;
                 js_template_output_shapefile = new Osmium::Javascript::Template::OutputShapefile;
             }
@@ -95,6 +102,7 @@ namespace Osmium {
             void cleanup() {
                 delete js_template_output_shapefile;
                 delete js_template_output_csv;
+                delete js_template_multipolygon;
                 delete js_template_relation;
                 delete js_template_members;
                 delete js_template_member;

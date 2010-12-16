@@ -128,7 +128,7 @@ namespace Osmium {
                 }
             }
 
-            osm_object_id_t get_id() const {
+            virtual osm_object_id_t get_id() const {
                 return id;
             }
 
@@ -215,6 +215,7 @@ namespace Osmium {
 
 #ifdef WITH_GEOS
             geos::geom::Geometry *get_geometry() {
+                std::cerr << "get_geometry()\n";
                 if (!geometry) {
                     build_geometry();
                     if (!geometry) {
@@ -225,6 +226,7 @@ namespace Osmium {
             }
 
             virtual void build_geometry() {
+                throw std::runtime_error("should not be here");
             }
 #endif
 
