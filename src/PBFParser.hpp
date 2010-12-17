@@ -380,22 +380,22 @@ namespace Osmium {
             if (m_blob.has_raw()) {
                 return { m_blob.raw().data(), m_blob.raw().size() };
             } else if (m_blob.has_zlib_data()) {
-                unpackZlib();
+                unpackZlib(m_blob.zlib_data().data(), m_blob.zlib_data().size(), m_blob.raw_size());
+                return { unpack_buffer, m_blob.raw_size() };
             } else if (m_blob.has_lzma_data()) {
                 throw std::runtime_error("lzma blobs not implemented");
             } else {
                 throw std::runtime_error("Blob contains no data");
             }
-            return { unpack_buffer, m_blob.raw_size() };
         }
 
-        void unpackZlib() {
+        void unpackZlib(const char *data, size_t size, size_t raw_size) {
             z_stream compressedStream;
 
-            compressedStream.next_in   = (unsigned char*) m_blob.zlib_data().data();
-            compressedStream.avail_in  = m_blob.zlib_data().size();
+            compressedStream.next_in   = (unsigned char*) data;
+            compressedStream.avail_in  = size;
             compressedStream.next_out  = (unsigned char*) unpack_buffer;
-            compressedStream.avail_out = m_blob.raw_size();
+            compressedStream.avail_out = raw_size;
             compressedStream.zalloc    = Z_NULL;
             compressedStream.zfree     = Z_NULL;
             compressedStream.opaque    = Z_NULL;
