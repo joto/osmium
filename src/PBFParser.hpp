@@ -73,16 +73,10 @@ namespace Osmium {
             }
 
             for (int i = 0; i < m_headerBlock.required_features_size(); i++) {
-                const std::string& feature = m_headerBlock.required_features( i );
-                bool supported = false;
-                if (feature == "OsmSchema-V0.6") { // XXX
-                    supported = true;
-                } else if (feature == "DenseNodes") {
-                    supported = true;
-                }
+                const std::string& feature = m_headerBlock.required_features(i);
 
-                if (!supported) {
-                    errmsg << "required feature not supported:" << feature.data();
+                if ((feature != "OsmSchema-V0.6") && (feature != "DenseNodes")) {
+                    errmsg << "required feature not supported: " << feature;
                     throw std::runtime_error(errmsg.str());
                 }
             }
