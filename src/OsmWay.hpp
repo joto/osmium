@@ -108,7 +108,7 @@ namespace Osmium {
             }
 
 #ifdef WITH_GEOS
-            void build_geometry() {
+            bool build_geometry() {
                 try {
                     std::vector<geos::geom::Coordinate> *c = new std::vector<geos::geom::Coordinate>;
                     for (int i=0; i<num_nodes; i++) {
@@ -120,6 +120,7 @@ namespace Osmium {
                     std::cerr << "error building way geometry, leave it as NULL" << std::endl;
                     geometry = NULL;
                 }
+                return true;
             }
 #endif
 

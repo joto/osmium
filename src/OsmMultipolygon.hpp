@@ -69,17 +69,43 @@ namespace Osmium {
 
         class Multipolygon : public Object {
 
-            enum polygon_type_t { simple, multi } polygon_type;
+        }; // class Multipolygon
+
+        class MultipolygonFromWay : public Multipolygon {
+
+            public:
+
+            /// the way this multipolygon was build from
+            Way *way;
+
+            MultipolygonFromWay(Way *w) : way(w) {
+            }
+
+            osm_object_type_t type() const {
+                return MULTIPOLYGON_FROM_WAY;
+            }
+
+            osm_object_id_t get_id() const {
+                return way->get_id();
+            }
+
+#ifdef WITH_GEOS
+            bool build_geometry() {
+                geometry = way->get_geometry();
+                return true;
+            }
+#endif
+
+        }; // class MultipolygonFromWay
+
+        class MultipolygonFromRelation : public Multipolygon {
+
             bool boundary;
 
           public:
 
-            union {
-                Way *way;
-                Relation *relation;
-            };
-
-          public:
+            /// the relation this multipolygon was build from
+            Relation *relation;
 
             /// the member ways of this multipolygon
             std::vector<Osmium::OSM::Way> member_ways;
@@ -90,8 +116,8 @@ namespace Osmium {
             /// how many ways are missing before we can build this multipolygon
             int missing_ways;
 
-            geos::geom::Geometry *geometry;
             std::string geometry_error_message;
+
           private:
 
             timer write_complex_poly_timer;
@@ -111,49 +137,34 @@ namespace Osmium {
 
           public:
 
-            Multipolygon(Way *w) : polygon_type(simple), boundary(false), way(w) {
-                init();
-            }
-
-            Multipolygon(Relation *r, bool b) : polygon_type(multi), boundary(b), relation(r) {
+            MultipolygonFromRelation(Relation *r, bool b) : boundary(b), relation(r) {
                 num_ways = 0;
                 init();
             }
 
-            ~Multipolygon() {
-                if (polygon_type == simple) {
-                    // TODO
-                } else {
-                    delete relation;
-                }
-            }
-
-            bool is_simple() {
-                return polygon_type == simple;
+            ~MultipolygonFromRelation() {
+                delete relation;
             }
 
             osm_object_type_t type() const {
-                return MULTIPOLYGON;
+                return MULTIPOLYGON_FROM_RELATION;
             }
 
             osm_object_id_t get_id() const {
-                if (polygon_type == multi) {
-                    return relation->get_id();
-                } else {
-                    return way->get_id();
-                }
+                return relation->get_id();
             }
 
+#ifdef WITH_GEOS
             bool build_geometry(Relation *r);
 
-            void build_geometry() {
-                if (polygon_type == multi) {
-                    std::cerr << "going to build multipolygon geometry\n";
-                    build_geometry(relation);
-                } else {
-// do nothing                    throw std::runtime_error("Can´t build way geometry");
+            bool build_geometry() {
+                std::cerr << "going to build multipolygon geometry\n";
+                if (!build_geometry(relation)) {
+                    std::cerr << "building mp failed: " << geometry_error_message << "\n";
                 }
+                return true;
             }
+#endif
 
           private:
 
@@ -181,7 +192,7 @@ namespace Osmium {
             }
 
 
-        }; // class Multipolygon
+        }; // class MultipolygonFromRelation
 
     } // namespace OSM
 

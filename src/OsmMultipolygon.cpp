@@ -115,7 +115,7 @@ namespace Osmium {
         * may be called again to find further rings.) If this is not possible, 
         * return NULL.
         */
-        RingInfo *Multipolygon::make_one_ring(std::vector<WayInfo> &ways, osm_object_id_t first, osm_object_id_t last, int ringcount, int sequence)
+        RingInfo *MultipolygonFromRelation::make_one_ring(std::vector<WayInfo> &ways, osm_object_id_t first, osm_object_id_t last, int ringcount, int sequence)
         {
 
             // have we found a loop already?
@@ -240,10 +240,10 @@ namespace Osmium {
         * result to the appropriate output file(s).
         *
         */
-        bool Multipolygon::build_geometry(Relation *r)
+        bool MultipolygonFromRelation::build_geometry(Relation *r)
         {
             std::vector<WayInfo> ways;
-            time_t timestamp = r->timestamp;
+            time_t timestamp = relation->timestamp;
 
             // assemble all ways which are members of this relation into a 
             // vector of WayInfo elements. this holds room for the way pointer
@@ -654,7 +654,7 @@ namespace Osmium {
             return geometry_error("multipolygon invalid");
         }
 
-        bool Multipolygon::geometry_error(const char *message)
+        bool MultipolygonFromRelation::geometry_error(const char *message)
         {
             geometry_error_message = message;
             geometry = NULL;

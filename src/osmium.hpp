@@ -19,12 +19,12 @@ enum osm_file_format_t {
 };
 
 enum osm_object_type_t {
-    NODE         = 1,
-    WAY          = 2,
-    RELATION     = 3,
-    MULTIPOLYGON = 4
+    NODE                       = 1,
+    WAY                        = 2,
+    RELATION                   = 3,
+    MULTIPOLYGON_FROM_WAY      = 4,
+    MULTIPOLYGON_FROM_RELATION = 5
 };
-#define OSM_OBJECT_TYPES_COUNT 4
 
 #define OSM_OBJECT_ID_SIZE sizeof(osm_object_id_t)
 

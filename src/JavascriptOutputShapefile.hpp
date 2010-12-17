@@ -146,14 +146,19 @@ namespace Osmium {
 
             int create_multipolygon_shape(SHPHandle shp_handle, Osmium::OSM::Multipolygon *mp) {
                 int newindex;
-                if (mp->is_simple()) {
-                    Osmium::OSM::Way *way = mp->way;
+                if (mp->type() == MULTIPOLYGON_FROM_WAY) {
+                    Osmium::OSM::Way *way = ((Osmium::OSM::MultipolygonFromWay *)mp)->way;
                     SHPObject *shp_object = SHPCreateSimpleObject(shp_type, way->num_nodes, way->lon, way->lat, NULL);
                     assert(shp_object);
                     newindex = SHPWriteObject(shp_handle, -1, shp_object);
                     SHPDestroyObject(shp_object);
                 } else {
                     const geos::geom::Geometry *g = mp->get_geometry();
+
+                    if (!g) {
+                        return -1;
+                    }
+
                     std::vector<double> x;
                     std::vector<double> y;
                     std::vector<int> partStart;
@@ -221,14 +226,19 @@ namespace Osmium {
                     case RELATION:
                         throw std::runtime_error("a relation can not be added to a shapefile");
                         break;
-                    case MULTIPOLYGON:
+                    case MULTIPOLYGON_FROM_WAY:
+                    case MULTIPOLYGON_FROM_RELATION:
                         if (shp_type != SHPT_POLYGON) {
                             throw std::runtime_error("a multipolygon can only be added to a shapefile with type polygon");
                         }
                         try {
-                            ishape = create_multipolygon_shape(shp_handle, (Osmium::OSM::Multipolygon *)object);
+                            ishape = create_multipolygon_shape(shp_handle, (Osmium::OSM::MultipolygonFromRelation *)object);
+                            if (ishape < 0) {
+                                std::cerr << "ignoring error (ishape<0)\n";
+                                return;
+                            }
                         } catch(std::exception& e) { // XXX ignore errors when creating geometry
-                            std::cerr << "ignoring error\n";
+                            std::cerr << "ignoring error: " << e.what() << "\n";
                             return;
                         }
                         break;

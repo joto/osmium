@@ -77,6 +77,12 @@ namespace Osmium {
                 return geom.point.y;
             }
 
+#ifdef WITH_GEOS
+            bool build_geometry() {
+                throw std::runtime_error("not implemented yet");
+            }
+#endif
+
         }; // class Node
 
     } // namespace OSM

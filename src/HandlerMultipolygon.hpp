@@ -12,7 +12,7 @@ namespace Osmium {
 
         class Multipolygon : public Base {
 
-            std::vector<Osmium::OSM::Multipolygon *> multipolygons;
+            std::vector<Osmium::OSM::MultipolygonFromRelation *> multipolygons;
             typedef google::sparse_hash_map<osm_object_id_t, std::vector<std::pair<osm_object_id_t, osm_sequence_id_t> > > way2rel_t;
             way2rel_t way2rel;
 
@@ -71,7 +71,7 @@ namespace Osmium {
                 }
 
                 Osmium::OSM::Relation *r = new Osmium::OSM::Relation(relation);
-                Osmium::OSM::Multipolygon *m = new Osmium::OSM::Multipolygon(r, is_boundary);
+                Osmium::OSM::MultipolygonFromRelation *m = new Osmium::OSM::MultipolygonFromRelation(r, is_boundary);
                 multipolygons.push_back(m);
 
                 for (int i=0; i < relation->member_count(); i++) {
@@ -96,7 +96,7 @@ namespace Osmium {
 
                 if (way2rel_iterator == way2rel.end()) { // not in any relation
                     if (way->is_closed()) { // way is closed, build simple multipolygon
-                        mp = new OSM::Multipolygon(way);
+                        mp = new Osmium::OSM::MultipolygonFromWay(way);
                         std::cerr << "MP simple way=" << way->get_id() << "\n";
                         callback_multipolygon(mp);
                     }
@@ -106,7 +106,7 @@ namespace Osmium {
                     std::cerr << "MP multi way=" << way->get_id() << " is in " << v.size() << " multipolygons\n";
                     for (unsigned int i=0; i < v.size(); i++) {
                         std::pair<int, osm_sequence_id_t> *p = &v[i];
-                        Osmium::OSM::Multipolygon *m = multipolygons[p->first];
+                        Osmium::OSM::MultipolygonFromRelation *m = multipolygons[p->first];
                         std::cerr << "MP multi way=" << way->get_id() << " is in rel=" << m->get_id() << " at " << p->second << "\n";
 
                         OSM::Way *w = new OSM::Way(way);
@@ -128,9 +128,9 @@ namespace Osmium {
                                 }
                             }
                             if (way_geometries_are_ok) {
-                                if (m->build_geometry(m->relation)) {
+                                if (m->get_geometry()) {
                                     geos::io::WKTWriter wkt;
-                                    std::cerr << "  mp geometry: " << wkt.write(m->geometry) << std::endl;
+                                    std::cerr << "  mp geometry: " << wkt.write(m->get_geometry()) << std::endl;
                                 } else {
                                     std::cerr << "  geom build error: " << m->geometry_error_message << "\n";
                                 }

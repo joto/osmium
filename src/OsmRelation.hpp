@@ -72,6 +72,12 @@ namespace Osmium {
                 return 0;
             }
 
+#ifdef WITH_GEOS
+            bool build_geometry() {
+                throw std::runtime_error("Can´t build geometry for relation");
+            }
+#endif
+
         }; // class Relation
 
     } // namespace OSM

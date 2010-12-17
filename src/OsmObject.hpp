@@ -32,6 +32,8 @@ namespace Osmium {
             static const int max_length_username = 255 * 4 + 1; ///< maximum length of OSM user name (255 UTF-8 characters + null byte)
 
 #ifdef WITH_GEOS
+            bool geos_geometry_built;
+
             static void init() {
                 geos::geom::PrecisionModel *pm = new geos::geom::PrecisionModel();
                 global_geometry_factory = new geos::geom::GeometryFactory(pm, -1);
@@ -87,6 +89,7 @@ namespace Osmium {
                 tags = o->tags;
 #ifdef WITH_GEOS
                 geometry = o->geometry;
+                geos_geometry_built = o->geos_geometry_built;
 #endif
             }
 
@@ -105,6 +108,7 @@ namespace Osmium {
 #ifdef WITH_GEOS
                 if (geometry) delete geometry; 
                 geometry = NULL;
+                geos_geometry_built = false;
 #endif
             }
 
@@ -216,18 +220,14 @@ namespace Osmium {
 #ifdef WITH_GEOS
             geos::geom::Geometry *get_geometry() {
                 std::cerr << "get_geometry()\n";
-                if (!geometry) {
+                if (!geos_geometry_built) {
                     build_geometry();
-                    if (!geometry) {
-                        throw std::runtime_error("can't build geometry");
-                    }
+                    geos_geometry_built = true;
                 }
                 return geometry;
             }
 
-            virtual void build_geometry() {
-                throw std::runtime_error("should not be here");
-            }
+            virtual bool build_geometry() = 0;
 #endif
 
         }; // class Object
