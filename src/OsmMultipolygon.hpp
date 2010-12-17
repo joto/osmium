@@ -88,7 +88,7 @@ namespace Osmium {
             MultipolygonFromWay(Way *w) : way(w) {
             }
 
-            osm_object_type_t type() const {
+            osm_object_type_t get_type() const {
                 return MULTIPOLYGON_FROM_WAY;
             }
 
@@ -108,7 +108,7 @@ namespace Osmium {
                 if (shp_type != SHPT_POLYGON) {
                     throw std::runtime_error("a multipolygon can only be added to a shapefile of type polygon");
                 }
-                return SHPCreateSimpleObject(shp_type, way->num_nodes, way->lon, way->lat, NULL);
+                return SHPCreateSimpleObject(shp_type, way->node_count(), way->lon, way->lat, NULL);
             }
 #endif
 
@@ -162,7 +162,7 @@ namespace Osmium {
                 delete relation;
             }
 
-            osm_object_type_t type() const {
+            osm_object_type_t get_type() const {
                 return MULTIPOLYGON_FROM_RELATION;
             }
 

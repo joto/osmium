@@ -23,11 +23,11 @@ namespace Osmium {
 
         class Way : public Object {
 
-            public:
-
             static const int max_nodes_in_way = 2000; ///< There can only be 2000 nodes in a way as per OSM API 0.6 definition.
 
             osm_sequence_id_t num_nodes;
+
+          public:
 
             osm_object_id_t nodes[max_nodes_in_way];
             double            lon[max_nodes_in_way];
@@ -50,7 +50,7 @@ namespace Osmium {
                 }
             }
 
-            osm_object_type_t type() const {
+            osm_object_type_t get_type() const {
                 return WAY;
             }
 

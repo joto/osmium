@@ -32,7 +32,7 @@ namespace Osmium {
 
                     Osmium::OSM::Object *object = get_object(info);
 
-                    const int num_tags = object->num_tags;
+                    const int num_tags = object->tag_count();
                     v8::Local<v8::Array> array = v8::Array::New(num_tags);
 
                     for (int i=0; i < num_tags; i++) {

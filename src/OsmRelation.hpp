@@ -14,7 +14,8 @@ namespace Osmium {
 
         class RelationMember {
 
-        public:
+          public:
+
             static const int max_length_role = 255 * 4 + 1; /* 255 UTF-8 characters + null byte */
 
             osm_object_id_t ref;
@@ -31,7 +32,7 @@ namespace Osmium {
 
             std::vector<RelationMember> members;
 
-        public:
+          public:
 
             Relation() : Object(), members() {
             }
@@ -41,7 +42,7 @@ namespace Osmium {
                 members = r->members;
             }
 
-            osm_object_type_t type() const {
+            osm_object_type_t get_type() const {
                 return RELATION;
             }
 

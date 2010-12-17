@@ -103,31 +103,31 @@ namespace Osmium {
 
             void update_tag_stats(ObjectTagStat *stat, const char * /* key */, const char *value, OSM::Object *object) {
                 stat->key.count[0]++;
-                stat->key.count[object->type()]++;
+                stat->key.count[object->get_type()]++;
 
                 values_iterator = stat->values_stat.find(value);
                 if (values_iterator == stat->values_stat.end()) {
                     const char *ptr = string_store->add(value);
                     counter_t counter;
-                    counter.count[0]              = 1;
-                    counter.count[1]              = 0;
-                    counter.count[2]              = 0;
-                    counter.count[3]              = 0;
-                    counter.count[object->type()] = 1;
+                    counter.count[0]                  = 1;
+                    counter.count[1]                  = 0;
+                    counter.count[2]                  = 0;
+                    counter.count[3]                  = 0;
+                    counter.count[object->get_type()] = 1;
                     stat->values_stat.insert(std::pair<const char *, counter_t>(ptr, counter));
                     stat->values.count[0]++;
-                    stat->values.count[object->type()]++;
+                    stat->values.count[object->get_type()]++;
                 } else {
                     values_iterator->second.count[0]++;
-                    values_iterator->second.count[object->type()]++;
-                    if (values_iterator->second.count[object->type()] == 1) {
-                        stat->values.count[object->type()]++;
+                    values_iterator->second.count[object->get_type()]++;
+                    if (values_iterator->second.count[object->get_type()] == 1) {
+                        stat->values.count[object->get_type()]++;
                     }
                 }
 
                 stat->users_stat[object->get_uid()]++;
 
-                if (object->type() == NODE) {
+                if (object->get_type() == NODE) {
                     int x =                                                int(2 * (((OSM::Node *)object)->get_lon() + 180));
                     int y = Osmium::ObjectTagStat::location_image_y_size - int(2 * (((OSM::Node *)object)->get_lat() +  90));
                     stat->location[Osmium::ObjectTagStat::location_image_x_size * y + x] = true;
@@ -137,8 +137,8 @@ namespace Osmium {
             void callback_object(OSM::Object *object) {
                 ObjectTagStat *stat;
 
-                if (strcmp(max_timestamp, object->timestamp_str) < 0) {
-                    memccpy(max_timestamp, object->timestamp_str, 0, Osmium::OSM::Object::max_length_timestamp);
+                if (strcmp(max_timestamp, object->get_timestamp_str()) < 0) {
+                    memccpy(max_timestamp, object->get_timestamp_str(), 0, Osmium::OSM::Object::max_length_timestamp);
                 }
 
                 int tag_count = object->tag_count();
@@ -174,15 +174,15 @@ namespace Osmium {
                         values_iterator = stat->keypairs_stat.find(key);
                         if (values_iterator == stat->keypairs_stat.end()) {
                             counter_t counter;
-                            counter.count[0]              = 1;
-                            counter.count[1]              = 0;
-                            counter.count[2]              = 0;
-                            counter.count[3]              = 0;
-                            counter.count[object->type()] = 1;
+                            counter.count[0]                  = 1;
+                            counter.count[1]                  = 0;
+                            counter.count[2]                  = 0;
+                            counter.count[3]                  = 0;
+                            counter.count[object->get_type()] = 1;
                             stat->keypairs_stat.insert(std::pair<const char *, counter_t>(key, counter));
                         } else {
                             values_iterator->second.count[0]++;
-                            values_iterator->second.count[object->type()]++;
+                            values_iterator->second.count[object->get_type()]++;
                         }
 
                     }

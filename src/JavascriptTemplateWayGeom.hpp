@@ -16,7 +16,7 @@ namespace Osmium {
                     v8::String::Utf8Value key(property);
 
                     if (!strcmp(*key, "linestring_wkt")) {
-                        const osm_sequence_id_t num_nodes = self->object->num_nodes;
+                        const osm_sequence_id_t num_nodes = self->object->node_count();
                         std::ostringstream oss;
                         oss << "LINESTRING(";
                         for (osm_sequence_id_t i=0; i < num_nodes; i++) {

@@ -18,11 +18,11 @@ namespace Osmium {
                     std::ostringstream oss;
 
                     if (!strcmp(*key, "as_wkt")) {
-                        oss << "POINT(" << self->object->lon_str << " " << self->object->lat_str << ")";
+                        oss << "POINT(" << self->object->get_lon_str() << " " << self->object->get_lat_str() << ")";
                     } else if (!strcmp(*key, "as_ewkt")) {
-                        oss << "SRID=4326;POINT(" << self->object->lon_str << " " << self->object->lat_str << ")";
+                        oss << "SRID=4326;POINT(" << self->object->get_lon_str() << " " << self->object->get_lat_str() << ")";
                     } else if (!strcmp(*key, "as_hex_wkb")) {
-                        oss << self->object->geom.to_hex();
+                        oss << self->object->geom_as_hex_wkb();
         //            } else if (!strcmp(*key, "as_hex_ewkb")) {
         //                oss << self->object->geom.to_hex();             TODO TODO
                     }

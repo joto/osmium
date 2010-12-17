@@ -25,7 +25,7 @@ namespace Osmium {
 
                     Osmium::Javascript::Way::Wrapper *self = (Osmium::Javascript::Way::Wrapper *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
 
-                    const osm_sequence_id_t num_nodes = self->object->num_nodes;
+                    const osm_sequence_id_t num_nodes = self->object->node_count();
                     v8::Local<v8::Array> array = v8::Array::New(num_nodes);
 
                     for (osm_sequence_id_t i=0; i < num_nodes; i++) {

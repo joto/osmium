@@ -30,7 +30,7 @@ namespace Osmium {
         */
         class Object {
 
-        public:
+          public:
 
             static const int max_length_timestamp = 20 + 1; ///< maximum length of OSM object timestamp string (20 characters + null byte)
             static const int max_length_username = 255 * 4 + 1; ///< maximum length of OSM user name (255 UTF-8 characters + null byte)
@@ -56,23 +56,20 @@ namespace Osmium {
             time_t timestamp;
             char user[max_length_username]; ///< name of user who last changed this object
 
+          private:
             // how many tags are there on this object (XXX we could probably live without this and just use tags.size())
             int num_tags;
-
-        private:
 
             std::vector<Tag> tags;
 
 #ifdef WITH_GEOS
-        protected:
+          protected:
             geos::geom::Geometry *geometry;
 #endif
 
-        public:
+          public:
 
             void *wrapper;
-
-            public:
 
             Object() : tags() {
 #ifdef WITH_GEOS
@@ -97,7 +94,7 @@ namespace Osmium {
 #endif
             }
 
-            virtual osm_object_type_t type() const = 0;
+            virtual osm_object_type_t get_type() const = 0;
 
             virtual void reset() {
                 id               = 0;

@@ -171,8 +171,8 @@ namespace Osmium {
             }
             node->changeset = inputNode.info().changeset();
             node->timestamp = inputNode.info().timestamp();
-            node->geom.point.x = ( ( double ) inputNode.lon() * m_primitiveBlock.granularity() + m_primitiveBlock.lon_offset() ) / NANO;
-            node->geom.point.y = ( ( double ) inputNode.lat() * m_primitiveBlock.granularity() + m_primitiveBlock.lat_offset() ) / NANO;
+            node->set_coordinates(( ( double ) inputNode.lon() * m_primitiveBlock.granularity() + m_primitiveBlock.lon_offset() ) / NANO,
+                                  ( ( double ) inputNode.lat() * m_primitiveBlock.granularity() + m_primitiveBlock.lat_offset() ) / NANO);
             for ( int tag = 0; tag < inputNode.keys_size(); tag++ ) {
                 node->add_tag(m_primitiveBlock.stringtable().s( inputNode.keys( tag ) ).data(),
                               m_primitiveBlock.stringtable().s( inputNode.vals( tag ) ).data() );
@@ -264,8 +264,8 @@ namespace Osmium {
             }
             node->changeset = m_lastDenseChangeset;
             node->timestamp = m_lastDenseTimestamp;
-            node->geom.point.x = ( ( double ) m_lastDenseLongitude * m_primitiveBlock.granularity() + m_primitiveBlock.lon_offset() ) / NANO;
-            node->geom.point.y = ( ( double ) m_lastDenseLatitude * m_primitiveBlock.granularity() + m_primitiveBlock.lat_offset() ) / NANO;
+            node->set_coordinates(( ( double ) m_lastDenseLongitude * m_primitiveBlock.granularity() + m_primitiveBlock.lon_offset() ) / NANO,
+                                  ( ( double ) m_lastDenseLatitude * m_primitiveBlock.granularity() + m_primitiveBlock.lat_offset() ) / NANO);
 
             while (m_lastDenseTag < dense.keys_vals_size()) {
                 int tagValue = dense.keys_vals( m_lastDenseTag );

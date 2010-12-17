@@ -17,16 +17,13 @@ namespace Osmium {
 
         class Node : public Object {
 
-        public:
-
             static const int max_length_coordinate = 12 + 1; ///< maximum length of coordinate string (3 digits + dot + 8 digits + null byte)
 
             WKBPoint geom;
-
             char lon_str[max_length_coordinate];
             char lat_str[max_length_coordinate];
 
-        public:
+          public:
 
             Node() : Object() {
             }
@@ -39,7 +36,7 @@ namespace Osmium {
                 geom.point.y = NAN;
             }
 
-            osm_object_type_t type() const {
+            osm_object_type_t get_type() const {
                 return NODE;
             }
 
@@ -57,6 +54,11 @@ namespace Osmium {
                 } else {
                     Object::set_attribute(attr, value);
                 }
+            }
+
+            void set_coordinates(double x, double y) {
+                geom.point.x = x;
+                geom.point.y = y;
             }
 
             const char *get_lon_str() {
@@ -79,6 +81,10 @@ namespace Osmium {
 
             double get_lat() const {
                 return geom.point.y;
+            }
+
+            char *geom_as_hex_wkb() {
+                return geom.to_hex();
             }
 
 #ifdef WITH_GEOS
