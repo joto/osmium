@@ -4,6 +4,10 @@
 #include <vector>
 #include <sstream>
 
+#ifdef WITH_SHPLIB
+#include <shapefil.h>
+#endif
+
 namespace Osmium {
 
     namespace OSM {
@@ -75,6 +79,12 @@ namespace Osmium {
 #ifdef WITH_GEOS
             bool build_geometry() {
                 throw std::runtime_error("Can´t build geometry for relation");
+            }
+#endif
+
+#ifdef WITH_SHPLIB
+            SHPObject *create_shpobject(int /*shp_type*/) {
+                throw std::runtime_error("a relation can not be added to a shapefile of any type");
             }
 #endif
 

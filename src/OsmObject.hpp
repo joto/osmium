@@ -15,6 +15,10 @@
 #include <geos/geom/PrecisionModel.h>
 #endif
 
+#ifdef WITH_SHPLIB
+#include <shapefil.h>
+#endif
+
 namespace Osmium {
 
     namespace OSM {
@@ -228,6 +232,10 @@ namespace Osmium {
             }
 
             virtual bool build_geometry() = 0;
+#endif
+
+#ifdef WITH_SHPLIB
+            virtual SHPObject *create_shpobject(int shp_type) = 0;
 #endif
 
         }; // class Object

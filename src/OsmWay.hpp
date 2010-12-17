@@ -1,6 +1,10 @@
 #ifndef OSMIUM_OSM_WAY_HPP
 #define OSMIUM_OSM_WAY_HPP
 
+#ifdef WITH_SHPLIB
+#include <shapefil.h>
+#endif
+
 /** @file
 *   @brief Contains the Osmium::OSM::Way class.
 */
@@ -121,6 +125,15 @@ namespace Osmium {
                     geometry = NULL;
                 }
                 return true;
+            }
+#endif
+
+#ifdef WITH_SHPLIB
+            SHPObject *create_shpobject(int shp_type) {
+                if (shp_type != SHPT_ARC && shp_type != SHPT_POLYGON) {
+                    throw std::runtime_error("a way can only be added to a shapefile of type line or polygon");
+                }
+                return SHPCreateSimpleObject(shp_type, num_nodes, lon, lat, NULL);
             }
 #endif
 

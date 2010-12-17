@@ -2,14 +2,21 @@
 #define OSMIUM_OSM_MULTIPOLYGON_HPP
 
 #include <sys/types.h>
-#include <geos/geom/Geometry.h>
-#include <geos/geom/Point.h>
 #include <sstream>
 #include <map>
-#include <geos/io/WKBWriter.h>
+
+#ifdef WITH_GEOS
+#include <geos/geom/Geometry.h>
+#include <geos/geom/Point.h>
+#include <geos/geom/LineString.h>
 #include <geos/geom/Polygon.h>
-#include <geos/io/WKBReader.h>
 #include <geos/io/WKBWriter.h>
+#include <geos/io/WKBReader.h>
+#endif
+
+#ifdef WITH_SHPLIB
+#include <shapefil.h>
+#endif
 
 #include "OsmWay.hpp"
 #include "timer.h"
@@ -93,6 +100,15 @@ namespace Osmium {
             bool build_geometry() {
                 geometry = way->get_geometry();
                 return true;
+            }
+#endif
+
+#ifdef WITH_SHPLIB
+            SHPObject *create_shpobject(int shp_type) {
+                if (shp_type != SHPT_POLYGON) {
+                    throw std::runtime_error("a multipolygon can only be added to a shapefile of type polygon");
+                }
+                return SHPCreateSimpleObject(shp_type, way->num_nodes, way->lon, way->lat, NULL);
             }
 #endif
 
@@ -191,6 +207,93 @@ namespace Osmium {
 #endif
             }
 
+            public:
+
+#ifdef WITH_SHPLIB
+            bool dumpGeometry(const geos::geom::Geometry *g, std::vector<int>& partStart, std::vector<double>& x, std::vector<double>& y)
+            {
+                switch(g->getGeometryTypeId())
+                {
+                    case GEOS_MULTIPOLYGON:
+                    case GEOS_MULTILINESTRING:
+                    {
+                        for (size_t i=0; i<g->getNumGeometries(); i++)
+                        {
+                            if (!dumpGeometry(g->getGeometryN(i), partStart, x, y)) return false;
+                        }
+                        break;
+                    }
+                    case GEOS_POLYGON:
+                    {
+                        geos::geom::Polygon *p = (geos::geom::Polygon *) g;
+                        if (!dumpGeometry(p->getExteriorRing(), partStart, x, y)) return false;
+                        for (size_t i=0; i<p->getNumInteriorRing(); i++)
+                        {
+                            if (!dumpGeometry(p->getInteriorRingN(i), partStart, x, y)) return false; 
+                        }
+                        break;
+                    }
+                    case GEOS_LINESTRING:
+                    case GEOS_LINEARRING:
+                    {
+                        partStart.push_back(x.size());
+                        const geos::geom::CoordinateSequence *cs = ((LineString *) g)->getCoordinatesRO();
+                        for (size_t i = 0; i < cs->getSize(); i++)
+                        {
+                            x.push_back(cs->getX(i));
+                            y.push_back(cs->getY(i));
+                        }
+                        break;
+                    }
+                    default:
+                        throw std::runtime_error("invalid geometry type encountered");
+                }
+                return true;
+            }
+
+            SHPObject *create_shpobject(int shp_type) {
+                if (shp_type != SHPT_POLYGON) {
+                    throw std::runtime_error("a multipolygon can only be added to a shapefile of type polygon");
+                }
+
+                const geos::geom::Geometry *g = get_geometry();
+
+                if (!g) {
+                    return NULL;
+                }
+
+                std::vector<double> x;
+                std::vector<double> y;
+                std::vector<int> partStart;
+
+                dumpGeometry(g, partStart, x, y);
+
+                int *ps = new int[partStart.size()];
+                for (size_t i=0; i<partStart.size(); i++) ps[i]=partStart[i];
+                double *xx = new double[x.size()];
+                for (size_t i=0; i<x.size(); i++) xx[i]=x[i];
+                double *yy = new double[y.size()];
+                for (size_t i=0; i<y.size(); i++) yy[i]=y[i];
+
+                SHPObject *o = SHPCreateObject(
+                    SHPT_POLYGON,       // type
+                    -1,                 // id
+                    partStart.size(),   // nParts
+                    ps,                 // panPartStart
+                    NULL,               // panPartType
+                    x.size(),           // nVertices,
+                    xx, 
+                    yy,
+                    NULL,
+                    NULL);
+                //cout << "rewind: " << SHPRewindObject(h, o) << endl;
+                delete[] ps;
+                delete[] xx;
+                delete[] yy;
+                
+                return o;
+            }
+#endif
 
         }; // class MultipolygonFromRelation
 

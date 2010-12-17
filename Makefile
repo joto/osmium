@@ -14,6 +14,7 @@ CXXFLAGS += -std=c++0x -Wall -W -Wredundant-decls -Wdisabled-optimization -pedan
 
 CXXFLAGS += -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 CXXFLAGS += -DWITH_GEOS $(shell geos-config --cflags)
+CXXFLAGS += -DWITH_SHPLIB
 
 LDFLAGS = -L/usr/local/lib -lexpat -lpthread
 LDFLAGS += $(shell geos-config --libs)
@@ -72,7 +73,7 @@ osmium_js_2pass: src/osmium_js_2pass.cpp $(SRC_OBJ) $(SRC_OBJ_JS) $(SRC_HPP) $(S
 	$(CXX) $(CXXFLAGS) -o $@ $< $(SRC_OBJ) $(SRC_OBJ_JS) $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_V8) $(LIB_SHAPE)
 
 osmium_tagstats: src/osmium_tagstats.cpp $(SRC_OBJ) $(SRC_OBJ_TAGSTAT) $(SRC_HPP)
-	$(CXX) $(CXXFLAGS) -o $@ $< $(SRC_OBJ) $(SRC_OBJ_TAGSTAT) $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_GD) $(LIB_SQLITE)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(SRC_OBJ) $(SRC_OBJ_TAGSTAT) $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_GD) $(LIB_SQLITE) $(LIB_SHAPE)
     
 clean:
 	rm -f src/protobuf/*format.pb.* src/*.o src/*.d osmium_js osmium_js_2pass osmium_tagstats

@@ -3,6 +3,10 @@
 
 #include <cmath>
 
+#ifdef WITH_SHPLIB
+#include <shapefil.h>
+#endif
+
 /** @file
 *   @brief Contains the Osmium::OSM::Node class.
 */
@@ -80,6 +84,15 @@ namespace Osmium {
 #ifdef WITH_GEOS
             bool build_geometry() {
                 throw std::runtime_error("not implemented yet");
+            }
+#endif
+
+#ifdef WITH_SHPLIB
+            SHPObject *create_shpobject(int shp_type) {
+                if (shp_type != SHPT_POINT) {
+                    throw std::runtime_error("a node can only be added to a shapefile of type point");
+                }
+                return SHPCreateSimpleObject(shp_type, 1, &geom.point.x, &geom.point.y, NULL);
             }
 #endif
 

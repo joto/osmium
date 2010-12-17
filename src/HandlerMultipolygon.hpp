@@ -119,11 +119,11 @@ namespace Osmium {
                             for (int i=0; i < m->num_ways; i++) {
                                 std::cerr << "  way=" << m->member_ways[i].get_id() << "\n";
 
-                                try {
-                                    geos::geom::Geometry *g = m->member_ways[i].get_geometry();
+                                geos::geom::Geometry *g = m->member_ways[i].get_geometry();
+                                if (g) {
                                     geos::io::WKTWriter wkt;
                                     std::cerr << "  way geometry: " << wkt.write(g) << std::endl;
-                                } catch (std::exception& e) {
+                                } else {
                                     way_geometries_are_ok = false;
                                 }
                             }
