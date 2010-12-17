@@ -6,10 +6,11 @@
 
 CXX = g++
 
-CXXFLAGS = -g -std=c++0x -Wall -W -Wredundant-decls -Wdisabled-optimization -pedantic
-#CXXFLAGS = -O3 -Wall -W -Wredundant-decls -Wdisabled-optimization -pedantic
-#CXXFLAGS = -g -fPIC
-#CXXFLAGS = -Wpadded -Winline
+CXXFLAGS = -g
+#CXXFLAGS = -O3
+
+CXXFLAGS += -std=c++0x -Wall -W -Wredundant-decls -Wdisabled-optimization -pedantic
+#CXXFLAGS += -Wpadded -Winline
 
 CXXFLAGS += -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 CXXFLAGS += -DWITH_GEOS $(shell geos-config --cflags)
