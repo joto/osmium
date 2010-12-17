@@ -42,9 +42,15 @@ namespace Osmium {
         };
 
         char buffer[MAX_BLOB_SIZE];
+        char unpack_buffer[MAX_BLOB_SIZE];
         int fd;
         std::ostringstream errmsg;
         struct callbacks *callbacks;
+
+        typedef struct {
+            const void *data;
+            size_t size;
+        } array_t;
 
       public:
 
@@ -61,7 +67,8 @@ namespace Osmium {
                 throw std::runtime_error(errmsg.str());
             }
 
-            if (!m_headerBlock.ParseFromArray(buffer, readBlob())) {
+            array_t a = readBlob();
+            if (!m_headerBlock.ParseFromArray(a.data, a.size)) {
                 throw std::runtime_error("failed to parse HeaderBlock");
             }
 
@@ -323,7 +330,8 @@ namespace Osmium {
                 throw std::runtime_error(errmsg.str());
             }
 
-            if (!m_primitiveBlock.ParseFromArray(buffer, readBlob())) {
+            array_t a = readBlob();
+            if (!m_primitiveBlock.ParseFromArray(a.data, a.size)) {
                 errmsg << "failed to parse PrimitiveBlock";
                 throw std::runtime_error(errmsg.str());
             }
@@ -356,7 +364,7 @@ namespace Osmium {
             return true;
         }
 
-        int readBlob() {
+        array_t readBlob() {
             int size = m_blockHeader.datasize();
             if (size < 0 || size > MAX_BLOB_SIZE) {
                 errmsg << "invalid blob size: " << size;
@@ -370,8 +378,7 @@ namespace Osmium {
             }
 
             if (m_blob.has_raw()) {
-                // this should probably be done without the memcpy, but why bother of nobody uses uncompressed blobs anyway
-                memcpy(buffer, m_blob.raw().data(), m_blob.raw_size());
+                return { m_blob.raw().data(), m_blob.raw().size() };
             } else if (m_blob.has_zlib_data()) {
                 unpackZlib();
             } else if (m_blob.has_lzma_data()) {
@@ -379,7 +386,7 @@ namespace Osmium {
             } else {
                 throw std::runtime_error("Blob contains no data");
             }
-            return m_blob.raw_size();
+            return { unpack_buffer, m_blob.raw_size() };
         }
 
         void unpackZlib() {
@@ -387,7 +394,7 @@ namespace Osmium {
 
             compressedStream.next_in   = (unsigned char*) m_blob.zlib_data().data();
             compressedStream.avail_in  = m_blob.zlib_data().size();
-            compressedStream.next_out  = (unsigned char*) buffer;
+            compressedStream.next_out  = (unsigned char*) unpack_buffer;
             compressedStream.avail_out = m_blob.raw_size();
             compressedStream.zalloc    = Z_NULL;
             compressedStream.zfree     = Z_NULL;

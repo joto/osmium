@@ -6,7 +6,7 @@
 
 CXX = g++
 
-CXXFLAGS = -g -Wall -W -Wredundant-decls -Wdisabled-optimization #-pedantic
+CXXFLAGS = -g -std=c++0x -Wall -W -Wredundant-decls -Wdisabled-optimization -pedantic
 #CXXFLAGS = -O3 -Wall -W -Wredundant-decls -Wdisabled-optimization -pedantic
 #CXXFLAGS = -g -fPIC
 #CXXFLAGS = -Wpadded -Winline
