@@ -612,6 +612,9 @@ namespace Osmium {
                             // waring: inner/outer mismatch
                         }
                     }
+                    // copy tags from relation into multipolygon
+                    num_tags = r->tag_count();
+                    tags = r->tags;
                 }
                 // later delete ringlist[i];
                 // ringlist[i] = NULL;

@@ -36,7 +36,7 @@ function cb_relation() {
 }
 
 function cb_multipolygon() {
-    print('multipolygon ' + this.id);
+    print('multipolygon ' + this.id + " from " + this.from);
     for (key in this.tags) {
         print(' TAG ' + key + '=' + this.tags[key]);
     }
