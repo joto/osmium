@@ -72,6 +72,7 @@ namespace Osmium {
 
                 Osmium::OSM::Relation *r = new Osmium::OSM::Relation(relation);
                 Osmium::OSM::MultipolygonFromRelation *m = new Osmium::OSM::MultipolygonFromRelation(r, is_boundary);
+                m->callback = cb->multipolygon;
                 multipolygons.push_back(m);
 
                 for (int i=0; i < relation->member_count(); i++) {

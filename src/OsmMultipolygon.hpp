@@ -173,6 +173,8 @@ namespace Osmium {
 
             std::string geometry_error_message;
 
+            void (*callback)(Osmium::OSM::Multipolygon *);
+
           private:
 
             timer write_complex_poly_timer;
@@ -195,6 +197,14 @@ namespace Osmium {
             MultipolygonFromRelation(Relation *r, bool b) : boundary(b), relation(r) {
                 num_ways = 0;
                 init();
+            }
+
+            MultipolygonFromRelation(Relation *r, bool b, geos::geom::Geometry *geom, std::vector<Tag> t, const char *timestamp) : boundary(b), relation(r) {
+                init();
+                geometry = geom;
+                tags = t;
+                num_ways = 0;
+                strncpy(timestamp_str, timestamp, max_length_timestamp);
             }
 
             ~MultipolygonFromRelation() {
