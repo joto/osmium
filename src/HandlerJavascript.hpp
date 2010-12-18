@@ -30,7 +30,7 @@ namespace Osmium {
             /**
             * Print Javascript exception to stderr
             */
-            void report_exception(v8::TryCatch* try_catch) {
+            static void report_exception(v8::TryCatch* try_catch) {
                 v8::HandleScope handle_scope;
                 v8::String::Utf8Value exception(try_catch->Exception());
 
@@ -80,6 +80,33 @@ namespace Osmium {
                     printf("%s\n", *str);
                 }
                 return handle_scope.Close(v8::Integer::New(1));
+            }
+
+            static v8::Handle<v8::Value> Include(const v8::Arguments& args) {
+                for (int i=0; i < args.Length(); i++) {
+                    v8::String::Utf8Value filename(args[i]);
+
+                    std::string javascript_source = load_file(*filename);
+
+                    if (javascript_source.length() > 0) {
+                        v8::TryCatch tryCatch;
+
+                        v8::Handle<v8::Script> script = v8::Script::Compile(v8::String::New(javascript_source.c_str()), v8::String::New(*filename));
+                        if (script.IsEmpty()) {
+                            std::cerr << "Compiling script failed:" << std::endl;
+                            report_exception(&tryCatch);
+                            exit(1);
+                        }
+
+                        v8::Handle<v8::Value> result = script->Run();
+                        if (result.IsEmpty()) {
+                            std::cerr << "Running script failed:" << std::endl;
+                            report_exception(&tryCatch);
+                            exit(1);
+                        }
+                    }
+                }
+                return v8::Undefined();
             }
 
             static v8::Handle<v8::Value> OutputCSVOpen(const v8::Arguments& args) {

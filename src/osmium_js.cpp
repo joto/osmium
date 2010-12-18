@@ -91,6 +91,7 @@ int main(int argc, char *argv[])
 
     v8::Handle<v8::ObjectTemplate> global_template = v8::ObjectTemplate::New();
     global_template->Set(v8::String::New("print"), v8::FunctionTemplate::New(Osmium::Handler::Javascript::Print));
+    global_template->Set(v8::String::New("include"), v8::FunctionTemplate::New(Osmium::Handler::Javascript::Include));
 
     global_context = v8::Persistent<v8::Context>::New(v8::Context::New(0, global_template));
     v8::Context::Scope context_scope(global_context);
