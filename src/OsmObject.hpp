@@ -56,14 +56,18 @@ namespace Osmium {
             time_t timestamp;
             char user[max_length_username]; ///< name of user who last changed this object
 
-          private:
+          protected:
+
             // how many tags are there on this object (XXX we could probably live without this and just use tags.size())
             int num_tags;
 
+          public:
+
             std::vector<Tag> tags;
 
-#ifdef WITH_GEOS
           protected:
+
+#ifdef WITH_GEOS
             geos::geom::Geometry *geometry;
 #endif
 
@@ -220,7 +224,6 @@ namespace Osmium {
 
 #ifdef WITH_GEOS
             geos::geom::Geometry *get_geometry() {
-                std::cerr << "get_geometry()\n";
                 if (!geos_geometry_built) {
                     build_geometry();
                     geos_geometry_built = true;

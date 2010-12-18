@@ -120,6 +120,8 @@ namespace Osmium {
             Way *way;
 
             MultipolygonFromWay(Way *w) : way(w) {
+                num_tags = w->tag_count();
+                tags = w->tags;
             }
 
             osm_object_type_t get_type() const {
