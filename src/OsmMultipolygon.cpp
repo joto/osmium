@@ -3,6 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <vector>
+#include <sstream>
+#include <iomanip>
 
 #ifdef PROFILING
 #define START_TIMER(x) x##_timer.start();
@@ -16,9 +19,6 @@
 #include "geoshelper.h"
 #include "CGAlgorithms.h"
 
-#include <vector>
-#include <sstream>
-#include <iomanip>
 #include <geos/geom/PrecisionModel.h>
 #include <geos/geom/CoordinateSequence.h>
 #include <geos/geom/CoordinateArraySequenceFactory.h>
@@ -26,8 +26,6 @@
 #include <geos/geom/Polygon.h>
 #include <geos/geom/MultiPolygon.h>
 #include <geos/geom/MultiLineString.h>
-#include <geos/io/WKBReader.h>
-#include <geos/io/WKBWriter.h>
 #include <geos/util/GEOSException.h>
 #include <geos/opLinemerge.h>
 #include <geos/operation/polygonize/Polygonizer.h>
@@ -42,8 +40,7 @@ namespace Osmium {
 
     namespace OSM {
 
-        bool ignore_tag(const std::string &s)
-        {
+        bool ignore_tag(const std::string &s) {
             if (s=="type") return true;
             if (s=="created_by") return true;
             if (s=="source") return true;
@@ -51,16 +48,13 @@ namespace Osmium {
             return false;
         }
 
-        bool same_tags(const Object *a, const Object *b)
-        {
+        bool same_tags(const Object *a, const Object *b) {
             std::map<std::string, std::string> aTags;
-            for (int i = 0; i < a->tag_count(); i++)
-            {
+            for (int i = 0; i < a->tag_count(); i++) {
                 if (ignore_tag(a->get_tag_key(i))) continue;
                 aTags[a->get_tag_key(i)] = a->get_tag_value(i);
             }
-            for (int i = 0; i < b->tag_count(); i++)
-            {
+            for (int i = 0; i < b->tag_count(); i++) {
                 if (ignore_tag(b->get_tag_key(i))) continue;
                 if (aTags[b->get_tag_key(i)] != b->get_tag_value(i)) return false;
                 aTags.erase(b->get_tag_key(i));
@@ -70,24 +64,18 @@ namespace Osmium {
         }
 
         /** returns false if there was a collision, true otherwise */
-        bool merge_tags(Object *a, const Object *b)
-        {
+        bool merge_tags(Object *a, const Object *b) {
             bool rv = true;
             std::map<std::string, std::string> aTags;
-            for (int i = 0; i < a->tag_count(); i++)
-            {
+            for (int i = 0; i < a->tag_count(); i++) {
                 if (ignore_tag(a->get_tag_key(i))) continue;
                 aTags[a->get_tag_key(i)] = a->get_tag_value(i);
             }
-            for (int i = 0; i < b->tag_count(); i++)
-            {
+            for (int i = 0; i < b->tag_count(); i++) {
                 if (ignore_tag(b->get_tag_key(i))) continue;
-                if (aTags.find(b->get_tag_key(i)) != aTags.end()) 
-                {
+                if (aTags.find(b->get_tag_key(i)) != aTags.end()) {
                     if (aTags[b->get_tag_key(i)] != b->get_tag_value(i)) rv = false;
-                }
-                else
-                {
+                } else {
                     a->add_tag(b->get_tag_key(i), b->get_tag_value(i));
                     aTags[b->get_tag_key(i)] = b->get_tag_value(i);
                 }
@@ -96,11 +84,9 @@ namespace Osmium {
         }
 
 
-        bool untagged(const Object *r)
-        {
+        bool untagged(const Object *r) {
             if (r->tag_count() == 0) return true;
-            for (int i=0; i<r->tag_count(); i++)
-            {
+            for (int i=0; i<r->tag_count(); i++) {
                 if (ignore_tag(r->get_tag_key(i))) continue;
                 return false;
             }
@@ -121,7 +107,7 @@ namespace Osmium {
             // have we found a loop already?
             if (first && first == last)
             {
-                CoordinateSequence *cs = CoordinateArraySequenceFactory::instance()->create(0, 0);
+                geos::geom::CoordinateSequence *cs = geos::geom::CoordinateArraySequenceFactory::instance()->create(0, 0);
                 geos::geom::LinearRing *lr = NULL;
                 try
                 {
@@ -140,7 +126,7 @@ namespace Osmium {
                         // if (sorted_ways[i].invert) cout << " (INV)";
                         // cout << endl;
                         // cout << " this way:" << *(sorted_ways[i].way->geometry->getCoordinates()) << endl;
-                        cs->add(((LineString *)sorted_ways[i].way->get_geometry())->getCoordinatesRO(), false, !sorted_ways[i].invert);
+                        cs->add(((geos::geom::LineString *)sorted_ways[i].way->get_geometry())->getCoordinatesRO(), false, !sorted_ways[i].invert);
                         // cout << " new sequence:" << *cs << endl;
                     }
                     delete[] sorted_ways;
@@ -284,7 +270,7 @@ namespace Osmium {
             
             std::map<int,bool> dangling_node;
 
-            std::vector<Geometry *> v;
+            std::vector<geos::geom::Geometry *> v;
                         
             for (std::vector<WayInfo>::iterator i = ways.begin(); i != ways.end(); i++)
             {       
@@ -303,9 +289,9 @@ namespace Osmium {
                 return geometry_error("unconnected ways");
             }
 
-            std::vector<Geometry *> *polygons = new std::vector<Geometry *>();
+            std::vector<geos::geom::Geometry *> *polygons = new std::vector<geos::geom::Geometry *>();
 
-            MultiPolygon *mp = NULL;
+            geos::geom::MultiPolygon *mp = NULL;
 
             // find out which ring contains which other ring, so we know
             // which are inner rings and which outer. don't trust the "role"
@@ -407,21 +393,21 @@ namespace Osmium {
                 {
                     if (ringlist[i]->ways.size() == 1 && !untagged(ringlist[i]->ways[0]->way))
                     {
-                        std::vector<Geometry *> *g = new std::vector<Geometry *>;
+                        std::vector<geos::geom::Geometry *> *g = new std::vector<geos::geom::Geometry *>;
                         if (ringlist[i]->direction == CLOCKWISE)
                         {
                             g->push_back(ringlist[i]->polygon->clone());
                         }
                         else
                         {
-                            LineString *tmp = (LineString *) ringlist[i]->polygon->getExteriorRing()->reverse();
+                            geos::geom::LineString *tmp = (geos::geom::LineString *) ringlist[i]->polygon->getExteriorRing()->reverse();
                             geos::geom::LinearRing *reversed_ring = 
                             Osmium::OSM::Object::global_geometry_factory->createLinearRing(tmp->getCoordinates());
                             delete tmp;
                             g->push_back(Osmium::OSM::Object::global_geometry_factory->createPolygon(reversed_ring, NULL));
                         }
 
-                        MultiPolygon *special_mp = Osmium::OSM::Object::global_geometry_factory->createMultiPolygon(g);
+                        geos::geom::MultiPolygon *special_mp = Osmium::OSM::Object::global_geometry_factory->createMultiPolygon(g);
                         special_mp->setSRID(OUTPUT_SRID);
 
                         if (same_tags(ringlist[i]->ways[0]->way, r))
@@ -461,7 +447,7 @@ namespace Osmium {
                 if (ringlist[i] == NULL) continue; // can happen if ring has been deleted
                 if (ringlist[i]->contained_by) continue;
 
-                std::vector<Geometry *> *holes = new std::vector<Geometry *>(); // ownership is later transferred to polygon
+                std::vector<geos::geom::Geometry *> *holes = new std::vector<geos::geom::Geometry *>(); // ownership is later transferred to polygon
 
                 START_TIMER(inner_ring_touch)
                 for (int j=0; j<((int)ringlist[i]->inner_rings.size()-1); j++)
@@ -474,8 +460,8 @@ namespace Osmium {
                     for (unsigned int k=j + 1; k<ringlist[i]->inner_rings.size(); k++)
                     {
                         if (!ringlist[i]->inner_rings[k]->polygon) continue;
-                        const Geometry *compare = ringlist[i]->inner_rings[k]->polygon->getExteriorRing();
-                        Geometry *inter = NULL;
+                        const geos::geom::Geometry *compare = ringlist[i]->inner_rings[k]->polygon->getExteriorRing();
+                        geos::geom::Geometry *inter = NULL;
                         try 
                         {
                             if (!ring->intersects(compare)) continue;
@@ -485,15 +471,15 @@ namespace Osmium {
                         {
                             // nop;
                         }
-                        if (inter && (inter->getGeometryTypeId() == GEOS_LINESTRING || inter->getGeometryTypeId() == GEOS_MULTILINESTRING))
+                        if (inter && (inter->getGeometryTypeId() == geos::geom::GEOS_LINESTRING || inter->getGeometryTypeId() == geos::geom::GEOS_MULTILINESTRING))
                         {
                             // touching inner rings
-                            // this is allowed, but we must fix them up into a valud
+                            // this is allowed, but we must fix them up into a valid
                             // geometry
-                            Geometry *diff = ring->symDifference(compare);
+                            geos::geom::Geometry *diff = ring->symDifference(compare);
                             geos::operation::polygonize::Polygonizer *p = new geos::operation::polygonize::Polygonizer();
                             p->add(diff);
-                            std::vector<Polygon*>* polys = p->getPolygons();
+                            std::vector<geos::geom::Polygon*>* polys = p->getPolygons();
                             if (polys && polys->size() == 1)
                             {
                                 ringlist[i]->inner_rings[j]->polygon = polys->at(0);
@@ -519,7 +505,7 @@ namespace Osmium {
                     if (ringlist[i]->inner_rings[j]->direction == CLOCKWISE)
                     {
                         // reverse ring
-                        LineString *tmp = (LineString *) ring->reverse();
+                        geos::geom::LineString *tmp = (geos::geom::LineString *) ring->reverse();
                         geos::geom::LinearRing *reversed_ring = 
                             Osmium::OSM::Object::global_geometry_factory->createLinearRing(tmp->getCoordinates());
                         delete tmp;
@@ -551,7 +537,7 @@ namespace Osmium {
                 geos::geom::LinearRing *ring = (geos::geom::LinearRing *) ringlist[i]->polygon->getExteriorRing();
                 if (ringlist[i]->direction == COUNTERCLOCKWISE)
                 {
-                    LineString *tmp = (LineString *) ring->reverse();
+                    geos::geom::LineString *tmp = (geos::geom::LineString *) ring->reverse();
                     geos::geom::LinearRing *reversed_ring = 
                         Osmium::OSM::Object::global_geometry_factory->createLinearRing(tmp->getCoordinates());
                     ring = reversed_ring;
@@ -567,7 +553,7 @@ namespace Osmium {
                 }
                 delete ringlist[i]->polygon;
                 ringlist[i]->polygon = NULL;
-                Polygon *p = NULL;
+                geos::geom::Polygon *p = NULL;
                 bool valid = false;
 
                 try

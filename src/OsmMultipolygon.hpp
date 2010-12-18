@@ -23,11 +23,6 @@
 
 #define OUTPUT_SRID 4326
 
-enum innerouter { UNSET, INNER, OUTER };
-enum direction { NO_DIRECTION, CLOCKWISE, COUNTERCLOCKWISE };
-
-using namespace geos::geom;
-
 /*
 struct Tag 
 {
@@ -39,45 +34,84 @@ struct Tag
 struct Member
 {
     int id;
-    enum innerouter innerouter;
+    innerouter_t innerouter;
 };
 */
-
-struct WayInfo
-{
-    Osmium::OSM::Way *way;
-    int used;
-    int sequence;
-    bool invert;
-    int poly_id; 
-    bool duplicate; 
-    std::string errorhint;
-    enum innerouter innerouter;
-    enum innerouter orig_innerouter;
-    WayInfo() { way = NULL; used = -1; poly_id=-1; innerouter = UNSET; orig_innerouter = UNSET; sequence = 0; invert = false; duplicate = false; }
-    WayInfo(Osmium::OSM::Way *w, enum innerouter io) { way = w; orig_innerouter = io; used = -1; poly_id= -1; innerouter = UNSET; sequence = 0; invert = false;duplicate = false; }
-};
-
-struct RingInfo
-{
-    geos::geom::Polygon *polygon;
-    enum direction direction;
-    std::vector<WayInfo *> ways;
-    std::vector<RingInfo *> inner_rings;
-    bool nested;
-    RingInfo *contained_by;
-    RingInfo() { direction = NO_DIRECTION; contained_by = NULL; polygon = NULL; nested = false; ring_id = -1; }
-    int ring_id;
-};
 
 namespace Osmium {
 
     namespace OSM {
 
+        enum innerouter_t { UNSET, INNER, OUTER };
+        enum direction_t { NO_DIRECTION, CLOCKWISE, COUNTERCLOCKWISE };
+
+        class WayInfo {
+
+          public:
+
+            Osmium::OSM::Way *way;
+            int used;
+            int sequence;
+            bool invert;
+            int poly_id; 
+            bool duplicate; 
+            std::string errorhint;
+            innerouter_t innerouter;
+            innerouter_t orig_innerouter;
+
+            WayInfo() {
+                way = NULL;
+                used = -1;
+                poly_id=-1;
+                innerouter = UNSET;
+                orig_innerouter = UNSET;
+                sequence = 0;
+                invert = false;
+                duplicate = false;
+            }
+
+            WayInfo(Osmium::OSM::Way *w, innerouter_t io) {
+                way = w;
+                orig_innerouter = io;
+                used = -1;
+                poly_id= -1;
+                innerouter = UNSET;
+                sequence = 0;
+                invert = false;
+                duplicate = false;
+            }
+        };
+
+        class RingInfo {
+
+          public:
+
+            geos::geom::Polygon *polygon;
+            direction_t direction;
+            std::vector<WayInfo *> ways;
+            std::vector<RingInfo *> inner_rings;
+            bool nested;
+            RingInfo *contained_by;
+            int ring_id;
+
+            RingInfo() {
+                direction = NO_DIRECTION;
+                contained_by = NULL;
+                polygon = NULL;
+                nested = false;
+                ring_id = -1;
+            }
+        };
+
+        /// virtual parent class for MultipolygonFromWay and MultipolygonFromRelation
         class Multipolygon : public Object {
 
         }; // class Multipolygon
 
+        /***
+        * multipolygon created from a way (so strictly speaking this will
+        * always be a simple polygon)
+        */
         class MultipolygonFromWay : public Multipolygon {
 
             public:
@@ -114,9 +148,12 @@ namespace Osmium {
 
         }; // class MultipolygonFromWay
 
+        /***
+        * multipolygon created from a relation with tag type=multipolygon or type=boundary
+        */
         class MultipolygonFromRelation : public Multipolygon {
 
-            bool boundary;
+            bool boundary; ///< was this multipolygon created from relation with tag type=boundary?
 
           public:
 
@@ -210,12 +247,13 @@ namespace Osmium {
             public:
 
 #ifdef WITH_SHPLIB
+#ifdef WITH_GEOS
             bool dumpGeometry(const geos::geom::Geometry *g, std::vector<int>& partStart, std::vector<double>& x, std::vector<double>& y)
             {
                 switch(g->getGeometryTypeId())
                 {
-                    case GEOS_MULTIPOLYGON:
-                    case GEOS_MULTILINESTRING:
+                    case geos::geom::GEOS_MULTIPOLYGON:
+                    case geos::geom::GEOS_MULTILINESTRING:
                     {
                         for (size_t i=0; i<g->getNumGeometries(); i++)
                         {
@@ -223,7 +261,7 @@ namespace Osmium {
                         }
                         break;
                     }
-                    case GEOS_POLYGON:
+                    case geos::geom::GEOS_POLYGON:
                     {
                         geos::geom::Polygon *p = (geos::geom::Polygon *) g;
                         if (!dumpGeometry(p->getExteriorRing(), partStart, x, y)) return false;
@@ -233,11 +271,11 @@ namespace Osmium {
                         }
                         break;
                     }
-                    case GEOS_LINESTRING:
-                    case GEOS_LINEARRING:
+                    case geos::geom::GEOS_LINESTRING:
+                    case geos::geom::GEOS_LINEARRING:
                     {
                         partStart.push_back(x.size());
-                        const geos::geom::CoordinateSequence *cs = ((LineString *) g)->getCoordinatesRO();
+                        const geos::geom::CoordinateSequence *cs = ((geos::geom::LineString *) g)->getCoordinatesRO();
                         for (size_t i = 0; i < cs->getSize(); i++)
                         {
                             x.push_back(cs->getX(i));
@@ -293,6 +331,7 @@ namespace Osmium {
                 
                 return o;
             }
+#endif
 #endif
 
         }; // class MultipolygonFromRelation
