@@ -20,7 +20,7 @@ function cb_end() {
     print('End!');
 }
 
-callbacks.init         = cb_init;
-callbacks.multipolygon = cb_multipolygon;
-callbacks.end          = cb_end;
+Osmium.Callbacks.init         = cb_init;
+Osmium.Callbacks.multipolygon = cb_multipolygon;
+Osmium.Callbacks.end          = cb_end;
 

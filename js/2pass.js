@@ -51,10 +51,10 @@ function cb_end() {
     out.close();
 }
 
-callbacks.init         = cb_init;
-callbacks.node         = cb_node;
-callbacks.way          = cb_way;
-callbacks.relation     = cb_relation;
-callbacks.multipolygon = cb_multipolygon;
-callbacks.end          = cb_end;
+Osmium.Callbacks.init         = cb_init;
+Osmium.Callbacks.node         = cb_node;
+Osmium.Callbacks.way          = cb_way;
+Osmium.Callbacks.relation     = cb_relation;
+Osmium.Callbacks.multipolygon = cb_multipolygon;
+Osmium.Callbacks.end          = cb_end;
 

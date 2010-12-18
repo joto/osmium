@@ -48,8 +48,8 @@ function cb_end() {
     print('End!');
 }
 
-callbacks.init     = cb_init;
-callbacks.node     = cb_node;
-callbacks.way      = cb_way;
-callbacks.end      = cb_end;
+Osmium.Callbacks.init     = cb_init;
+Osmium.Callbacks.node     = cb_node;
+Osmium.Callbacks.way      = cb_way;
+Osmium.Callbacks.end      = cb_end;
 
