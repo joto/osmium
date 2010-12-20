@@ -426,13 +426,13 @@ namespace Osmium {
         std::vector< int > m_wayTagIDs;
         std::vector< int > m_relationTagIDs;
 
-        uint64_t m_lastDenseID;
-        uint64_t m_lastDenseLatitude;
-        uint64_t m_lastDenseLongitude;
-        uint64_t m_lastDenseUID;
-        uint64_t m_lastDenseUserSID;
-        uint64_t m_lastDenseChangeset;
-        uint64_t m_lastDenseTimestamp;
+        int64_t m_lastDenseID;
+        int64_t m_lastDenseLatitude;
+        int64_t m_lastDenseLongitude;
+        int64_t m_lastDenseUID;
+        int64_t m_lastDenseUserSID;
+        int64_t m_lastDenseChangeset;
+        int64_t m_lastDenseTimestamp;
         int m_lastDenseTag;
 
     }; // class PBFParser
