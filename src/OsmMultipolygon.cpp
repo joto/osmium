@@ -29,9 +29,11 @@
 #include <geos/operation/polygonize/Polygonizer.h>
 #include <geos/opPolygonize.h>
 #include <geos/algorithm/LineIntersector.h>
-#include <geos/algorithm/CGAlgorithms.h>
 #include <geos/geomgraph/GeometryGraph.h>
 #include <geos/geomgraph/index/SegmentIntersector.h>
+
+// this should come from /usr/include/geos/algorithm, but its missing there in some Ubuntu versions
+#include "../include/CGAlgorithms.h"
 
 namespace Osmium {
 
