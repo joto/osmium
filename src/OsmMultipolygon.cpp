@@ -417,11 +417,13 @@ namespace Osmium {
                         {
                             // warning
                             // warnings.insert("duplicate_tags_on_inner");
+                            std::cerr << " XXX warning duplicate_tags_on_inner 1\n";
                         }
                         else if (ringlist[i]->contained_by->ways.size() == 1 && same_tags(ringlist[i]->ways[0]->way, ringlist[i]->contained_by->ways[0]->way))
                         {
                             // warning
                             // warnings.insert("duplicate_tags_on_inner");
+                            std::cerr << " XXX warning duplicate_tags_on_inner 2\n";
                         }
                         else
                         {
@@ -490,6 +492,8 @@ namespace Osmium {
                             if (polys && polys->size() == 1)
                             {
                                 ringlist[i]->inner_rings[j]->polygon = polys->at(0);
+                                bool ccw = geos::algorithm::CGAlgorithms::isCCW(polys->at(0)->getExteriorRing()->getCoordinatesRO());
+                                ringlist[i]->inner_rings[j]->direction = ccw ? COUNTERCLOCKWISE : CLOCKWISE;
                                 ringlist[i]->inner_rings[k]->polygon = NULL;
                                 j=-1; break;
                             }
@@ -522,23 +526,6 @@ namespace Osmium {
                     {
                         holes->push_back(ring);
                     }
-
-                    for (unsigned int k=0; k<ringlist[i]->inner_rings[j]->ways.size(); k++)
-                    {       
-                        WayInfo *wi = ringlist[i]->inner_rings[j]->ways[k];
-                        wi->innerouter = INNER;
-                        if (ringlist[i]->inner_rings[j]->direction == CLOCKWISE) 
-                        {
-                            wi->invert = !wi->invert;
-                        }
-                        if (wi->orig_innerouter == OUTER)
-                        { 
-                            // warning: inner/outer mismatch
-                        }
-                        wi->poly_id = polygons->size();
-                    }
-                    //delete ringlist[i]->inner_rings[j];
-                    //ringlist[i]->inner_rings[j] = NULL;
                 }
 
                 geos::geom::LinearRing *ring = (geos::geom::LinearRing *) ringlist[i]->polygon->getExteriorRing();
@@ -548,11 +535,6 @@ namespace Osmium {
                     geos::geom::LinearRing *reversed_ring = 
                         Osmium::OSM::Object::global_geometry_factory->createLinearRing(tmp->getCoordinates());
                     ring = reversed_ring;
-                    for (unsigned int k=0; k<ringlist[i]->ways.size(); k++) 
-                    {
-                        // cout << "way " << ringlist[i]->ways[k]->way->id << " is part of a CCW outer ring, invert" << endl;
-                        ringlist[i]->ways[k]->invert = !ringlist[i]->ways[k]->invert;
-                    }
                 }
                 else
                 {
@@ -597,26 +579,11 @@ namespace Osmium {
                             // relation untagged; use tags from way; ok
                             merge_tags(relation, wi->way);
                         }
-                        /**
-                        MERGING TAGS IS DISABLED
 
-                        else if (merge_tags(r, wi->way))
-                        {
-                            // tags merged
-                            // wi->errorhint = "tags_merged_with_relation";
-                            // tag_warning = true;
-                        }
-                        else
-                        {
-                            // tags in conflict
-                            // wi->errorhint = "tag_conflict_with_relation";
-                            // errmsg = "tag_conflict";
-                        }
-                        */
                         wi->innerouter = OUTER;
                         if (wi->orig_innerouter == INNER && wi->errorhint.empty()) 
                         { 
-                            // waring: inner/outer mismatch
+                            // warning: inner/outer mismatch
                         }
                     }
                     // copy tags from relation into multipolygon

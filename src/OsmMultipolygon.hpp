@@ -39,7 +39,6 @@ namespace Osmium {
             int used;
             int sequence;
             bool invert;
-            int poly_id; 
             bool duplicate; 
             std::string errorhint;
             innerouter_t innerouter;
@@ -48,7 +47,6 @@ namespace Osmium {
             WayInfo() {
                 way = NULL;
                 used = -1;
-                poly_id=-1;
                 innerouter = UNSET;
                 orig_innerouter = UNSET;
                 sequence = 0;
@@ -60,7 +58,6 @@ namespace Osmium {
                 way = w;
                 orig_innerouter = io;
                 used = -1;
-                poly_id= -1;
                 innerouter = UNSET;
                 sequence = 0;
                 invert = false;
