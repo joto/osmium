@@ -204,8 +204,7 @@ namespace Osmium {
                     ways[i].used = ringcount;
                     ways[i].sequence = sequence;
                     ways[i].invert = false;
-                    RingInfo *result = NULL;
-                    result = make_one_ring(ways, first, way->get_last_node_id(), ringcount, sequence+1);
+                    RingInfo *result = make_one_ring(ways, first, way->get_last_node_id(), ringcount, sequence+1);
                     if (result) { result->ways.push_back(&(ways[i])); return result; }
                     ways[i].used = old_used;
                 }
@@ -215,8 +214,7 @@ namespace Osmium {
                     ways[i].used = ringcount;
                     ways[i].sequence = sequence;
                     ways[i].invert = true;
-                    RingInfo *result = NULL;
-                    result = make_one_ring(ways, first, way->get_first_node_id(), ringcount, sequence+1);
+                    RingInfo *result = make_one_ring(ways, first, way->get_first_node_id(), ringcount, sequence+1);
                     if (result) { result->ways.push_back(&(ways[i])); return result; }
                     ways[i].used = old_used;
                 }
