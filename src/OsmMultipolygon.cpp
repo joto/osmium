@@ -430,18 +430,8 @@ namespace Osmium {
                         else
                         {
                             std::cerr << " XXX internal mp\n";
-                            Osmium::OSM::Way *first_way = ringlist[i]->ways[0]->way; // to simplify things we get some metadata only from the first way in this ring
-                            Osmium::OSM::MultipolygonFromRelation *internal_mp = new Osmium::OSM::MultipolygonFromRelation(relation, boundary, special_mp, first_way->tags, first_way->get_timestamp());
+                            Osmium::OSM::MultipolygonFromWay *internal_mp = new Osmium::OSM::MultipolygonFromWay(ringlist[i]->ways[0]->way, special_mp);
                             callback(internal_mp);
-                            /* emit polygon
-                            fprintf(complexFile, "%s\t%s\tM\t%.2f\t%s",
-                                "\\N", // do not output r->id since this is not a one-on-one matching
-                                ringlist[i]->ways[0]->way->timestamp.c_str(),
-                                ringlist[i]->polygon->getArea(),
-                                geomAsHex(special_mp).c_str());
-                            ringlist[i]->ways[0]->way->writeTags(complexFile);
-                            fprintf(complexFile, "\n");
-                            */
                         }
                         delete special_mp;
                     }

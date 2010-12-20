@@ -106,6 +106,14 @@ namespace Osmium {
                 timestamp = w->get_timestamp();
                 num_tags = w->tag_count();
                 tags = w->tags;
+                geometry = NULL;
+            }
+
+            MultipolygonFromWay(Way *w, geos::geom::Geometry *geom) : way(w) {
+                timestamp = w->get_timestamp();
+                num_tags = w->tag_count();
+                tags = w->tags;
+                geometry = geom;
             }
 
             osm_object_type_t get_type() const {
@@ -187,14 +195,6 @@ namespace Osmium {
             MultipolygonFromRelation(Relation *r, bool b) : boundary(b), relation(r) {
                 num_ways = 0;
                 init();
-            }
-
-            MultipolygonFromRelation(Relation *r, bool b, geos::geom::Geometry *geom, std::vector<Tag> t, time_t ts) : boundary(b), relation(r) {
-                init();
-                geometry = geom;
-                tags = t;
-                num_ways = 0;
-                timestamp = ts;
             }
 
             ~MultipolygonFromRelation() {
