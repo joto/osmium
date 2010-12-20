@@ -1,14 +1,17 @@
 
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
-#include <time.h>
-#include <errno.h>
 
 #include "osmium.hpp"
 #include "XMLParser.hpp"
 #include "PBFParser.hpp"
 
+/**
+*
+*  Parse OSM file and call callback functions.
+*  This works for OSM XML files (suffix .osm) and OSM binary files (suffix .pbf).
+*  Reads from STDIN if the filename is '-', in this case it assumes XML format.
+*
+*/
 void parse_osmfile(char *osmfilename, struct callbacks *callbacks, Osmium::OSM::Node *node, Osmium::OSM::Way *way, Osmium::OSM::Relation *relation) {
     int fd = 0;
     if (osmfilename[0] == '-' && osmfilename[1] == '\0') {

@@ -435,7 +435,8 @@ namespace Osmium {
         uint64_t m_lastDenseTimestamp;
         int m_lastDenseTag;
 
-    };
-}
+    }; // class PBFParser
 
-#endif // PBPARSER_HPP
+} // namespace Osmium
+
+#endif // PBFPARSER_HPP
