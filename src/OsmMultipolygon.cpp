@@ -231,7 +231,9 @@ namespace Osmium {
         bool MultipolygonFromRelation::build_geometry()
         {
             std::vector<WayInfo> ways;
-            time_t timestamp = relation->timestamp;
+
+            // the timestamp of the multipolygon will be the maximum of the timestamp from the relation and from all member ways
+            time_t timestamp = relation->get_timestamp();
 
             // assemble all ways which are members of this relation into a 
             // vector of WayInfo elements. this holds room for the way pointer
@@ -240,7 +242,7 @@ namespace Osmium {
             START_TIMER(assemble_ways);
             for (std::vector<Way>::iterator i = member_ways.begin(); i != member_ways.end(); i++)
             {       
-                if (i->timestamp > timestamp) timestamp = i->timestamp;
+                if (i->get_timestamp() > timestamp) timestamp = i->get_timestamp();
                 ways.push_back(WayInfo(&(*i), UNSET));
                 // TODO drop duplicate ways automatically
             // TODO: statt UNSET sollte hier INNER/OUTER je nach role, wird aber nur fuer warnings gebraucht
@@ -425,7 +427,7 @@ namespace Osmium {
                         {
                             std::cerr << " XXX internal mp\n";
                             Osmium::OSM::Way *first_way = ringlist[i]->ways[0]->way; // to simplify things we get some metadata only from the first way in this ring
-                            Osmium::OSM::MultipolygonFromRelation *internal_mp = new Osmium::OSM::MultipolygonFromRelation(relation, boundary, special_mp, first_way->tags, first_way->get_timestamp_str());
+                            Osmium::OSM::MultipolygonFromRelation *internal_mp = new Osmium::OSM::MultipolygonFromRelation(relation, boundary, special_mp, first_way->tags, first_way->get_timestamp());
                             callback(internal_mp);
                             /* emit polygon
                             fprintf(complexFile, "%s\t%s\tM\t%.2f\t%s",
