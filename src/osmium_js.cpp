@@ -3,6 +3,7 @@
 
 Osmium::Handler::NLS_Sparsetable *osmium_handler_node_location_store;
 Osmium::Handler::Javascript      *osmium_handler_javascript;
+Osmium::Handler::Bbox            *osmium_handler_bbox;
 
 void init_handler() {
     osmium_handler_node_location_store->callback_init();
@@ -12,6 +13,7 @@ void init_handler() {
 void node_handler(Osmium::OSM::Node *node) {
     osmium_handler_node_location_store->callback_node(node);
     osmium_handler_javascript->callback_node(node);
+    osmium_handler_bbox->callback_node(node);
 }
 
 void way_handler(Osmium::OSM::Way *way) {
@@ -24,6 +26,7 @@ void relation_handler(Osmium::OSM::Relation *relation) {
 }
 
 void final_handler() {
+    osmium_handler_bbox->callback_final();
     osmium_handler_node_location_store->callback_final();
     osmium_handler_javascript->callback_final();
 }
@@ -62,6 +65,7 @@ int main(int argc, char *argv[])
 
     osmium_handler_node_location_store = new Osmium::Handler::NLS_Sparsetable;
     osmium_handler_javascript          = new Osmium::Handler::Javascript(argv[1]);
+    osmium_handler_bbox                = new Osmium::Handler::Bbox;
 
     Osmium::Javascript::Node::Wrapper     *wrap_node     = new Osmium::Javascript::Node::Wrapper;
     Osmium::Javascript::Way::Wrapper      *wrap_way      = new Osmium::Javascript::Way::Wrapper;

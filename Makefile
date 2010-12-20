@@ -36,7 +36,7 @@ OBJ = XMLParser.o wkb.o protobuf/fileformat.pb.o protobuf/osmformat.pb.o osmium.
 OBJ_TAGSTAT = HandlerStatistics.o
 OBJ_JS = JavascriptTemplate.o
 
-HPP = osmium.hpp Osm.hpp OsmObject.hpp OsmNode.hpp OsmWay.hpp OsmRelation.hpp OsmMultipolygon.hpp XMLParser.hpp wkb.hpp StringStore.hpp Handler.hpp HandlerMultipolygon.hpp HandlerStatistics.hpp HandlerTagStats.hpp HandlerNodeLocationStore.hpp PBFParser.hpp
+HPP = osmium.hpp Osm.hpp OsmObject.hpp OsmNode.hpp OsmWay.hpp OsmRelation.hpp OsmMultipolygon.hpp XMLParser.hpp wkb.hpp StringStore.hpp Handler.hpp HandlerBbox.hpp HandlerMultipolygon.hpp HandlerStatistics.hpp HandlerTagStats.hpp HandlerNodeLocationStore.hpp PBFParser.hpp
 
 SRC_CPP = $(patsubst %,src/%,$(CPP))
 SRC_OBJ = $(patsubst %,src/%,$(OBJ))
