@@ -10,6 +10,7 @@
 */
 
 #ifdef WITH_GEOS
+#include <geos/geom/Coordinate.h>
 #include <geos/geom/CoordinateSequenceFactory.h>
 #include <geos/geom/Geometry.h>
 #include <geos/util/GEOSException.h>
