@@ -1,14 +1,5 @@
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <time.h>
-#include <errno.h>
-
 #include "osmium.hpp"
-#include "XMLParser.hpp"
-#include "PBFParser.hpp"
-#include "Javascript.hpp"
 
 Osmium::Handler::NLS_Sparsetable *osmium_handler_node_location_store;
 Osmium::Handler::Javascript      *osmium_handler_javascript;
@@ -16,29 +7,6 @@ Osmium::Handler::Javascript      *osmium_handler_javascript;
 void init_handler() {
     osmium_handler_node_location_store->callback_init();
     osmium_handler_javascript->callback_init();
-}
-
-void before_nodes_handler() {
-}
-
-void after_nodes_handler() {
-}
-
-void before_ways_handler() {
-}
-
-void after_ways_handler() {
-}
-
-void before_relations_handler() {
-}
-
-void after_relations_handler() {
-}
-
-void final_handler() {
-    osmium_handler_node_location_store->callback_final();
-    osmium_handler_javascript->callback_final();
 }
 
 void node_handler(Osmium::OSM::Node *node) {
@@ -55,26 +23,20 @@ void relation_handler(Osmium::OSM::Relation *relation) {
     osmium_handler_javascript->callback_relation(relation);
 }
 
+void final_handler() {
+    osmium_handler_node_location_store->callback_final();
+    osmium_handler_javascript->callback_final();
+}
 
-struct callbacks callbacks = {
-    init_handler,
-
-    before_nodes_handler,
-    node_handler,
-    after_nodes_handler,
-
-    before_ways_handler,
-    way_handler,
-    after_ways_handler,
-
-    before_relations_handler,
-    relation_handler,
-    after_relations_handler,
-
-    NULL, // multipolygon
-
-    final_handler
-};
+struct callbacks *setup_callbacks() {
+    static struct callbacks cb;
+    cb.init             = init_handler;
+    cb.node             = node_handler;
+    cb.way              = way_handler;
+    cb.relation         = relation_handler;
+    cb.final            = final_handler;
+    return &cb;
+}
 
 /* ================================================== */
 
@@ -109,7 +71,7 @@ int main(int argc, char *argv[])
     Osmium::OSM::Way      *way      = wrap_way->object;
     Osmium::OSM::Relation *relation = wrap_relation->object;
 
-    parse_osmfile(argv[2], &callbacks, node, way, relation);
+    parse_osmfile(argv[2], setup_callbacks(), node, way, relation);
 	
     global_context.Dispose();
 

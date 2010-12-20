@@ -5,7 +5,7 @@ var tags_hash = new Object;
 var keys      = new Object;
 
 function cb_node() {
-    print(this.lon);
+//    print(this.lon);
     for (key in this.tags) {
         var value = this.tags[key];
         var t = key + '\t' + value;

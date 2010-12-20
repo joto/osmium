@@ -24,9 +24,6 @@ namespace Osmium {
             }
 
 // TODO destructor that deletes multipolygons in vector
-            // in pass 1
-            void callback_before_relations() {
-            }
 
             // in pass 2
             void callback_before_ways() {
@@ -150,10 +147,6 @@ namespace Osmium {
             // in pass 2
             void callback_multipolygon(Osmium::OSM::Multipolygon *multipolygon) {
                 cb->multipolygon(multipolygon);
-            }
-
-            // in pass 2
-            void callback_after_ways() {
             }
 
         }; // class Multipolygon

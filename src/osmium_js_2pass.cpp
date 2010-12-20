@@ -1,14 +1,5 @@
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <time.h>
-#include <errno.h>
-
 #include "osmium.hpp"
-#include "XMLParser.hpp"
-#include "PBFParser.hpp"
-#include "Javascript.hpp"
 
 Osmium::Handler::NLS_Sparsetable *osmium_handler_node_location_store;
 Osmium::Handler::Multipolygon    *osmium_handler_multipolygon;
@@ -19,23 +10,8 @@ void init_handler() {
     osmium_handler_javascript->callback_init();
 }
 
-void before_nodes_handler1() {
-}
-
 void node_handler1(Osmium::OSM::Node *node) {
     osmium_handler_javascript->callback_node(node);
-}
-
-void after_nodes_handler1() {
-}
-
-void before_ways_handler1() {
-}
-
-void way_handler1(Osmium::OSM::Way *way) {
-}
-
-void after_ways_handler1() {
 }
 
 void before_relations_handler1() {
@@ -51,14 +27,8 @@ void after_relations_handler1() {
     osmium_handler_multipolygon->callback_after_relations();
 }
 
-void before_nodes_handler2() {
-}
-
 void node_handler2(Osmium::OSM::Node *node) {
     osmium_handler_node_location_store->callback_node(node);
-}
-
-void after_nodes_handler2() {
 }
 
 void before_ways_handler2() {
@@ -75,15 +45,6 @@ void after_ways_handler2() {
     osmium_handler_multipolygon->callback_after_ways();
 }
 
-void before_relations_handler2() {
-}
-
-void relation_handler2(Osmium::OSM::Relation *relation) {
-}
-
-void after_relations_handler2() {
-}
-
 void multipolygon_handler(Osmium::OSM::Multipolygon *multipolygon) {
     std::cerr << " MP HANDLER " << multipolygon->get_id() << "\n";
 
@@ -97,46 +58,26 @@ void final_handler() {
     osmium_handler_javascript->callback_final();
 }
 
+struct callbacks *setup_callbacks_1st_pass() {
+    static struct callbacks cb;
+    cb.init             = init_handler;
+    cb.node             = node_handler1;
+    cb.before_relations = before_relations_handler1;
+    cb.relation         = relation_handler1;
+    cb.after_relations  = after_relations_handler1;
+    return &cb;
+}
 
-struct callbacks callbacks_1st_pass = {
-    init_handler,
-
-    before_nodes_handler1,
-    node_handler1,
-    after_nodes_handler1,
-
-    before_ways_handler1,
-    way_handler1,
-    after_ways_handler1,
-
-    before_relations_handler1,
-    relation_handler1,
-    after_relations_handler1,
-
-    NULL,
-
-    NULL
-};
-
-struct callbacks callbacks_2nd_pass = {
-    NULL,
-
-    before_nodes_handler2,
-    node_handler2,
-    after_nodes_handler2,
-
-    before_ways_handler2,
-    way_handler2,
-    after_ways_handler2,
-
-    before_relations_handler2,
-    relation_handler2,
-    after_relations_handler2,
-
-    multipolygon_handler,
-
-    final_handler
-};
+struct callbacks *setup_callbacks_2nd_pass() {
+    static struct callbacks cb;
+    cb.node             = node_handler2;
+    cb.before_ways      = before_ways_handler2;
+    cb.way              = way_handler2;
+    cb.after_ways       = after_ways_handler2;
+    cb.multipolygon     = multipolygon_handler;
+    cb.final            = final_handler;
+    return &cb;
+}
 
 /* ================================================== */
 
@@ -160,8 +101,11 @@ int main(int argc, char *argv[])
 
     Osmium::Javascript::Template::init();
 
+    struct callbacks *callbacks_1st_pass = setup_callbacks_1st_pass();
+    struct callbacks *callbacks_2nd_pass = setup_callbacks_2nd_pass();
+
     osmium_handler_node_location_store = new Osmium::Handler::NLS_Sparsetable;
-    osmium_handler_multipolygon        = new Osmium::Handler::Multipolygon(&callbacks_2nd_pass);
+    osmium_handler_multipolygon        = new Osmium::Handler::Multipolygon(callbacks_2nd_pass);
     osmium_handler_javascript          = new Osmium::Handler::Javascript(argv[1]);
 
     Osmium::Javascript::Node::Wrapper     *wrap_node     = new Osmium::Javascript::Node::Wrapper;
@@ -176,8 +120,8 @@ int main(int argc, char *argv[])
         std::cerr << "Two pass handler can´t read from stdin\n";
     }
 
-    parse_osmfile(argv[2], &callbacks_1st_pass, node, way, relation);
-    parse_osmfile(argv[2], &callbacks_2nd_pass, node, way, relation);
+    parse_osmfile(argv[2], callbacks_1st_pass, node, way, relation);
+    parse_osmfile(argv[2], callbacks_2nd_pass, node, way, relation);
 	
     global_context.Dispose();
 
