@@ -92,51 +92,66 @@ namespace Osmium {
         }; // class Multipolygon
 
         /***
-        * multipolygon created from a way (so strictly speaking this will
-        * always be a simple polygon)
+        * Multipolygon created from a way (so strictly speaking this will
+        * always be a simple polygon).
+        * The way pointer given to the constructor will not be stored, all
+        * needed attributes are copied.
         */
         class MultipolygonFromWay : public Multipolygon {
 
-            public:
+            osm_sequence_id_t num_nodes;
+            double            lon[Osmium::OSM::Way::max_nodes_in_way];
+            double            lat[Osmium::OSM::Way::max_nodes_in_way];
 
-            /// the way this multipolygon was build from
-            Way *way;
+          public:
 
-            MultipolygonFromWay(Way *w) : way(w) {
-                timestamp = w->get_timestamp();
-                num_tags = w->tag_count();
-                tags = w->tags;
-                geometry = NULL;
+            MultipolygonFromWay(Way *way) {
+                init(way);
+                geometry = way->get_geometry();
             }
 
-            MultipolygonFromWay(Way *w, geos::geom::Geometry *geom) : way(w) {
-                timestamp = w->get_timestamp();
-                num_tags = w->tag_count();
-                tags = w->tags;
+            MultipolygonFromWay(Way *way, geos::geom::Geometry *geom) {
+                init(way);
                 geometry = geom;
+            }
+
+            void init(Way *w) {
+                id        = w->get_id();
+                version   = w->get_version();
+                uid       = w->get_uid();
+                changeset = w->get_changeset();
+                timestamp = w->get_timestamp();
+
+                num_tags  = w->tag_count();
+                tags      = w->tags;
+
+                num_nodes = w->node_count();
+                for (int i=0; i < num_nodes; i++) {
+                    lon[i] = w->lon[i];
+                    lat[i] = w->lat[i];
+                }
             }
 
             osm_object_type_t get_type() const {
                 return MULTIPOLYGON_FROM_WAY;
             }
 
-            osm_object_id_t get_id() const {
-                return way->get_id();
-            }
-
 #ifdef WITH_GEOS
             bool build_geometry() {
-                geometry = way->get_geometry();
                 return true;
             }
 #endif
 
 #ifdef WITH_SHPLIB
+            /**
+            * Create a SHPObject for this multipolygon and return it. You have to call
+            * SHPDestroyObject() with this object when you are done.
+            */
             SHPObject *create_shpobject(int shp_type) {
                 if (shp_type != SHPT_POLYGON) {
                     throw std::runtime_error("a multipolygon can only be added to a shapefile of type polygon");
                 }
-                return SHPCreateSimpleObject(shp_type, way->node_count(), way->lon, way->lat, NULL);
+                return SHPCreateSimpleObject(shp_type, num_nodes, lon, lat, NULL);
             }
 #endif
 
@@ -283,6 +298,10 @@ namespace Osmium {
                 return true;
             }
 
+            /**
+            * Create a SHPObject for this multipolygon and return it. You have to call
+            * SHPDestroyObject() with this object when you are done.
+            */
             SHPObject *create_shpobject(int shp_type) {
                 if (shp_type != SHPT_POLYGON) {
                     throw std::runtime_error("a multipolygon can only be added to a shapefile of type polygon");

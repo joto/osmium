@@ -24,11 +24,11 @@ namespace Osmium {
 
         class Way : public Object {
 
-            static const int max_nodes_in_way = 2000; ///< There can only be 2000 nodes in a way as per OSM API 0.6 definition.
-
             osm_sequence_id_t num_nodes;
 
           public:
+
+            static const int max_nodes_in_way = 2000; ///< There can only be 2000 nodes in a way as per OSM API 0.6 definition.
 
             osm_object_id_t nodes[max_nodes_in_way];
             double            lon[max_nodes_in_way];
@@ -130,6 +130,10 @@ namespace Osmium {
 #endif
 
 #ifdef WITH_SHPLIB
+            /**
+            * Create a SHPObject for this way and return it. You have to call
+            * SHPDestroyObject() with this object when you are done.
+            */
             SHPObject *create_shpobject(int shp_type) {
                 if (shp_type != SHPT_ARC && shp_type != SHPT_POLYGON) {
                     throw std::runtime_error("a way can only be added to a shapefile of type line or polygon");

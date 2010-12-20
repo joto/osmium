@@ -98,6 +98,12 @@ namespace Osmium {
 #endif
             }
 
+            ~Object() {
+#ifdef WITH_GEOS
+                if (geometry) delete geometry;
+#endif
+            }
+
             virtual osm_object_type_t get_type() const = 0;
 
             virtual void reset() {
