@@ -7,7 +7,7 @@
 #include <sstream>
 #include <iomanip>
 
-#ifdef PROFILING
+#ifdef WITH_MULTIPOLYGON_PROFILING
 #define START_TIMER(x) x##_timer.start();
 #define STOP_TIMER(x) x##_timer.stop();
 #else
@@ -16,8 +16,6 @@
 #endif
 
 #include "osmium.hpp"
-#include "geoshelper.h"
-#include "CGAlgorithms.h"
 
 #include <geos/geom/PrecisionModel.h>
 #include <geos/geom/CoordinateSequence.h>
@@ -31,14 +29,17 @@
 #include <geos/operation/polygonize/Polygonizer.h>
 #include <geos/opPolygonize.h>
 #include <geos/algorithm/LineIntersector.h>
+#include <geos/algorithm/CGAlgorithms.h>
 #include <geos/geomgraph/GeometryGraph.h>
 #include <geos/geomgraph/index/SegmentIntersector.h>
-#include <geos/algorithm/LineIntersector.h>
-#include <geos/geomgraph/GeometryGraph.h>
 
 namespace Osmium {
 
     namespace OSM {
+
+#ifdef WITH_MULTIPOLYGON_PROFILING
+        std::vector<std::pair<std::string, timer *> > MultipolygonFromRelation::timers;
+#endif
 
         bool ignore_tag(const std::string &s) {
             if (s=="type") return true;
@@ -86,9 +87,10 @@ namespace Osmium {
 
         bool untagged(const Object *r) {
             if (r->tag_count() == 0) return true;
-            for (int i=0; i<r->tag_count(); i++) {
-                if (ignore_tag(r->get_tag_key(i))) continue;
-                return false;
+            for (int i=0; i < r->tag_count(); i++) {
+                if (! ignore_tag(r->get_tag_key(i)) ) {
+                    return false;
+                }
             }
             return true;
         }
@@ -226,7 +228,7 @@ namespace Osmium {
         * result to the appropriate output file(s).
         *
         */
-        bool MultipolygonFromRelation::build_geometry(Relation *r)
+        bool MultipolygonFromRelation::build_geometry()
         {
             std::vector<WayInfo> ways;
             time_t timestamp = relation->timestamp;
@@ -408,9 +410,8 @@ namespace Osmium {
                         }
 
                         geos::geom::MultiPolygon *special_mp = Osmium::OSM::Object::global_geometry_factory->createMultiPolygon(g);
-                        special_mp->setSRID(OUTPUT_SRID);
 
-                        if (same_tags(ringlist[i]->ways[0]->way, r))
+                        if (same_tags(ringlist[i]->ways[0]->way, relation))
                         {
                             // warning
                             // warnings.insert("duplicate_tags_on_inner");
@@ -424,7 +425,7 @@ namespace Osmium {
                         {
                             std::cerr << " XXX internal mp\n";
                             Osmium::OSM::Way *first_way = ringlist[i]->ways[0]->way; // to simplify things we get some metadata only from the first way in this ring
-                            Osmium::OSM::MultipolygonFromRelation *internal_mp = new Osmium::OSM::MultipolygonFromRelation(r, boundary, special_mp, first_way->tags, first_way->get_timestamp_str());
+                            Osmium::OSM::MultipolygonFromRelation *internal_mp = new Osmium::OSM::MultipolygonFromRelation(relation, boundary, special_mp, first_way->tags, first_way->get_timestamp_str());
                             callback(internal_mp);
                             /* emit polygon
                             fprintf(complexFile, "%s\t%s\tM\t%.2f\t%s",
@@ -568,7 +569,7 @@ namespace Osmium {
                 catch (const geos::util::GEOSException& exc) 
                 {
                     // nop
-                    std::cerr << "Exception during creation of polygon for relation #" << r->id << ": " << exc.what() << " (treating as invalid polygon)" << std::endl;
+                    std::cerr << "Exception during creation of polygon for relation #" << relation->id << ": " << exc.what() << " (treating as invalid polygon)" << std::endl;
                 }
                 if (!valid)
                 {
@@ -585,14 +586,14 @@ namespace Osmium {
                         {
                             // way not tagged - ok
                         }
-                        else if (same_tags(r, wi->way))
+                        else if (same_tags(relation, wi->way))
                         {
                             // way tagged the same as relation/previous ways, ok
                         }
-                        else if (untagged(r))
+                        else if (untagged(relation))
                         {
                             // relation untagged; use tags from way; ok
-                            merge_tags(r, wi->way);
+                            merge_tags(relation, wi->way);
                         }
                         /**
                         MERGING TAGS IS DISABLED
@@ -617,8 +618,8 @@ namespace Osmium {
                         }
                     }
                     // copy tags from relation into multipolygon
-                    num_tags = r->tag_count();
-                    tags = r->tags;
+                    num_tags = relation->tag_count();
+                    tags = relation->tags;
                 }
                 // later delete ringlist[i];
                 // ringlist[i] = NULL;
@@ -650,6 +651,7 @@ namespace Osmium {
         bool MultipolygonFromRelation::geometry_error(const char *message)
         {
             geometry_error_message = message;
+            std::cerr << "building mp failed: " << geometry_error_message << std::endl;
             geometry = NULL;
             return false;
         }

@@ -149,6 +149,12 @@ namespace Osmium {
                 cb->multipolygon(multipolygon);
             }
 
+            void callback_final() {
+#ifdef WITH_MULTIPOLYGON_PROFILING
+                Osmium::OSM::MultipolygonFromRelation::print_timings();
+#endif
+            }
+
         }; // class Multipolygon
 
     } // namespace Handler

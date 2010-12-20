@@ -56,6 +56,7 @@ void multipolygon_handler(Osmium::OSM::Multipolygon *multipolygon) {
 void final_handler() {
     osmium_handler_node_location_store->callback_final();
     osmium_handler_javascript->callback_final();
+    osmium_handler_multipolygon->callback_final();
 }
 
 struct callbacks *setup_callbacks_1st_pass() {

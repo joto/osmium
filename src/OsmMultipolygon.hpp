@@ -19,24 +19,10 @@
 #endif
 
 #include "OsmWay.hpp"
+
+#ifdef WITH_MULTIPOLYGON_PROFILING
 #include "timer.h"
-
-#define OUTPUT_SRID 4326
-
-/*
-struct Tag 
-{
-    string key;
-    string value;
-    Tag(const char *a, const char *b) { key.assign(a); value.assign(b); }
-};
-
-struct Member
-{
-    int id;
-    innerouter_t innerouter;
-};
-*/
+#endif
 
 namespace Osmium {
 
@@ -157,6 +143,10 @@ namespace Osmium {
 
             bool boundary; ///< was this multipolygon created from relation with tag type=boundary?
 
+#ifdef WITH_MULTIPOLYGON_PROFILING
+            static std::vector<std::pair<std::string, timer *> > timers;
+#endif
+
           public:
 
             /// the relation this multipolygon was build from
@@ -177,6 +167,7 @@ namespace Osmium {
 
           private:
 
+#ifdef WITH_MULTIPOLYGON_PROFILING
             timer write_complex_poly_timer;
             timer assemble_ways_timer;
             timer assemble_nodes_timer;
@@ -191,6 +182,7 @@ namespace Osmium {
             timer multipolygon_build_timer;
             timer multipolygon_write_timer;
             timer error_write_timer;
+#endif
 
           public:
 
@@ -220,15 +212,7 @@ namespace Osmium {
             }
 
 #ifdef WITH_GEOS
-            bool build_geometry(Relation *r);
-
-            bool build_geometry() {
-                std::cerr << "going to build multipolygon geometry\n";
-                if (!build_geometry(relation)) {
-                    std::cerr << "building mp failed: " << geometry_error_message << "\n";
-                }
-                return true;
-            }
+            bool build_geometry();
 #endif
 
           private:
@@ -240,19 +224,19 @@ namespace Osmium {
                 geometry = NULL;
                 // delete pm;
 
-#ifdef PROFILING
-                timers.push_back(pair<string, timer *> ("   thereof assemble_ways", &assemble_ways_timer));
-                timers.push_back(pair<string, timer *> ("   thereof make_one_ring", &make_one_ring_timer));
-                timers.push_back(pair<string, timer *> ("      thereof union", &mor_union_timer));
-                timers.push_back(pair<string, timer *> ("      thereof polygonizer", &mor_polygonizer_timer));
-                timers.push_back(pair<string, timer *> ("   thereof contains", &contains_timer));
-                timers.push_back(pair<string, timer *> ("   thereof extra_polygons", &extra_polygons_timer));
-                timers.push_back(pair<string, timer *> ("   thereof polygon_build", &polygon_build_timer));
-                timers.push_back(pair<string, timer *> ("      thereof inner_ring_touch", &inner_ring_touch_timer));
-                timers.push_back(pair<string, timer *> ("      thereof intersections", &polygon_intersection_timer));
-                timers.push_back(pair<string, timer *> ("   thereof multipolygon_build", &multipolygon_build_timer));
-                timers.push_back(pair<string, timer *> ("   thereof multipolygon_write", &multipolygon_write_timer));
-                timers.push_back(pair<string, timer *> ("   thereof error_write", &error_write_timer));
+#ifdef WITH_MULTIPOLYGON_PROFILING
+                timers.push_back(std::pair<std::string, timer *> ("   thereof assemble_ways", &assemble_ways_timer));
+                timers.push_back(std::pair<std::string, timer *> ("   thereof make_one_ring", &make_one_ring_timer));
+                timers.push_back(std::pair<std::string, timer *> ("      thereof union", &mor_union_timer));
+                timers.push_back(std::pair<std::string, timer *> ("      thereof polygonizer", &mor_polygonizer_timer));
+                timers.push_back(std::pair<std::string, timer *> ("   thereof contains", &contains_timer));
+                timers.push_back(std::pair<std::string, timer *> ("   thereof extra_polygons", &extra_polygons_timer));
+                timers.push_back(std::pair<std::string, timer *> ("   thereof polygon_build", &polygon_build_timer));
+                timers.push_back(std::pair<std::string, timer *> ("      thereof inner_ring_touch", &inner_ring_touch_timer));
+                timers.push_back(std::pair<std::string, timer *> ("      thereof intersections", &polygon_intersection_timer));
+                timers.push_back(std::pair<std::string, timer *> ("   thereof multipolygon_build", &multipolygon_build_timer));
+                timers.push_back(std::pair<std::string, timer *> ("   thereof multipolygon_write", &multipolygon_write_timer));
+                timers.push_back(std::pair<std::string, timer *> ("   thereof error_write", &error_write_timer));
 #endif
             }
 
@@ -344,6 +328,14 @@ namespace Osmium {
                 return o;
             }
 #endif
+#endif
+
+#ifdef WITH_MULTIPOLYGON_PROFILING
+            static void print_timings() {
+                for (unsigned int i=0; i<timers.size(); i++) {
+                    std::cerr << timers[i].first << ": " << *(timers[i].second) << std::endl;
+                }
+            }
 #endif
 
         }; // class MultipolygonFromRelation
