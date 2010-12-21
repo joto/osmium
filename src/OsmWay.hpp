@@ -13,6 +13,7 @@
 #include <geos/geom/Coordinate.h>
 #include <geos/geom/CoordinateSequenceFactory.h>
 #include <geos/geom/Geometry.h>
+#include <geos/geom/Point.h>
 #include <geos/util/GEOSException.h>
 #endif
 
@@ -95,6 +96,30 @@ namespace Osmium {
             osm_object_id_t get_last_node_id() {
                 return nodes[num_nodes - 1];
             }
+
+#ifdef WITH_GEOS
+            /** 
+             * Returns the GEOS geometry of the first node.
+             * Caller takes ownership of the pointer.
+             */
+            geos::geom::Point *get_first_node_geometry() {
+                geos::geom::Coordinate c;
+                c.x = lon[0];
+                c.y = lat[0];
+                return global_geometry_factory->createPoint(c);
+            }
+
+            /** 
+             * Returns the GEOS geometry of the last node.
+             * Caller takes ownership of the pointer.
+             */
+            geos::geom::Point *get_last_node_geometry() {
+                geos::geom::Coordinate c;
+                c.x = lon[num_nodes - 1];
+                c.y = lat[num_nodes - 1];
+                return global_geometry_factory->createPoint(c);
+            }
+#endif
 
             /**
             * Check whether this way is closed. A way is closed if the first and last node have the same id.

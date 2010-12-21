@@ -31,11 +31,11 @@ namespace Osmium {
         enum innerouter_t { UNSET, INNER, OUTER };
         enum direction_t { NO_DIRECTION, CLOCKWISE, COUNTERCLOCKWISE };
 
+#ifdef WITH_GEOS
         class WayInfo {
 
           public:
 
-            Osmium::OSM::Way *way;
             int used;
             int sequence;
             bool invert;
@@ -43,6 +43,10 @@ namespace Osmium {
             std::string errorhint;
             innerouter_t innerouter;
             innerouter_t orig_innerouter;
+            geos::geom::Geometry *way_geom;
+            int firstnode;
+            int lastnode;
+            bool tried;
 
             WayInfo() {
                 way = NULL;
@@ -52,17 +56,45 @@ namespace Osmium {
                 sequence = 0;
                 invert = false;
                 duplicate = false;
+                way_geom = NULL;
+                firstnode = -1;
+                lastnode = -1;
+                tried = false;
             }
 
             WayInfo(Osmium::OSM::Way *w, innerouter_t io) {
                 way = w;
+                way_geom = w->get_geometry();
                 orig_innerouter = io;
                 used = -1;
                 innerouter = UNSET;
                 sequence = 0;
                 invert = false;
                 duplicate = false;
+                tried = false;
+                firstnode = w->get_first_node_id();
+                lastnode = w->get_last_node_id();
             }
+
+            /** Special version with a synthetic way, not backed by real way object. */
+            WayInfo(geos::geom::Geometry *g, int first, int last, innerouter_t io) {
+                way = NULL;
+                way_geom = g;
+                orig_innerouter = io;
+                used = -1;
+                innerouter = UNSET;
+                sequence = 0;
+                invert = false;
+                duplicate = false;
+                tried = false;
+                firstnode = first;
+                lastnode = last;
+            }
+
+            geos::geom::Point *get_firstnode_geom() { return (way ? way->get_first_node_geometry() : NULL); }
+            geos::geom::Point *get_lastnode_geom() { return (way ? way->get_last_node_geometry() : NULL); }
+
+            Osmium::OSM::Way *way;
         };
 
         class RingInfo {
@@ -85,6 +117,7 @@ namespace Osmium {
                 ring_id = -1;
             }
         };
+#endif
 
         /// virtual parent class for MultipolygonFromWay and MultipolygonFromRelation
         class Multipolygon : public Object {
