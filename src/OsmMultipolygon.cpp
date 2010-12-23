@@ -108,7 +108,7 @@ namespace Osmium {
         * may be called again to find further rings.) If this is not possible, 
         * return NULL.
         */
-        RingInfo *MultipolygonFromRelation::make_one_ring(std::vector<WayInfo *> &ways, osm_object_id_t first, osm_object_id_t last, int ringcount, int sequence, bool with_geometry_repair)
+        RingInfo *MultipolygonFromRelation::make_one_ring(std::vector<WayInfo *> &ways, osm_object_id_t first, osm_object_id_t last, int ringcount, int sequence /**, bool with_geometry_repair */)
         {
 
             // have we found a loop already?
