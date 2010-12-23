@@ -42,6 +42,7 @@ namespace Osmium {
                 reset();
             }
 
+/*
             Way(Way *w) : Object(w) {
                 // TODO XXX geometry not copied. what should happen here?
                 num_nodes = w->num_nodes;
@@ -49,6 +50,17 @@ namespace Osmium {
                     nodes[i] = w->nodes[i];
                     lon[i] = w->lon[i];
                     lat[i] = w->lat[i];
+                }
+            }
+            */
+
+            Way(const Way& w) : Object(w) 
+            {
+                num_nodes = w.num_nodes;
+                for (int i=0; i < num_nodes; i++) {
+                    nodes[i] = w.nodes[i];
+                    lon[i] = w.lon[i];
+                    lat[i] = w.lat[i];
                 }
             }
 

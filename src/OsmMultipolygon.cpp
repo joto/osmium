@@ -348,6 +348,7 @@ namespace Osmium {
             STOP_TIMER(assemble_ways);
 
             std::vector<RingInfo *> ringlist;
+            #define clear_ringlist() for(std::vector<RingInfo *>::const_iterator rli = ringlist.begin(); rli != ringlist.end(); rli++) delete *rli;
 
             // try and create as many closed rings as possible from the assortment
             // of ways. make_one_ring will automatically flag those that have been
@@ -372,6 +373,7 @@ namespace Osmium {
 
             if (!find_and_repair_holes_in_rings(&ways))
             {
+                clear_ringlist();
                 return geometry_error("un-connectable dangling ends");
             }
 
@@ -530,6 +532,8 @@ namespace Osmium {
                             std::cerr << " XXX internal mp\n";
                             Osmium::OSM::MultipolygonFromWay *internal_mp = new Osmium::OSM::MultipolygonFromWay(ringlist[i]->ways[0]->way, special_mp);
                             callback(internal_mp);
+                            // it seems that this "delete" somehow causes the "delete special_mp" below to segfault.
+                            // delete internal_mp;
                         }
                         delete special_mp;
                     }
@@ -648,6 +652,7 @@ namespace Osmium {
                 if (!valid)
                 {
                     // polygon is invalid.
+                    clear_ringlist();
                     return geometry_error("invalid ring");
                 }
                 else
@@ -690,6 +695,7 @@ namespace Osmium {
             STOP_TIMER(polygon_build);
 
             if (polygons->empty()) return geometry_error("no rings");
+            clear_ringlist();
 
             START_TIMER(multipolygon_build);
             bool valid = false;

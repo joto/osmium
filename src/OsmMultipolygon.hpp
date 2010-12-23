@@ -138,12 +138,12 @@ namespace Osmium {
 
           public:
 
-            MultipolygonFromWay(Way *way) {
+            MultipolygonFromWay(Way *way) : Multipolygon() {
                 init(way);
                 geometry = way->get_geometry();
             }
 
-            MultipolygonFromWay(Way *way, geos::geom::Geometry *geom) {
+            MultipolygonFromWay(Way *way, geos::geom::Geometry *geom) : Multipolygon() {
                 init(way);
                 geometry = geom;
             }
@@ -240,7 +240,7 @@ namespace Osmium {
 
           public:
 
-            MultipolygonFromRelation(Relation *r, bool b) : boundary(b), relation(r) {
+            MultipolygonFromRelation(Relation *r, bool b) : Multipolygon(), boundary(b), relation(r) {
                 num_ways = 0;
                 init();
             }

@@ -37,9 +37,9 @@ namespace Osmium {
             Relation() : Object(), members() {
             }
 
-            Relation(Relation *r) : Object(r) {
-                num_members = r->num_members;
-                members = r->members;
+            Relation(const Relation &r) : Object(r) {
+                num_members = r.num_members;
+                members = r.members;
             }
 
             osm_object_type_t get_type() const {
