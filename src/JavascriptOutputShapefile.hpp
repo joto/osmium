@@ -66,7 +66,7 @@ namespace Osmium {
             * Define a field for a shapefile.
             */
             void add_field(const char *f_name, ///< The name of the field (1 to 11 characters long)
-                           const char *f_type, ///< The type of the field ("string", "integer", or "double")
+                           const char *f_type, ///< The type of the field ("string", "integer", "double", or "bool")
                            int f_width,        ///< The width of the field (number of digits for ints and doubles)
                            int f_decimals      ///< The precision of double fields (otherwise ignored)
                            ) {
@@ -84,6 +84,10 @@ namespace Osmium {
                     f_decimals = 0;
                 } else if (!strcmp(f_type, "double")) {
                     type = FTDouble;
+                } else if (!strcmp(f_type, "bool")) {
+                    type = FTLogical;
+                    f_width = 1;
+                    f_decimals = 0;
                 } else {
                     throw std::runtime_error("unknown field type");
                 }
@@ -124,29 +128,45 @@ namespace Osmium {
                 int ok = 0;
                 for (int n=0; n < num_fields; n++) {
                     v8::Local<v8::String> key = v8::String::New(field_name[n]); 
-                    v8::Local<v8::Value> value = attributes->GetRealNamedProperty(key);
-                    if (value->IsUndefined() || value->IsNull()) {
-                        DBFWriteNULLAttribute(dbf_handle, ishape, n);
-                    } else {
-                        switch (field_type[n]) {
-                            case FTString: {
-                                    v8::String::Utf8Value str(value);
-                                    ok = DBFWriteStringAttribute(dbf_handle, ishape, n, *str);
-                                }
-                                break;
-                            case FTInteger:
-                                ok = DBFWriteIntegerAttribute(dbf_handle, ishape, n, value->Int32Value());
-                                break;
-                            case FTDouble:
-                                throw std::runtime_error("fields of type double not implemented");
-                                break;
+                    if (attributes->HasRealNamedProperty(key)) {
+                        v8::Local<v8::Value> value = attributes->GetRealNamedProperty(key);
+                        if (value->IsUndefined() || value->IsNull()) {
+                            DBFWriteNULLAttribute(dbf_handle, ishape, n);
+                        } else {
+                            switch (field_type[n]) {
+                                case FTString: {
+                                        v8::String::Utf8Value str(value);
+                                        ok = DBFWriteStringAttribute(dbf_handle, ishape, n, *str);
+                                    }
+                                    break;
+                                case FTInteger:
+                                    ok = DBFWriteIntegerAttribute(dbf_handle, ishape, n, value->Int32Value());
+                                    break;
+                                case FTDouble:
+                                    throw std::runtime_error("fields of type double not implemented");
+                                    break;
+                                case FTLogical: {
+                                        v8::String::Utf8Value str(value);
+
+                                        if (atoi(*str) == 1 || !strncasecmp(*str, "T", 1) || !strncasecmp(*str, "Y", 1)) {
+                                            ok = DBFWriteLogicalAttribute(dbf_handle, ishape, n, 'T');
+                                        } else if ((!strcmp(*str, "0")) || !strncasecmp(*str, "F", 1) || !strncasecmp(*str, "N", 1)) {
+                                            ok = DBFWriteLogicalAttribute(dbf_handle, ishape, n, 'F');
+                                        } else {
+                                            ok = DBFWriteNULLAttribute(dbf_handle, ishape, n);
+                                        }
+                                    }
+                                    break;
+                            }
+    /*                        if (!ok) {
+                                std::string errmsg("failed to add attribute '");
+                                errmsg += field_name[n];
+                                errmsg += "'\n";
+                                throw std::runtime_error(errmsg);
+                            }*/
                         }
-/*                        if (!ok) {
-                            std::string errmsg("failed to add attribute '");
-                            errmsg += field_name[n];
-                            errmsg += "'\n";
-                            throw std::runtime_error(errmsg);
-                        }*/
+                    } else {
+                        DBFWriteNULLAttribute(dbf_handle, ishape, n);
                     }
                 }
             }

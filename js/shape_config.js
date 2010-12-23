@@ -1,20 +1,57 @@
 // export osm data to shapefiles
 
-var shp_files = {};
+// shapefile geometry types
+var POINT   = 'point';
+var LINE    = 'line';
+var POLYGON = 'polygon';
+
+// shapefile attribute types
+var INTEGER = 'integer';
+var STRING  = 'string';
+var DOUBLE  = 'double';
+var BOOL    = 'bool';
 
 var files = {};
+
+var rules = {
+    node: [],
+    way:  [],
+    area: []
+};
 
 function shapefile(name) {
     var shp = {
         name: name,
+        fname: name,
         gtype: 'point',
         columns: [],
+        column_names: {},
         type: function(type) {
+            if (type != 'point' && type != 'line' && type != 'polygon') {
+                print('Unknown shapefile geometry type: ' + type);
+                exit(1);
+            }
             this.gtype = type;
             return this;
         },
         column: function(name, type, size) {
-            this.columns.push({ name: name, type: type, size: size });
+            if (type != 'integer' && type != 'string' && type != 'bool' && type != 'double') {
+                print('Unknown attribute type: ' + type);
+                throw("config error");
+            }
+            if (size == null) {
+                size = 1;
+            }
+            if (size < 0) {
+                print('Size not allowed: ' + size);
+            }
+            var column = { name: name, type: type, size: size };
+            this.columns.push(column);
+            this.column_names[name] = column;
+            return this;
+        },
+        filename: function(name) {
+            this.fname = name;
             return this;
         }
     };
@@ -22,74 +59,6 @@ function shapefile(name) {
     return shp;
 }
 
-var POINT = 'point';
-var LINE = 'line';
-var POLYGON = 'polygon';
-
-var INTEGER = 'integer';
-var STRING = 'string';
-
-/// CONFIG
-
-shapefile('natural_pois').
-    type(POINT).
-    column('id', INTEGER, 10).
-    column('type', STRING, 32).
-    column('name', STRING, 32);
-
-shapefile('roads').
-    type(LINE).
-    column('id', INTEGER, 10).
-    column('type', STRING, 32).
-    column('name', STRING, 32).
-    column('ref', STRING, 16).
-    column('oneway', INTEGER, 1).
-    column('maxspeed', INTEGER, 3);
-
-shapefile('cycleways').
-    type(LINE).
-    column('id', INTEGER, 10).
-    column('name', STRING, 32);
-
-shapefile('railways').
-    type(LINE).
-    column('id', INTEGER, 10).
-    column('name', STRING, 32);
-
-shapefile('waterways').
-    type(LINE).
-    column('id', INTEGER, 10).
-    column('type', STRING, 32).
-    column('name', STRING, 32);
-
-shapefile('powerlines').
-    type(LINE).
-    column('id', INTEGER, 10).
-    column('name', STRING, 32);
-
-shapefile('landuse').
-    type(POLYGON).
-    column('id', INTEGER, 10).
-    column('type', STRING, 32).
-    column('name', STRING, 32);
-
-/// CONFIG
-
-for (var file in files) {
-    print("file " + file);
-    shp_files[file] = Osmium.Output.Shapefile.open('./' + file, files[file].gtype);
-    for (var i=0; i < files[file].columns.length; i++) {
-        var d = files[file].columns[i];
-        print("  attr " + d.name + " " + d.type + " " + d.size);
-        shp_files[file].add_field(d.name, d.type, d.size);
-    }
-}
-
-var rules = {
-    node: [],
-    way: [],
-    area: []
-};
 
 function rule(type, key, value) {
     if (value == '*') {
@@ -99,13 +68,27 @@ function rule(type, key, value) {
         type: type,
         key: key,
         value: value,
-        output: null,
+        file: null,
         attrs: {},
         output: function(name) {
-            this.output = name;
+            if (! files[name]) {
+                print("Unknown shapefile: " + name);
+                throw("config error");
+            }
+            this.file = name;
             return this;
         },
         attr: function(attr, key) {
+            if (this.file == null) {
+                print("Output file not set for rule " + key + '=' + value);
+                throw("config error");
+            }
+
+            if (! files[this.file].column_names[attr]) {
+                print("There is no column named '" + attr + "' in output file '" + this.file + "'");
+                throw("config error");
+            }
+
             if (key == null) {
                 key = attr;
             }
@@ -129,44 +112,7 @@ function area(key, value) {
     return rule('area', key, value);
 }
 
-/// CONFIG
-
-node('natural').
-    output('natural_pois').
-        attr('type', 'natural').
-        attr('name');
-
-way('waterway').
-    output('waterways').
-        attr('type', 'waterway').
-        attr('name');
-
-way('highway', 'motorway|trunk|primary|secondary').
-    output('roads').
-        attr('type', 'highway').
-        attr('ref').
-        attr('name').
-        attr('oneway').
-        attr('maxspeed');
-
-way('highway', 'cycleway').
-    output('cycleways').
-        attr('name');
-
-way('railway', 'rail').
-    output('railways').
-        attr('name');
-
-way('power', 'line').
-    output('powerlines').
-        attr('name');
-
-area('landuse').
-    output('landuse').
-        attr('type', 'landuse').
-        attr('name');
-
-/// CONFIG
+include('js/config.js');
 
 function build_func(key, value) {
     if (value == null) {
@@ -204,10 +150,34 @@ function build_func(key, value) {
     }
 }
 
+for (var file in files) {
+    var f = files[file];
+
+    f.shp = Osmium.Output.Shapefile.open('./' + f.fname, f.gtype);
+
+    print('Shapefile: ' + file);
+    print('  Filename: ' + f.fname);
+    print('  Geometry type: ' + f.gtype.toUpperCase());
+    print('  Columns:');
+
+    for (var i=0; i < f.columns.length; i++) {
+        var d = f.columns[i];
+        print('    ' + (d.name + '          ').substr(0, 11) + d.type.toUpperCase() + ' ' + d.size);
+        f.shp.add_field(d.name, d.type, d.size);
+    }
+
+    print('');
+}
+
 for (var type in rules) {
     for (var i=0; i < rules[type].length; i++) {
         var rule = rules[type][i];
-        rule.match = build_func(rule.key, rule.value);
+        if (rule.file && files[rule.file]) {
+            rule.match = build_func(rule.key, rule.value);
+        } else {
+            print("Unknown shapefile output: " + rule.file);
+            exit(1);
+        }
     }
 }
 
@@ -228,11 +198,7 @@ function check(type, osm_object) {
         var rule = rules[type][i];
         if (rule.match(osm_object)) {
             var a = tags2attributes(osm_object.id, osm_object.tags, rule.attrs);
-/*            print("attrs: ");
-            for (var x in a) {
-                print("  " + x + ": " + a[x]);
-            }*/
-            shp_files[rule.output].add(osm_object, a);
+            files[rule.file].shp.add(osm_object, a);
         }
     }
 }
@@ -250,8 +216,8 @@ Osmium.Callbacks.multipolygon = function() {
 }
 
 Osmium.Callbacks.end = function() {
-    for (var file in shp_files) {
-        shp_files[file].close();
+    for (var file in files) {
+        files[file].shp.close();
     }
     print("Done");
 }

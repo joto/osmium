@@ -27,19 +27,24 @@ namespace Osmium {
                 return buffer.str();
             }
 
+            static const char* ToCString(const v8::String::Utf8Value& value) {
+                return *value ? *value : "<string conversion failed>";
+            }
+
             /**
             * Print Javascript exception to stderr
             */
             static void report_exception(v8::TryCatch* try_catch) {
                 v8::HandleScope handle_scope;
                 v8::String::Utf8Value exception(try_catch->Exception());
+                const char* exception_string = ToCString(exception);
 
                 v8::Handle<v8::Message> message = try_catch->Message();
                 if (message.IsEmpty()) {
-                    std::cerr << *exception << std::endl;
+                    std::cerr << exception_string << std::endl;
                 } else {
                     v8::String::Utf8Value filename(message->GetScriptResourceName());
-                    std::cerr << *filename << ":" << message->GetLineNumber() << ": " << *exception << std::endl;
+                    std::cerr << *filename << ":" << message->GetLineNumber() << ": " << exception_string << std::endl;
 
                     v8::String::Utf8Value sourceline(message->GetSourceLine());
                     std::cerr << *sourceline << std::endl;
@@ -93,14 +98,14 @@ namespace Osmium {
 
                         v8::Handle<v8::Script> script = v8::Script::Compile(v8::String::New(javascript_source.c_str()), v8::String::New(*filename));
                         if (script.IsEmpty()) {
-                            std::cerr << "Compiling script failed:" << std::endl;
+                            std::cerr << "Compiling included script failed:" << std::endl;
                             report_exception(&tryCatch);
                             exit(1);
                         }
 
                         v8::Handle<v8::Value> result = script->Run();
                         if (result.IsEmpty()) {
-                            std::cerr << "Running script failed:" << std::endl;
+                            std::cerr << "Running included script failed:" << std::endl;
                             report_exception(&tryCatch);
                             exit(1);
                         }
