@@ -32,12 +32,12 @@ namespace Osmium {
 
             void add_to_way_lookup(int mp, OSM::Relation *relation, osm_sequence_id_t sequence_id) {
                 osm_object_id_t member_id = relation->get_member(sequence_id)->ref;
-                std::cerr << "mp relation=" << relation->get_id() << " seq_id=" << sequence_id << " is way=" << member_id << "\n";
+                // std::cerr << "mp relation=" << relation->get_id() << " seq_id=" << sequence_id << " is way=" << member_id << "\n";
                 way2rel_t::iterator way2rel_iterator = way2rel.find(member_id);
                 std::vector<std::pair<osm_object_id_t, osm_sequence_id_t> > *v;
 
                 if (way2rel_iterator == way2rel.end()) {
-                    std::cerr << "  new way2rel item\n";
+                    // std::cerr << "  new way2rel item\n";
                     v = new std::vector<std::pair<osm_object_id_t, osm_sequence_id_t> >;
                     std::pair<int, osm_sequence_id_t> *p = new std::pair<int, osm_sequence_id_t>(mp, sequence_id);
                     v->push_back(*p);
@@ -67,7 +67,7 @@ namespace Osmium {
                     return;
                 }
 
-                Osmium::OSM::Relation *r = new Osmium::OSM::Relation(relation);
+                Osmium::OSM::Relation *r = new Osmium::OSM::Relation(*relation);
                 Osmium::OSM::MultipolygonFromRelation *m = new Osmium::OSM::MultipolygonFromRelation(r, is_boundary);
                 m->callback = cb->multipolygon;
                 multipolygons.push_back(m);
@@ -90,25 +90,27 @@ namespace Osmium {
             // in pass 2
             void callback_way(OSM::Way *way) {
                 way2rel_t::iterator way2rel_iterator = way2rel.find(way->get_id());
-                OSM::Multipolygon *mp;
 
                 if (way2rel_iterator == way2rel.end()) { // not in any relation
                     if (way->is_closed()) { // way is closed, build simple multipolygon
-                        mp = new Osmium::OSM::MultipolygonFromWay(way);
+                        Osmium::OSM::MultipolygonFromWay *mp = new Osmium::OSM::MultipolygonFromWay(way);
                         std::cerr << "MP simple way=" << way->get_id() << "\n";
                         callback_multipolygon(mp);
+                        delete mp;
                     }
                 } else { // is in at least one multipolygon relation
                     std::vector<std::pair<osm_object_id_t, osm_sequence_id_t> > v = way2rel_iterator->second;
 
                     std::cerr << "MP multi way=" << way->get_id() << " is in " << v.size() << " multipolygons\n";
-                    for (unsigned int i=0; i < v.size(); i++) {
+                    for (unsigned int i=0; i < v.size(); i++) 
+                    {
                         std::pair<int, osm_sequence_id_t> *p = &v[i];
                         Osmium::OSM::MultipolygonFromRelation *m = multipolygons[p->first];
                         std::cerr << "MP multi way=" << way->get_id() << " is in rel=" << m->get_id() << " at " << p->second << "\n";
 
-                        OSM::Way *w = new OSM::Way(way);
-                        m->member_ways.push_back(w);
+                        //OSM::Way *w = new OSM::Way(way);
+                        // this creates a copy:
+                        m->member_ways.push_back(*way);
 
                         m->missing_ways--;
                         if (m->missing_ways == 0) {
@@ -138,7 +140,10 @@ namespace Osmium {
                             }
                             // free way copies
                             // free relation
+                            multipolygons[p->first] = NULL;
+                            delete m;
                         }
+
                     }
 
                 }

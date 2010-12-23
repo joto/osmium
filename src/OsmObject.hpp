@@ -82,6 +82,7 @@ namespace Osmium {
                 reset();
             }
 
+/*
             Object(Object *o) {
                 id = o->id;
                 version = o->version;
@@ -97,10 +98,29 @@ namespace Osmium {
                 geos_geometry_built = o->geos_geometry_built;
 #endif
             }
+*/
+
+            Object(const Object &o)
+            {
+                id = o.id;
+                version = o.version;
+                uid = o.uid;
+                changeset = o.changeset;
+                strncpy(timestamp_str, o.timestamp_str, max_length_timestamp);
+                timestamp = o.timestamp;
+                strncpy(user, o.user, max_length_username);
+                num_tags = o.num_tags;
+                tags = o.tags;
+#ifdef WITH_GEOS
+                geometry = NULL;
+                geos_geometry_built = false;
+#endif
+            }
 
             ~Object() {
 #ifdef WITH_GEOS
-                if (geometry) delete geometry;
+                // FIXME FIXME FIXME MEMORY LEAK
+                //if (geometry) delete geometry;
 #endif
             }
 
