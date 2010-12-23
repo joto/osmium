@@ -15,10 +15,10 @@ namespace Osmium {
             /// a list of multipolygons that need to be completed
             std::vector<Osmium::OSM::MultipolygonFromRelation *> multipolygons;
 
-            // a map from way_id to a list of relation_ids
-            // this is used to find for each way in which relations it is
-            typedef google::sparse_hash_map<osm_object_id_t, std::vector<osm_object_id_t> > way2rel_t;
-            way2rel_t way2rel;
+            // a map from way_id to a vector of indexes into the multipolygons array
+            // this is used to find in which multipolygon relations a way is
+            typedef google::sparse_hash_map<osm_object_id_t, std::vector<osm_object_id_t> > way2mpidx_t;
+            way2mpidx_t way2mpidx;
 
             struct callbacks *cb;
 
@@ -30,22 +30,6 @@ namespace Osmium {
             // in pass 2
             void callback_before_ways() {
                 Osmium::OSM::Object::init(); // initialize geos lib
-            }
-
-            void add_to_way_lookup(osm_object_id_t way_id) {
-                way2rel_t::iterator way2rel_iterator = way2rel.find(way_id);
-                std::vector<osm_object_id_t> *v;
-
-                if (way2rel_iterator == way2rel.end()) {
-                    v = new std::vector<osm_object_id_t>;
-                    v->push_back(multipolygons.size());
-                    way2rel.insert(std::pair<osm_object_id_t, std::vector<osm_object_id_t> >(way_id, *v));
-                } else {
-                    std::cerr << "  adding to way2rel item\n";
-                    v = &(way2rel_iterator->second);
-                    v->push_back(multipolygons.size());
-                }
-
             }
 
             // in pass 1
@@ -68,8 +52,10 @@ namespace Osmium {
                 for (int i=0; i < relation->member_count(); i++) {
                     Osmium::OSM::RelationMember *member = relation->get_member(i);
                     if (member->type == 'w') {
-                        add_to_way_lookup(member->ref);
+                        way2mpidx[member->ref].push_back(multipolygons.size());
                         num_ways++;
+                    } else {
+                        std::cerr << "warning: multipolygon/boundary relation " << relation->get_id() << " has a non-way member which was ignored" << std::endl;
                     }
                 }
 
@@ -115,9 +101,9 @@ namespace Osmium {
 
             // in pass 2
             void callback_way(OSM::Way *way) {
-                way2rel_t::iterator way2rel_iterator = way2rel.find(way->get_id());
+                way2mpidx_t::iterator way2mpidx_iterator = way2mpidx.find(way->get_id());
 
-                if (way2rel_iterator == way2rel.end()) { // not in any relation
+                if (way2mpidx_iterator == way2mpidx.end()) { // not in any relation
                     if (way->is_closed()) { // way is closed, build simple multipolygon
                         Osmium::OSM::MultipolygonFromWay *mp = new Osmium::OSM::MultipolygonFromWay(way, way->create_geos_geometry());
                         std::cerr << "MP simple way_id=" << way->get_id() << "\n";
@@ -129,7 +115,7 @@ namespace Osmium {
                 
                 // is in at least one multipolygon relation
 
-                std::vector<osm_object_id_t> v = way2rel_iterator->second;
+                std::vector<osm_object_id_t> v = way2mpidx_iterator->second;
                 std::cerr << "MP way_id=" << way->get_id() << " is in " << v.size() << " multipolygons\n";
 
                 // go through all the multipolygons this way is in
