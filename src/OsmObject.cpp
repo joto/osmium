@@ -12,6 +12,9 @@ namespace Osmium {
 
         geos::geom::GeometryFactory *Object::global_geometry_factory = NULL;
 
+        char Node::lon_str[];
+        char Node::lat_str[];
+
     }
 
 }

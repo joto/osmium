@@ -19,19 +19,20 @@ namespace Osmium {
 
             static const int max_length_coordinate = 12 + 1; ///< maximum length of coordinate string (3 digits + dot + 8 digits + null byte)
 
+            /// used for conversion of coordinates to strings
+            static char lon_str[max_length_coordinate];
+            static char lat_str[max_length_coordinate];
+
             WKBPoint geom;
-            char lon_str[max_length_coordinate];
-            char lat_str[max_length_coordinate];
 
           public:
 
             Node() : Object() {
+                reset();
             }
 
             void reset() {
                 Object::reset();
-                lon_str[0] = 0;
-                lat_str[0] = 0;
                 geom.point.x = NAN;
                 geom.point.y = NAN;
             }
@@ -42,15 +43,9 @@ namespace Osmium {
 
             void set_attribute(const char *attr, const char *value) {
                 if (!strcmp(attr, "lon")) {
-                    if (!memccpy(lon_str, value, 0, max_length_coordinate)) {
-                        throw std::length_error("lon value too long");
-                    }
-                    geom.point.x = atof(lon_str);
+                    geom.point.x = atof(value);
                 } else if (!strcmp(attr, "lat")) {
-                    if (!memccpy(lat_str, value, 0, max_length_coordinate)) {
-                        throw std::length_error("lat value too long");
-                    }
-                    geom.point.y = atof(lat_str);
+                    geom.point.y = atof(value);
                 } else {
                     Object::set_attribute(attr, value);
                 }
@@ -61,17 +56,15 @@ namespace Osmium {
                 geom.point.y = y;
             }
 
+            /// get longitude as string, returns a pointer to statically allocated memory thats valid until the next call to get_lon_str()
             const char *get_lon_str() {
-                if (lon_str[0] == '\0') {
-                    snprintf(lon_str, max_length_coordinate, "%.7f", geom.point.x);
-                }
+                snprintf(lon_str, max_length_coordinate, "%.7f", geom.point.x);
                 return lon_str;
             }
 
+            /// get latitude as string, returns a pointer to statically allocated memory thats valid until the next call to get_lat_str()
             const char *get_lat_str() {
-                if (lat_str[0] == '\0') {
-                    snprintf(lat_str, max_length_coordinate, "%.7f", geom.point.y);
-                }
+                snprintf(lat_str, max_length_coordinate, "%.7f", geom.point.y);
                 return lat_str;
             }
 
