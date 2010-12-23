@@ -320,8 +320,7 @@ namespace Osmium {
 
 
         /**
-        * Tries to build a multipolygon from the given relation and writes the 
-        * result to the appropriate output file(s).
+        * Tries to build a multipolygon from the given relation.
         *
         */
         bool MultipolygonFromRelation::build_geometry()

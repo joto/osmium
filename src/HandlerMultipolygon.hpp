@@ -12,8 +12,12 @@ namespace Osmium {
 
         class Multipolygon : public Base {
 
+            /// a list of multipolygons that need to be completed
             std::vector<Osmium::OSM::MultipolygonFromRelation *> multipolygons;
-            typedef google::sparse_hash_map<osm_object_id_t, std::vector<std::pair<osm_object_id_t, osm_sequence_id_t> > > way2rel_t;
+
+            // a map from way_id to a list of relation_ids
+            // this is used to find for each way in which relations it is
+            typedef google::sparse_hash_map<osm_object_id_t, std::vector<osm_object_id_t> > way2rel_t;
             way2rel_t way2rel;
 
             struct callbacks *cb;
@@ -23,34 +27,25 @@ namespace Osmium {
             Multipolygon(struct callbacks *cb) : cb(cb) {
             }
 
-// TODO destructor that deletes multipolygons in vector
-
             // in pass 2
             void callback_before_ways() {
                 Osmium::OSM::Object::init(); // initialize geos lib
             }
 
-            void add_to_way_lookup(int mp, OSM::Relation *relation, osm_sequence_id_t sequence_id) {
-                osm_object_id_t member_id = relation->get_member(sequence_id)->ref;
-                // std::cerr << "mp relation=" << relation->get_id() << " seq_id=" << sequence_id << " is way=" << member_id << "\n";
-                way2rel_t::iterator way2rel_iterator = way2rel.find(member_id);
-                std::vector<std::pair<osm_object_id_t, osm_sequence_id_t> > *v;
+            void add_to_way_lookup(osm_object_id_t way_id) {
+                way2rel_t::iterator way2rel_iterator = way2rel.find(way_id);
+                std::vector<osm_object_id_t> *v;
 
                 if (way2rel_iterator == way2rel.end()) {
-                    // std::cerr << "  new way2rel item\n";
-                    v = new std::vector<std::pair<osm_object_id_t, osm_sequence_id_t> >;
-                    std::pair<int, osm_sequence_id_t> *p = new std::pair<int, osm_sequence_id_t>(mp, sequence_id);
-                    v->push_back(*p);
-                    way2rel.insert(std::pair<osm_object_id_t, std::vector<std::pair<osm_object_id_t, osm_sequence_id_t> > >(member_id, *v));
+                    v = new std::vector<osm_object_id_t>;
+                    v->push_back(multipolygons.size());
+                    way2rel.insert(std::pair<osm_object_id_t, std::vector<osm_object_id_t> >(way_id, *v));
                 } else {
                     std::cerr << "  adding to way2rel item\n";
                     v = &(way2rel_iterator->second);
-                    std::pair<int, osm_sequence_id_t> *p = new std::pair<int, osm_sequence_id_t>(mp, sequence_id);
-                    v->push_back(*p);
+                    v->push_back(multipolygons.size());
                 }
 
-/*                std::pair<int, osm_sequence_id_t> *p = new std::pair<int, osm_sequence_id_t>(mp, sequence_id);
-                v->push_back(*p);*/
             }
 
             // in pass 1
@@ -68,23 +63,54 @@ namespace Osmium {
                 }
 
                 Osmium::OSM::Relation *r = new Osmium::OSM::Relation(*relation);
-                Osmium::OSM::MultipolygonFromRelation *m = new Osmium::OSM::MultipolygonFromRelation(r, is_boundary);
-                m->callback = cb->multipolygon;
-                multipolygons.push_back(m);
 
+                int num_ways = 0;
                 for (int i=0; i < relation->member_count(); i++) {
-                    if (relation->get_member(i)->type == 'w') {
-                        add_to_way_lookup(multipolygons.size()-1, relation, i);
-                        m->num_ways++;
+                    Osmium::OSM::RelationMember *member = relation->get_member(i);
+                    if (member->type == 'w') {
+                        add_to_way_lookup(member->ref);
+                        num_ways++;
                     }
                 }
 
-                m->missing_ways = m->num_ways;
+                Osmium::OSM::MultipolygonFromRelation *mp = new Osmium::OSM::MultipolygonFromRelation(r, is_boundary, num_ways, cb->multipolygon);
+                multipolygons.push_back(mp);
             }
 
             // in pass 1
             void callback_after_relations() {
                 std::cerr << "found " << multipolygons.size() << " multipolygons\n";
+            }
+
+            void handle_complete_multipolygon(Osmium::OSM::MultipolygonFromRelation *mp) {
+                bool way_geometries_are_ok = true;
+                std::cerr << "MP multi multi=" << mp->get_id() << " done\n";
+                for (int i=0; i < mp->num_ways; i++) {
+                    std::cerr << "  way=" << mp->member_ways[i].get_id() << "\n";
+
+                    //geos::geom::Geometry *g = mp->member_ways[i].get_geometry();
+                    geos::geom::Geometry *g = mp->member_ways[i].create_geos_geometry();
+                    if (g) {
+                        geos::io::WKTWriter wkt;
+                        std::cerr << "  way geometry: " << wkt.write(g) << std::endl;
+                    } else {
+                        way_geometries_are_ok = false;
+                    }
+                }
+                if (way_geometries_are_ok) {
+                    //if (m->get_geometry()) {
+                    if (mp->build_geometry()) {
+                        geos::io::WKTWriter wkt;
+                        std::cerr << "  mp geometry: " << wkt.write(mp->geometry) << std::endl;
+                    } else {
+                        std::cerr << "  geom build error: " << mp->geometry_error_message << "\n";
+                    }
+                    callback_multipolygon(mp);
+                } else {
+                    std::cerr << "  can´t build mp geometry because at least one way geometry is broken\n";
+                }
+                // free way copies
+                // free relation
             }
 
             // in pass 2
@@ -93,59 +119,32 @@ namespace Osmium {
 
                 if (way2rel_iterator == way2rel.end()) { // not in any relation
                     if (way->is_closed()) { // way is closed, build simple multipolygon
-                        Osmium::OSM::MultipolygonFromWay *mp = new Osmium::OSM::MultipolygonFromWay(way);
-                        std::cerr << "MP simple way=" << way->get_id() << "\n";
+                        Osmium::OSM::MultipolygonFromWay *mp = new Osmium::OSM::MultipolygonFromWay(way, way->create_geos_geometry());
+                        std::cerr << "MP simple way_id=" << way->get_id() << "\n";
                         callback_multipolygon(mp);
                         delete mp;
                     }
-                } else { // is in at least one multipolygon relation
-                    std::vector<std::pair<osm_object_id_t, osm_sequence_id_t> > v = way2rel_iterator->second;
+                    return;
+                }
+                
+                // is in at least one multipolygon relation
 
-                    std::cerr << "MP multi way=" << way->get_id() << " is in " << v.size() << " multipolygons\n";
-                    for (unsigned int i=0; i < v.size(); i++) 
-                    {
-                        std::pair<int, osm_sequence_id_t> *p = &v[i];
-                        Osmium::OSM::MultipolygonFromRelation *m = multipolygons[p->first];
-                        std::cerr << "MP multi way=" << way->get_id() << " is in rel=" << m->get_id() << " at " << p->second << "\n";
+                std::vector<osm_object_id_t> v = way2rel_iterator->second;
+                std::cerr << "MP way_id=" << way->get_id() << " is in " << v.size() << " multipolygons\n";
 
-                        //OSM::Way *w = new OSM::Way(way);
-                        // this creates a copy:
-                        m->member_ways.push_back(*way);
+                // go through all the multipolygons this way is in
+                for (unsigned int i=0; i < v.size(); i++) {
+                    Osmium::OSM::MultipolygonFromRelation *mp = multipolygons[v[i]];
+                    std::cerr << "MP multi way_id=" << way->get_id() << " is in relation_id=" << mp->get_id() << "\n";
 
-                        m->missing_ways--;
-                        if (m->missing_ways == 0) {
-                            bool way_geometries_are_ok = true;
-                            std::cerr << "MP multi multi=" << m->get_id() << " done\n";
-                            for (int i=0; i < m->num_ways; i++) {
-                                std::cerr << "  way=" << m->member_ways[i].get_id() << "\n";
+                    // store copy of current way in multipolygon
+                    mp->add_member_way(way);
 
-                                geos::geom::Geometry *g = m->member_ways[i].get_geometry();
-                                if (g) {
-                                    geos::io::WKTWriter wkt;
-                                    std::cerr << "  way geometry: " << wkt.write(g) << std::endl;
-                                } else {
-                                    way_geometries_are_ok = false;
-                                }
-                            }
-                            if (way_geometries_are_ok) {
-                                if (m->get_geometry()) {
-                                    geos::io::WKTWriter wkt;
-                                    std::cerr << "  mp geometry: " << wkt.write(m->get_geometry()) << std::endl;
-                                } else {
-                                    std::cerr << "  geom build error: " << m->geometry_error_message << "\n";
-                                }
-                                callback_multipolygon(m);
-                            } else {
-                                std::cerr << "  can´t build mp geometry because at least one way geometry is broken\n";
-                            }
-                            // free way copies
-                            // free relation
-                            multipolygons[p->first] = NULL;
-                            delete m;
-                        }
-
+                    if (mp->is_complete()) {
+                        handle_complete_multipolygon(mp);
+                        multipolygons[v[i]] = NULL;
+                        delete mp;
                     }
-
                 }
             }
 

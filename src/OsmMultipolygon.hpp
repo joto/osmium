@@ -64,7 +64,7 @@ namespace Osmium {
 
             WayInfo(Osmium::OSM::Way *w, innerouter_t io) {
                 way = w;
-                way_geom = w->get_geometry();
+                way_geom = w->create_geos_geometry();
                 orig_innerouter = io;
                 used = -1;
                 innerouter = UNSET;
@@ -122,6 +122,27 @@ namespace Osmium {
         /// virtual parent class for MultipolygonFromWay and MultipolygonFromRelation
         class Multipolygon : public Object {
 
+//          protected:
+          public:
+
+#ifdef WITH_GEOS
+            geos::geom::Geometry *geometry;
+#endif
+
+          public:
+
+            Multipolygon() {
+                geometry = NULL;
+            }
+
+            Multipolygon(geos::geom::Geometry *geom) {
+                geometry = geom;
+            }
+
+            ~Multipolygon() {
+                if (geometry) delete(geometry);
+            }
+
         }; // class Multipolygon
 
         /***
@@ -138,42 +159,26 @@ namespace Osmium {
 
           public:
 
-            MultipolygonFromWay(Way *way) : Multipolygon() {
-                init(way);
-                geometry = way->get_geometry();
-            }
+            MultipolygonFromWay(Way *way, geos::geom::Geometry *geom) : Multipolygon(geom) {
+                id        = way->get_id();
+                version   = way->get_version();
+                uid       = way->get_uid();
+                changeset = way->get_changeset();
+                timestamp = way->get_timestamp();
 
-            MultipolygonFromWay(Way *way, geos::geom::Geometry *geom) : Multipolygon() {
-                init(way);
-                geometry = geom;
-            }
+                num_tags  = way->tag_count();
+                tags      = way->tags;
 
-            void init(Way *w) {
-                id        = w->get_id();
-                version   = w->get_version();
-                uid       = w->get_uid();
-                changeset = w->get_changeset();
-                timestamp = w->get_timestamp();
-
-                num_tags  = w->tag_count();
-                tags      = w->tags;
-
-                num_nodes = w->node_count();
+                num_nodes = way->node_count();
                 for (int i=0; i < num_nodes; i++) {
-                    lon[i] = w->lon[i];
-                    lat[i] = w->lat[i];
+                    lon[i] = way->lon[i];
+                    lat[i] = way->lat[i];
                 }
             }
 
             osm_object_type_t get_type() const {
                 return MULTIPOLYGON_FROM_WAY;
             }
-
-#ifdef WITH_GEOS
-            bool build_geometry() {
-                return true;
-            }
-#endif
 
 #ifdef WITH_SHPLIB
             /**
@@ -240,9 +245,25 @@ namespace Osmium {
 
           public:
 
-            MultipolygonFromRelation(Relation *r, bool b) : Multipolygon(), boundary(b), relation(r) {
-                num_ways = 0;
-                init();
+            MultipolygonFromRelation(Relation *r, bool b, int n, void (*callback)(Osmium::OSM::Multipolygon *)) : Multipolygon(), boundary(b), relation(r), callback(callback) {
+                num_ways = n;
+                missing_ways = n;
+                geometry = NULL;
+
+#ifdef WITH_MULTIPOLYGON_PROFILING
+                timers.push_back(std::pair<std::string, timer *> ("   thereof assemble_ways", &assemble_ways_timer));
+                timers.push_back(std::pair<std::string, timer *> ("   thereof make_one_ring", &make_one_ring_timer));
+                timers.push_back(std::pair<std::string, timer *> ("      thereof union", &mor_union_timer));
+                timers.push_back(std::pair<std::string, timer *> ("      thereof polygonizer", &mor_polygonizer_timer));
+                timers.push_back(std::pair<std::string, timer *> ("   thereof contains", &contains_timer));
+                timers.push_back(std::pair<std::string, timer *> ("   thereof extra_polygons", &extra_polygons_timer));
+                timers.push_back(std::pair<std::string, timer *> ("   thereof polygon_build", &polygon_build_timer));
+                timers.push_back(std::pair<std::string, timer *> ("      thereof inner_ring_touch", &inner_ring_touch_timer));
+                timers.push_back(std::pair<std::string, timer *> ("      thereof intersections", &polygon_intersection_timer));
+                timers.push_back(std::pair<std::string, timer *> ("   thereof multipolygon_build", &multipolygon_build_timer));
+                timers.push_back(std::pair<std::string, timer *> ("   thereof multipolygon_write", &multipolygon_write_timer));
+                timers.push_back(std::pair<std::string, timer *> ("   thereof error_write", &error_write_timer));
+#endif
             }
 
             ~MultipolygonFromRelation() {
@@ -267,27 +288,18 @@ namespace Osmium {
             bool find_and_repair_holes_in_rings(std::vector<WayInfo *> *ways);
             bool geometry_error(const char *message);
 
-            void init() {
-                geometry = NULL;
-                // delete pm;
+          public:
 
-#ifdef WITH_MULTIPOLYGON_PROFILING
-                timers.push_back(std::pair<std::string, timer *> ("   thereof assemble_ways", &assemble_ways_timer));
-                timers.push_back(std::pair<std::string, timer *> ("   thereof make_one_ring", &make_one_ring_timer));
-                timers.push_back(std::pair<std::string, timer *> ("      thereof union", &mor_union_timer));
-                timers.push_back(std::pair<std::string, timer *> ("      thereof polygonizer", &mor_polygonizer_timer));
-                timers.push_back(std::pair<std::string, timer *> ("   thereof contains", &contains_timer));
-                timers.push_back(std::pair<std::string, timer *> ("   thereof extra_polygons", &extra_polygons_timer));
-                timers.push_back(std::pair<std::string, timer *> ("   thereof polygon_build", &polygon_build_timer));
-                timers.push_back(std::pair<std::string, timer *> ("      thereof inner_ring_touch", &inner_ring_touch_timer));
-                timers.push_back(std::pair<std::string, timer *> ("      thereof intersections", &polygon_intersection_timer));
-                timers.push_back(std::pair<std::string, timer *> ("   thereof multipolygon_build", &multipolygon_build_timer));
-                timers.push_back(std::pair<std::string, timer *> ("   thereof multipolygon_write", &multipolygon_write_timer));
-                timers.push_back(std::pair<std::string, timer *> ("   thereof error_write", &error_write_timer));
-#endif
+            /// Add way to list of member ways. This will create a copy of the way.
+            void add_member_way(Osmium::OSM::Way *way) {
+                member_ways.push_back(*way);
+                missing_ways--;
             }
 
-            public:
+            /// Do we have all the ways we need to build this multipolygon?
+            bool is_complete() {
+                return missing_ways == 0;
+            }
 
 #ifdef WITH_SHPLIB
 #ifdef WITH_GEOS
@@ -335,15 +347,14 @@ namespace Osmium {
             /**
             * Create a SHPObject for this multipolygon and return it. You have to call
             * SHPDestroyObject() with this object when you are done.
+            * Returns NULL if a valid SHPObject could not be created.
             */
             SHPObject *create_shpobject(int shp_type) {
                 if (shp_type != SHPT_POLYGON) {
                     throw std::runtime_error("a multipolygon can only be added to a shapefile of type polygon");
                 }
 
-                const geos::geom::Geometry *g = get_geometry();
-
-                if (!g) {
+                if (!geometry) {
                     return NULL;
                 }
 
@@ -351,7 +362,7 @@ namespace Osmium {
                 std::vector<double> y;
                 std::vector<int> partStart;
 
-                dumpGeometry(g, partStart, x, y);
+                dumpGeometry(geometry, partStart, x, y);
 
                 int *ps = new int[partStart.size()];
                 for (size_t i=0; i<partStart.size(); i++) ps[i]=partStart[i];

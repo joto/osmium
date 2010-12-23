@@ -80,12 +80,6 @@ namespace Osmium {
                 return geom.to_hex();
             }
 
-#ifdef WITH_GEOS
-            bool build_geometry() {
-                throw std::runtime_error("not implemented yet");
-            }
-#endif
-
 #ifdef WITH_SHPLIB
             SHPObject *create_shpobject(int shp_type) {
                 if (shp_type != SHPT_POINT) {

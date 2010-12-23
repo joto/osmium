@@ -77,12 +77,6 @@ namespace Osmium {
                 return 0;
             }
 
-#ifdef WITH_GEOS
-            bool build_geometry() {
-                throw std::runtime_error("Can´t build geometry for relation");
-            }
-#endif
-
 #ifdef WITH_SHPLIB
             SHPObject *create_shpobject(int /*shp_type*/) {
                 throw std::runtime_error("a relation can not be added to a shapefile of any type");

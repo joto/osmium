@@ -42,20 +42,7 @@ namespace Osmium {
                 reset();
             }
 
-/*
-            Way(Way *w) : Object(w) {
-                // TODO XXX geometry not copied. what should happen here?
-                num_nodes = w->num_nodes;
-                for (int i=0; i < num_nodes; i++) {
-                    nodes[i] = w->nodes[i];
-                    lon[i] = w->lon[i];
-                    lat[i] = w->lat[i];
-                }
-            }
-            */
-
-            Way(const Way& w) : Object(w) 
-            {
+            Way(const Way& w) : Object(w) {
                 num_nodes = w.num_nodes;
                 for (int i=0; i < num_nodes; i++) {
                     nodes[i] = w.nodes[i];
@@ -150,19 +137,22 @@ namespace Osmium {
             }
 
 #ifdef WITH_GEOS
-            bool build_geometry() {
+            /** 
+             * Returns the GEOS geometry of the way.
+             * Caller takes ownership of the pointer.
+             */
+            geos::geom::Geometry *create_geos_geometry() {
                 try {
                     std::vector<geos::geom::Coordinate> *c = new std::vector<geos::geom::Coordinate>;
                     for (int i=0; i<num_nodes; i++) {
                         c->push_back(geos::geom::Coordinate(lon[i], lat[i], DoubleNotANumber));
                     }
                     geos::geom::CoordinateSequence *cs = global_geometry_factory->getCoordinateSequenceFactory()->create(c);
-                    geometry = (geos::geom::Geometry *) global_geometry_factory->createLineString(cs);
+                    return (geos::geom::Geometry *) global_geometry_factory->createLineString(cs);
                 } catch (const geos::util::GEOSException& exc) {
                     std::cerr << "error building way geometry, leave it as NULL" << std::endl;
-                    geometry = NULL;
+                    return NULL;
                 }
-                return true;
             }
 #endif
 

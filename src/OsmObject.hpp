@@ -10,7 +10,6 @@
 #include <time.h>
 
 #ifdef WITH_GEOS
-#include <geos/geom/Geometry.h>
 #include <geos/geom/GeometryFactory.h>
 #include <geos/geom/PrecisionModel.h>
 #endif
@@ -36,8 +35,7 @@ namespace Osmium {
             static const int max_length_username = 255 * 4 + 1; ///< maximum length of OSM user name (255 UTF-8 characters + null byte)
 
 #ifdef WITH_GEOS
-            bool geos_geometry_built;
-
+            // XXX this stuff should probably go somewhere else
             static void init() {
                 geos::geom::PrecisionModel *pm = new geos::geom::PrecisionModel();
                 global_geometry_factory = new geos::geom::GeometryFactory(pm, -1);
@@ -65,63 +63,25 @@ namespace Osmium {
 
             std::vector<Tag> tags;
 
-          protected:
-
-#ifdef WITH_GEOS
-            geos::geom::Geometry *geometry;
-#endif
-
-          public:
-
             void *wrapper;
 
             Object() : tags() {
-#ifdef WITH_GEOS
-                geometry = NULL;
-#endif
                 reset();
             }
 
-/*
-            Object(Object *o) {
-                id = o->id;
-                version = o->version;
-                uid = o->uid;
-                changeset = o->changeset;
-                strncpy(timestamp_str, o->timestamp_str, max_length_timestamp);
-                timestamp = o->timestamp;
-                strncpy(user, o->user, max_length_username);
-                num_tags = o->num_tags;
-                tags = o->tags;
-#ifdef WITH_GEOS
-                geometry = o->geometry;
-                geos_geometry_built = o->geos_geometry_built;
-#endif
-            }
-*/
-
-            Object(const Object &o)
-            {
-                id = o.id;
-                version = o.version;
-                uid = o.uid;
+            Object(const Object &o) {
+                id        = o.id;
+                version   = o.version;
+                uid       = o.uid;
                 changeset = o.changeset;
-                strncpy(timestamp_str, o.timestamp_str, max_length_timestamp);
                 timestamp = o.timestamp;
+                num_tags  = o.num_tags;
+                tags      = o.tags;
+                strncpy(timestamp_str, o.timestamp_str, max_length_timestamp);
                 strncpy(user, o.user, max_length_username);
-                num_tags = o.num_tags;
-                tags = o.tags;
-#ifdef WITH_GEOS
-                geometry = NULL;
-                geos_geometry_built = false;
-#endif
             }
 
             ~Object() {
-#ifdef WITH_GEOS
-                // FIXME FIXME FIXME MEMORY LEAK
-                //if (geometry) delete geometry;
-#endif
             }
 
             virtual osm_object_type_t get_type() const = 0;
@@ -136,11 +96,6 @@ namespace Osmium {
                 user[0]          = '\0';
                 num_tags         = 0;
                 tags.clear();
-#ifdef WITH_GEOS
-                if (geometry) delete geometry; 
-                geometry = NULL;
-                geos_geometry_built = false;
-#endif
             }
 
             virtual void set_attribute(const char *attr, const char *value) {
@@ -247,18 +202,6 @@ namespace Osmium {
                 }
                 throw std::range_error("no tag with this index");
             }
-
-#ifdef WITH_GEOS
-            geos::geom::Geometry *get_geometry() {
-                if (!geos_geometry_built) {
-                    build_geometry();
-                    geos_geometry_built = true;
-                }
-                return geometry;
-            }
-
-            virtual bool build_geometry() = 0;
-#endif
 
 #ifdef WITH_SHPLIB
             virtual SHPObject *create_shpobject(int shp_type) = 0;
