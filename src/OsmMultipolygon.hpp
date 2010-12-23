@@ -10,8 +10,7 @@
 #include <geos/geom/Point.h>
 #include <geos/geom/LineString.h>
 #include <geos/geom/Polygon.h>
-#include <geos/io/WKBWriter.h>
-#include <geos/io/WKBReader.h>
+#include <geos/io/WKTWriter.h>
 #endif
 
 #ifdef WITH_SHPLIB
@@ -122,8 +121,7 @@ namespace Osmium {
         /// virtual parent class for MultipolygonFromWay and MultipolygonFromRelation
         class Multipolygon : public Object {
 
-//          protected:
-          public:
+          protected:
 
 #ifdef WITH_GEOS
             geos::geom::Geometry *geometry;
@@ -132,15 +130,21 @@ namespace Osmium {
           public:
 
             Multipolygon() {
+#ifdef WITH_GEOS
                 geometry = NULL;
+#endif
             }
 
+#ifdef WITH_GEOS
             Multipolygon(geos::geom::Geometry *geom) {
                 geometry = geom;
             }
+#endif
 
             ~Multipolygon() {
+#ifdef WITH_GEOS
                 if (geometry) delete(geometry);
+#endif
             }
 
         }; // class Multipolygon
@@ -206,8 +210,6 @@ namespace Osmium {
             static std::vector<std::pair<std::string, timer *> > timers;
 #endif
 
-          public:
-
             /// the relation this multipolygon was build from
             Relation *relation;
 
@@ -223,8 +225,6 @@ namespace Osmium {
             std::string geometry_error_message;
 
             void (*callback)(Osmium::OSM::Multipolygon *);
-
-          private:
 
 #ifdef WITH_MULTIPOLYGON_PROFILING
             timer write_complex_poly_timer;
@@ -249,6 +249,7 @@ namespace Osmium {
                 num_ways = n;
                 missing_ways = n;
                 geometry = NULL;
+                id = r->get_id();
 
 #ifdef WITH_MULTIPOLYGON_PROFILING
                 timers.push_back(std::pair<std::string, timer *> ("   thereof assemble_ways", &assemble_ways_timer));
@@ -274,10 +275,6 @@ namespace Osmium {
                 return MULTIPOLYGON_FROM_RELATION;
             }
 
-            osm_object_id_t get_id() const {
-                return relation->get_id();
-            }
-
 #ifdef WITH_GEOS
             bool build_geometry();
 #endif
@@ -299,6 +296,31 @@ namespace Osmium {
             /// Do we have all the ways we need to build this multipolygon?
             bool is_complete() {
                 return missing_ways == 0;
+            }
+
+            void handle_complete_multipolygon() {
+                std::cerr << "MP multi multi=" << id << " done\n";
+                for (int i=0; i < num_ways; i++) {
+                    std::cerr << "  way=" << member_ways[i].get_id() << "\n";
+
+                    geos::geom::Geometry *g = member_ways[i].create_geos_geometry();
+                    if (g) {
+                        geos::io::WKTWriter wkt;
+                        std::cerr << "  way geometry: " << wkt.write(g) << std::endl;
+                    } else {
+                        std::cerr << "  can´t build mp geometry because at least one way geometry is broken\n";
+                        return;
+                    }
+                }
+
+                if (build_geometry()) {
+                    geos::io::WKTWriter wkt;
+                    std::cerr << "  mp geometry: " << wkt.write(geometry) << std::endl;
+                } else {
+                    std::cerr << "  geom build error: " << geometry_error_message << "\n";
+                }
+
+                callback(this);
             }
 
 #ifdef WITH_SHPLIB

@@ -3,9 +3,6 @@
 
 #include <google/sparse_hash_map>
 
-#include <geos/io/WKTWriter.h>
-#include <geos/geom/Geometry.h>
-
 namespace Osmium {
 
     namespace Handler {
@@ -68,37 +65,6 @@ namespace Osmium {
                 std::cerr << "found " << multipolygons.size() << " multipolygons\n";
             }
 
-            void handle_complete_multipolygon(Osmium::OSM::MultipolygonFromRelation *mp) {
-                bool way_geometries_are_ok = true;
-                std::cerr << "MP multi multi=" << mp->get_id() << " done\n";
-                for (int i=0; i < mp->num_ways; i++) {
-                    std::cerr << "  way=" << mp->member_ways[i].get_id() << "\n";
-
-                    //geos::geom::Geometry *g = mp->member_ways[i].get_geometry();
-                    geos::geom::Geometry *g = mp->member_ways[i].create_geos_geometry();
-                    if (g) {
-                        geos::io::WKTWriter wkt;
-                        std::cerr << "  way geometry: " << wkt.write(g) << std::endl;
-                    } else {
-                        way_geometries_are_ok = false;
-                    }
-                }
-                if (way_geometries_are_ok) {
-                    //if (m->get_geometry()) {
-                    if (mp->build_geometry()) {
-                        geos::io::WKTWriter wkt;
-                        std::cerr << "  mp geometry: " << wkt.write(mp->geometry) << std::endl;
-                    } else {
-                        std::cerr << "  geom build error: " << mp->geometry_error_message << "\n";
-                    }
-                    callback_multipolygon(mp);
-                } else {
-                    std::cerr << "  can´t build mp geometry because at least one way geometry is broken\n";
-                }
-                // free way copies
-                // free relation
-            }
-
             // in pass 2
             void callback_way(OSM::Way *way) {
                 way2mpidx_t::iterator way2mpidx_iterator = way2mpidx.find(way->get_id());
@@ -127,7 +93,7 @@ namespace Osmium {
                     mp->add_member_way(way);
 
                     if (mp->is_complete()) {
-                        handle_complete_multipolygon(mp);
+                        mp->handle_complete_multipolygon();
                         multipolygons[v[i]] = NULL;
                         delete mp;
                     }
