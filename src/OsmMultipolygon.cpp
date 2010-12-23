@@ -108,39 +108,36 @@ namespace Osmium {
         * may be called again to find further rings.) If this is not possible, 
         * return NULL.
         */
-        RingInfo *MultipolygonFromRelation::make_one_ring(std::vector<WayInfo> &ways, osm_object_id_t first, osm_object_id_t last, int ringcount, int sequence)
+        RingInfo *MultipolygonFromRelation::make_one_ring(std::vector<WayInfo *> &ways, osm_object_id_t first, osm_object_id_t last, int ringcount, int sequence, bool with_geometry_repair)
         {
 
             // have we found a loop already?
             if (first && first == last)
             {
+                std::cerr << "found loop" << std::endl;
                 geos::geom::CoordinateSequence *cs = geos::geom::CoordinateArraySequenceFactory::instance()->create(0, 0);
                 geos::geom::LinearRing *lr = NULL;
                 try
                 {
                     START_TIMER(mor_polygonizer);
-                    WayInfo *sorted_ways = new WayInfo[sequence];
+                    WayInfo **sorted_ways = new WayInfo*[sequence];
                     for (unsigned int i=0; i<ways.size(); i++)
                     {
-                        if (ways[i].used == ringcount) 
+                        if (ways[i]->used == ringcount) 
                         {
-                            sorted_ways[ways[i].sequence] = ways[i];
+                            sorted_ways[ways[i]->sequence] = ways[i];
                         }
                     }
                     for (int i=0; i<sequence; i++)
                     {
-                        // cout << "seq " << i << ": add way " << sorted_ways[i].way->id << " from " << sorted_ways[i].way->firstnode << " to " << sorted_ways[i].way->lastnode;
-                        // if (sorted_ways[i].invert) cout << " (INV)";
-                        // cout << endl;
-                        // cout << " this way:" << *(sorted_ways[i].way_geom->getCoordinates()) << endl;
-                        cs->add(((geos::geom::LineString *)sorted_ways[i].way_geom)->getCoordinatesRO(), false, !sorted_ways[i].invert);
-                        // cout << " new sequence:" << *cs << endl;
+                        cs->add(((geos::geom::LineString *)sorted_ways[i]->way_geom)->getCoordinatesRO(), false, !sorted_ways[i]->invert);
                     }
                     delete[] sorted_ways;
                     lr = Osmium::OSM::Object::global_geometry_factory->createLinearRing(cs);
                     STOP_TIMER(mor_polygonizer);
                     if (!lr->isSimple() || !lr->isValid())
                     { 
+                        std::cerr << "Oh dear, I seem to have created a " << (lr->isSimple() ? "" : "non-") << "simple, " << (lr->isValid() ? "" : "in") << "valid linear ring." << std::endl;
                         delete lr;
                         // delete cs;
                         return NULL; 
@@ -154,7 +151,7 @@ namespace Osmium {
                 }
                 catch (const geos::util::GEOSException& exc) 
                 {
-                    // fprintf(stderr, "1 continuing after exception: %s\n", exc.what());
+                    std::cerr << "Exception: " << exc.what() << std::endl;
                     // if (lr) delete lr; else delete cs;
                     return NULL;
                 }
@@ -166,19 +163,20 @@ namespace Osmium {
             {
                 for (unsigned int i=0; i<ways.size(); i++)
                 {
-                    if (ways[i].used != -1) continue;
-                    ways[i].used = ringcount;
-                    ways[i].sequence = 0;
-                    ways[i].invert = false;
-                    RingInfo *rl = make_one_ring(ways, ways[i].firstnode, ways[i].lastnode, ringcount, 1);
+                    if (ways[i]->used != -1) continue;
+                    ways[i]->used = ringcount;
+                    ways[i]->sequence = 0;
+                    ways[i]->invert = false;
+                    RingInfo *rl = make_one_ring(ways, ways[i]->firstnode, ways[i]->lastnode, ringcount, 1);
                     if (rl)
                     {
-                        rl->ways.push_back(&(ways[i]));
+                        rl->ways.push_back(ways[i]);
                         return rl;
                     }
-                    ways[i].used = -2;
+                    ways[i]->used = -2;
                     break;
                 }
+                std::cerr << "all taken" << std::endl;
                 return NULL;
             }
 
@@ -186,103 +184,72 @@ namespace Osmium {
             // since we are looking for a LOOP, no sense to try extending it at both ends 
             // as we'll eventually get there anyway!
 
+            std::cerr << "current: " << first << "-" << last << std::endl;
             for (unsigned int i=0; i<ways.size(); i++)
             {
-                if (ways[i].used < 0) ways[i].tried = false;
+                if (ways[i]->used < 0) ways[i]->tried = false;
             }
 
             for (unsigned int i=0; i<ways.size(); i++)
             {
+                std::cerr << "way info " << i << " tried: " << ways[i]->tried << " used: " << ways[i]->used << " " << ways[i]->firstnode << "-"<< ways[i]->lastnode << std::endl;
                 // ignore used ways
-                if (ways[i].used >= 0) continue;
-                if (ways[i].tried) continue;
-                ways[i].tried = true;
+                if (ways[i]->used >= 0) continue;
+                if (ways[i]->tried) continue;
+                ways[i]->tried = true;
 
-                int old_used = ways[i].used;
-                if (ways[i].firstnode == last)
+                int old_used = ways[i]->used;
+                if (ways[i]->firstnode == last)
                 {
                     // add way to end
-                    ways[i].used = ringcount;
-                    ways[i].sequence = sequence;
-                    ways[i].invert = false;
-                    RingInfo *result = make_one_ring(ways, first, ways[i].lastnode, ringcount, sequence+1);
-                    if (result) { result->ways.push_back(&(ways[i])); return result; }
-                    ways[i].used = old_used;
+                    ways[i]->used = ringcount;
+                    ways[i]->sequence = sequence;
+                    ways[i]->invert = false;
+                    RingInfo *result = make_one_ring(ways, first, ways[i]->lastnode, ringcount, sequence+1);
+                    if (result) { result->ways.push_back(ways[i]); return result; }
+                    ways[i]->used = old_used;
                 }
-                else if (ways[i].lastnode == last)
+                else if (ways[i]->lastnode == last)
                 {
                     // add way to end, but turn it around
-                    ways[i].used = ringcount;
-                    ways[i].sequence = sequence;
-                    ways[i].invert = true;
-                    RingInfo *result = make_one_ring(ways, first, ways[i].firstnode, ringcount, sequence+1);
-                    if (result) { result->ways.push_back(&(ways[i])); return result; }
-                    ways[i].used = old_used;
+                    ways[i]->used = ringcount;
+                    ways[i]->sequence = sequence;
+                    ways[i]->invert = true;
+                    RingInfo *result = make_one_ring(ways, first, ways[i]->firstnode, ringcount, sequence+1);
+                    if (result) { result->ways.push_back(ways[i]); return result; }
+                    ways[i]->used = old_used;
                 }
             }
+            std::cerr << "exhausted" << std::endl;
+            // we have exhausted all combinations.
             return NULL;
         }
 
-
         /**
-        * Tries to build a multipolygon from the given relation and writes the 
-        * result to the appropriate output file(s).
+        * Checks if there are any dangling ends, and connects them to the 
+        * nearest other dangling end with a straight line. This could 
+        * conceivably introduce intersections, but it's the best we can
+        * do.
         *
+        * Returns true on success.
+        *
+        * (This implementation always succeeds because it is impossible for 
+        * there to be only one dangling end in a collection of lines.)
         */
-        bool MultipolygonFromRelation::build_geometry()
-        {
-            std::vector<WayInfo> ways;
-
-            // the timestamp of the multipolygon will be the maximum of the timestamp from the relation and from all member ways
-            time_t timestamp = relation->get_timestamp();
-
-            // assemble all ways which are members of this relation into a 
-            // vector of WayInfo elements. this holds room for the way pointer
-            // and some extra flags.
-            
-            START_TIMER(assemble_ways);
-            for (std::vector<Way>::iterator i = member_ways.begin(); i != member_ways.end(); i++)
-            {       
-                if (i->get_timestamp() > timestamp) timestamp = i->get_timestamp();
-                ways.push_back(WayInfo(&(*i), UNSET));
-                // TODO drop duplicate ways automatically
-            // TODO: statt UNSET sollte hier INNER/OUTER je nach role, wird aber nur fuer warnings gebraucht
-            }
-            STOP_TIMER(assemble_ways);
-
-            std::vector<RingInfo *> ringlist;
-
-            // try and create as many closed rings as possible from the assortment
-            // of ways. make_one_ring will automatically flag those that have been
-            // used so they are not used again.
-            
-            do 
-            {
-                START_TIMER(make_one_ring);
-                RingInfo *r = make_one_ring(ways, 0, 0, ringlist.size(), 0);
-                STOP_TIMER(make_one_ring);
-                if (r == NULL) break;
-                r->ring_id = ringlist.size();
-                ringlist.push_back(r);
-            } while(1);
-
-            if (ringlist.empty())
-            {
-                // FIXME return geometry_error("no rings");
-                std::cerr << "no rings after first pass" << std::endl;
-            }
-
+        bool MultipolygonFromRelation::find_and_repair_holes_in_rings(std::vector<WayInfo *> *ways)
+        { 
             // collect the remaining debris (=unused ways) and find dangling nodes.
             
             std::map<int,geos::geom::Point *> dangling_node_map;
-            for (std::vector<WayInfo>::iterator i = ways.begin(); i != ways.end(); i++)
+            for (std::vector<WayInfo *>::iterator i = ways->begin(); i != ways->end(); i++)
             {       
-                if (i->used < 0)
+                if ((*i)->used < 0)
                 {
-                    i->innerouter = UNSET;
+                    (*i)->innerouter = UNSET;
+                    (*i)->used = -1;
                     for (int j=0; j<2; j++)
                     {
-                        int nid = j ? i->firstnode : i->lastnode;
+                        int nid = j ? (*i)->firstnode : (*i)->lastnode;
                         if (dangling_node_map[nid])
                         {
                             delete dangling_node_map[nid];
@@ -290,7 +257,7 @@ namespace Osmium {
                         }
                         else
                         {
-                            dangling_node_map[nid] = j ? i->get_firstnode_geom() : i->get_lastnode_geom();
+                            dangling_node_map[nid] = j ? (*i)->get_firstnode_geom() : (*i)->get_lastnode_geom();
                         }
                     }
                 }
@@ -339,7 +306,7 @@ namespace Osmium {
                     c->push_back(*(node2->getCoordinate()));
                     geos::geom::CoordinateSequence *cs = global_geometry_factory->getCoordinateSequenceFactory()->create(c);
                     geos::geom::Geometry *geometry = (geos::geom::Geometry *) global_geometry_factory->createLineString(cs);
-                    ways.push_back(WayInfo(geometry, node1_id, mindist_id, UNSET));
+                    ways->push_back(new WayInfo(geometry, node1_id, mindist_id, UNSET));
                     std::cerr << "SYNTHESIZE WAY from " << node1_id << " to " << mindist_id << std::endl;
                 }
                 else
@@ -348,7 +315,44 @@ namespace Osmium {
                 }
             } while(1);
 
-            // re-run ring building, taking into account the newly created "repair" bits.
+            return true;
+        }
+
+
+        /**
+        * Tries to build a multipolygon from the given relation and writes the 
+        * result to the appropriate output file(s).
+        *
+        */
+        bool MultipolygonFromRelation::build_geometry()
+        {
+            std::vector<WayInfo *> ways;
+
+            // the timestamp of the multipolygon will be the maximum of the timestamp from the relation and from all member ways
+            time_t timestamp = relation->get_timestamp();
+
+            // assemble all ways which are members of this relation into a 
+            // vector of WayInfo elements. this holds room for the way pointer
+            // and some extra flags.
+            
+            START_TIMER(assemble_ways);
+            for (std::vector<Way>::iterator i = member_ways.begin(); i != member_ways.end(); i++)
+            {       
+                if (i->get_timestamp() > timestamp) timestamp = i->get_timestamp();
+                WayInfo *wi = new WayInfo(&(*i), UNSET);
+                std::cerr << "new wayinfo " << wi << std::endl;
+                ways.push_back(wi);
+                // TODO drop duplicate ways automatically
+            // TODO: statt UNSET sollte hier INNER/OUTER je nach role, wird aber nur fuer warnings gebraucht
+            }
+            STOP_TIMER(assemble_ways);
+
+            std::vector<RingInfo *> ringlist;
+
+            // try and create as many closed rings as possible from the assortment
+            // of ways. make_one_ring will automatically flag those that have been
+            // used so they are not used again.
+            
             do 
             {
                 START_TIMER(make_one_ring);
@@ -357,7 +361,32 @@ namespace Osmium {
                 if (r == NULL) break;
                 r->ring_id = ringlist.size();
                 ringlist.push_back(r);
-            } while(1);
+            } 
+            while(1);
+
+            if (ringlist.empty())
+            {
+                // FIXME return geometry_error("no rings");
+                std::cerr << "no rings after first pass" << std::endl;
+            }
+
+            if (!find_and_repair_holes_in_rings(&ways))
+            {
+                return geometry_error("un-connectable dangling ends");
+            }
+
+            // re-run ring building, taking into account the newly created "repair" bits.
+            // (in case there were no dangling bits, make_one_ring terminates quickly.)
+            do 
+            {
+                START_TIMER(make_one_ring);
+                RingInfo *r = make_one_ring(ways, 0, 0, ringlist.size(), 0);
+                STOP_TIMER(make_one_ring);
+                if (r == NULL) break;
+                r->ring_id = ringlist.size();
+                ringlist.push_back(r);
+            } 
+            while(1);
 
             if (ringlist.empty())
             {
@@ -627,6 +656,10 @@ namespace Osmium {
                     for (unsigned int k=0; k<ringlist[i]->ways.size(); k++)
                     {       
                         WayInfo *wi = ringlist[i]->ways[k];
+                        // may have "hole filler" ways in there, not backed by
+                        // proper way and thus no tags:
+                        std::cerr << "wayinfo " << wi << " tag check way pointer " << wi->way << " from " << wi->firstnode << " to " <<wi->lastnode << std::endl;
+                        if (wi->way == NULL) continue;
                         if (untagged(wi->way))
                         {
                             // way not tagged - ok
