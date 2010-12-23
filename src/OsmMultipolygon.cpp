@@ -335,14 +335,20 @@ namespace Osmium {
             // and some extra flags.
             
             START_TIMER(assemble_ways);
-            for (std::vector<Way>::iterator i = member_ways.begin(); i != member_ways.end(); i++)
-            {       
+            for (std::vector<Way>::iterator i = member_ways.begin(); i != member_ways.end(); i++) {
                 if (i->get_timestamp() > timestamp) timestamp = i->get_timestamp();
                 WayInfo *wi = new WayInfo(&(*i), UNSET);
                 std::cerr << "new wayinfo " << wi << std::endl;
+                if (wi->way_geom) {
+                    geos::io::WKTWriter wkt;
+                    std::cerr << "  way geometry: " << wkt.write(wi->way_geom) << std::endl;
+                } else {
+                    std::cerr << "  can´t build mp geometry because at least one way geometry is broken\n";
+                    return geometry_error("invalid way geometry in multipolygon relation member");
+                }
                 ways.push_back(wi);
                 // TODO drop duplicate ways automatically
-            // TODO: statt UNSET sollte hier INNER/OUTER je nach role, wird aber nur fuer warnings gebraucht
+                // TODO: statt UNSET sollte hier INNER/OUTER je nach role, wird aber nur fuer warnings gebraucht
             }
             STOP_TIMER(assemble_ways);
 

@@ -90,6 +90,10 @@ namespace Osmium {
                 lastnode = last;
             }
 
+            ~WayInfo() {
+                delete way_geom;
+            }
+
             geos::geom::Point *get_firstnode_geom() { return (way ? way->get_first_node_geometry() : NULL); }
             geos::geom::Point *get_lastnode_geom() { return (way ? way->get_last_node_geometry() : NULL); }
 
@@ -269,6 +273,7 @@ namespace Osmium {
 
             ~MultipolygonFromRelation() {
                 delete relation;
+                member_ways.erase(member_ways.begin(), member_ways.end());
             }
 
             osm_object_type_t get_type() const {
@@ -300,18 +305,6 @@ namespace Osmium {
 
             void handle_complete_multipolygon() {
                 std::cerr << "MP multi multi=" << id << " done\n";
-                for (int i=0; i < num_ways; i++) {
-                    std::cerr << "  way=" << member_ways[i].get_id() << "\n";
-
-                    geos::geom::Geometry *g = member_ways[i].create_geos_geometry();
-                    if (g) {
-                        geos::io::WKTWriter wkt;
-                        std::cerr << "  way geometry: " << wkt.write(g) << std::endl;
-                    } else {
-                        std::cerr << "  can´t build mp geometry because at least one way geometry is broken\n";
-                        return;
-                    }
-                }
 
                 if (build_geometry()) {
                     geos::io::WKTWriter wkt;
