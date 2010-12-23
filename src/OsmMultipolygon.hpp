@@ -263,7 +263,8 @@ namespace Osmium {
 
           private:
 
-            RingInfo *make_one_ring(std::vector<WayInfo> &ways, osm_object_id_t first, osm_object_id_t last, int ringcount, int sequence);
+            RingInfo *make_one_ring(std::vector<WayInfo *> &ways, osm_object_id_t first, osm_object_id_t last, int ringcount, int sequence, bool with_geometry_repair, bool with_geometry_repair);
+            bool find_and_repair_holes_in_rings(std::vector<WayInfo *> *ways);
             bool geometry_error(const char *message);
 
             void init() {
