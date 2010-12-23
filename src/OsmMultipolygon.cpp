@@ -27,6 +27,7 @@
 #include <geos/util/GEOSException.h>
 #include <geos/opLinemerge.h>
 #include <geos/operation/polygonize/Polygonizer.h>
+#include <geos/operation/distance/DistanceOp.h>
 #include <geos/opPolygonize.h>
 #include <geos/algorithm/LineIntersector.h>
 #include <geos/geomgraph/GeometryGraph.h>
@@ -52,6 +53,7 @@ namespace Osmium {
         }
 
         bool same_tags(const Object *a, const Object *b) {
+            if ((a == NULL) || (b == NULL)) return false;
             std::map<std::string, std::string> aTags;
             for (int i = 0; i < a->tag_count(); i++) {
                 if (ignore_tag(a->get_tag_key(i))) continue;
@@ -88,6 +90,7 @@ namespace Osmium {
 
 
         bool untagged(const Object *r) {
+            if (r == NULL) return true;
             if (r->tag_count() == 0) return true;
             for (int i=0; i < r->tag_count(); i++) {
                 if (! ignore_tag(r->get_tag_key(i)) ) {
@@ -129,8 +132,8 @@ namespace Osmium {
                         // cout << "seq " << i << ": add way " << sorted_ways[i].way->id << " from " << sorted_ways[i].way->firstnode << " to " << sorted_ways[i].way->lastnode;
                         // if (sorted_ways[i].invert) cout << " (INV)";
                         // cout << endl;
-                        // cout << " this way:" << *(sorted_ways[i].way->geometry->getCoordinates()) << endl;
-                        cs->add(((geos::geom::LineString *)sorted_ways[i].way->get_geometry())->getCoordinatesRO(), false, !sorted_ways[i].invert);
+                        // cout << " this way:" << *(sorted_ways[i].way_geom->getCoordinates()) << endl;
+                        cs->add(((geos::geom::LineString *)sorted_ways[i].way_geom)->getCoordinatesRO(), false, !sorted_ways[i].invert);
                         // cout << " new sequence:" << *cs << endl;
                     }
                     delete[] sorted_ways;
@@ -167,7 +170,7 @@ namespace Osmium {
                     ways[i].used = ringcount;
                     ways[i].sequence = 0;
                     ways[i].invert = false;
-                    RingInfo *rl = make_one_ring(ways, ways[i].way->get_first_node_id(), ways[i].way->get_last_node_id(), ringcount, 1);
+                    RingInfo *rl = make_one_ring(ways, ways[i].firstnode, ways[i].lastnode, ringcount, 1);
                     if (rl)
                     {
                         rl->ways.push_back(&(ways[i]));
@@ -185,36 +188,34 @@ namespace Osmium {
 
             for (unsigned int i=0; i<ways.size(); i++)
             {
-                if (ways[i].used < 0) ways[i].way->tried = false;
+                if (ways[i].used < 0) ways[i].tried = false;
             }
 
             for (unsigned int i=0; i<ways.size(); i++)
             {
                 // ignore used ways
                 if (ways[i].used >= 0) continue;
-                if (ways[i].way->tried) continue;
-                ways[i].way->tried = true;
-
-                Way *way = ways[i].way;
+                if (ways[i].tried) continue;
+                ways[i].tried = true;
 
                 int old_used = ways[i].used;
-                if (way->get_first_node_id() == last)
+                if (ways[i].firstnode == last)
                 {
                     // add way to end
                     ways[i].used = ringcount;
                     ways[i].sequence = sequence;
                     ways[i].invert = false;
-                    RingInfo *result = make_one_ring(ways, first, way->get_last_node_id(), ringcount, sequence+1);
+                    RingInfo *result = make_one_ring(ways, first, ways[i].lastnode, ringcount, sequence+1);
                     if (result) { result->ways.push_back(&(ways[i])); return result; }
                     ways[i].used = old_used;
                 }
-                else if (way->get_last_node_id() == last)
+                else if (ways[i].lastnode == last)
                 {
                     // add way to end, but turn it around
                     ways[i].used = ringcount;
                     ways[i].sequence = sequence;
                     ways[i].invert = true;
-                    RingInfo *result = make_one_ring(ways, first, way->get_first_node_id(), ringcount, sequence+1);
+                    RingInfo *result = make_one_ring(ways, first, ways[i].firstnode, ringcount, sequence+1);
                     if (result) { result->ways.push_back(&(ways[i])); return result; }
                     ways[i].used = old_used;
                 }
@@ -267,30 +268,100 @@ namespace Osmium {
 
             if (ringlist.empty())
             {
-                return geometry_error("no rings");
+                // FIXME return geometry_error("no rings");
+                std::cerr << "no rings after first pass" << std::endl;
             }
 
-            // collect the remaining debris.
+            // collect the remaining debris (=unused ways) and find dangling nodes.
             
-            std::map<int,bool> dangling_node;
-
-            std::vector<geos::geom::Geometry *> v;
-                        
+            std::map<int,geos::geom::Point *> dangling_node_map;
             for (std::vector<WayInfo>::iterator i = ways.begin(); i != ways.end(); i++)
             {       
                 if (i->used < 0)
                 {
-                    v.push_back(i->way->get_geometry());
                     i->innerouter = UNSET;
-                    dangling_node[i->way->get_first_node_id()] = !dangling_node[i->way->get_first_node_id()];
-                    dangling_node[i->way->get_last_node_id()] = !dangling_node[i->way->get_last_node_id()];
+                    for (int j=0; j<2; j++)
+                    {
+                        int nid = j ? i->firstnode : i->lastnode;
+                        if (dangling_node_map[nid])
+                        {
+                            delete dangling_node_map[nid];
+                            dangling_node_map[nid] = NULL;
+                        }
+                        else
+                        {
+                            dangling_node_map[nid] = j ? i->get_firstnode_geom() : i->get_lastnode_geom();
+                        }
+                    }
                 }
             }
 
-            if (v.size())
+            do
             {
-                // FIXME repair errors
-                return geometry_error("unconnected ways");
+                int mindist_id = -1;
+                double mindist = -1;
+                int node1_id = -1;
+                geos::geom::Point *node1 = NULL;
+                geos::geom::Point *node2 = NULL;
+
+                // find one pair consisting of a random node from the list (node1)
+                // plus the node that lies closest to it.
+                for (std::map<int,geos::geom::Point *>::iterator i = dangling_node_map.begin(); i!= dangling_node_map.end(); i++)
+                {
+                    if (!i->second) continue;
+                    if (node1 == NULL)
+                    {
+                        node1 = i->second;
+                        node1_id = i->first;
+                        i->second = NULL;
+                        mindist = -1;
+                    }
+                    else
+                    {
+                        double dist = geos::operation::distance::DistanceOp::distance(*node1, *(i->second));
+                        if ((dist < mindist) || (mindist < 0))
+                        {
+                            mindist = dist;
+                            mindist_id = i->first;
+                        }
+                    }
+                }
+
+                // if such a pair has been found, synthesize a connecting way.
+                if (node1 && mindist_id > -1)
+                {
+                    // drop node2 from dangling map
+                    node2 = dangling_node_map[mindist_id];
+                    dangling_node_map[mindist_id] = NULL;
+
+                    std::vector<geos::geom::Coordinate> *c = new std::vector<geos::geom::Coordinate>;
+                    c->push_back(*(node1->getCoordinate()));
+                    c->push_back(*(node2->getCoordinate()));
+                    geos::geom::CoordinateSequence *cs = global_geometry_factory->getCoordinateSequenceFactory()->create(c);
+                    geos::geom::Geometry *geometry = (geos::geom::Geometry *) global_geometry_factory->createLineString(cs);
+                    ways.push_back(WayInfo(geometry, node1_id, mindist_id, UNSET));
+                    std::cerr << "SYNTHESIZE WAY from " << node1_id << " to " << mindist_id << std::endl;
+                }
+                else
+                {
+                    break;
+                }
+            } while(1);
+
+            // re-run ring building, taking into account the newly created "repair" bits.
+            do 
+            {
+                START_TIMER(make_one_ring);
+                RingInfo *r = make_one_ring(ways, 0, 0, ringlist.size(), 0);
+                STOP_TIMER(make_one_ring);
+                if (r == NULL) break;
+                r->ring_id = ringlist.size();
+                ringlist.push_back(r);
+            } while(1);
+
+            if (ringlist.empty())
+            {
+                return geometry_error("no rings");
             }
 
             std::vector<geos::geom::Geometry *> *polygons = new std::vector<geos::geom::Geometry *>();
