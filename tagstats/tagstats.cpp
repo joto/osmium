@@ -1,5 +1,5 @@
 
-#include "osmium.hpp"
+#include <osmium.hpp>
 
 Osmium::Handler::Statistics      *osmium_handler_stats;
 Osmium::Handler::TagStats        *osmium_handler_tagstats;

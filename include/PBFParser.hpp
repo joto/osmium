@@ -22,10 +22,11 @@ along with MoNav.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef PBFPARSER_HPP
 #define PBFPARSER_HPP
 
-#include "protobuf/fileformat.pb.h"
-#include "protobuf/osmformat.pb.h"
 #include <string>
 #include <zlib.h>
+
+#include <fileformat.pb.h>
+#include <osmformat.pb.h>
 
 namespace Osmium {
 

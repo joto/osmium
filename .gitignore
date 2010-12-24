@@ -1,6 +1,6 @@
 core
-osmium_js
-osmium_js_2pass
-osmium_tagstats
-src/protobuf/fileformat.pb.h
-src/protobuf/osmformat.pb.h
+osmjs/osmjs
+osmjs/osmjs_2pass
+tagstats/tagstats
+pbf/fileformat.pb.h
+pbf/osmformat.pb.h
