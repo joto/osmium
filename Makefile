@@ -50,21 +50,12 @@ SRC_OBJ_JS = $(patsubst %,src/%,$(OBJ_JS))
 SRC_HPP_JS = $(patsubst %,src/%,$(HPP_JS))
 SRC_HPP_JS = $(wildcard src/*Javascript*.hpp)
 
-#sources = src/*.cpp
-#include $(sources:.cpp=.d)
+.PHONY: all clean doc protobuf
 
-.PHONY: all clean doc
+all: protobuf osmium_js osmium_js_2pass osmium_tagstats
 
-all: osmium_js osmium_js_2pass osmium_tagstats
-
-#src/%.d: src/%.cpp
-#	$(SHELL) -ec "$(CXX) -MM -MT '$(patsubst %.cpp,%.o,$<) $(patsubst %.cpp,%.d,$<)' $< >$@; [ -s $@ ] || rm -f $@"
-
-src/protobuf/%.pb.o: src/protobuf/%.pb.cc
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
-
-src/protobuf/%.pb.cc: src/protobuf/%.proto
-	protoc --proto_path=src/protobuf --cpp_out=src/protobuf $<
+protobuf:
+	$(MAKE) -C src/protobuf CXX="$(CXX)" CXXFLAGS="$(CXXFLAGS)"
 
 src/%.o: src/%.cpp $(SRC_HPP)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
@@ -79,7 +70,8 @@ osmium_tagstats: src/osmium_tagstats.cpp $(SRC_OBJ) $(SRC_OBJ_TAGSTAT) $(SRC_HPP
 	$(CXX) $(CXXFLAGS) -o $@ $< $(SRC_OBJ) $(SRC_OBJ_TAGSTAT) $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_GD) $(LIB_SQLITE) $(LIB_SHAPE)
     
 clean:
-	rm -f src/protobuf/*format.pb.* src/*.o src/*.d osmium_js osmium_js_2pass osmium_tagstats
+	$(MAKE) -C src/protobuf clean
+	rm -f src/*.o src/*.d osmium_js osmium_js_2pass osmium_tagstats
 
 doc: doc/html/files.html
 
