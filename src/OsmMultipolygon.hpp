@@ -1,10 +1,6 @@
 #ifndef OSMIUM_OSM_MULTIPOLYGON_HPP
 #define OSMIUM_OSM_MULTIPOLYGON_HPP
 
-#include <sys/types.h>
-#include <sstream>
-#include <map>
-
 #ifdef WITH_GEOS
 #include <geos/geom/Geometry.h>
 #include <geos/geom/Point.h>
@@ -16,8 +12,6 @@
 #ifdef WITH_SHPLIB
 #include <shapefil.h>
 #endif
-
-#include "OsmWay.hpp"
 
 #ifdef WITH_MULTIPOLYGON_PROFILING
 #include "timer.h"
@@ -33,8 +27,9 @@ namespace Osmium {
 #ifdef WITH_GEOS
         class WayInfo {
 
-          public:
+            friend class MultipolygonFromRelation;
 
+            Osmium::OSM::Way *way;
             int used;
             int sequence;
             bool invert;
@@ -94,15 +89,19 @@ namespace Osmium {
                 delete way_geom;
             }
 
-            geos::geom::Point *get_firstnode_geom() { return (way ? way->get_first_node_geometry() : NULL); }
-            geos::geom::Point *get_lastnode_geom() { return (way ? way->get_last_node_geometry() : NULL); }
+            geos::geom::Point *get_firstnode_geom() {
+                return (way ? way->get_first_node_geometry() : NULL);
+            }
 
-            Osmium::OSM::Way *way;
+            geos::geom::Point *get_lastnode_geom() {
+                return (way ? way->get_last_node_geometry() : NULL);
+            }
+
         };
 
         class RingInfo {
 
-          public:
+            friend class MultipolygonFromRelation;
 
             geos::geom::Polygon *polygon;
             direction_t direction;
@@ -113,10 +112,11 @@ namespace Osmium {
             int ring_id;
 
             RingInfo() {
+                polygon = NULL;
                 direction = NO_DIRECTION;
                 contained_by = NULL;
-                polygon = NULL;
                 nested = false;
+                contained_by = NULL;
                 ring_id = -1;
             }
         };
@@ -130,8 +130,6 @@ namespace Osmium {
 #ifdef WITH_GEOS
             geos::geom::Geometry *geometry;
 #endif
-
-          public:
 
             Multipolygon() {
 #ifdef WITH_GEOS
@@ -210,10 +208,6 @@ namespace Osmium {
 
             bool boundary; ///< was this multipolygon created from relation with tag type=boundary?
 
-#ifdef WITH_MULTIPOLYGON_PROFILING
-            static std::vector<std::pair<std::string, timer *> > timers;
-#endif
-
             /// the relation this multipolygon was build from
             Relation *relation;
 
@@ -228,9 +222,12 @@ namespace Osmium {
 
             std::string geometry_error_message;
 
+            /// callback we should call when a multipolygon was completed
             void (*callback)(Osmium::OSM::Multipolygon *);
 
 #ifdef WITH_MULTIPOLYGON_PROFILING
+            static std::vector<std::pair<std::string, timer *> > timers;
+
             timer write_complex_poly_timer;
             timer assemble_ways_timer;
             timer assemble_nodes_timer;
@@ -280,18 +277,6 @@ namespace Osmium {
                 return MULTIPOLYGON_FROM_RELATION;
             }
 
-#ifdef WITH_GEOS
-            bool build_geometry();
-#endif
-
-          private:
-
-            RingInfo *make_one_ring(std::vector<WayInfo *> &ways, osm_object_id_t first, osm_object_id_t last, int ringcount, int sequence /**, bool with_geometry_repair */);
-            bool find_and_repair_holes_in_rings(std::vector<WayInfo *> *ways);
-            bool geometry_error(const char *message);
-
-          public:
-
             /// Add way to list of member ways. This will create a copy of the way.
             void add_member_way(Osmium::OSM::Way *way) {
                 member_ways.push_back(*way);
@@ -316,49 +301,6 @@ namespace Osmium {
                 callback(this);
             }
 
-#ifdef WITH_SHPLIB
-#ifdef WITH_GEOS
-            bool dumpGeometry(const geos::geom::Geometry *g, std::vector<int>& partStart, std::vector<double>& x, std::vector<double>& y)
-            {
-                switch(g->getGeometryTypeId())
-                {
-                    case geos::geom::GEOS_MULTIPOLYGON:
-                    case geos::geom::GEOS_MULTILINESTRING:
-                    {
-                        for (size_t i=0; i<g->getNumGeometries(); i++)
-                        {
-                            if (!dumpGeometry(g->getGeometryN(i), partStart, x, y)) return false;
-                        }
-                        break;
-                    }
-                    case geos::geom::GEOS_POLYGON:
-                    {
-                        geos::geom::Polygon *p = (geos::geom::Polygon *) g;
-                        if (!dumpGeometry(p->getExteriorRing(), partStart, x, y)) return false;
-                        for (size_t i=0; i<p->getNumInteriorRing(); i++)
-                        {
-                            if (!dumpGeometry(p->getInteriorRingN(i), partStart, x, y)) return false; 
-                        }
-                        break;
-                    }
-                    case geos::geom::GEOS_LINESTRING:
-                    case geos::geom::GEOS_LINEARRING:
-                    {
-                        partStart.push_back(x.size());
-                        const geos::geom::CoordinateSequence *cs = ((geos::geom::LineString *) g)->getCoordinatesRO();
-                        for (size_t i = 0; i < cs->getSize(); i++)
-                        {
-                            x.push_back(cs->getX(i));
-                            y.push_back(cs->getY(i));
-                        }
-                        break;
-                    }
-                    default:
-                        throw std::runtime_error("invalid geometry type encountered");
-                }
-                return true;
-            }
-
             /**
             * Create a SHPObject for this multipolygon and return it. You have to call
             * SHPDestroyObject() with this object when you are done.
@@ -377,7 +319,7 @@ namespace Osmium {
                 std::vector<double> y;
                 std::vector<int> partStart;
 
-                dumpGeometry(geometry, partStart, x, y);
+                dump_geometry(geometry, partStart, x, y);
 
                 int *ps = new int[partStart.size()];
                 for (size_t i=0; i<partStart.size(); i++) ps[i]=partStart[i];
@@ -404,8 +346,6 @@ namespace Osmium {
                 
                 return o;
             }
-#endif
-#endif
 
 #ifdef WITH_MULTIPOLYGON_PROFILING
             static void print_timings() {
@@ -413,6 +353,54 @@ namespace Osmium {
                     std::cerr << timers[i].first << ": " << *(timers[i].second) << std::endl;
                 }
             }
+#endif
+
+          private:
+
+#ifdef WITH_GEOS
+            bool build_geometry();
+#endif
+
+            RingInfo *make_one_ring(std::vector<WayInfo *> &ways, osm_object_id_t first, osm_object_id_t last, int ringcount, int sequence /**, bool with_geometry_repair */);
+            bool find_and_repair_holes_in_rings(std::vector<WayInfo *> *ways);
+            bool geometry_error(const char *message);
+
+#ifdef WITH_SHPLIB
+#ifdef WITH_GEOS
+            bool dump_geometry(const geos::geom::Geometry *g, std::vector<int>& partStart, std::vector<double>& x, std::vector<double>& y) {
+                switch(g->getGeometryTypeId()) {
+                    case geos::geom::GEOS_MULTIPOLYGON:
+                    case geos::geom::GEOS_MULTILINESTRING: {
+                        for (size_t i=0; i<g->getNumGeometries(); i++) {
+                            if (!dump_geometry(g->getGeometryN(i), partStart, x, y)) return false;
+                        }
+                        break;
+                    }
+                    case geos::geom::GEOS_POLYGON: {
+                        geos::geom::Polygon *p = (geos::geom::Polygon *) g;
+                        if (!dump_geometry(p->getExteriorRing(), partStart, x, y)) return false;
+                        for (size_t i=0; i<p->getNumInteriorRing(); i++)
+                        {
+                            if (!dump_geometry(p->getInteriorRingN(i), partStart, x, y)) return false; 
+                        }
+                        break;
+                    }
+                    case geos::geom::GEOS_LINESTRING:
+                    case geos::geom::GEOS_LINEARRING: {
+                        partStart.push_back(x.size());
+                        const geos::geom::CoordinateSequence *cs = ((geos::geom::LineString *) g)->getCoordinatesRO();
+                        for (size_t i = 0; i < cs->getSize(); i++) {
+                            x.push_back(cs->getX(i));
+                            y.push_back(cs->getY(i));
+                        }
+                        break;
+                    }
+                    default:
+                        throw std::runtime_error("invalid geometry type encountered");
+                }
+                return true;
+            }
+#endif
 #endif
 
         }; // class MultipolygonFromRelation
