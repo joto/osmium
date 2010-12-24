@@ -9,11 +9,6 @@
 #include <vector>
 #include <time.h>
 
-#ifdef WITH_GEOS
-#include <geos/geom/GeometryFactory.h>
-#include <geos/geom/PrecisionModel.h>
-#endif
-
 #ifdef WITH_SHPLIB
 #include <shapefil.h>
 #endif
@@ -33,16 +28,6 @@ namespace Osmium {
 
             static const int max_length_timestamp = 20 + 1; ///< maximum length of OSM object timestamp string (20 characters + null byte)
             static const int max_length_username = 255 * 4 + 1; ///< maximum length of OSM user name (255 UTF-8 characters + null byte)
-
-#ifdef WITH_GEOS
-            // XXX this stuff should probably go somewhere else
-            static void init() {
-                geos::geom::PrecisionModel *pm = new geos::geom::PrecisionModel();
-                global_geometry_factory = new geos::geom::GeometryFactory(pm, -1);
-            }
-
-            static geos::geom::GeometryFactory *global_geometry_factory;
-#endif
 
             osm_object_id_t    id;        ///< object id
             osm_version_t      version;   ///< object version

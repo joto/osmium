@@ -1,9 +1,35 @@
 
-#include <fcntl.h>
-
 #include "osmium.hpp"
 #include "XMLParser.hpp"
 #include "PBFParser.hpp"
+
+#ifdef WITH_GEOS
+#include <geos/geom/GeometryFactory.h>
+#include <geos/geom/PrecisionModel.h>
+
+namespace Osmium {
+    geos::geom::GeometryFactory *geos_factory() {
+        static geos::geom::GeometryFactory *global_geometry_factory;
+
+        if (! global_geometry_factory) {
+            geos::geom::PrecisionModel *pm = new geos::geom::PrecisionModel();
+            global_geometry_factory = new geos::geom::GeometryFactory(pm, -1);
+        }
+
+        return global_geometry_factory;
+    }
+} // namespace Osmium
+
+#endif
+
+// static buffers
+char Osmium::OSM::Node::lon_str[];
+char Osmium::OSM::Node::lat_str[];
+
+// needed for writing WKB (see wkb.hpp)
+extern const char lookup_hex[] = "0123456789abcdef";
+
+#include <fcntl.h>
 
 /**
 *
@@ -54,3 +80,5 @@ void parse_osmfile(char *osmfilename, struct callbacks *callbacks, Osmium::OSM::
 
     close(fd);
 }
+
+

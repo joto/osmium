@@ -25,7 +25,7 @@ namespace Osmium {
         */
         class Tag {
 
-        public:
+          public:
 
             static const int max_length_key   = 4 * 255 + 1; ///< 255 UTF-8 characters + null byte
             static const int max_length_value = 4 * 255 + 1; ///< 255 UTF-8 characters + null byte
@@ -33,15 +33,6 @@ namespace Osmium {
             char key[max_length_key];     ///< Tag key
             char value[max_length_value]; ///< Tag value
           
-/*            Tag() {
-                key[0] = '\0';
-                value[0] = '\0';
-            }
-
-            Tag(const Tag &o) {
-                strncpy(key, o.key, max_length_key);
-                strncpy(value, o.value, max_length_value);
-            }*/
         };
 
     } // namespace OSM

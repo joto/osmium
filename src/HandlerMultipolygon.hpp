@@ -24,11 +24,6 @@ namespace Osmium {
             Multipolygon(struct callbacks *cb) : cb(cb) {
             }
 
-            // in pass 2
-            void callback_before_ways() {
-                Osmium::OSM::Object::init(); // initialize geos lib
-            }
-
             // in pass 1
             void callback_relation(OSM::Relation *relation) {
                 const char *type = relation->get_tag_by_key("type");

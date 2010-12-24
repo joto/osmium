@@ -39,6 +39,15 @@ struct node_coordinates {
     double lat;
 };
 
+#ifdef WITH_GEOS
+#include <geos/geom/GeometryFactory.h>
+
+namespace Osmium {
+    geos::geom::GeometryFactory *geos_factory();
+} // namespace Osmium
+
+#endif
+
 #include "wkb.hpp"
 
 #include "Osm.hpp"

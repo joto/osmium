@@ -31,10 +31,6 @@ void node_handler2(Osmium::OSM::Node *node) {
     osmium_handler_node_location_store->callback_node(node);
 }
 
-void before_ways_handler2() {
-    osmium_handler_multipolygon->callback_before_ways();
-}
-
 void way_handler2(Osmium::OSM::Way *way) {
     osmium_handler_node_location_store->callback_way(way);
     osmium_handler_multipolygon->callback_way(way);
@@ -72,7 +68,6 @@ struct callbacks *setup_callbacks_1st_pass() {
 struct callbacks *setup_callbacks_2nd_pass() {
     static struct callbacks cb;
     cb.node             = node_handler2;
-    cb.before_ways      = before_ways_handler2;
     cb.way              = way_handler2;
     cb.after_ways       = after_ways_handler2;
     cb.multipolygon     = multipolygon_handler;

@@ -105,7 +105,7 @@ namespace Osmium {
                 geos::geom::Coordinate c;
                 c.x = lon[0];
                 c.y = lat[0];
-                return global_geometry_factory->createPoint(c);
+                return Osmium::geos_factory()->createPoint(c);
             }
 
             /** 
@@ -116,7 +116,7 @@ namespace Osmium {
                 geos::geom::Coordinate c;
                 c.x = lon[num_nodes - 1];
                 c.y = lat[num_nodes - 1];
-                return global_geometry_factory->createPoint(c);
+                return Osmium::geos_factory()->createPoint(c);
             }
 #endif
 
@@ -147,8 +147,8 @@ namespace Osmium {
                     for (int i=0; i<num_nodes; i++) {
                         c->push_back(geos::geom::Coordinate(lon[i], lat[i], DoubleNotANumber));
                     }
-                    geos::geom::CoordinateSequence *cs = global_geometry_factory->getCoordinateSequenceFactory()->create(c);
-                    return (geos::geom::Geometry *) global_geometry_factory->createLineString(cs);
+                    geos::geom::CoordinateSequence *cs = Osmium::geos_factory()->getCoordinateSequenceFactory()->create(c);
+                    return (geos::geom::Geometry *) Osmium::geos_factory()->createLineString(cs);
                 } catch (const geos::util::GEOSException& exc) {
                     std::cerr << "error building way geometry, leave it as NULL" << std::endl;
                     return NULL;
