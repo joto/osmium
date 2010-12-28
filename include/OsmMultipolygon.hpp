@@ -306,6 +306,7 @@ namespace Osmium {
             * SHPDestroyObject() with this object when you are done.
             * Returns NULL if a valid SHPObject could not be created.
             */
+#ifdef WITH_SHPLIB
             SHPObject *create_shpobject(int shp_type) {
                 if (shp_type != SHPT_POLYGON) {
                     throw std::runtime_error("a multipolygon can only be added to a shapefile of type polygon");
@@ -346,6 +347,7 @@ namespace Osmium {
                 
                 return o;
             }
+#endif
 
 #ifdef WITH_MULTIPOLYGON_PROFILING
             static void print_timings() {

@@ -17,7 +17,6 @@ CXXFLAGS += -std=c++0x -Wall -W -Wredundant-decls -Wdisabled-optimization -pedan
 
 CXXFLAGS += -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 CXXFLAGS += -DWITH_GEOS $(shell geos-config --cflags)
-CXXFLAGS += -DWITH_SHPLIB
 
 CXXFLAGS += -I../include -I../pbf
 
@@ -26,7 +25,6 @@ LDFLAGS += $(shell geos-config --libs)
 
 LIB_SQLITE   = -lsqlite3
 LIB_GD       = -lgd -lpng -lz -lm
-LIB_SHAPE    = -lshp
 LIB_PROTOBUF = -lz -lprotobuf
 
 CPP = osmium.cpp XMLParser.cpp OsmMultipolygon.cpp

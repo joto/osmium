@@ -4,39 +4,100 @@ Osmium
 
 http://wiki.openstreetmap.org/wiki/Osmium
 
-C++ framework for working with OSM XML files.
+Osmium is a C++ framework for working with OSM data files. Osmium can read OSM
+data in XML or binary format (PBF) and can call different handlers for each OSM
+object.
 
+Available handlers include:
+* Javascript handler (calls Javascript callbacks you provide)
+* Multipolygon handler (assembles multipolygons from relations and ways)
+* NodeLocationStore handler (stores node locations and builds ways geometries from them)
+* Statistics handler (does some general statistics)
+* TagStats handler (creates statistics about tags for Taginfo (see http://taginfo.openstreetmap.de/)
+
+Of course, you can also write your own handlers.
+
+Currently there are three applications build on top of and available with Osmium:
+* tagstats - creates statistics about tags for Taginfo (see http://taginfo.openstreetmap.de/)
+* osmjs - calls your Javascript code (there are two versions, a single-pass version that
+  calls back for every node, way, and relation and a two-pass version that assembles
+  multipolygons for you and has an additional multipolygon callback)
 
 PREREQUISITES
 -------------
 
-You need Googles sparsehash: apt-get install libsparsehash-dev
+Different parts of Osmium and the applications build on top of it need
+different libraries:
 
-Can optionally include Javascript code using Google's v8 javascript implementation.
-http://code.google.com/apis/v8/
+zlib (for PBF-Support)
+    http://www.zlib.net/
+    Debian/Ubuntu: zlib1g zlib1g-dev
+
+shapelib (for Shapefile-Support in osmjs)
+    http://shapelib.maptools.org/
+    Debian/Ubuntu: libshp1 libshp-dev
+
+libsqlite3 (for HandlerTagStats/tagstats only)
+    http://sqlite.org/
+    Debian/Ubuntu: libsqlite3-0 libsqlite3-dev
+
+libgd (for HandlerTagStats/tagstats only)
+    http://www.libgd.org/
+    Debian/Ubuntu: libgd2-xpm libgd2-xpm-dev
+
+libpng (for HandlerTagStats/tagstats only)
+    http://www.libpng.org/
+    Debian/Ubuntu: libpng12-0 libpng12-dev
+
+Expat (for parsing XML files)
+    http://expat.sourceforge.net/
+    Debian/Ubuntu: libexpat1 libexpat1-dev
+
+GEOS (for HandlerMultipolygon)
+    http://trac.osgeo.org/geos/
+    Debian/Ubuntu: libgeos-3.2.0 (older versions might work) libgeos-dev
+
+Google sparsehash
+    http://code.google.com/p/google-sparsehash/
+    Debian/Ubuntu: libsparsehash-dev
+
+Google V8 Javascript engine (for Javascript support)
+    http://code.google.com/apis/v8/
+    Debian/Ubuntu: libv8-2.2.18 libv8-dev
 
 Google protocol buffers for PBF support
-    Version 2.3.0
-    see http://wiki.openstreetmap.org/wiki/PBF_Format
+    http://code.google.com/p/protobuf/ (at least Version 2.3.0 needed)
+    (Debian/Ubuntu: libprotobuf6, libprotobuf-dev, protobuf-compiler)
+    Also see http://wiki.openstreetmap.org/wiki/PBF_Format
 
-libz for PBF-Support
+You need to either install the Debian/Ubuntu packages (or equivalent for other
+distributions) or install those libraries from source. Most libraries should be
+available in all distributions. The Google libs (V8, protobuf, sparsehash)
+are only available in newer distributions (Ubuntu since Maverick).
 
-libshp for Shapefile-Support
 
-libsqlite3 for TagStats
+FILES
+-----
+
+Doxyfile - Needed for building the Osmium C++ docs, call "make doc" to build.
+include  - C/C++ include files. Most of Osmium is in those header files which
+           are needed for building Osmium applications.
+js       - Example Javascript handlers.
+osmjs    - Osmium application "osmjs" and "osmjs_2pass".
+pbf      - Protobuf stuff needed for parsing PBF files.
+src      - Osmium source code (C++-Files)
+tagstats - Osmium application "tagstats".
 
 
-COMPILING
----------
+BUILDING
+--------
 
-Type
+To build everything just call "make" in the top-level directory. You can also
+build the PBF part for itself by calling "make" in the pbf directory. To build
+only the "osmjs" or "tagstats" application call "make" in those directories,
+respectively.
 
-make osmium_tagstats
+Call "make clean" in any of those places to clean up.
 
-to compile the tag statistics stuff needed for Taginfo (http://wiki.openstreetmap.org/wiki/taginfo).
-
-To compile in the javascript engine, you need libv8.a and v8.h from the Google
-site in the current directory. Then type
-
-make osmium_js
+Call "make doc" in the top-level directory to build the Osmium C++ docs.
 
