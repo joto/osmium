@@ -74,6 +74,7 @@ void parse_osmfile(char *osmfilename, struct callbacks *callbacks, Osmium::OSM::
         case pbf:
             Osmium::PBFParser *pbf_parser = new Osmium::PBFParser(fd, callbacks);
             pbf_parser->parse(node, way, relation);
+            delete pbf_parser;
             break;
     }
     if (callbacks->final) { callbacks->final(); }
