@@ -100,6 +100,103 @@ namespace Osmium {
             return true;
         }
 
+        /**
+        * This helper gets called when we find a ring that is not valid - 
+        * usually because it self-intersects. The method tries to salvage
+        * as much of the ring as possible, using binary search to find the
+        * bit that needs to be cut out. It then returns a valid LinearRing,
+        * or NULL if none can be built.
+        *
+        * There is massive potential for improvement here. The biggest
+        * limitation is that this method does not deliver results for 
+        * linear rings with more than one self-intersection.
+        */
+        geos::geom::LinearRing *MultipolygonFromRelation::create_non_intersecting_linear_ring(geos::geom::CoordinateSequence *orig_cs)
+        {
+            const std::vector<geos::geom::Coordinate>* coords = orig_cs->toVector();
+            int inv = coords->size();
+            int val = 0;
+            int current = (inv + val) / 2;
+            bool simple;
+
+            // find the longest non-intersecting stretch from the beginning 
+            // of the way.
+            while(1)
+            {
+                std::vector<geos::geom::Coordinate> vv(coords->begin(), coords->begin() + current);
+                geos::geom::CoordinateSequence *cs = geos::geom::CoordinateArraySequenceFactory::instance()->create(&vv);
+                geos::geom::LineString *a = Osmium::geos_factory()->createLineString(cs);
+                if (!(simple = a->isSimple()))
+                {
+                    inv = current;
+                }
+                else
+                {
+                    val = current;
+                }
+                if (current == (inv+val)/2) break;
+                current = (inv + val) / 2;
+            }
+
+            if (!simple) current--;
+
+            unsigned int cutoutstart = current;
+
+            inv = 0;
+            val = coords->size();
+            current = (inv + val) / 2;
+
+            // find the longest non-intersecting stretch from the end
+            // of the way. Note that this is likely to overlap with the
+            // stretch found above - assume a 10-node way where nodes 3 
+            // and 7 are identical, then we will find the sequence 0..6
+            // above, and 4..9 here!
+
+            while(1)
+            {
+                std::vector<geos::geom::Coordinate> vv(coords->begin() + current, coords->end());
+                geos::geom::CoordinateSequence *cs = geos::geom::CoordinateArraySequenceFactory::instance()->create(&vv);
+                geos::geom::LineString *a = Osmium::geos_factory()->createLineString(cs);
+                if (!(simple = a->isSimple()))
+                {
+                    inv = current;
+                }
+                else
+                {
+                    val = current;
+                }
+                if (current == (inv+val)/2) break;
+                current = (inv + val) / 2;
+            }
+            if (!simple) current++;
+            unsigned int cutoutend = current;
+
+            // assemble a new linear ring by cutting out the problematic bit.
+            // if the "problematic bit" however is longer than half the way,
+            // then try using the "problematic bit" by itself.
+
+            std::vector<geos::geom::Coordinate> vv;
+            if (cutoutstart<cutoutend) { unsigned int t = cutoutstart; cutoutstart=cutoutend; cutoutend=t; }
+            if (cutoutstart-cutoutend > coords->size() / 2)
+            {
+                vv.insert(vv.end(), coords->begin() + cutoutend, coords->begin() + cutoutstart);
+                vv.insert(vv.end(), vv[0]);
+            }
+            else
+            {
+                vv.insert(vv.end(), coords->begin(), coords->begin() + cutoutend);
+                vv.insert(vv.end(), coords->begin() + cutoutstart, coords->end());
+            }
+            geos::geom::CoordinateSequence *cs = geos::geom::CoordinateArraySequenceFactory::instance()->create(&vv);
+            geos::geom::LinearRing *a = Osmium::geos_factory()->createLinearRing(cs);
+
+            // if this results in a valid ring, return it; else return NULL.
+
+            if (!a->isValid()) return NULL;
+            geos::geom::LinearRing *b = (geos::geom::LinearRing *) a->clone();
+            //delete a;
+            return b;
+        }
 
         /**
         * Tries to collect 1...n ways from the n ways in the given list so that
@@ -108,7 +205,7 @@ namespace Osmium {
         * may be called again to find further rings.) If this is not possible, 
         * return NULL.
         */
-        RingInfo *MultipolygonFromRelation::make_one_ring(std::vector<WayInfo *> &ways, osm_object_id_t first, osm_object_id_t last, int ringcount, int sequence /**, bool with_geometry_repair */)
+        RingInfo *MultipolygonFromRelation::make_one_ring(std::vector<WayInfo *> &ways, osm_object_id_t first, osm_object_id_t last, int ringcount, int sequence)
         {
 
             // have we found a loop already?
@@ -137,10 +234,21 @@ namespace Osmium {
                     STOP_TIMER(mor_polygonizer);
                     if (!lr->isSimple() || !lr->isValid())
                     { 
-                        std::cerr << "Oh dear, I seem to have created a " << (lr->isSimple() ? "" : "non-") << "simple, " << (lr->isValid() ? "" : "in") << "valid linear ring." << std::endl;
-                        delete lr;
-                        // delete cs;
-                        return NULL; 
+                        //delete lr;
+                        lr = NULL;
+                        if (attempt_repair)
+                        {
+                            lr = create_non_intersecting_linear_ring(cs);
+                            if (lr)
+                            {
+                                std::cerr << "successfully repaired an invalid ring" << std::endl;
+                            }
+                            else
+                            {
+                                std::cerr << "unable to repair a broken ring" << std::endl;
+                            }
+                        }
+                        if (!lr) return NULL; 
                     }
                     bool ccw = geos::algorithm::CGAlgorithms::isCCW(lr->getCoordinatesRO());
                     RingInfo *rl = new RingInfo();
@@ -264,9 +372,9 @@ namespace Osmium {
 
             do
             {
-                int mindist_id = -1;
+                int mindist_id = 0;
                 double mindist = -1;
-                int node1_id = -1;
+                int node1_id = 0;
                 geos::geom::Point *node1 = NULL;
                 geos::geom::Point *node2 = NULL;
 
@@ -294,8 +402,12 @@ namespace Osmium {
                 }
 
                 // if such a pair has been found, synthesize a connecting way.
-                if (node1 && mindist_id > -1)
+                if (node1 && mindist > -1)
                 {
+                    // if we find that there are dangling nodes but aren't 
+                    // repairing - break out.
+                    if (!attempt_repair) return false;
+
                     // drop node2 from dangling map
                     node2 = dangling_node_map[mindist_id];
                     dangling_node_map[mindist_id] = NULL;

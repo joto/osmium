@@ -18,10 +18,12 @@ namespace Osmium {
             way2mpidx_t way2mpidx;
 
             struct callbacks *cb;
+            bool attempt_repair;
 
           public:
 
             Multipolygon(bool debug, struct callbacks *cb) : Base(debug), cb(cb) {
+                attempt_repair = true; 
             }
 
             // in pass 1
@@ -51,7 +53,7 @@ namespace Osmium {
                     }
                 }
 
-                Osmium::OSM::MultipolygonFromRelation *mp = new Osmium::OSM::MultipolygonFromRelation(r, is_boundary, num_ways, cb->multipolygon);
+                Osmium::OSM::MultipolygonFromRelation *mp = new Osmium::OSM::MultipolygonFromRelation(r, is_boundary, num_ways, cb->multipolygon, attempt_repair);
                 multipolygons.push_back(mp);
             }
 

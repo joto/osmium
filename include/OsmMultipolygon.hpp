@@ -225,6 +225,9 @@ namespace Osmium {
             /// callback we should call when a multipolygon was completed
             void (*callback)(Osmium::OSM::Multipolygon *);
 
+            /// whether we want to repair a broken geometry
+            bool attempt_repair;
+
 #ifdef WITH_MULTIPOLYGON_PROFILING
             static std::vector<std::pair<std::string, timer *> > timers;
 
@@ -246,11 +249,12 @@ namespace Osmium {
 
           public:
 
-            MultipolygonFromRelation(Relation *r, bool b, int n, void (*callback)(Osmium::OSM::Multipolygon *)) : Multipolygon(), boundary(b), relation(r), callback(callback) {
+            MultipolygonFromRelation(Relation *r, bool b, int n, void (*callback)(Osmium::OSM::Multipolygon *), bool repair) : Multipolygon(), boundary(b), relation(r), callback(callback) {
                 num_ways = n;
                 missing_ways = n;
                 geometry = NULL;
                 id = r->get_id();
+                attempt_repair = repair;
 
 #ifdef WITH_MULTIPOLYGON_PROFILING
                 timers.push_back(std::pair<std::string, timer *> ("   thereof assemble_ways", &assemble_ways_timer));
@@ -361,11 +365,13 @@ namespace Osmium {
 
 #ifdef WITH_GEOS
             bool build_geometry();
-#endif
 
-            RingInfo *make_one_ring(std::vector<WayInfo *> &ways, osm_object_id_t first, osm_object_id_t last, int ringcount, int sequence /**, bool with_geometry_repair */);
+            RingInfo *make_one_ring(std::vector<WayInfo *> &ways, osm_object_id_t first, osm_object_id_t last, int ringcount, int sequence);
             bool find_and_repair_holes_in_rings(std::vector<WayInfo *> *ways);
             bool geometry_error(const char *message);
+            geos::geom::LinearRing *create_non_intersecting_linear_ring(geos::geom::CoordinateSequence *cs);
+#endif
+
 
 #ifdef WITH_SHPLIB
 #ifdef WITH_GEOS
