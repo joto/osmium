@@ -261,10 +261,10 @@ int main(int argc, char *argv[]) {
     Osmium::OSM::Relation *relation = wrap_relation->object;
 
     if (two_passes) {
-        parse_osmfile(osm_filename, callbacks_1st_pass,    node, way, relation);
-        parse_osmfile(osm_filename, callbacks_2nd_pass,    node, way, relation);
+        parse_osmfile(debug, osm_filename, callbacks_1st_pass,    node, way, relation);
+        parse_osmfile(debug, osm_filename, callbacks_2nd_pass,    node, way, relation);
     } else {
-        parse_osmfile(osm_filename, callbacks_single_pass, node, way, relation);
+        parse_osmfile(debug, osm_filename, callbacks_single_pass, node, way, relation);
     }
 
     delete wrap_relation;

@@ -32,8 +32,6 @@ namespace Osmium {
 
     class PBFParser {
 
-      protected:
-
         static const int NANO = 1000 * 1000 * 1000;
         static const int MAX_BLOCK_HEADER_SIZE = 64 * 1024;
         static const int MAX_BLOB_SIZE = 32 * 1024 * 1024;
@@ -53,43 +51,27 @@ namespace Osmium {
             size_t size;
         } array_t;
 
+        bool debug;
+
       public:
 
-        PBFParser(int in_fd, struct callbacks *cb) {
+        PBFParser(bool debug, int in_fd, struct callbacks *cb) : debug(debug) {
             GOOGLE_PROTOBUF_VERIFY_VERSION;
             fd = in_fd;
             callbacks = cb;
             last_mode = ModeNode;
-
-            readBlockHeader();
-
-            if (m_blockHeader.type() != "OSMHeader") {
-                errmsg << "OSMHeader missing, found " << m_blockHeader.type().data() << " instead";
-                throw std::runtime_error(errmsg.str());
-            }
-
-            array_t a = readBlob();
-            if (!m_headerBlock.ParseFromArray(a.data, a.size)) {
-                throw std::runtime_error("failed to parse HeaderBlock");
-            }
-
-            for (int i = 0; i < m_headerBlock.required_features_size(); i++) {
-                const std::string& feature = m_headerBlock.required_features(i);
-
-                if ((feature != "OsmSchema-V0.6") && (feature != "DenseNodes")) {
-                    errmsg << "required feature not supported: " << feature;
-                    throw std::runtime_error(errmsg.str());
-                }
-            }
-
             m_loadBlock = true;
+        }
+
+        ~PBFParser () {
+            google::protobuf::ShutdownProtobufLibrary();
         }
 
         void parse(Osmium::OSM::Node *in_node, Osmium::OSM::Way *in_way, Osmium::OSM::Relation *in_relation) {
             if (callbacks->before_nodes) { callbacks->before_nodes(); }
             while (1) {
                 if (m_loadBlock) {
-                    if (!readNextBlock()) {
+                    if (!read_next_block()) {
                         if (callbacks->after_relations) { callbacks->after_relations(); }
                         return; // EOF
                     }
@@ -137,11 +119,7 @@ namespace Osmium {
             }
         }
 
-        ~PBFParser () {
-            google::protobuf::ShutdownProtobufLibrary();
-        }
-
-    protected:
+    private:
 
         void nextEntity(int max) {
             m_currentEntity++;
@@ -315,25 +293,46 @@ namespace Osmium {
             m_currentEntity = 0;
         }
 
-        bool readNextBlock() {
-            if (!readBlockHeader()) {
-                return false; // EOF
-            }
+        /**
+        * Read next data block from input file. This will ignore unknown block types.
+        */
+        bool read_next_block() {
+            while (true) {
+                if (!read_block_header()) {
+                    return false; // EOF
+                }
 
-            if (m_blockHeader.type() != "OSMData") {
-                errmsg << "invalid block type, found " << m_blockHeader.type().data() << " instead of OSMData";
-                throw std::runtime_error(errmsg.str());
-            }
+                if (m_blockHeader.type() == "OSMData") {
+                    array_t a = read_blob(m_blockHeader.datasize());
+                    if (!m_primitiveBlock.ParseFromArray(a.data, a.size)) {
+                        throw std::runtime_error("failed to parse PrimitiveBlock");
+                    }
+                    return true;
+                }
 
-            array_t a = readBlob();
-            if (!m_primitiveBlock.ParseFromArray(a.data, a.size)) {
-                errmsg << "failed to parse PrimitiveBlock";
-                throw std::runtime_error(errmsg.str());
+                if (m_blockHeader.type() == "OSMHeader") {
+                    array_t a = read_blob(m_blockHeader.datasize());
+                    if (!m_headerBlock.ParseFromArray(a.data, a.size)) {
+                        throw std::runtime_error("failed to parse HeaderBlock");
+                    }
+
+                    for (int i = 0; i < m_headerBlock.required_features_size(); i++) {
+                        const std::string& feature = m_headerBlock.required_features(i);
+
+                        if ((feature != "OsmSchema-V0.6") && (feature != "DenseNodes")) {
+                            errmsg << "required feature not supported: " << feature;
+                            throw std::runtime_error(errmsg.str());
+                        }
+                    }
+                } else {
+                    if (debug) {
+                        std::cerr << "ignoring unknown block type (" << m_blockHeader.type().data() << ")" << std::endl;
+                    }
+                }
             }
-            return true;
         }
 
-        bool readBlockHeader() {
+        bool read_block_header() {
             char size_in_network_byte_order[4];
             ssize_t bytes_read = read(fd, size_in_network_byte_order, sizeof(size_in_network_byte_order));
             if (bytes_read != sizeof(size_in_network_byte_order)) {
@@ -359,8 +358,11 @@ namespace Osmium {
             return true;
         }
 
-        array_t readBlob() {
-            int size = m_blockHeader.datasize();
+        /**
+        * Read a (possibly compressed) blob of data. If the blob is compressed, it is uncompressed.
+        */
+        array_t read_blob(int size) {
+            static OSMPBF::Blob blob;
             if (size < 0 || size > MAX_BLOB_SIZE) {
                 errmsg << "invalid blob size: " << size;
                 throw std::runtime_error(errmsg.str());
@@ -368,16 +370,16 @@ namespace Osmium {
             if (read(fd, buffer, size) != size) {
                 throw std::runtime_error("failed to read blob");
             }
-            if (!m_blob.ParseFromArray(buffer, size)) {
+            if (!blob.ParseFromArray(buffer, size)) {
                 throw std::runtime_error("failed to parse blob");
             }
 
-            if (m_blob.has_raw()) {
-                return { m_blob.raw().data(), m_blob.raw().size() };
-            } else if (m_blob.has_zlib_data()) {
-                unpackZlib(m_blob.zlib_data().data(), m_blob.zlib_data().size(), m_blob.raw_size());
-                return { unpack_buffer, m_blob.raw_size() };
-            } else if (m_blob.has_lzma_data()) {
+            if (blob.has_raw()) {
+                return { blob.raw().data(), blob.raw().size() };
+            } else if (blob.has_zlib_data()) {
+                unpackZlib(blob.zlib_data().data(), blob.zlib_data().size(), blob.raw_size());
+                return { unpack_buffer, blob.raw_size() };
+            } else if (blob.has_lzma_data()) {
                 throw std::runtime_error("lzma blobs not implemented");
             } else {
                 throw std::runtime_error("Blob contains no data");
@@ -407,7 +409,6 @@ namespace Osmium {
         }
 
         OSMPBF::BlockHeader m_blockHeader;
-        OSMPBF::Blob m_blob;
 
         OSMPBF::HeaderBlock m_headerBlock;
         OSMPBF::PrimitiveBlock m_primitiveBlock;

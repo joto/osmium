@@ -38,7 +38,7 @@ extern const char lookup_hex[] = "0123456789abcdef";
 *  Reads from STDIN if the filename is '-', in this case it assumes XML format.
 *
 */
-void parse_osmfile(char *osmfilename, struct callbacks *callbacks, Osmium::OSM::Node *node, Osmium::OSM::Way *way, Osmium::OSM::Relation *relation) {
+void parse_osmfile(bool debug, char *osmfilename, struct callbacks *callbacks, Osmium::OSM::Node *node, Osmium::OSM::Way *way, Osmium::OSM::Relation *relation) {
     int fd = 0;
     if (osmfilename[0] == '-' && osmfilename[1] == '\0') {
         // fd is already 0, read STDIN
@@ -72,7 +72,7 @@ void parse_osmfile(char *osmfilename, struct callbacks *callbacks, Osmium::OSM::
             Osmium::XMLParser::parse(fd, callbacks, node, way, relation);
             break;
         case pbf:
-            Osmium::PBFParser *pbf_parser = new Osmium::PBFParser(fd, callbacks);
+            Osmium::PBFParser *pbf_parser = new Osmium::PBFParser(debug, fd, callbacks);
             pbf_parser->parse(node, way, relation);
             delete pbf_parser;
             break;
