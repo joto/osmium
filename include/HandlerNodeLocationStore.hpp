@@ -17,6 +17,12 @@ namespace Osmium {
 
         protected:
 
+            /**
+            * the node location store will add this number to all ids,
+            * this way at least some negative ids will be properly stored
+            */
+            static const int negative_id_offset = 1024 * 1024;
+
             static int32_t double_to_fix(double c) {
                 return c * 10000000;
             }
@@ -38,6 +44,7 @@ namespace Osmium {
         // Caution: Node store is not initialized to some zero value.
         // You can not find out if a node coordinate was ever set!
         class NLS_Array : public NodeLocationStore {
+
             struct coordinates *coordinates;
 
         public:
@@ -55,7 +62,7 @@ namespace Osmium {
             }
 
             void callback_node(const OSM::Node *object) {
-                const osm_object_id_t id = object->get_id();
+                const osm_object_id_t id = object->get_id() + NodeLocationStore::negative_id_offset;
                 coordinates[id].x = double_to_fix(object->get_lon());
                 coordinates[id].y = double_to_fix(object->get_lat());
             }
@@ -63,7 +70,7 @@ namespace Osmium {
             void callback_way(OSM::Way *object) {
                 const osm_sequence_id_t num_nodes = object->node_count();
                 for (osm_sequence_id_t i=0; i < num_nodes; i++) {
-                    osm_object_id_t node_id = object->nodes[i];
+                    osm_object_id_t node_id = object->nodes[i] + NodeLocationStore::negative_id_offset;
                     object->set_node_coordinates(i, fix_to_double(coordinates[node_id].x), fix_to_double(coordinates[node_id].y));
                 }
             }
@@ -83,10 +90,10 @@ namespace Osmium {
             }
 
             void callback_node(const OSM::Node *object) {
-                osm_object_id_t id = object->get_id();
+                osm_object_id_t id = object->get_id() + NodeLocationStore::negative_id_offset;
                 if (id > max_id) {
                     max_id = id;
-                    nodes_table.resize(max_id+1000); // XXX
+                    nodes_table.resize(max_id + 1000); // XXX
                 }
                 struct coordinates c = {
                     double_to_fix(object->get_lon()),
@@ -98,7 +105,7 @@ namespace Osmium {
             void callback_way(OSM::Way *object) {
                 osm_sequence_id_t num_nodes = object->node_count();
                 for (osm_sequence_id_t i=0; i < num_nodes; i++) {
-                    struct coordinates c = nodes_table[object->nodes[i]];
+                    struct coordinates c = nodes_table[object->nodes[i] + NodeLocationStore::negative_id_offset];
                     object->set_node_coordinates(i, fix_to_double(c.x), fix_to_double(c.y));
                 }
             }
