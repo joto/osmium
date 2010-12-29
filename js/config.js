@@ -1,6 +1,4 @@
 
-include("js/osm2shape.js");
-
 // ---- shapefiles ----
 
 shapefile('natural_pois').

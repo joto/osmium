@@ -11,7 +11,7 @@ namespace Osmium {
 
           public:
 
-            Bbox() {
+            Bbox(bool debug) : Base(debug) {
                 minlon =  1000;
                 maxlon = -1000;
                 minlat =  1000;

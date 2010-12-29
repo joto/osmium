@@ -21,7 +21,7 @@ namespace Osmium {
 
           public:
 
-            Multipolygon(struct callbacks *cb) : cb(cb) {
+            Multipolygon(bool debug, struct callbacks *cb) : Base(debug), cb(cb) {
             }
 
             // in pass 1

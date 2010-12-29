@@ -9,7 +9,12 @@ namespace Osmium {
         // Defines empty methods that can be overwritten in child classes.
         class Base {
 
+            bool debug;
+
         public:
+
+            Base(bool debug) : debug(debug) {
+            }
 
             void callback_init() {
             }

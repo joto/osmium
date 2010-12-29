@@ -51,7 +51,7 @@ namespace Osmium {
 
         public:
 
-            Statistics() {
+            Statistics(bool debug) : Base(debug) {
                 // initialize all statistics to zero
                 for (int i=0; stat_names[i]; i++) {
                     ((uint64_t *) &stats)[i] = 0;

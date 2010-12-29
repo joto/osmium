@@ -81,14 +81,16 @@ struct callbacks *setup_callbacks() {
 /* ================================================== */
 
 int main(int argc, char *argv[]) {
+    bool debug = false; // XXX set this from command line
+
     if (argc != 2) {
         std::cerr << "Usage: " << argv[0] << " OSMFILE" << std::endl;
         exit(1);
     }
 
-    osmium_handler_stats               = new Osmium::Handler::Statistics;
-    osmium_handler_tagstats            = new Osmium::Handler::TagStats;
-//    osmium_handler_node_location_store = new Osmium::Handler::NLS_Sparsetable;
+    osmium_handler_stats               = new Osmium::Handler::Statistics(debug);
+    osmium_handler_tagstats            = new Osmium::Handler::TagStats(debug);
+//    osmium_handler_node_location_store = new Osmium::Handler::NLS_Sparsetable(debug);
 
     Osmium::OSM::Node     *node     = new Osmium::OSM::Node;
     Osmium::OSM::Way      *way      = new Osmium::OSM::Way;

@@ -27,6 +27,9 @@ namespace Osmium {
 
         public:
 
+            NodeLocationStore(bool debug) : Base(debug) {
+            }
+
             virtual void callback_node(const OSM::Node *object) = 0;
             virtual void callback_way(OSM::Way *object) = 0;
 
@@ -39,7 +42,7 @@ namespace Osmium {
 
         public:
 
-            NLS_Array() {
+            NLS_Array(bool debug) : NodeLocationStore(debug) {
                 const int max_nodes = 1.2 * 1024 * 1024 * 1024; // XXX make configurable, or autosizing?
                 coordinates = (struct coordinates *) malloc(sizeof(struct coordinates) * max_nodes);
                 if (!coordinates) {
@@ -74,7 +77,7 @@ namespace Osmium {
 
         public:
 
-            NLS_Sparsetable() {
+            NLS_Sparsetable(bool debug) : NodeLocationStore(debug) {
                 max_id = 1000;
                 nodes_table.resize(max_id+1);
             }

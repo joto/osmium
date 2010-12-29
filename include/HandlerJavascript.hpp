@@ -137,7 +137,7 @@ namespace Osmium {
             }
 #endif
 
-            Javascript(const char *filename) {
+            Javascript(bool debug, std::vector<std::string> include_files, const char *filename) : Base(debug) {
 //                v8::HandleScope handle_scope;
                 v8::Handle<v8::String> init_source = v8::String::New(
                     "Osmium = { Callbacks: {}, Output: { } };"
@@ -145,6 +145,8 @@ namespace Osmium {
                 v8::Handle<v8::Script> init_script = v8::Script::Compile(init_source);
                 osmium_object = v8::Persistent<v8::Object>::New(init_script->Run()->ToObject());
                 v8::Handle<v8::Object> output_object = osmium_object->Get(v8::String::New("Output"))->ToObject();
+
+                osmium_object->Set(v8::String::New("debug"), v8::Boolean::New(debug));
 
                 v8::Handle<v8::ObjectTemplate> output_csv_template = v8::ObjectTemplate::New();
                 output_csv_template->Set(v8::String::New("open"), v8::FunctionTemplate::New(OutputCSVOpen));
@@ -158,13 +160,33 @@ namespace Osmium {
 
                 v8::Handle<v8::Object> callbacks_object = osmium_object->Get(v8::String::New("Callbacks"))->ToObject();
 
+                v8::TryCatch tryCatch;
+
+                for (std::vector<std::string>::iterator vi = include_files.begin(); vi != include_files.end(); vi++) {
+                    if (debug) {
+                        std::cerr << "include javascript file: " << *vi << std::endl;
+                    }
+                    std::string javascript_source = load_file((*vi).c_str());
+                    v8::Handle<v8::Script> script = v8::Script::Compile(v8::String::New(javascript_source.c_str()), v8::String::New((*vi).c_str()));
+                    if (script.IsEmpty()) {
+                        std::cerr << "Compiling script failed:" << std::endl;
+                        report_exception(&tryCatch);
+                        exit(1);
+                    }
+
+                    v8::Handle<v8::Value> result = script->Run();
+                    if (result.IsEmpty()) {
+                        std::cerr << "Running script failed:" << std::endl;
+                        report_exception(&tryCatch);
+                        exit(1);
+                    }
+                }
+
                 std::string javascript_source = load_file(filename);
                 if (javascript_source.length() == 0) {
                     std::cerr << "Javascript file " << filename << " is empty" << std::endl;
                     exit(1);
                 }
-
-                v8::TryCatch tryCatch;
 
                 v8::Handle<v8::Script> script = v8::Script::Compile(v8::String::New(javascript_source.c_str()), v8::String::New(filename));
                 if (script.IsEmpty()) {

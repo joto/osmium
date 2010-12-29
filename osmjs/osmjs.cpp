@@ -1,5 +1,6 @@
 
 #include <getopt.h>
+#include <unistd.h>
 
 #include "osmium.hpp"
 
@@ -118,8 +119,9 @@ void print_help() {
               << "Options:" << std::endl \
               << "  --help, -h                       - This help message" << std::endl \
               << "  --debug, -d                      - Enable debugging output" << std::endl \
+              << "  --include=FILE, -i FILE          - Include Javascript file (can be given several times)" << std::endl \
               << "  --javascript=FILE, -j FILE       - Process given Javascript file" << std::endl \
-              << "  --location-store=STORE, -l STORE - Set location store (default: sparsetable)" << std::endl \
+              << "  --location-store=STORE, -l STORE - Set location store (default: 'sparsetable')" << std::endl \
               << "  --2pass, -2                      - Read OSMFILE twice and build multipolygons" << std::endl \
               << "Location stores:" << std::endl \
               << "  array       - Store node locations in large array (use for large OSM files)" << std::endl \
@@ -127,11 +129,43 @@ void print_help() {
 
 }
 
+std::string find_include_file(std::string filename) {
+    static std::vector<std::string> search_path = {
+        ".",
+        "js",
+        "~/.osmjs",
+        "/usr/local/share/osmjs",
+        "/usr/share/osmjs"
+    };
+
+    // add .js if there is no suffix
+    if (filename.find_last_of('.') == std::string::npos) {
+        filename.append(".js");
+    }
+
+    // go through search path and find where the file is
+    for (std::vector<std::string>::iterator vi = search_path.begin(); vi != search_path.end(); vi++) {
+        std::string f = *vi + "/" + filename;
+        if (!access(f.c_str(), R_OK)) {
+            return f;
+        }
+    }
+
+    std::cerr << "Could not find include file " << filename << " in search path (";
+    for (std::vector<std::string>::iterator vi = search_path.begin(); vi != search_path.end(); vi++) {
+        if (vi != search_path.begin()) std::cerr << ":";
+        std::cerr << *vi;
+    }
+    std::cerr << ")" << std::endl;
+    exit(1);
+}
+
 int main(int argc, char *argv[]) {
     bool debug = false;
     bool two_passes = false;
     char javascript_filename[512];
     char *osm_filename;
+    std::vector<std::string> include_files;
     enum location_store_t {
         ARRAY,
         SPARSETABLE
@@ -139,6 +173,7 @@ int main(int argc, char *argv[]) {
 
     static struct option long_options[] = {
         {"debug",                no_argument, 0, 'd'},
+        {"include",        required_argument, 0, 'i'},
         {"javascript",     required_argument, 0, 'j'},
         {"help",                 no_argument, 0, 'h'},
         {"location-store", required_argument, 0, 'l'},
@@ -147,7 +182,7 @@ int main(int argc, char *argv[]) {
     };
 
     while (1) {
-        int c = getopt_long(argc, argv, "dj:hl:2", long_options, 0);
+        int c = getopt_long(argc, argv, "dhi:j:l:2", long_options, 0);
         if (c == -1)
             break;
 
@@ -155,6 +190,11 @@ int main(int argc, char *argv[]) {
             case 'd':
                 debug = true;
                 break;
+            case 'i': {
+                std::string f(optarg);
+                include_files.push_back(find_include_file(f));
+                break;
+            }
             case 'j':
                 strncpy(javascript_filename, optarg, 512);
                 break;
@@ -202,13 +242,13 @@ int main(int argc, char *argv[]) {
     struct callbacks *callbacks_2nd_pass    = setup_callbacks_2nd_pass();
 
     if (location_store == ARRAY) {
-        osmium_handler_node_location_store = new Osmium::Handler::NLS_Array;
+        osmium_handler_node_location_store = new Osmium::Handler::NLS_Array(debug);
     } else {
-        osmium_handler_node_location_store = new Osmium::Handler::NLS_Sparsetable;
+        osmium_handler_node_location_store = new Osmium::Handler::NLS_Sparsetable(debug);
     }
-    osmium_handler_javascript = new Osmium::Handler::Javascript(javascript_filename);
+    osmium_handler_javascript = new Osmium::Handler::Javascript(debug, include_files, javascript_filename);
     if (two_passes) {
-        osmium_handler_multipolygon = new Osmium::Handler::Multipolygon(callbacks_2nd_pass);
+        osmium_handler_multipolygon = new Osmium::Handler::Multipolygon(debug, callbacks_2nd_pass);
     }
 
     Osmium::Javascript::Node::Wrapper     *wrap_node     = new Osmium::Javascript::Node::Wrapper;
