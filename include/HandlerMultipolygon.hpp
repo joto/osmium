@@ -17,13 +17,12 @@ namespace Osmium {
             typedef google::sparse_hash_map<osm_object_id_t, std::vector<osm_object_id_t> > way2mpidx_t;
             way2mpidx_t way2mpidx;
 
-            struct callbacks *cb;
             bool attempt_repair;
+            struct callbacks *cb;
 
           public:
 
-            Multipolygon(bool debug, struct callbacks *cb) : Base(debug), cb(cb) {
-                attempt_repair = true; 
+            Multipolygon(bool debug, bool attempt_repair, struct callbacks *cb) : Base(debug), attempt_repair(attempt_repair), cb(cb) {
             }
 
             // in pass 1

@@ -21,6 +21,10 @@ multipolygon have gone by and the multipolygon could be assembled. You will
 also get multipolygon callbacks for closed ways that are not needed for any
 multipolygon as they potentially describe polygons, too.
 
+Unless you give the --no-repair/-r option, Osmium will try to repair broken
+multipolygons. It can sometimes close open rings and work around
+self-intersecting rings.
+
 
 Calling osmjs
 -------------

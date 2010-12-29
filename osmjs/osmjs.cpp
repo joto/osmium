@@ -123,6 +123,7 @@ void print_help() {
               << "  --include=FILE, -i FILE          - Include Javascript file (can be given several times)" << std::endl \
               << "  --javascript=FILE, -j FILE       - Process given Javascript file" << std::endl \
               << "  --location-store=STORE, -l STORE - Set location store (default: 'sparsetable')" << std::endl \
+              << "  --no-repair, -r                  - Do not attempt to repair broken multipolygons" << std::endl \
               << "  --2pass, -2                      - Read OSMFILE twice and build multipolygons" << std::endl \
               << "Location stores:" << std::endl \
               << "  array       - Store node locations in large array (use for large OSM files)" << std::endl \
@@ -164,6 +165,7 @@ std::string find_include_file(std::string filename) {
 int main(int argc, char *argv[]) {
     bool debug = false;
     bool two_passes = false;
+    bool attempt_repair = true;
     char javascript_filename[512] = "";
     char *osm_filename;
     std::vector<std::string> include_files;
@@ -178,12 +180,13 @@ int main(int argc, char *argv[]) {
         {"javascript",     required_argument, 0, 'j'},
         {"help",                 no_argument, 0, 'h'},
         {"location-store", required_argument, 0, 'l'},
+        {"no-repair",            no_argument, 0, 'r'},
         {"2pass",                no_argument, 0, '2'},
         {0, 0, 0, 0}
     };
 
     while (1) {
-        int c = getopt_long(argc, argv, "dhi:j:l:2", long_options, 0);
+        int c = getopt_long(argc, argv, "dhi:j:l:r2", long_options, 0);
         if (c == -1)
             break;
 
@@ -211,6 +214,9 @@ int main(int argc, char *argv[]) {
                     std::cerr << "Unknown location store: " << optarg << " (available are: 'array' and 'sparsetable')" << std::endl;
                     exit(1);
                 }
+                break;
+            case 'r':
+                attempt_repair = false;
                 break;
             case '2':
                 two_passes = true;
@@ -254,7 +260,7 @@ int main(int argc, char *argv[]) {
     }
     osmium_handler_javascript = new Osmium::Handler::Javascript(debug, include_files, javascript_filename);
     if (two_passes) {
-        osmium_handler_multipolygon = new Osmium::Handler::Multipolygon(debug, callbacks_2nd_pass);
+        osmium_handler_multipolygon = new Osmium::Handler::Multipolygon(debug, attempt_repair, callbacks_2nd_pass);
     }
 
     Osmium::Javascript::Node::Wrapper     *wrap_node     = new Osmium::Javascript::Node::Wrapper;
