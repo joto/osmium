@@ -1,20 +1,17 @@
+/* objects.js (single pass) */
 
-/* test.js */
+Osmium.Callbacks.init = function() {
+    print('Start!');
+}
 
-var out = Osmium.Output.CSV.open("pois.tbf");
-
-function cb_node() {
+Osmium.Callbacks.node = function() {
     print('node ' + this.id + ' ' + this.version + ' ' + this.timestamp + ' ' + this.uid + ' ' + this.user + ' ' + this.changeset + ' ' + this.lon + ' ' + this.lat + ' ' + this.geom.as_wkt + ' [' + this.geom.as_hex_wkb + ']');
     for (key in this.tags) {
         print(' ' + key + '=' + this.tags[key]);
-/*        if (key == 'amenity' && this.tags[key] == 'restaurant') {
-           print(' ' + key + '=' + this.tags.name);
-            out.print(this.id, this.lon, this.lat, this.tags.name);
-        }*/
     }
 }
 
-function cb_way() {
+Osmium.Callbacks.way = function() {
     print('way ' + this.id + ' ' + this.version + ' ' + this.timestamp + ' ' + this.uid + ' ' + this.user + ' ' + this.changeset + ' ' + this.geom.linestring_wkt);
     for (key in this.tags) {
         print(' ' + key + '=' + this.tags[key]);
@@ -24,7 +21,7 @@ function cb_way() {
     }
 }
 
-function cb_relation() {
+Osmium.Callbacks.relation = function() {
     print('relation ' + this.id + ' ' + this.version + ' ' + this.timestamp + ' ' + this.uid + ' ' + this.user + ' ' + this.changeset);
     for (key in this.tags) {
         print(' ' + key + '=' + this.tags[key]);
@@ -35,18 +32,7 @@ function cb_relation() {
     }
 }
 
-function cb_init() {
-    print('Start!');
-}
-
-function cb_end() {
+Osmium.Callbacks.end = function() {
     print('End!');
-    out.close();
 }
-
-Osmium.Callbacks.init     = cb_init;
-Osmium.Callbacks.node     = cb_node;
-Osmium.Callbacks.way      = cb_way;
-Osmium.Callbacks.relation = cb_relation;
-Osmium.Callbacks.end      = cb_end;
 

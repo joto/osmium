@@ -1,4 +1,4 @@
-// export osm data to shapefiles
+/* shape_export.js (2-pass version) */
 
 var shp_pois = Osmium.Output.Shapefile.open('./pois', 'point');
 shp_pois.add_field('id', 'integer', 10);
@@ -16,14 +16,13 @@ var shp_landuse = Osmium.Output.Shapefile.open('./landuse', 'polygon');
 shp_landuse.add_field('id', 'integer', 10);
 shp_landuse.add_field('type', 'string', 32);
 
-Osmium.Callbacks.init = function() {
-    print("Init");
+var node_tags = {
+    amenity: { restaurant: 'restaurant', pub: 'pub' },
+    shop: { supermarket: 'supermarket' }
 }
 
-var node_tags = {
-    amenity: { restaurant: 'restaurant',
-               pub: 'pub' },
-    shop: { supermarket: 'supermarket' }
+Osmium.Callbacks.init = function() {
+    print("Init");
 }
 
 Osmium.Callbacks.node = function() {

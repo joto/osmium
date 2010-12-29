@@ -1,54 +1,45 @@
+/* count.js (single pass) */
 
-/* osmm.js */
+var tags_counter = {};
+var keys_counter = {};
 
-var tags_hash = new Object;
-var keys      = new Object;
-
-function cb_node() {
-//    print(this.lon);
+Osmium.Callbacks.node = function() {
     for (key in this.tags) {
+
+        if (keys_counter[key]) {
+            keys_counter[key]++;
+        } else {
+            keys_counter[key] = 1;
+        }
+
         var value = this.tags[key];
         var t = key + '\t' + value;
-        if (tags_hash[t]) {
-            tags_hash[t]++;
+        if (tags_counter[t]) {
+            tags_counter[t]++;
         } else {
-            tags_hash[t] = 1;
+            tags_counter[t] = 1;
         }
-        if (keys[key]) {
-            keys[key]++;
-        } else {
-            keys[key] = 1;
-        }
+
     }
 }
 
-function cb_way() {
-}
-
-function cb_relation() {
-}
-
-function cb_init() {
+Osmium.Callbacks.init = function() {
     print('Start!');
 }
 
-function cb_end() {
-    var out_keys_nodes = Osmium.Output.CSV.open("stats-keys-nodes.tbf");
-    for (key in keys) {
-        out_keys_nodes.print(key, keys[key]);
+Osmium.Callbacks.end = function() {
+    var out_keys_nodes = Osmium.Output.CSV.open('stats-keys-nodes.csv');
+    for (key in keys_counter) {
+        out_keys_nodes.print(key, keys_counter[key]);
     }
     out_keys_nodes.close();
-    var out_tags_nodes = Osmium.Output.CSV.open("stats-tags-nodes.tbf");
-    for (tag in tags_hash) {
-        out_tags_nodes.print(tag, tags_hash[tag]);
+
+    var out_tags_nodes = Osmium.Output.CSV.open('stats-tags-nodes.csv');
+    for (tag in tags_counter) {
+        out_tags_nodes.print(tag, tags_counter[tag]);
     }
     out_tags_nodes.close();
+
     print('End!');
 }
-
-Osmium.Callbacks.init     = cb_init;
-Osmium.Callbacks.node     = cb_node;
-//Osmium.Callbacks.way      = cb_way;
-//Osmium.Callbacks.relation = cb_relation;
-Osmium.Callbacks.end      = cb_end;
 

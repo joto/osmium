@@ -26,7 +26,7 @@ namespace Osmium {
             }
 
             void callback_final() {
-                std::cerr << "minlon=" << minlon << " maxlon=" << maxlon << " minlat=" << minlat << " maxlat" << maxlat << std::endl;
+                std::cerr << "minlon=" << minlon << " maxlon=" << maxlon << " minlat=" << minlat << " maxlat=" << maxlat << std::endl;
             }
 
         }; // class Bbox
