@@ -1,0 +1,183 @@
+
+Osmjs README
+============
+
+Osmjs is a Osmium based framework for handling OSM data by calling Javascript
+callbacks for each object in an OSM data file. This gives you the flexibility
+of Javascript together with speed of the C++ Osmium framework and the Google V8
+Javascript JIT compiler.
+
+
+Multipolygon Support
+--------------------
+
+Osmjs can assemble multipolygons from relations for you. To enable this you
+have to use the --2pass/-2 option on the command line. The input file is then
+read twice. In the first pass all relations of type=multipolygon or type=border
+are stored in memory, together with the list of ways that are needed to build
+them. In the second pass multipolygons are assembled from the ways. You will
+get callbacks for each multipolygon as soon as all ways needed for a
+multipolygon have gone by and the multipolygon could be assembled. You will
+also get multipolygon callbacks for closed ways that are not needed for any
+multipolygon as they potentially describe polygons, too.
+
+
+Calling osmjs
+-------------
+
+osmjs [OPTIONS] OSMFILE
+
+OSMFILE can be an OSM XML (suffix .osm) or PBF (suffix .osm.pbf) file. 
+
+See osmjs --help for the options. You must at least give the --javascript/-j
+option with a javascript file.
+
+
+Javascript Functions
+--------------------
+
+You can use any normal Javascript functions and objects in your code.
+Note that there is no DOM, you are not in a browser!
+
+The following special functions have been defined:
+
+* print(text)       -- Output any text to stdout
+* include(filename) -- Include external Javascript file
+
+In addition the "Osmium" object gives you access to some functionality:
+
+* Osmium.debug            -- Boolean attribute reflecting the setting
+                             of the --debug/-d command line option
+* Osmium.Callbacks        -- To set the callback handlers (see below)
+* Osmium.Output.CSV       -- CSV output files (see below)
+* Osmium.Output.Shapefile -- Shapefile output files (see below)
+
+
+Callbacks
+---------
+
+The following callbacks can be defined:
+
+Osmium.Callbacks.init
+Osmium.Callbacks.before_nodes
+Osmium.Callbacks.node
+Osmium.Callbacks.after_nodes
+Osmium.Callbacks.before_ways
+Osmium.Callbacks.way
+Osmium.Callbacks.after_ways
+Osmium.Callbacks.before_relations
+Osmium.Callbacks.relation
+Osmium.Callbacks.after_relations
+Osmium.Callbacks.multipolygon
+Osmium.Callbacks.end
+
+If the --2pass/-2 option is not given, the callbacks are called in the
+following order: init, before_nodes, node (for each node), after_nodes,
+before_ways, way (for each way), after_ways, before_relations, relation (for
+each relation), after_relations, end. The 'multipolygon' callback is never
+called!
+
+If the --2pass/-2 option is given, the callbacks are called in the following
+order: init, before_relations, relation (for each relation), after_relations,
+before_nodes, node (for each node), after_nodes, before_ways, way (for each
+way) / multipolygon (for each completed multipolygon), after_ways, end.
+
+The 'node', 'way', 'relation' and 'multipolygon' callbacks will have an OSM
+object in 'this'.
+
+Example:
+
+Osmium.Callbacks.node = function() {
+    print('node ' + this.id + ' ' + this.version + ' ' + this.timestamp + ' '
+                  + this.uid + ' ' + this.user + ' '
+                  + this.changeset + ' ' + this.lon + ' ' + this.lat);
+    for (key in this.tags) {
+        print(' ' + key + '=' + this.tags[key]);
+    }
+}
+
+Writing to CSV Files
+--------------------
+
+You can write some output to CSV files. Currently line endings are always LF,
+column separator is always a TAB.
+
+Example:
+
+var csv_file = Osmium.Output.CSV.open("some-filename.csv");
+csv_file.print("first column", "second column");
+csv_file.close();
+
+
+Writing to Shapefiles
+---------------------
+
+(See next chapter for an easier way.)
+
+You can write OSM objects to Shapefiles of type POINT, LINE, and POLYGON. To
+do this you first have to open a shapefile and define the attributes that
+should be used.
+
+Do not give any suffix for the filename. The suffixes '.shp', '.shx', and
+'.dbf' for the different files will be added automatically.
+
+Define a shapefile:
+
+var shp = Osmium.Output.Shapefile.open("example", "point");
+
+shp.add_field("id", "integer", 10);
+shp.add_field("name", "string", 40);
+
+You can now add objects to the Shapefile:
+
+shp.add(some_node, { id: some_node.id, some_node.tags.name });
+
+The geometry of the object (in this case 'some_node') will be put into the
+shapefile. The second argument to add() is a hash which must contain all
+the attributes.
+
+After use you have to close the shapefile properly or some data may not end
+up in it:
+
+shp.close();
+
+
+Converting OSM data to Shapefiles
+---------------------------------
+
+There is an easier way to work with Shapefiles. If you include the osm2shp
+Javascript library from the command line, you can use a different syntax:
+
+osmjs -2 -i osm2shp -j my_config.js some_osm_file.osm.pbf
+
+You can define shapefiles like this:
+
+shapefile('pois').
+    type(POINT).
+    column('id', INTEGER, 10).
+    column('type', STRING, 32).
+    column('name', STRING, 32);
+
+Types POINT, LINE, and POLYGON are allowed. You can use INTEGER, STRING,
+DOUBLE, and BOOL as attribute types.
+
+You can also define rules for matching OSM data to the right shapefiles:
+
+node('amenity', 'post_box|phone').
+    output('pois').
+        attr('type', 'amenity').
+        attr('name');
+
+This rule matches all nodes with a tag amenity=post_box or amenity=phone and
+writes the node to the previously defined 'pois' shapefile. The 'id' attribute
+is filled automatically with the id of the node. The 'type' attribute is filled
+from the value of the tag with the key 'amenity' and the 'name' attribute is
+filled from the value of the tag with the 'name' key.
+
+You can match: node(), way(), area(). Areas can be closed simple ways or
+multipolygons. The first argument to these matching functions is always a key.
+The optional second argument is a value or list of values separated by '|'.
+If the second argument is missing or '*', the rule matches all objects with
+the given tag key regardless of the value.
+
+
