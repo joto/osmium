@@ -50,7 +50,7 @@ SRC_HPP_JS = $(wildcard ../include/*Javascript*.hpp)
 
 .PHONY: all clean doc protobuf
 
-all: protobuf osmjs osmjs_2pass
+all: protobuf osmjs
 
 protobuf:
 	$(MAKE) -C ../pbf CXX="$(CXX)" CXXFLAGS="$(CXXFLAGS)"
@@ -61,9 +61,6 @@ protobuf:
 osmjs: osmjs.cpp $(OBJ) $(OBJ_JS) $(SRC_HPP) $(SRC_HPP_JS)
 	$(CXX) $(CXXFLAGS) -o $@ $< $(OBJ) $(OBJ_JS) $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_V8) $(LIB_SHAPE)
     
-osmjs_2pass: osmjs_2pass.cpp $(OBJ) $(OBJ_JS) $(SRC_HPP) $(SRC_HPP_JS)
-	$(CXX) $(CXXFLAGS) -o $@ $< $(OBJ) $(OBJ_JS) $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_V8) $(LIB_SHAPE)
-    
 clean:
-	rm -f *.o osmjs osmjs_2pass
+	rm -f *.o osmjs
 

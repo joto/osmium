@@ -25,12 +25,19 @@ namespace Osmium {
                 return ((double)c) / 10000000;
             }
 
+        public:
+
+            virtual void callback_node(const OSM::Node *object) = 0;
+            virtual void callback_way(OSM::Way *object) = 0;
+
         }; // class NodeLocationStore
 
         // Caution: Node store is not initialized to some zero value.
         // You can not find out if a node coordinate was ever set!
         class NLS_Array : public NodeLocationStore {
             struct coordinates *coordinates;
+
+        public:
 
             NLS_Array() {
                 const int max_nodes = 1.2 * 1024 * 1024 * 1024; // XXX make configurable, or autosizing?
@@ -44,8 +51,6 @@ namespace Osmium {
                 free(coordinates);
             }
 
-        public:
-
             void callback_node(const OSM::Node *object) {
                 const osm_object_id_t id = object->get_id();
                 coordinates[id].x = double_to_fix(object->get_lon());
@@ -53,10 +58,10 @@ namespace Osmium {
             }
             
             void callback_way(OSM::Way *object) {
-                const osm_object_id_t id = object->get_id();
                 const osm_sequence_id_t num_nodes = object->node_count();
                 for (osm_sequence_id_t i=0; i < num_nodes; i++) {
-                    object->set_node_coordinates(i, fix_to_double(coordinates[id].x), fix_to_double(coordinates[id].y));
+                    osm_object_id_t node_id = object->nodes[i];
+                    object->set_node_coordinates(i, fix_to_double(coordinates[node_id].x), fix_to_double(coordinates[node_id].y));
                 }
             }
 
