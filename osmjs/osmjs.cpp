@@ -222,6 +222,10 @@ int main(int argc, char *argv[]) {
         parse_osmfile(osm_filename, callbacks_single_pass, node, way, relation);
     }
 
+    delete wrap_relation;
+    delete wrap_way;
+    delete wrap_node;
+
     if (two_passes) {
         delete osmium_handler_multipolygon;
     }

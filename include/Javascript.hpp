@@ -57,6 +57,10 @@ namespace Osmium {
                     js_geom_instance   = Osmium::Javascript::Template::create_node_geom_instance(this);
                 }
 
+                ~Wrapper() {
+                    delete object;
+                }
+
                 Osmium::OSM::Node *get_object() {
                     return object;
                 }
@@ -86,6 +90,10 @@ namespace Osmium {
                     js_geom_instance   = Osmium::Javascript::Template::create_way_geom_instance(this);
                 }
 
+                ~Wrapper() {
+                    delete object;
+                }
+
                 Osmium::OSM::Way *get_object() {
                     return object;
                 }
@@ -111,6 +119,10 @@ namespace Osmium {
                     js_tags_instance    = Osmium::Javascript::Template::create_tags_instance(this);
                     js_object_instance  = Osmium::Javascript::Template::create_relation_instance(this);
                     js_members_instance = Osmium::Javascript::Template::create_relation_members_instance(this);
+                }
+
+                ~Wrapper() {
+                    delete object;
                 }
 
                 Osmium::OSM::Relation *get_object() {
