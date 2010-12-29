@@ -1,6 +1,7 @@
 
 #include <getopt.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 #include "osmium.hpp"
 
@@ -133,7 +134,7 @@ std::string find_include_file(std::string filename) {
     static std::vector<std::string> search_path = {
         ".",
         "js",
-        "~/.osmjs",
+        std::string(getenv("HOME")) + "/.osmjs",
         "/usr/local/share/osmjs",
         "/usr/share/osmjs"
     };
