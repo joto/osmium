@@ -164,7 +164,7 @@ std::string find_include_file(std::string filename) {
 int main(int argc, char *argv[]) {
     bool debug = false;
     bool two_passes = false;
-    char javascript_filename[512];
+    char javascript_filename[512] = "";
     char *osm_filename;
     std::vector<std::string> include_files;
     enum location_store_t {
@@ -218,6 +218,11 @@ int main(int argc, char *argv[]) {
             default:
                 exit(1);
         }
+    }
+
+    if (javascript_filename[0] == '\0') {
+        std::cerr << "No --javascript/-j option given" << std::endl;
+        exit(1);
     }
 
     if (optind == argc-1) {
