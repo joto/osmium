@@ -80,8 +80,6 @@ void dual_pass_after_ways_handler2() {
 }
 
 void dual_pass_multipolygon_handler(Osmium::OSM::Multipolygon *multipolygon) {
-    std::cerr << " MP HANDLER " << multipolygon->get_id() << "\n";
-
     Osmium::Javascript::Multipolygon::Wrapper *mpw = new Osmium::Javascript::Multipolygon::Wrapper(multipolygon);
     osmium_handler_javascript->callback_multipolygon(multipolygon);
     delete mpw;
@@ -119,6 +117,7 @@ void print_help() {
     std::cout << "osmjs [OPTIONS] OSMFILE" << std::endl \
               << "Options:" << std::endl \
               << "  --help, -h                       - This help message" << std::endl \
+              << "  --debug, -d                      - Enable debugging output" << std::endl \
               << "  --javascript=FILE, -j FILE       - Process given Javascript file" << std::endl \
               << "  --location-store=STORE, -l STORE - Set location store (default: sparsetable)" << std::endl \
               << "  --2pass, -2                      - Read OSMFILE twice and build multipolygons" << std::endl \
@@ -129,6 +128,7 @@ void print_help() {
 }
 
 int main(int argc, char *argv[]) {
+    bool debug = false;
     bool two_passes = false;
     char javascript_filename[512];
     char *osm_filename;
@@ -138,6 +138,7 @@ int main(int argc, char *argv[]) {
     } location_store = SPARSETABLE;
 
     static struct option long_options[] = {
+        {"debug",                no_argument, 0, 'd'},
         {"javascript",     required_argument, 0, 'j'},
         {"help",                 no_argument, 0, 'h'},
         {"location-store", required_argument, 0, 'l'},
@@ -146,11 +147,14 @@ int main(int argc, char *argv[]) {
     };
 
     while (1) {
-        int c = getopt_long(argc, argv, "j:hl:2", long_options, 0);
+        int c = getopt_long(argc, argv, "dj:hl:2", long_options, 0);
         if (c == -1)
             break;
 
         switch (c) {
+            case 'd':
+                debug = true;
+                break;
             case 'j':
                 strncpy(javascript_filename, optarg, 512);
                 break;
@@ -178,7 +182,7 @@ int main(int argc, char *argv[]) {
     if (optind == argc-1) {
         osm_filename = argv[optind];
     } else {
-        std::cerr << "Usage: " << argv[0] << " [OPTIONS] OSMFILE\n";
+        std::cerr << "Usage: " << argv[0] << " [OPTIONS] OSMFILE" << std::endl;
         exit(1);
     }
 

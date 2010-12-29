@@ -108,7 +108,7 @@ inline void timer::check(const char* msg)
 
     std::cout << "Elapsed time [" << std::setiosflags(std::ios::fixed)
         << std::setprecision(2)
-        << acc_time + (running ? elapsed_time() : 0) << "] seconds\n";
+        << acc_time + (running ? elapsed_time() : 0) << "] seconds" << std::endl;
 
 } // timer::check
 

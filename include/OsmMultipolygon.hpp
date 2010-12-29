@@ -340,7 +340,7 @@ namespace Osmium {
                     yy,
                     NULL,
                     NULL);
-                //cout << "rewind: " << SHPRewindObject(h, o) << endl;
+
                 delete[] ps;
                 delete[] xx;
                 delete[] yy;

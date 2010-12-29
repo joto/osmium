@@ -143,7 +143,6 @@ namespace Osmium {
                         return NULL; 
                     }
                     bool ccw = geos::algorithm::CGAlgorithms::isCCW(lr->getCoordinatesRO());
-                    // cout << "direction: " << (ccw ? "counter" : "") << "clockwise" << endl;
                     RingInfo *rl = new RingInfo();
                     rl->direction = ccw ? COUNTERCLOCKWISE : CLOCKWISE;
                     rl->polygon = Osmium::geos_factory()->createPolygon(lr, NULL);
@@ -343,7 +342,7 @@ namespace Osmium {
                     geos::io::WKTWriter wkt;
                     std::cerr << "  way geometry: " << wkt.write(wi->way_geom) << std::endl;
                 } else {
-                    std::cerr << "  can´t build mp geometry because at least one way geometry is broken\n";
+                    std::cerr << "  can´t build mp geometry because at least one way geometry is broken" << std::endl;
                     return geometry_error("invalid way geometry in multipolygon relation member");
                 }
                 ways.push_back(wi);
@@ -524,17 +523,17 @@ namespace Osmium {
                         {
                             // warning
                             // warnings.insert("duplicate_tags_on_inner");
-                            std::cerr << " XXX warning duplicate_tags_on_inner 1\n";
+                            std::cerr << " XXX warning duplicate_tags_on_inner 1" << std::endl;
                         }
                         else if (ringlist[i]->contained_by->ways.size() == 1 && same_tags(ringlist[i]->ways[0]->way, ringlist[i]->contained_by->ways[0]->way))
                         {
                             // warning
                             // warnings.insert("duplicate_tags_on_inner");
-                            std::cerr << " XXX warning duplicate_tags_on_inner 2\n";
+                            std::cerr << " XXX warning duplicate_tags_on_inner 2" << std::endl;
                         }
                         else
                         {
-                            std::cerr << " XXX internal mp\n";
+                            std::cerr << " XXX internal mp" << std::endl;
                             Osmium::OSM::MultipolygonFromWay *internal_mp = new Osmium::OSM::MultipolygonFromWay(ringlist[i]->ways[0]->way, special_mp);
                             callback(internal_mp);
                             // it seems that this "delete" somehow causes the "delete special_mp" below to segfault.

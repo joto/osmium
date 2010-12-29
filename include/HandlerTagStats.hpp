@@ -287,7 +287,7 @@ namespace Osmium {
 
             void timer_info(const char *msg) {
                 int duration = time(0) - timer;
-                std::cout << msg << " took " << duration << " seconds (about " << duration / 60 << " minutes)\n";
+                std::cerr << msg << " took " << duration << " seconds (about " << duration / 60 << " minutes)\n";
             }
 
             void callback_before_nodes() {

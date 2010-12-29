@@ -45,7 +45,7 @@ void parse_osmfile(char *osmfilename, struct callbacks *callbacks, Osmium::OSM::
     } else {
         fd = open(osmfilename, O_RDONLY);
         if (fd < 0) {
-            std::cerr << "Can't open osm file: " << strerror(errno) << '\n';
+            std::cerr << "Can't open osm file: " << strerror(errno) << std::endl;
             exit(1);
         }
     }
@@ -61,7 +61,7 @@ void parse_osmfile(char *osmfilename, struct callbacks *callbacks, Osmium::OSM::
         } else if (!strcmp(suffix, ".pbf")) {
             file_format = pbf;
         } else {
-            std::cerr << "Unknown file suffix: " << suffix << "\n";
+            std::cerr << "Unknown file suffix: " << suffix << std::endl;
             exit(1);
         }
     }
