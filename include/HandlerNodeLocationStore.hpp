@@ -37,6 +37,7 @@ namespace Osmium {
             }
 
             virtual void callback_node(const OSM::Node *object) = 0;
+            virtual void callback_after_nodes() = 0;
             virtual void callback_way(OSM::Way *object) = 0;
 
         }; // class NodeLocationStore
@@ -45,12 +46,13 @@ namespace Osmium {
         // You can not find out if a node coordinate was ever set!
         class NLS_Array : public NodeLocationStore {
 
+            int max_nodes;
             struct coordinates *coordinates;
 
         public:
 
             NLS_Array(bool debug) : NodeLocationStore(debug) {
-                const int max_nodes = 1.2 * 1024 * 1024 * 1024; // XXX make configurable, or autosizing?
+                max_nodes = 1.2 * 1024 * 1024 * 1024; // XXX make configurable, or autosizing?
                 coordinates = (struct coordinates *) malloc(sizeof(struct coordinates) * max_nodes);
                 if (!coordinates) {
                     throw std::bad_alloc();
@@ -65,6 +67,12 @@ namespace Osmium {
                 const osm_object_id_t id = object->get_id() + NodeLocationStore::negative_id_offset;
                 coordinates[id].x = double_to_fix(object->get_lon());
                 coordinates[id].y = double_to_fix(object->get_lat());
+            }
+            
+            void callback_after_nodes() {
+                if (debug) {
+                    std::cerr << "NodeLocationStore (Array) needs " << max_nodes << " * " << sizeof(struct coordinates) << "Bytes = " << max_nodes * sizeof(struct coordinates) / (1024 * 1204) << "MBytes" << std::endl;
+                }
             }
             
             void callback_way(OSM::Way *object) {
@@ -100,6 +108,12 @@ namespace Osmium {
                     double_to_fix(object->get_lat())
                 };
                 nodes_table[id] = c;
+            }
+            
+            void callback_after_nodes() {
+                if (debug) {
+                    std::cerr << "NodeLocationStore (Sparsetable) has size=" << nodes_table.size() << " * " << sizeof(struct coordinates) << " B (sizeof struct coordinates) = " << nodes_table.size() * sizeof(struct coordinates) / (1024 * 1204) << "MBytes" << std::endl;
+                }
             }
             
             void callback_way(OSM::Way *object) {

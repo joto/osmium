@@ -65,10 +65,15 @@ void dual_pass_relation_handler1(Osmium::OSM::Relation *relation) {
 
 void dual_pass_after_relations_handler1() {
     osmium_handler_multipolygon->callback_after_relations();
+    std::cerr << "1st pass finished" << std::endl;
 }
 
 void dual_pass_node_handler2(Osmium::OSM::Node *node) {
     osmium_handler_node_location_store->callback_node(node);
+}
+
+void dual_pass_after_nodes_handler2() {
+    osmium_handler_node_location_store->callback_after_nodes();
 }
 
 void dual_pass_way_handler2(Osmium::OSM::Way *way) {
@@ -104,6 +109,7 @@ struct callbacks *setup_callbacks_1st_pass() {
 struct callbacks *setup_callbacks_2nd_pass() {
     static struct callbacks cb;
     cb.node             = dual_pass_node_handler2;
+    cb.after_nodes      = dual_pass_after_nodes_handler2;
     cb.way              = dual_pass_way_handler2;
     cb.after_ways       = dual_pass_after_ways_handler2;
     cb.multipolygon     = dual_pass_multipolygon_handler;

@@ -20,9 +20,12 @@ namespace Osmium {
             bool attempt_repair;
             struct callbacks *cb;
 
+            uint64_t count_ways_in_all_multipolygons;
+
           public:
 
             Multipolygon(bool debug, bool attempt_repair, struct callbacks *cb) : Base(debug), attempt_repair(attempt_repair), cb(cb) {
+                count_ways_in_all_multipolygons = 0;
             }
 
             // in pass 1
@@ -52,13 +55,18 @@ namespace Osmium {
                     }
                 }
 
+                count_ways_in_all_multipolygons += num_ways;
+
                 Osmium::OSM::MultipolygonFromRelation *mp = new Osmium::OSM::MultipolygonFromRelation(r, is_boundary, num_ways, cb->multipolygon, attempt_repair);
                 multipolygons.push_back(mp);
             }
 
             // in pass 1
             void callback_after_relations() {
-                std::cerr << "found " << multipolygons.size() << " multipolygons\n";
+                if (debug) {
+                    std::cerr << "found " << multipolygons.size() << " multipolygons (each needs " << sizeof(Osmium::OSM::Multipolygon) << " bytes, thats together about " << sizeof(Osmium::OSM::Multipolygon) * multipolygons.size() / (1024 * 1024) << "MB)" << std::endl;
+                    std::cerr << "they used " << count_ways_in_all_multipolygons << " ways (each will need " << sizeof(Osmium::OSM::Way) << " bytes, thats in the worst case together about " << sizeof(Osmium::OSM::Way) * count_ways_in_all_multipolygons / (1024 * 1024) << "MB)" << std::endl;
+                }
             }
 
             // in pass 2
