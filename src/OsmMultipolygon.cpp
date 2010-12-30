@@ -36,6 +36,9 @@
 // this should come from /usr/include/geos/algorithm, but its missing there in some Ubuntu versions
 #include "../include/CGAlgorithms.h"
 
+// FIXME pass this in when contructing?
+#define debug false 
+
 namespace Osmium {
 
     namespace OSM {
@@ -175,19 +178,19 @@ namespace Osmium {
             // if the "problematic bit" however is longer than half the way,
             // then try using the "problematic bit" by itself.
 
-            std::vector<geos::geom::Coordinate> vv;
+            std::vector<geos::geom::Coordinate> *vv = new std::vector<geos::geom::Coordinate>();
             if (cutoutstart<cutoutend) { unsigned int t = cutoutstart; cutoutstart=cutoutend; cutoutend=t; }
             if (cutoutstart-cutoutend > coords->size() / 2)
             {
-                vv.insert(vv.end(), coords->begin() + cutoutend, coords->begin() + cutoutstart);
-                vv.insert(vv.end(), vv[0]);
+                vv->insert(vv->end(), coords->begin() + cutoutend, coords->begin() + cutoutstart);
+                vv->insert(vv->end(), vv->at(0));
             }
             else
             {
-                vv.insert(vv.end(), coords->begin(), coords->begin() + cutoutend);
-                vv.insert(vv.end(), coords->begin() + cutoutstart, coords->end());
+                vv->insert(vv->end(), coords->begin(), coords->begin() + cutoutend);
+                vv->insert(vv->end(), coords->begin() + cutoutstart, coords->end());
             }
-            geos::geom::CoordinateSequence *cs = geos::geom::CoordinateArraySequenceFactory::instance()->create(&vv);
+            geos::geom::CoordinateSequence *cs = geos::geom::CoordinateArraySequenceFactory::instance()->create(vv);
             geos::geom::LinearRing *a = Osmium::geos_factory()->createLinearRing(cs);
 
             // if this results in a valid ring, return it; else return NULL.
@@ -211,7 +214,6 @@ namespace Osmium {
             // have we found a loop already?
             if (first && first == last)
             {
-                std::cerr << "found loop" << std::endl;
                 geos::geom::CoordinateSequence *cs = geos::geom::CoordinateArraySequenceFactory::instance()->create(0, 0);
                 geos::geom::LinearRing *lr = NULL;
                 try
@@ -241,11 +243,8 @@ namespace Osmium {
                             lr = create_non_intersecting_linear_ring(cs);
                             if (lr)
                             {
-                                std::cerr << "successfully repaired an invalid ring" << std::endl;
-                            }
-                            else
-                            {
-                                std::cerr << "unable to repair a broken ring" << std::endl;
+                                if (debug) 
+                                    std::cerr << "successfully repaired an invalid ring" << std::endl;
                             }
                         }
                         if (!lr) return NULL; 
@@ -258,8 +257,8 @@ namespace Osmium {
                 }
                 catch (const geos::util::GEOSException& exc) 
                 {
-                    std::cerr << "Exception: " << exc.what() << std::endl;
-                    // if (lr) delete lr; else delete cs;
+                    if (debug)
+                        std::cerr << "Exception: " << exc.what() << std::endl;
                     return NULL;
                 }
             }
@@ -283,7 +282,6 @@ namespace Osmium {
                     ways[i]->used = -2;
                     break;
                 }
-                std::cerr << "all taken" << std::endl;
                 return NULL;
             }
 
@@ -291,7 +289,6 @@ namespace Osmium {
             // since we are looking for a LOOP, no sense to try extending it at both ends 
             // as we'll eventually get there anyway!
 
-            std::cerr << "current: " << first << "-" << last << std::endl;
             for (unsigned int i=0; i<ways.size(); i++)
             {
                 if (ways[i]->used < 0) ways[i]->tried = false;
@@ -299,7 +296,6 @@ namespace Osmium {
 
             for (unsigned int i=0; i<ways.size(); i++)
             {
-                std::cerr << "way info " << i << " tried: " << ways[i]->tried << " used: " << ways[i]->used << " " << ways[i]->firstnode << "-"<< ways[i]->lastnode << std::endl;
                 // ignore used ways
                 if (ways[i]->used >= 0) continue;
                 if (ways[i]->tried) continue;
@@ -327,7 +323,6 @@ namespace Osmium {
                     ways[i]->used = old_used;
                 }
             }
-            std::cerr << "exhausted" << std::endl;
             // we have exhausted all combinations.
             return NULL;
         }
@@ -418,7 +413,8 @@ namespace Osmium {
                     geos::geom::CoordinateSequence *cs = Osmium::geos_factory()->getCoordinateSequenceFactory()->create(c);
                     geos::geom::Geometry *geometry = (geos::geom::Geometry *) Osmium::geos_factory()->createLineString(cs);
                     ways->push_back(new WayInfo(geometry, node1_id, mindist_id, UNSET));
-                    std::cerr << "SYNTHESIZE WAY from " << node1_id << " to " << mindist_id << std::endl;
+                    if (debug) 
+                        std::cerr << "fill gap between nodes " << node1_id << " and " << mindist_id << std::endl;
                 }
                 else
                 {
@@ -446,25 +442,32 @@ namespace Osmium {
             // and some extra flags.
             
             START_TIMER(assemble_ways);
-            for (std::vector<Way>::iterator i = member_ways.begin(); i != member_ways.end(); i++) {
+            for (std::vector<Way>::iterator i = member_ways.begin(); i != member_ways.end(); i++) 
+            {
                 if (i->get_timestamp() > timestamp) timestamp = i->get_timestamp();
                 WayInfo *wi = new WayInfo(&(*i), UNSET);
-                std::cerr << "new wayinfo " << wi << std::endl;
-                if (wi->way_geom) {
+                if (wi->way_geom) 
+                {
                     geos::io::WKTWriter wkt;
-                    std::cerr << "  way geometry: " << wkt.write(wi->way_geom) << std::endl;
-                } else {
-                    std::cerr << "  can´t build mp geometry because at least one way geometry is broken" << std::endl;
+                } 
+                else 
+                {
+                    delete wi;
                     return geometry_error("invalid way geometry in multipolygon relation member");
                 }
                 ways.push_back(wi);
-                // TODO drop duplicate ways automatically
-                // TODO: statt UNSET sollte hier INNER/OUTER je nach role, wird aber nur fuer warnings gebraucht
+                // TODO drop duplicate ways automatically in repair mode?
+                // TODO maybe add INNER/OUTER instead of UNSET to enable later warnings on role mismatch
             }
             STOP_TIMER(assemble_ways);
 
             std::vector<RingInfo *> ringlist;
-            #define clear_ringlist() for(std::vector<RingInfo *>::const_iterator rli = ringlist.begin(); rli != ringlist.end(); rli++) delete *rli;
+
+            // convenience defines to aid in clearing up on error return.
+            #define clear_ringlist() \
+               for (std::vector<RingInfo *>::const_iterator rli = ringlist.begin(); rli != ringlist.end(); rli++) delete *rli;
+            #define clear_wayinfo() \
+               for (std::vector<WayInfo *>::const_iterator win = ways.begin(); win != ways.end(); win++) delete *win;
 
             // try and create as many closed rings as possible from the assortment
             // of ways. make_one_ring will automatically flag those that have been
@@ -484,12 +487,12 @@ namespace Osmium {
             if (ringlist.empty())
             {
                 // FIXME return geometry_error("no rings");
-                std::cerr << "no rings after first pass" << std::endl;
             }
 
             if (!find_and_repair_holes_in_rings(&ways))
             {
                 clear_ringlist();
+                clear_wayinfo();
                 return geometry_error("un-connectable dangling ends");
             }
 
@@ -508,6 +511,8 @@ namespace Osmium {
 
             if (ringlist.empty())
             {
+                clear_ringlist();
+                clear_wayinfo();
                 return geometry_error("no rings");
             }
 
@@ -635,23 +640,23 @@ namespace Osmium {
                         {
                             // warning
                             // warnings.insert("duplicate_tags_on_inner");
-                            std::cerr << " XXX warning duplicate_tags_on_inner 1" << std::endl;
                         }
                         else if (ringlist[i]->contained_by->ways.size() == 1 && same_tags(ringlist[i]->ways[0]->way, ringlist[i]->contained_by->ways[0]->way))
                         {
                             // warning
                             // warnings.insert("duplicate_tags_on_inner");
-                            std::cerr << " XXX warning duplicate_tags_on_inner 2" << std::endl;
                         }
                         else
                         {
-                            std::cerr << " XXX internal mp" << std::endl;
-                            Osmium::OSM::MultipolygonFromWay *internal_mp = new Osmium::OSM::MultipolygonFromWay(ringlist[i]->ways[0]->way, special_mp);
+                            Osmium::OSM::MultipolygonFromWay *internal_mp =
+                                new Osmium::OSM::MultipolygonFromWay(ringlist[i]->ways[0]->way, special_mp);
                             callback(internal_mp);
-                            // it seems that this "delete" somehow causes the "delete special_mp" below to segfault.
-                            // delete internal_mp;
+                            delete internal_mp;
+                            // MultipolygonFromWay destructor deletes the
+                            // geometry, so avoid to delete it again.
+                            special_mp = NULL;
                         }
-                        delete special_mp;
+                        if (special_mp) delete special_mp;
                     }
                 }
             }
@@ -744,6 +749,7 @@ namespace Osmium {
                     geos::geom::LineString *tmp = (geos::geom::LineString *) ring->reverse();
                     geos::geom::LinearRing *reversed_ring = Osmium::geos_factory()->createLinearRing(tmp->getCoordinates());
                     ring = reversed_ring;
+                    delete tmp;
                 }
                 else
                 {
@@ -762,12 +768,15 @@ namespace Osmium {
                 catch (const geos::util::GEOSException& exc) 
                 {
                     // nop
-                    std::cerr << "Exception during creation of polygon for relation #" << relation->id << ": " << exc.what() << " (treating as invalid polygon)" << std::endl;
+                    if (debug)
+                        std::cerr << "Exception during creation of polygon for relation #" << relation->id << ": " << exc.what() << " (treating as invalid polygon)" << std::endl;
                 }
                 if (!valid)
                 {
                     // polygon is invalid.
                     clear_ringlist();
+                    clear_wayinfo();
+                    if (p) delete p; else delete ring;
                     return geometry_error("invalid ring");
                 }
                 else
@@ -778,7 +787,6 @@ namespace Osmium {
                         WayInfo *wi = ringlist[i]->ways[k];
                         // may have "hole filler" ways in there, not backed by
                         // proper way and thus no tags:
-                        std::cerr << "wayinfo " << wi << " tag check way pointer " << wi->way << " from " << wi->firstnode << " to " <<wi->lastnode << std::endl;
                         if (wi->way == NULL) continue;
                         if (untagged(wi->way))
                         {
@@ -809,8 +817,12 @@ namespace Osmium {
             }
             STOP_TIMER(polygon_build);
 
-            if (polygons->empty()) return geometry_error("no rings");
             clear_ringlist();
+            clear_wayinfo();
+            if (polygons->empty()) 
+            {
+                return geometry_error("no rings");
+            }
 
             START_TIMER(multipolygon_build);
             bool valid = false;
@@ -835,7 +847,8 @@ namespace Osmium {
         bool MultipolygonFromRelation::geometry_error(const char *message)
         {
             geometry_error_message = message;
-            std::cerr << "building mp failed: " << geometry_error_message << std::endl;
+            if (debug)
+                std::cerr << "building mp failed: " << geometry_error_message << std::endl;
             geometry = NULL;
             return false;
         }
