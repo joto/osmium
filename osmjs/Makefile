@@ -48,7 +48,7 @@ SRC_OBJ_JS = $(patsubst %,../include/%,$(OBJ_JS))
 SRC_HPP_JS = $(patsubst %,../include/%,$(HPP_JS))
 SRC_HPP_JS = $(wildcard ../include/*Javascript*.hpp)
 
-.PHONY: all clean doc protobuf
+.PHONY: all clean doc protobuf install
 
 all: protobuf osmjs
 
@@ -60,6 +60,11 @@ protobuf:
 
 osmjs: osmjs.cpp $(OBJ) $(OBJ_JS) $(SRC_HPP) $(SRC_HPP_JS)
 	$(CXX) $(CXXFLAGS) -o $@ $< $(OBJ) $(OBJ_JS) $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_V8) $(LIB_SHAPE)
+
+install:
+	install -m 755 -g root -o root osmjs $(DESTDIR)/usr/bin/osmjs
+	install -m 755 -g root -o root -d $(DESTDIR)/usr/share/osmjs
+	install -m 644 -g root -o root js/osm2shape.js $(DESTDIR)/usr/share/osmjs/osm2shape.js
     
 clean:
 	rm -f *.o osmjs

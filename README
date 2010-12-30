@@ -17,11 +17,9 @@ Available handlers include:
 
 Of course, you can also write your own handlers.
 
-Currently there are three applications build on top of and available with Osmium:
+Currently there are two applications build on top of and available with Osmium:
 * tagstats - creates statistics about tags for Taginfo (see http://taginfo.openstreetmap.de/)
-* osmjs - calls your Javascript code (there are two versions, a single-pass version that
-  calls back for every node, way, and relation and a two-pass version that assembles
-  multipolygons for you and has an additional multipolygon callback)
+* osmjs - calls your Javascript code, it can optionally assemble multipolygons for you
 
 PREREQUISITES
 -------------
@@ -82,8 +80,8 @@ FILES
 Doxyfile - Needed for building the Osmium C++ docs, call "make doc" to build.
 include  - C/C++ include files. Most of Osmium is in those header files which
            are needed for building Osmium applications.
-js       - Example Javascript handlers.
-osmjs    - Osmium application "osmjs" and "osmjs_2pass".
+osmjs    - Osmium application "osmjs".
+osmjs/js - Example Javascript handlers.
 pbf      - Protobuf stuff needed for parsing PBF files.
 src      - Osmium source code (C++-Files)
 tagstats - Osmium application "tagstats".
@@ -100,4 +98,6 @@ respectively.
 Call "make clean" in any of those places to clean up.
 
 Call "make doc" in the top-level directory to build the Osmium C++ docs.
+
+Call "make install" to install applications.
 

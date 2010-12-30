@@ -57,6 +57,9 @@ protobuf:
 
 tagstats: tagstats.cpp $(OBJ) $(OBJ_TAGSTAT) $(SRC_HPP)
 	$(CXX) $(CXXFLAGS) -o $@ $< $(OBJ) $(SRC_OBJ_PBF) $(OBJ_TAGSTAT) $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_GD) $(LIB_SQLITE) $(LIB_SHAPE)
+
+install:
+	install -m 755 -g root -o root tagstats $(DESTDIR)/usr/bin/tagstat
     
 clean:
 	rm -f *.o tagstats
