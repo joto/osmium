@@ -244,6 +244,11 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
+    if (two_passes & !strcmp(osm_filename, "-")) {
+        std::cerr << "Can't read from stdin when in dual-pass mode" << std::endl;
+        exit(1);
+    }
+
     v8::HandleScope handle_scope;
 
     v8::Handle<v8::ObjectTemplate> global_template = v8::ObjectTemplate::New();

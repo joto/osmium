@@ -2,7 +2,7 @@
 Osmjs README
 ============
 
-Osmjs is a Osmium based framework for handling OSM data by calling Javascript
+Osmjs is an Osmium based framework for handling OSM data by calling Javascript
 callbacks for each object in an OSM data file. This gives you the flexibility
 of Javascript together with speed of the C++ Osmium framework and the Google V8
 Javascript JIT compiler.
@@ -31,10 +31,11 @@ Calling osmjs
 
 osmjs [OPTIONS] OSMFILE
 
-OSMFILE can be an OSM XML (suffix .osm) or PBF (suffix .osm.pbf) file. 
+OSMFILE can be an OSM XML (suffix .osm) or PBF (suffix .osm.pbf) file.  In
+single-pass mode it can also be '-' to read an XML file from stdin.
 
 See osmjs --help for the options. You must at least give the --javascript/-j
-option with a javascript file.
+option with a javascript filename.
 
 
 Javascript Functions
@@ -61,21 +62,20 @@ Callbacks
 ---------
 
 The following callbacks can be defined:
+    Osmium.Callbacks.init
+    Osmium.Callbacks.before_nodes
+    Osmium.Callbacks.node
+    Osmium.Callbacks.after_nodes
+    Osmium.Callbacks.before_ways
+    Osmium.Callbacks.way
+    Osmium.Callbacks.after_ways
+    Osmium.Callbacks.before_relations
+    Osmium.Callbacks.relation
+    Osmium.Callbacks.after_relations
+    Osmium.Callbacks.multipolygon
+    Osmium.Callbacks.end
 
-Osmium.Callbacks.init
-Osmium.Callbacks.before_nodes
-Osmium.Callbacks.node
-Osmium.Callbacks.after_nodes
-Osmium.Callbacks.before_ways
-Osmium.Callbacks.way
-Osmium.Callbacks.after_ways
-Osmium.Callbacks.before_relations
-Osmium.Callbacks.relation
-Osmium.Callbacks.after_relations
-Osmium.Callbacks.multipolygon
-Osmium.Callbacks.end
-
-If the --2pass/-2 option is not given, the callbacks are called in the
+If the --2pass/-2 option is *not* given, the callbacks are called in the
 following order: init, before_nodes, node (for each node), after_nodes,
 before_ways, way (for each way), after_ways, before_relations, relation (for
 each relation), after_relations, end. The 'multipolygon' callback is never
@@ -84,21 +84,25 @@ called!
 If the --2pass/-2 option is given, the callbacks are called in the following
 order: init, before_relations, relation (for each relation), after_relations,
 before_nodes, node (for each node), after_nodes, before_ways, way (for each
-way) / multipolygon (for each completed multipolygon), after_ways, end.
+way) / multipolygon (for each completed multipolygon), after_ways, end. The
+way and multipolygon callbacks can come in any order.
 
-The 'node', 'way', 'relation' and 'multipolygon' callbacks will have an OSM
-object in 'this'.
+The 'node', 'way', 'relation' and 'multipolygon' callbacks will be called
+with an OSM object as 'this'.
+
+Objects have the following attributes: id, version, timestamp, uid, user,
+changeset, and tags. 'tags' is a hash. Node objects also have lon and lat
+attributes.
 
 Example:
-
-Osmium.Callbacks.node = function() {
-    print('node ' + this.id + ' ' + this.version + ' ' + this.timestamp + ' '
-                  + this.uid + ' ' + this.user + ' '
-                  + this.changeset + ' ' + this.lon + ' ' + this.lat);
-    for (key in this.tags) {
-        print(' ' + key + '=' + this.tags[key]);
+    Osmium.Callbacks.node = function() {
+        print('node ' + this.id + ' ' + this.version + ' ' + this.timestamp + ' '
+                    + this.uid + ' ' + this.user + ' '
+                    + this.changeset + ' ' + this.lon + ' ' + this.lat);
+        for (key in this.tags) {
+            print(' ' + key + '=' + this.tags[key]);
+        }
     }
-}
 
 Writing to CSV Files
 --------------------
@@ -107,10 +111,9 @@ You can write some output to CSV files. Currently line endings are always LF,
 column separator is always a TAB.
 
 Example:
-
-var csv_file = Osmium.Output.CSV.open("some-filename.csv");
-csv_file.print("first column", "second column");
-csv_file.close();
+    var csv_file = Osmium.Output.CSV.open("some-filename.csv");
+    csv_file.print("first column", "second column");
+    csv_file.close();
 
 
 Writing to Shapefiles
@@ -125,16 +128,16 @@ should be used.
 Do not give any suffix for the filename. The suffixes '.shp', '.shx', and
 '.dbf' for the different files will be added automatically.
 
-Define a shapefile:
+Define a shapefile named "example" with point geometries:
+    var shp = Osmium.Output.Shapefile.open("example", "point");
+    shp.add_field("id", "integer", 10);
+    shp.add_field("name", "string", 40);
 
-var shp = Osmium.Output.Shapefile.open("example", "point");
-
-shp.add_field("id", "integer", 10);
-shp.add_field("name", "string", 40);
+Field types are integer, string, double, and bool. Bools are always of length
+1, other need the length in characters and doubles also need a precision.
 
 You can now add objects to the Shapefile:
-
-shp.add(some_node, { id: some_node.id, some_node.tags.name });
+    shp.add(some_node, { id: some_node.id, some_node.tags.name });
 
 The geometry of the object (in this case 'some_node') will be put into the
 shapefile. The second argument to add() is a hash which must contain all
@@ -152,25 +155,27 @@ Converting OSM data to Shapefiles
 There is an easier way to work with Shapefiles. If you include the osm2shp
 Javascript library from the command line, you can use a different syntax:
 
-osmjs -2 -i osm2shp -j my_config.js some_osm_file.osm.pbf
+osmjs -2 -i osm2shape -j my_config.js some_osm_file.osm.pbf
 
 You can define shapefiles like this:
 
-shapefile('pois').
-    type(POINT).
-    column('id', INTEGER, 10).
-    column('type', STRING, 32).
-    column('name', STRING, 32);
+    shapefile('pois').
+        type(POINT).
+        column('id', INTEGER, 10).
+        column('type', STRING, 32).
+        column('name', STRING, 32);
+
+Note that each line ends in a dot (.), the last with a semikolon (;).
 
 Types POINT, LINE, and POLYGON are allowed. You can use INTEGER, STRING,
 DOUBLE, and BOOL as attribute types.
 
 You can also define rules for matching OSM data to the right shapefiles:
 
-node('amenity', 'post_box|phone').
-    output('pois').
-        attr('type', 'amenity').
-        attr('name');
+    node('amenity', 'post_box|phone').
+        output('pois').
+            attr('type', 'amenity').
+            attr('name');
 
 This rule matches all nodes with a tag amenity=post_box or amenity=phone and
 writes the node to the previously defined 'pois' shapefile. The 'id' attribute
@@ -183,5 +188,4 @@ multipolygons. The first argument to these matching functions is always a key.
 The optional second argument is a value or list of values separated by '|'.
 If the second argument is missing or '*', the rule matches all objects with
 the given tag key regardless of the value.
-
 
