@@ -31,24 +31,40 @@ namespace Osmium {
 
             static const int max_nodes_in_way = 2000; ///< There can only be 2000 nodes in a way as per OSM API 0.6 definition.
 
-            osm_object_id_t nodes[max_nodes_in_way];
-            double            lon[max_nodes_in_way];
-            double            lat[max_nodes_in_way];
+            osm_object_id_t *nodes;
+            double          *lon;
+            double          *lat;
 
             // TODO XXX temporary for multipoly integration
             bool tried;
+            bool size_frozen;
 
+            // construct a Way object with full node capacity.
             Way() : Object() {
+                nodes = (osm_object_id_t *) malloc(sizeof(osm_object_id_t) * max_nodes_in_way);
+                lon = (double *) malloc(sizeof(double) * max_nodes_in_way);
+                lat = (double *) malloc(sizeof(double) * max_nodes_in_way);
+                size_frozen = false;
                 reset();
             }
 
+            // copy a Way object. allocate only the required capacity.
             Way(const Way& w) : Object(w) {
+                size_t s;
                 num_nodes = w.num_nodes;
-                for (int i=0; i < num_nodes; i++) {
-                    nodes[i] = w.nodes[i];
-                    lon[i] = w.lon[i];
-                    lat[i] = w.lat[i];
-                }
+                nodes = (osm_object_id_t *) malloc(s = sizeof(osm_object_id_t) * num_nodes);
+                memcpy(nodes, w.nodes, s);
+                lon = (double *) malloc(s = sizeof(double) * num_nodes);
+                memcpy(lon, w.lon, s);
+                lat = (double *) malloc(s = sizeof(double) * num_nodes);
+                memcpy(lat, w.lat, s);
+                size_frozen = true;
+            }
+
+            ~Way() {
+                free(nodes);
+                free(lon);
+                free(lat);
             }
 
             osm_object_type_t get_type() const {
@@ -67,6 +83,9 @@ namespace Osmium {
             * Will throw a range error if the way already has max_nodes_in_way nodes.
             */
             void add_node(osm_object_id_t ref) {
+                if (size_frozen) {
+                    throw std::range_error("cannot add nodes to frozen way");
+                }
                 if (num_nodes < max_nodes_in_way) {
                     nodes[num_nodes++] = ref;
                 }
