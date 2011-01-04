@@ -11,7 +11,7 @@ object.
 Available handlers include:
 * Javascript handler (calls Javascript callbacks you provide)
 * Multipolygon handler (assembles multipolygons from relations and ways)
-* NodeLocationStore handler (stores node locations and builds ways geometries from them)
+* NodeLocationStore handler (stores node locations and builds way geometries from them)
 * Statistics handler (does some general statistics)
 * TagStats handler (creates statistics about tags for Taginfo (see http://taginfo.openstreetmap.de/)
 

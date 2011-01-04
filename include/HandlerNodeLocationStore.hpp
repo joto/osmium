@@ -8,6 +8,15 @@ namespace Osmium {
 
     namespace Handler {
 
+        /**
+        * Virtual base class for the different versions of the
+        * node location store handlers. Use one of the child
+        * classed depending on your needs.
+        * Node locations are stored in 32 bit integers for the
+        * x and y coordinates, respectively. This gives you an
+        * accuracy of a few centimeters, good enough for OSM
+        * use.
+        */
         class NodeLocationStore : public Base {
 
             struct coordinates {
@@ -42,8 +51,19 @@ namespace Osmium {
 
         }; // class NodeLocationStore
 
-        // Caution: Node store is not initialized to some zero value.
-        // You can not find out if a node coordinate was ever set!
+        /**
+        * The NLS_Array node location store handler stores location
+        * in a huge array. Currently the size of the array is hardcoded.
+        * It must be large enough to hold all nodes. You'll need 8 bytes
+        * for each node ID, currently thre are about 1 billion nodes IDs,
+        * so you'll need about 8 GB of memory.
+        *
+        * Use this node location store if you are working with large
+        * OSM files (like the whole planet or substantial extracts).
+        *
+        * Caution: The node store is not initialized to some zero value.
+        * You can not find out if a node coordinate was ever set!
+        */
         class NLS_Array : public NodeLocationStore {
 
             int max_nodes;
@@ -85,6 +105,15 @@ namespace Osmium {
 
         }; // class NLS_Array
 
+        /**
+        * The NLS_Sparsetable node location store handler stores location
+        * in a sparsetable. The Google sparsetable is a data structure
+        * that can hold sparsly filled tables in a very space efficient
+        * way. It will resize automatically.
+        *
+        * Use this node location store if you are working with smaller
+        * OSM files (like extracts if smaller countries).
+        */
         class NLS_Sparsetable : public NodeLocationStore {
 
             google::sparsetable<struct coordinates> nodes_table;
