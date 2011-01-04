@@ -19,6 +19,6 @@ install:
 
 doc: doc/html/files.html
 
-doc/html/files.html: include/*.hpp src/*.cpp
+doc/html/files.html: include/*.hpp src/*.cpp pbf/*.proto
 	doxygen
 
