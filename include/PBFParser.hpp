@@ -67,7 +67,7 @@ namespace Osmium {
             google::protobuf::ShutdownProtobufLibrary();
         }
 
-        void parse(Osmium::OSM::Node *in_node, Osmium::OSM::Way *in_way, Osmium::OSM::Relation *in_relation, Osmium::OSM::Multipolygon *in_multipolygon) {
+        void parse(Osmium::OSM::Node *in_node, Osmium::OSM::Way *in_way, Osmium::OSM::Relation *in_relation) {
             if (callbacks->before_nodes) { callbacks->before_nodes(); }
             while (1) {
                 if (m_loadBlock) {

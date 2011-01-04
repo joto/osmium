@@ -285,13 +285,12 @@ int main(int argc, char *argv[]) {
     Osmium::OSM::Node     *node     = wrap_node->object;
     Osmium::OSM::Way      *way      = wrap_way->object;
     Osmium::OSM::Relation *relation = wrap_relation->object;
-    Osmium::OSM::Multipolygon *multipolygon = wrap_multipolygon->object;
 
     if (two_passes) {
-        parse_osmfile(debug, osm_filename, callbacks_1st_pass,    node, way, relation, multipolygon);
-        parse_osmfile(debug, osm_filename, callbacks_2nd_pass,    node, way, relation, multipolygon);
+        parse_osmfile(debug, osm_filename, callbacks_1st_pass,    node, way, relation);
+        parse_osmfile(debug, osm_filename, callbacks_2nd_pass,    node, way, relation);
     } else {
-        parse_osmfile(debug, osm_filename, callbacks_single_pass, node, way, relation, multipolygon);
+        parse_osmfile(debug, osm_filename, callbacks_single_pass, node, way, relation);
     }
 
     delete wrap_multipolygon;

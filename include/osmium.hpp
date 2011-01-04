@@ -73,7 +73,7 @@ struct callbacks {
     void (*final)();
 };
 
-void parse_osmfile(bool debug, char *osmfilename, struct callbacks *callbacks, Osmium::OSM::Node *node, Osmium::OSM::Way *way, Osmium::OSM::Relation *relation, Osmium::OSM::Multipolygon *multipolygon);
+void parse_osmfile(bool debug, char *osmfilename, struct callbacks *callbacks, Osmium::OSM::Node *node, Osmium::OSM::Way *way, Osmium::OSM::Relation *relation);
 
 #include "Handler.hpp"
 #include "HandlerBbox.hpp"
