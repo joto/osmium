@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
     Osmium::OSM::Way      *way      = new Osmium::OSM::Way;
     Osmium::OSM::Relation *relation = new Osmium::OSM::Relation;
 
-    parse_osmfile(false, argv[1], setup_callbacks(), node, way, relation);
+    parse_osmfile(false, argv[1], setup_callbacks(), node, way, relation, NULL);
 
     return 0;
 }

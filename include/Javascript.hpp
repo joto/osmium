@@ -141,12 +141,25 @@ namespace Osmium {
 
                 Osmium::OSM::Multipolygon *object;
 
+                Wrapper() : Osmium::Javascript::Object::Wrapper() {
+                    object = NULL;
+
+                    js_tags_instance    = Osmium::Javascript::Template::create_tags_instance(this);
+                    js_object_instance  = Osmium::Javascript::Template::create_multipolygon_instance(this);
+                }
+
                 Wrapper(Osmium::OSM::Multipolygon *mp) : Osmium::Javascript::Object::Wrapper() {
                     object = mp;
                     object->wrapper = this;
 
                     js_tags_instance    = Osmium::Javascript::Template::create_tags_instance(this);
                     js_object_instance  = Osmium::Javascript::Template::create_multipolygon_instance(this);
+                }
+
+                void set_object(Osmium::OSM::Multipolygon *o) {
+                    //if (object) object->wrapper = NULL;
+                    object = o;
+                    object->wrapper = this;
                 }
 
                 Osmium::OSM::Multipolygon *get_object() {

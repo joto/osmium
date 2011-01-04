@@ -14,6 +14,7 @@ namespace Osmium {
     OSM::Node     *node;
     OSM::Way      *way;
     OSM::Relation *relation;
+    OSM::Multipolygon *multipolygon;
 
     struct callbacks *callbacks;
 
@@ -107,7 +108,7 @@ namespace Osmium {
         }
     }
 
-    void XMLParser::parse(int fd, struct callbacks *cb, Osmium::OSM::Node *in_node, Osmium::OSM::Way *in_way, Osmium::OSM::Relation *in_relation) {
+    void XMLParser::parse(int fd, struct callbacks *cb, Osmium::OSM::Node *in_node, Osmium::OSM::Way *in_way, Osmium::OSM::Relation *in_relation, Osmium::OSM::Multipolygon *in_multipolygon) {
         int done;
         Osmium::OSM::Object *current_object = 0;
 
@@ -116,6 +117,7 @@ namespace Osmium {
         node     = in_node;
         way      = in_way;
         relation = in_relation;
+        multipolygon = in_multipolygon;
 
         last_object_type = NODE;
 
