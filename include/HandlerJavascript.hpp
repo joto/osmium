@@ -13,6 +13,8 @@ namespace Osmium {
 
         class Javascript : public Base {
 
+            Osmium::Javascript::Multipolygon::Wrapper *wrap_multipolygon;
+
             /***
             * Load Javascript file into string
             */
@@ -232,9 +234,11 @@ namespace Osmium {
                 if (cc->IsFunction()) {
                     cb.end = v8::Handle<v8::Function>::Cast(cc);
                 }
+                wrap_multipolygon = new Osmium::Javascript::Multipolygon::Wrapper;
             }
 
             ~Javascript() {
+                delete wrap_multipolygon;
                 callbacks_object.Dispose();
             }
 
@@ -274,8 +278,8 @@ namespace Osmium {
 
             void callback_multipolygon(OSM::Multipolygon *object) {
                 if (!cb.multipolygon.IsEmpty()) {
-                    Osmium::Javascript::Multipolygon::Wrapper *wrapper = (Osmium::Javascript::Multipolygon::Wrapper *) object->wrapper;
-                    (void) cb.multipolygon->Call(wrapper->get_instance(), 0, 0);
+                    wrap_multipolygon->set_object(object);
+                    (void) cb.multipolygon->Call(wrap_multipolygon->get_instance(), 0, 0);
                 }
             }
 

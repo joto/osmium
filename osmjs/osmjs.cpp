@@ -10,8 +10,6 @@ Osmium::Handler::Multipolygon      *osmium_handler_multipolygon;
 Osmium::Handler::Javascript        *osmium_handler_javascript;
 //Osmium::Handler::Bbox              *osmium_handler_bbox;
 
-Osmium::Javascript::Multipolygon::Wrapper *wrap_multipolygon;
-
 void single_pass_init_handler() {
     osmium_handler_node_location_store->callback_init();
     osmium_handler_javascript->callback_init();
@@ -89,10 +87,7 @@ void dual_pass_after_ways_handler2() {
 }
 
 void dual_pass_multipolygon_handler(Osmium::OSM::Multipolygon *multipolygon) {
-    //Osmium::Javascript::Multipolygon::Wrapper *mpw = new Osmium::Javascript::Multipolygon::Wrapper(multipolygon);
-    wrap_multipolygon->set_object(multipolygon);
     osmium_handler_javascript->callback_multipolygon(multipolygon);
-    //delete mpw;
 }
 
 void dual_pass_final_handler() {
@@ -280,7 +275,6 @@ int main(int argc, char *argv[]) {
     Osmium::Javascript::Node::Wrapper     *wrap_node     = new Osmium::Javascript::Node::Wrapper;
     Osmium::Javascript::Way::Wrapper      *wrap_way      = new Osmium::Javascript::Way::Wrapper;
     Osmium::Javascript::Relation::Wrapper *wrap_relation = new Osmium::Javascript::Relation::Wrapper;
-    wrap_multipolygon = new Osmium::Javascript::Multipolygon::Wrapper;
 
     Osmium::OSM::Node     *node     = wrap_node->object;
     Osmium::OSM::Way      *way      = wrap_way->object;
@@ -293,7 +287,6 @@ int main(int argc, char *argv[]) {
         parse_osmfile(debug, osm_filename, callbacks_single_pass, node, way, relation);
     }
 
-    delete wrap_multipolygon;
     delete wrap_relation;
     delete wrap_way;
     delete wrap_node;
