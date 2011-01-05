@@ -126,8 +126,8 @@ namespace Osmium {
             // of the way.
             while(1)
             {
-                std::vector<geos::geom::Coordinate> vv(coords->begin(), coords->begin() + current);
-                geos::geom::CoordinateSequence *cs = geos::geom::CoordinateArraySequenceFactory::instance()->create(&vv);
+                std::vector<geos::geom::Coordinate> *vv = new std::vector<geos::geom::Coordinate>(coords->begin(), coords->begin() + current);
+                geos::geom::CoordinateSequence *cs = geos::geom::CoordinateArraySequenceFactory::instance()->create(vv);
                 geos::geom::LineString *a = Osmium::geos_factory()->createLineString(cs);
                 if (!(simple = a->isSimple()))
                 {
@@ -137,6 +137,7 @@ namespace Osmium {
                 {
                     val = current;
                 }
+                delete a;
                 if (current == (inv+val)/2) break;
                 current = (inv + val) / 2;
             }
@@ -157,8 +158,8 @@ namespace Osmium {
 
             while(1)
             {
-                std::vector<geos::geom::Coordinate> vv(coords->begin() + current, coords->end());
-                geos::geom::CoordinateSequence *cs = geos::geom::CoordinateArraySequenceFactory::instance()->create(&vv);
+                std::vector<geos::geom::Coordinate> *vv = new std::vector<geos::geom::Coordinate>(coords->begin() + current, coords->end());
+                geos::geom::CoordinateSequence *cs = geos::geom::CoordinateArraySequenceFactory::instance()->create(vv);
                 geos::geom::LineString *a = Osmium::geos_factory()->createLineString(cs);
                 if (!(simple = a->isSimple()))
                 {
@@ -168,6 +169,7 @@ namespace Osmium {
                 {
                     val = current;
                 }
+                delete a;
                 if (current == (inv+val)/2) break;
                 current = (inv + val) / 2;
             }
