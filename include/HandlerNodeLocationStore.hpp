@@ -3,6 +3,8 @@
 
 #include <stdexcept>
 #include <google/sparsetable>
+#include <sys/mman.h>
+
 
 namespace Osmium {
 
@@ -154,6 +156,67 @@ namespace Osmium {
             }
 
         }; // class NLS_Sparsetable
+
+        /**
+        * The NLS_Disk node location store handler stores location
+        * in a memory-mapped file on disk. The size of the file is 8 times 
+        * the largest node ID.
+        *
+        * Use this node location store if the other types of storage lead
+        * to memory problems.
+        */
+        class NLS_Disk : public NodeLocationStore {
+
+            int max_nodes;
+            struct coordinates *coordinates;
+
+        public:
+
+            NLS_Disk(bool debug) : NodeLocationStore(debug) {
+                max_nodes = 1.2 * 1024 * 1024 * 1024; // XXX make configurable, or autosizing?
+                FILE *tf = tmpfile();
+                if (!tf) {
+                    throw std::bad_alloc();
+                }
+                fseek(tf, sizeof(struct coordinates) * max_nodes-1, SEEK_SET);
+                int fd = fileno(tf);
+                if (fd<0) {
+                    throw std::bad_alloc();
+                }
+                write(fd, "", 1);
+                coordinates = (struct coordinates *) mmap(NULL, sizeof(struct coordinates) * max_nodes, 
+                    PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+                std::cout << "mmap " << max_nodes << std::endl;
+                if (coordinates == MAP_FAILED) {
+                    throw std::bad_alloc();
+                }
+            }
+
+            ~NLS_Disk() {
+                munmap(coordinates,  sizeof(struct coordinates) * max_nodes);
+            }
+
+            void callback_node(const OSM::Node *object) {
+                const osm_object_id_t id = object->get_id() + NodeLocationStore::negative_id_offset;
+                coordinates[id].x = double_to_fix(object->get_lon());
+                coordinates[id].y = double_to_fix(object->get_lat());
+            }
+            
+            void callback_after_nodes() {
+                if (debug) {
+                    std::cerr << "NodeLocationStore (Disk) needs " << max_nodes << " * " << sizeof(struct coordinates) << "Bytes = " << max_nodes * sizeof(struct coordinates) / (1024 * 1204) << "MBytes" << std::endl;
+                }
+            }
+            
+            void callback_way(OSM::Way *object) {
+                const osm_sequence_id_t num_nodes = object->node_count();
+                for (osm_sequence_id_t i=0; i < num_nodes; i++) {
+                    osm_object_id_t node_id = object->nodes[i] + NodeLocationStore::negative_id_offset;
+                    object->set_node_coordinates(i, fix_to_double(coordinates[node_id].x), fix_to_double(coordinates[node_id].y));
+                }
+            }
+
+        }; // class NLS_Array
 
     } // namespace Handler
 

@@ -131,6 +131,7 @@ void print_help() {
               << "  --2pass, -2                      - Read OSMFILE twice and build multipolygons" << std::endl \
               << "Location stores:" << std::endl \
               << "  array       - Store node locations in large array (use for large OSM files)" << std::endl \
+              << "  disk        - Store node locations on disk (use when low on memory)" << std::endl \
               << "  sparsetable - Store node locations in sparse table (use for small OSM files)" << std::endl;
 
 }
@@ -175,6 +176,7 @@ int main(int argc, char *argv[]) {
     std::vector<std::string> include_files;
     enum location_store_t {
         ARRAY,
+        DISK,
         SPARSETABLE
     } location_store = SPARSETABLE;
 
@@ -212,6 +214,8 @@ int main(int argc, char *argv[]) {
             case 'l':
                 if (!strcmp(optarg, "array")) {
                     location_store = ARRAY;
+                } else if (!strcmp(optarg, "disk")) {
+                    location_store = DISK;
                 } else if (!strcmp(optarg, "sparsetable")) {
                     location_store = SPARSETABLE;
                 } else {
@@ -264,6 +268,8 @@ int main(int argc, char *argv[]) {
 
     if (location_store == ARRAY) {
         osmium_handler_node_location_store = new Osmium::Handler::NLS_Array(debug);
+    } else if (location_store == DISK) {
+        osmium_handler_node_location_store = new Osmium::Handler::NLS_Disk(debug);
     } else {
         osmium_handler_node_location_store = new Osmium::Handler::NLS_Sparsetable(debug);
     }
