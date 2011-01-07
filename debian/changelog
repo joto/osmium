@@ -1,0 +1,5 @@
+osmium (0.1) maverick; urgency=low
+
+  * Initial standalone debian package
+
+ -- Frederik Ramm <frederik@remote.org>  Thu, 30 Dec 2010 15:04:15 +0100
