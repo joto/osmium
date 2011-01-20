@@ -293,11 +293,11 @@ namespace Osmium {
             }
 
             void handle_complete_multipolygon() {
-                std::cerr << "MP multi multi=" << id << " done\n";
+                // std::cerr << "MP multi multi=" << id << " done\n";
 
                 if (build_geometry()) {
                     geos::io::WKTWriter wkt;
-                    std::cerr << "  mp geometry: " << wkt.write(geometry) << std::endl;
+                    //std::cerr << "  mp geometry: " << wkt.write(geometry) << std::endl;
                 } else {
                     std::cerr << "  geom build error: " << geometry_error_message << "\n";
                 }

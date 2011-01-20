@@ -86,12 +86,12 @@ namespace Osmium {
                 // is in at least one multipolygon relation
 
                 std::vector<osm_object_id_t> v = way2mpidx_iterator->second;
-                std::cerr << "MP way_id=" << way->get_id() << " is in " << v.size() << " multipolygons\n";
+                if (debug) std::cerr << "MP way_id=" << way->get_id() << " is in " << v.size() << " multipolygons\n";
 
                 // go through all the multipolygons this way is in
                 for (unsigned int i=0; i < v.size(); i++) {
                     Osmium::OSM::MultipolygonFromRelation *mp = multipolygons[v[i]];
-                    std::cerr << "MP multi way_id=" << way->get_id() << " is in relation_id=" << mp->get_id() << "\n";
+                    if (debug) std::cerr << "MP multi way_id=" << way->get_id() << " is in relation_id=" << mp->get_id() << "\n";
 
                     // store copy of current way in multipolygon
                     mp->add_member_way(way);
