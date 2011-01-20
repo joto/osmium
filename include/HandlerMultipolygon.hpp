@@ -3,6 +3,8 @@
 
 #include <google/sparse_hash_map>
 
+extern bool debug;
+
 namespace Osmium {
 
     namespace Handler {
@@ -24,7 +26,7 @@ namespace Osmium {
 
           public:
 
-            Multipolygon(bool debug, bool attempt_repair, struct callbacks *cb) : Base(debug), attempt_repair(attempt_repair), cb(cb) {
+            Multipolygon(bool attempt_repair, struct callbacks *cb) : Base(), attempt_repair(attempt_repair), cb(cb) {
                 count_ways_in_all_multipolygons = 0;
             }
 

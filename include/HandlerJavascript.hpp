@@ -6,6 +6,7 @@
 #include "Javascript.hpp"
 
 extern v8::Persistent<v8::Context> global_context;
+extern bool debug;
 
 namespace Osmium {
 
@@ -139,7 +140,7 @@ namespace Osmium {
             }
 #endif
 
-            Javascript(bool debug, std::vector<std::string> include_files, const char *filename) : Base(debug) {
+            Javascript(std::vector<std::string> include_files, const char *filename) : Base() {
 //                v8::HandleScope handle_scope;
                 v8::Handle<v8::String> init_source = v8::String::New(
                     "Osmium = { Callbacks: {}, Output: { } };"

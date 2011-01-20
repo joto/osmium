@@ -55,7 +55,7 @@ namespace Osmium {
 
       public:
 
-        PBFParser(bool debug, int in_fd, struct callbacks *cb) : debug(debug) {
+        PBFParser(int in_fd, struct callbacks *cb) {
             GOOGLE_PROTOBUF_VERIFY_VERSION;
             fd = in_fd;
             callbacks = cb;

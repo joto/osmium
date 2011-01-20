@@ -10,6 +10,8 @@ Osmium::Handler::Multipolygon      *osmium_handler_multipolygon;
 Osmium::Handler::Javascript        *osmium_handler_javascript;
 //Osmium::Handler::Bbox              *osmium_handler_bbox;
 
+bool debug;
+
 void single_pass_init_handler() {
     osmium_handler_node_location_store->callback_init();
     osmium_handler_javascript->callback_init();
@@ -168,7 +170,6 @@ std::string find_include_file(std::string filename) {
 }
 
 int main(int argc, char *argv[]) {
-    bool debug = false;
     bool two_passes = false;
     bool attempt_repair = true;
     char javascript_filename[512] = "";
@@ -190,6 +191,8 @@ int main(int argc, char *argv[]) {
         {"2pass",                no_argument, 0, '2'},
         {0, 0, 0, 0}
     };
+
+    debug = false;
 
     while (1) {
         int c = getopt_long(argc, argv, "dhi:j:l:r2", long_options, 0);
@@ -267,15 +270,15 @@ int main(int argc, char *argv[]) {
     struct callbacks *callbacks_2nd_pass    = setup_callbacks_2nd_pass();
 
     if (location_store == ARRAY) {
-        osmium_handler_node_location_store = new Osmium::Handler::NLS_Array(debug);
+        osmium_handler_node_location_store = new Osmium::Handler::NLS_Array();
     } else if (location_store == DISK) {
-        osmium_handler_node_location_store = new Osmium::Handler::NLS_Disk(debug);
+        osmium_handler_node_location_store = new Osmium::Handler::NLS_Disk();
     } else {
-        osmium_handler_node_location_store = new Osmium::Handler::NLS_Sparsetable(debug);
+        osmium_handler_node_location_store = new Osmium::Handler::NLS_Sparsetable();
     }
-    osmium_handler_javascript = new Osmium::Handler::Javascript(debug, include_files, javascript_filename);
+    osmium_handler_javascript = new Osmium::Handler::Javascript(include_files, javascript_filename);
     if (two_passes) {
-        osmium_handler_multipolygon = new Osmium::Handler::Multipolygon(debug, attempt_repair, callbacks_2nd_pass);
+        osmium_handler_multipolygon = new Osmium::Handler::Multipolygon(attempt_repair, callbacks_2nd_pass);
     }
 
     Osmium::Javascript::Node::Wrapper     *wrap_node     = new Osmium::Javascript::Node::Wrapper;
@@ -287,10 +290,10 @@ int main(int argc, char *argv[]) {
     Osmium::OSM::Relation *relation = wrap_relation->object;
 
     if (two_passes) {
-        parse_osmfile(debug, osm_filename, callbacks_1st_pass,    node, way, relation);
-        parse_osmfile(debug, osm_filename, callbacks_2nd_pass,    node, way, relation);
+        parse_osmfile(osm_filename, callbacks_1st_pass,    node, way, relation);
+        parse_osmfile(osm_filename, callbacks_2nd_pass,    node, way, relation);
     } else {
-        parse_osmfile(debug, osm_filename, callbacks_single_pass, node, way, relation);
+        parse_osmfile(osm_filename, callbacks_single_pass, node, way, relation);
     }
 
     delete wrap_relation;
