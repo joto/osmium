@@ -9,6 +9,7 @@ void node_handler(Osmium::OSM::Node *node) {
 
 void after_nodes_handler() {
     osmium_handler_node_density->callback_after_nodes();
+    exit(0);
 }
 
 struct callbacks *setup_callbacks() {

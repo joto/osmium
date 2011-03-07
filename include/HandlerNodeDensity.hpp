@@ -37,6 +37,10 @@ namespace Osmium {
             void callback_node(Osmium::OSM::Node *node) {
                 int x = int( (180 + node->get_lon()) * factor );
                 int y = int( ( 90 - node->get_lat()) * factor );
+                if (x <      0) x =       0;
+                if (x >= xsize) x = xsize-1;
+                if (y <      0) y =       0;
+                if (y >= ysize) y = ysize-1;
                 int n = y * xsize + x;
                 if (node_count[n] < MAX_NODE_COUNT) {
                     node_count[n]++;
@@ -65,6 +69,7 @@ namespace Osmium {
                     }
                 }
                 gdImagePng(im, stdout);
+                gdImageDestroy(im);
             }
 
         }; // class NodeDensity
