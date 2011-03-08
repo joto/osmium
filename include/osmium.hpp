@@ -81,7 +81,6 @@ void parse_osmfile(bool debug, char *osmfilename, struct callbacks *callbacks, O
 #include "HandlerNodeLocationStore.hpp"
 #include "HandlerStatistics.hpp"
 #include "HandlerTagStats.hpp"
-#include "HandlerNodeDensity.hpp"
 
 #include "JavascriptOutputCSV.hpp"
 #include "JavascriptOutputShapefile.hpp"

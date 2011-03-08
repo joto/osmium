@@ -2,5 +2,6 @@ core
 osmjs/osmjs
 osmjs/osmjs_2pass
 tagstats/tagstats
+nodedensity/nodedensity
 pbf/fileformat.pb.h
 pbf/osmformat.pb.h

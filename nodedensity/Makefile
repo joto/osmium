@@ -28,7 +28,7 @@ CPP = osmium.cpp XMLParser.cpp
 OBJ = osmium.o XMLParser.o
 OBJ_PBF = fileformat.pb.o osmformat.pb.o
 
-HPP = osmium.hpp Osm.hpp OsmObject.hpp OsmNode.hpp OsmWay.hpp OsmRelation.hpp XMLParser.hpp wkb.hpp Handler.hpp HandlerNodeDensity.hpp PBFParser.hpp
+HPP = osmium.hpp Osm.hpp OsmObject.hpp OsmNode.hpp OsmWay.hpp OsmRelation.hpp XMLParser.hpp wkb.hpp Handler.hpp PBFParser.hpp
 
 SRC_CPP = $(patsubst %,../src/%,$(CPP))
 SRC_OBJ = $(patsubst %,../src/%,$(OBJ))
@@ -46,7 +46,7 @@ protobuf:
 %.o: ../src/%.cpp $(SRC_HPP)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-nodedensity: nodedensity.cpp $(OBJ) $(SRC_HPP)
+nodedensity: nodedensity.cpp $(OBJ) $(SRC_HPP) HandlerNodeDensity.hpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(OBJ) $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_GD)
 
 install:

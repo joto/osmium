@@ -1,5 +1,6 @@
 
 #include <osmium.hpp>
+#include "HandlerNodeDensity.hpp"
 
 Osmium::Handler::NodeDensity *osmium_handler_node_density;
 
