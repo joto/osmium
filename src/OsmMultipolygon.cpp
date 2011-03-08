@@ -36,8 +36,7 @@
 // this should come from /usr/include/geos/algorithm, but its missing there in some Ubuntu versions
 #include "../include/CGAlgorithms.h"
 
-// FIXME pass this in when contructing?
-#define debug false 
+extern bool debug;
 
 namespace Osmium {
 

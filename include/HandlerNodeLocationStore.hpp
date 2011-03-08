@@ -5,6 +5,7 @@
 #include <google/sparsetable>
 #include <sys/mman.h>
 
+extern bool debug;
 
 namespace Osmium {
 
@@ -44,7 +45,7 @@ namespace Osmium {
 
         public:
 
-            NodeLocationStore(bool debug) : Base(debug) {
+            NodeLocationStore() : Base() {
             }
 
             virtual void callback_node(const OSM::Node *object) = 0;
@@ -73,7 +74,7 @@ namespace Osmium {
 
         public:
 
-            NLS_Array(bool debug) : NodeLocationStore(debug) {
+            NLS_Array() : NodeLocationStore() {
                 max_nodes = 1.2 * 1024 * 1024 * 1024; // XXX make configurable, or autosizing?
                 coordinates = (struct coordinates *) malloc(sizeof(struct coordinates) * max_nodes);
                 if (!coordinates) {
@@ -123,7 +124,7 @@ namespace Osmium {
 
         public:
 
-            NLS_Sparsetable(bool debug) : NodeLocationStore(debug) {
+            NLS_Sparsetable() : NodeLocationStore() {
                 max_id = 1000;
                 nodes_table.resize(max_id+1);
             }
@@ -172,7 +173,7 @@ namespace Osmium {
 
         public:
 
-            NLS_Disk(bool debug) : NodeLocationStore(debug) {
+            NLS_Disk() : NodeLocationStore() {
                 max_nodes = 1.2 * 1024 * 1024 * 1024; // XXX make configurable, or autosizing?
                 FILE *tf = tmpfile();
                 if (!tf) {

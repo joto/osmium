@@ -96,7 +96,7 @@ namespace Osmium {
 
         public:
 
-            TagStats(bool debug) : Base(debug) {
+            TagStats() : Base() {
                 string_store = new StringStore(string_store_size);
                 max_timestamp[0] = 0;
             }
