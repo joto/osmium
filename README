@@ -21,6 +21,11 @@ Currently there are two applications build on top of and available with Osmium:
 * tagstats - creates statistics about tags for Taginfo (see http://taginfo.openstreetmap.de/)
 * osmjs - calls your Javascript code, it can optionally assemble multipolygons for you
 
+Note that OSM input files must contain objects in the right order for Osmium to
+work properly: first nodes, then ways, then relations. Normally OSM files are
+sorted this way, but if yours aren't, you can use Osmosis with the --sort
+option to do this.
+
 PREREQUISITES
 -------------
 

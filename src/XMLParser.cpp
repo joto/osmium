@@ -39,6 +39,9 @@ namespace Osmium {
             }
         }
         else if (!strcmp(element, "node")) {
+            if (last_object_type != NODE) {
+                throw std::runtime_error("OSM files must be ordered: first nodes, then ways, then relations. You can use Osmosis with the --sort option to do this.");
+            }
             init_object(data, node, attrs);
         }
         else if (!strcmp(element, "tag")) {
@@ -57,10 +60,13 @@ namespace Osmium {
             }
         }
         else if (!strcmp(element, "way")) {
-            if (last_object_type != WAY) {
+            if (last_object_type == NODE) {
                 if (callbacks->after_nodes) { callbacks->after_nodes(); }
                 last_object_type = WAY;
                 if (callbacks->before_ways) { callbacks->before_ways(); }
+            }
+            if (last_object_type == RELATION) {
+                throw std::runtime_error("OSM files must be ordered: first nodes, then ways, then relations. You can use Osmosis with the --sort option to do this.");
             }
             init_object(data, way, attrs);
         }
@@ -83,10 +89,13 @@ namespace Osmium {
             relation->add_member(type, ref, role);
         }
         else if (!strcmp(element, "relation")) {
-            if (last_object_type != RELATION) {
+            if (last_object_type == WAY) {
                 if (callbacks->after_ways) { callbacks->after_ways(); }
                 last_object_type = RELATION;
                 if (callbacks->before_relations) { callbacks->before_relations(); }
+            }
+            if (last_object_type == NODE) {
+                throw std::runtime_error("OSM files must be ordered: first nodes, then ways, then relations. You can use Osmosis with the --sort option to do this.");
             }
             init_object(data, relation, attrs);
         }

@@ -91,6 +91,9 @@ namespace Osmium {
                 // go through all the multipolygons this way is in
                 for (unsigned int i=0; i < v.size(); i++) {
                     Osmium::OSM::MultipolygonFromRelation *mp = multipolygons[v[i]];
+                    if (!mp) {
+                        throw std::runtime_error("Zero multipolygon. This should not happen. Reason can be a way appearing more than once in your input file.");
+                    }
                     if (debug) std::cerr << "MP multi way_id=" << way->get_id() << " is in relation_id=" << mp->get_id() << "\n";
 
                     // store copy of current way in multipolygon
