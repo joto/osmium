@@ -82,15 +82,16 @@ are only available in newer distributions (Ubuntu since Maverick).
 FILES
 -----
 
-Doxyfile - Needed for building the Osmium C++ docs, call "make doc" to build.
-include  - C/C++ include files. Most of Osmium is in those header files which
-           are needed for building Osmium applications.
-osmjs    - Osmium application "osmjs".
-osmjs/js - Example Javascript handlers.
-pbf      - Protobuf stuff needed for parsing PBF files.
-src      - Osmium source code (C++-Files)
-tagstats - Osmium application "tagstats".
-
+Doxyfile    - Needed for building the Osmium C++ docs, call "make doc" to build.
+include     - C/C++ include files. Most of Osmium is in those header files which
+              are needed for building Osmium applications.
+osmjs       - Osmium application "osmjs".
+osmjs/js    - Example Javascript handlers.
+pbf         - Protobuf stuff needed for parsing PBF files.
+src         - Osmium source code (C++-Files)
+tagstats    - Osmium application "tagstats".
+nodedensity - Osmium application "nodedensity" creates PNGs showing density
+              of nodes in OSM data
 
 BUILDING
 --------
