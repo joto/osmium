@@ -116,6 +116,10 @@ namespace Osmium {
                 return uid;
             }
 
+            const char *get_user() const {
+                return user;
+            }
+
             osm_changeset_id_t get_changeset() const {
                 return changeset;
             }

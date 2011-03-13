@@ -50,7 +50,7 @@ SRC_HPP_JS = $(wildcard ../include/*Javascript*.hpp)
 
 .PHONY: all clean doc protobuf install
 
-all: protobuf sizeof
+all: protobuf sizeof osmium_debug
 
 protobuf:
 	$(MAKE) -C ../pbf CXX="$(CXX)" CXXFLAGS="$(CXXFLAGS)"
@@ -61,8 +61,11 @@ protobuf:
 sizeof: sizeof.cpp $(OBJ) $(OBJ_JS) $(SRC_HPP) $(SRC_HPP_JS)
 	$(CXX) $(CXXFLAGS) -o $@ $< $(OBJ) $(OBJ_JS) $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_V8) $(LIB_SHAPE)
 
+osmium_debug: osmium_debug.cpp $(OBJ) $(OBJ_JS) $(SRC_HPP) $(SRC_HPP_JS)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(OBJ) $(OBJ_JS) $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_V8) $(LIB_SHAPE)
+
 install:
     
 clean:
-	rm -f *.o sizeof
+	rm -f *.o sizeof osmium_debug
 

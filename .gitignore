@@ -4,6 +4,7 @@ osmjs/osmjs_2pass
 tagstats/tagstats
 nodedensity/nodedensity
 src/sizeof
+src/osmium_debug
 pbf/fileformat.pb.h
 pbf/osmformat.pb.h
 test/tmp/
