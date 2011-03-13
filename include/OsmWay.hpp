@@ -37,9 +37,6 @@ namespace Osmium {
             double          *lon;
             double          *lat;
 
-            // TODO XXX temporary for multipoly integration
-            bool tried;
-
             // can new nodes be added to this way?
             bool size_frozen;
 
@@ -78,7 +75,6 @@ namespace Osmium {
             void reset() {
                 Object::reset();
                 num_nodes = 0;
-                tried = false;
             }
 
             /**

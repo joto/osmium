@@ -6,3 +6,4 @@ nodedensity/nodedensity
 src/sizeof
 pbf/fileformat.pb.h
 pbf/osmformat.pb.h
+test/tmp/
