@@ -2,7 +2,7 @@
 #define OSMIUM_OSM_WAY_HPP
 
 #ifdef WITH_SHPLIB
-#include <shapefil.h>
+# include <shapefil.h>
 #endif
 
 /** @file
@@ -10,14 +10,16 @@
 */
 
 #ifdef WITH_GEOS
-#include <geos/geom/Coordinate.h>
-#include <geos/geom/CoordinateSequenceFactory.h>
-#include <geos/geom/Geometry.h>
-#include <geos/geom/Point.h>
-#include <geos/util/GEOSException.h>
+# include <geos/geom/Coordinate.h>
+# include <geos/geom/CoordinateSequenceFactory.h>
+# include <geos/geom/Geometry.h>
+# include <geos/geom/Point.h>
+# include <geos/util/GEOSException.h>
 #endif
 
 #include <stdexcept>
+
+extern bool debug;
 
 namespace Osmium {
 
@@ -137,7 +139,7 @@ namespace Osmium {
                 c.y = lat[num_nodes - 1];
                 return Osmium::geos_factory()->createPoint(c);
             }
-#endif
+#endif // WITH_GEOS
 
             /**
             * Check whether this way is closed. A way is closed if the first and last node have the same id.
@@ -173,7 +175,8 @@ namespace Osmium {
                     return NULL;
                 }
             }
-#endif
+#endif // WITH_GEOS
+
 
 #ifdef WITH_SHPLIB
             /**
@@ -184,9 +187,37 @@ namespace Osmium {
                 if (shp_type != SHPT_ARC && shp_type != SHPT_POLYGON) {
                     throw std::runtime_error("a way can only be added to a shapefile of type line or polygon");
                 }
+#ifdef CHECK_WAY_GEOMETRY
+                if (num_nodes == 0 || num_nodes == 1) {
+                    if (debug) std::cerr << "error building way geometry for way " << id << ": must at least contain two nodes" << std::endl;
+                    return NULL;
+                }
+                osm_sequence_id_t num_nodes_checked = 1;
+                double lon_checked[max_nodes_in_way];
+                double lat_checked[max_nodes_in_way];
+                lon_checked[0] = lon[0];
+                lat_checked[0] = lat[0];
+                for (int i=1; i < num_nodes; i++) {
+                    if (nodes[i] == nodes[i-1]) {
+                        if (debug) std::cerr << "warning building way geometry for way " << id << ": contains node " << nodes[i] << " twice" << std::endl;
+                    } else if (lon[i] == lon[i-1] && lat[i] == lat[i-1]) {
+                        if (debug) std::cerr << "warning building way geometry for way " << id << ": contains location " << lon[i] << ", " << lat[i] << " twice" << std::endl;
+                    } else {
+                        lon_checked[num_nodes_checked] = lon[i];
+                        lat_checked[num_nodes_checked] = lat[i];
+                        num_nodes_checked++;
+                    }
+                }
+                if (num_nodes_checked == 1) {
+                    if (debug) std::cerr << "error building way geometry for way " << id << ": must at least contain two different points" << std::endl;
+                    return NULL;
+                }
+                return SHPCreateSimpleObject(shp_type, num_nodes_checked, lon_checked, lat_checked, NULL);
+#else
                 return SHPCreateSimpleObject(shp_type, num_nodes, lon, lat, NULL);
+#endif // CHECK_WAY_GEOMETRY
             }
-#endif
+#endif // WITH_SHPLIB
 
         }; // class Way
 

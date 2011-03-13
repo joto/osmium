@@ -1,0 +1,58 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- test broken_way_geometries.osm -->
+<osm version='0.6'>
+  <node id='11' timestamp='2010-01-01T00:00:01Z' uid='1' user='TEST' visible='true' version='1' changeset='1' lat='1' lon='1' />
+  <node id='21' timestamp='2010-01-01T00:00:01Z' uid='1' user='TEST' visible='true' version='1' changeset='1' lat='2' lon='1' />
+  <node id='22' timestamp='2010-01-01T00:00:02Z' uid='1' user='TEST' visible='true' version='1' changeset='1' lat='2' lon='2' />
+  <node id='31' timestamp='2010-01-01T00:00:03Z' uid='1' user='TEST' visible='true' version='1' changeset='1' lat='3' lon='1' />
+  <node id='41' timestamp='2010-01-01T00:00:01Z' uid='1' user='TEST' visible='true' version='1' changeset='1' lat='4' lon='1' />
+  <node id='42' timestamp='2010-01-01T00:00:01Z' uid='1' user='TEST' visible='true' version='1' changeset='1' lat='4' lon='2' />
+  <node id='51' timestamp='2010-01-01T00:00:01Z' uid='1' user='TEST' visible='true' version='1' changeset='1' lat='5' lon='1' />
+  <node id='52' timestamp='2010-01-01T00:00:01Z' uid='1' user='TEST' visible='true' version='1' changeset='1' lat='5' lon='2' />
+  <node id='53' timestamp='2010-01-01T00:00:01Z' uid='1' user='TEST' visible='true' version='1' changeset='1' lat='5' lon='2' />
+  <node id='54' timestamp='2010-01-01T00:00:01Z' uid='1' user='TEST' visible='true' version='1' changeset='1' lat='5' lon='4' />
+  <node id='61' timestamp='2010-01-01T00:00:01Z' uid='1' user='TEST' visible='true' version='1' changeset='1' lat='6' lon='1' />
+  <node id='62' timestamp='2010-01-01T00:00:01Z' uid='1' user='TEST' visible='true' version='1' changeset='1' lat='6' lon='1' />
+  <way id='1' timestamp='2010-01-01T00:00:00Z' uid='1' user='TEST' visible='true' version='1' changeset='1'>
+    <nd ref='11' />
+    <tag k='test' v='fail' />
+    <tag k='note' v='only one node' />
+  </way>
+  <way id='2' timestamp='2010-01-01T00:00:00Z' uid='1' user='TEST' visible='true' version='1' changeset='1'>
+    <nd ref='21' />
+    <nd ref='22' />
+    <tag k='test' v='ok' />
+    <tag k='note' v='two nodes' />
+  </way>
+  <way id='3' timestamp='2010-01-01T00:00:00Z' uid='1' user='TEST' visible='true' version='1' changeset='1'>
+    <nd ref='31' />
+    <nd ref='31' />
+    <tag k='test' v='fail' />
+    <tag k='note' v='same node twice' />
+  </way>
+  <way id='4' timestamp='2010-01-01T00:00:00Z' uid='1' user='TEST' visible='true' version='1' changeset='1'>
+    <nd ref='41' />
+    <nd ref='42' />
+    <nd ref='42' />
+    <tag k='test' v='ok' />
+    <tag k='note' v='three nodes, two are the same' />
+  </way>
+  <way id='5' timestamp='2010-01-01T00:00:00Z' uid='1' user='TEST' visible='true' version='1' changeset='1'>
+    <nd ref='51' />
+    <nd ref='52' />
+    <nd ref='53' />
+    <nd ref='54' />
+    <tag k='test' v='ok' />
+    <tag k='note' v='four nodes, two have different ids but are at same position' />
+  </way>
+  <way id='6' timestamp='2010-01-01T00:00:00Z' uid='1' user='TEST' visible='true' version='1' changeset='1'>
+    <nd ref='61' />
+    <nd ref='62' />
+    <tag k='test' v='fail' />
+    <tag k='note' v='two different nodes at some position' />
+  </way>
+  <way id='7' timestamp='2010-01-01T00:00:00Z' uid='1' user='TEST' visible='true' version='1' changeset='1'>
+    <tag k='test' v='fail' />
+    <tag k='note' v='no nodes at all' />
+  </way>
+</osm>

@@ -39,6 +39,10 @@ struct node_coordinates {
     double lat;
 };
 
+// check way geometry before making a shplib object from it
+// normally this should be defined, otherwise you will generate invalid linestring geometries
+#define CHECK_WAY_GEOMETRY
+
 #ifdef WITH_GEOS
 #include <geos/geom/GeometryFactory.h>
 
