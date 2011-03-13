@@ -3,5 +3,6 @@ osmjs/osmjs
 osmjs/osmjs_2pass
 tagstats/tagstats
 nodedensity/nodedensity
+src/sizeof
 pbf/fileformat.pb.h
 pbf/osmformat.pb.h
