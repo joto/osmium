@@ -8,11 +8,11 @@
 #include <iomanip>
 
 #ifdef WITH_MULTIPOLYGON_PROFILING
-#define START_TIMER(x) x##_timer.start();
-#define STOP_TIMER(x) x##_timer.stop();
+# define START_TIMER(x) x##_timer.start();
+# define STOP_TIMER(x) x##_timer.stop();
 #else
-#define START_TIMER(x)
-#define STOP_TIMER(x)
+# define START_TIMER(x)
+# define STOP_TIMER(x)
 #endif
 
 #include "osmium.hpp"
@@ -113,6 +113,7 @@ namespace Osmium {
         * limitation is that this method does not deliver results for 
         * linear rings with more than one self-intersection.
         */
+#ifdef WITH_GEOS
         geos::geom::LinearRing *MultipolygonFromRelation::create_non_intersecting_linear_ring(geos::geom::CoordinateSequence *orig_cs)
         {
             const std::vector<geos::geom::Coordinate>* coords = orig_cs->toVector();
@@ -853,6 +854,7 @@ namespace Osmium {
             geometry = NULL;
             return false;
         }
+#endif // WITH_GEOS
 
     } // namespace OSM
 

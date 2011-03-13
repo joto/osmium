@@ -165,7 +165,11 @@ namespace Osmium {
 
           public:
 
+#ifdef WITH_GEOS
             MultipolygonFromWay(Way *way, geos::geom::Geometry *geom) : Multipolygon(geom) {
+#else
+            MultipolygonFromWay(Way *way) : Multipolygon() {
+#endif // WITH_GEOS
                 id        = way->get_id();
                 version   = way->get_version();
                 uid       = way->get_uid();
@@ -245,14 +249,16 @@ namespace Osmium {
             timer multipolygon_build_timer;
             timer multipolygon_write_timer;
             timer error_write_timer;
-#endif
+#endif // WITH_MULTIPOLYGON_PROFILING
 
           public:
 
             MultipolygonFromRelation(Relation *r, bool b, int n, void (*callback)(Osmium::OSM::Multipolygon *), bool repair) : Multipolygon(), boundary(b), relation(r), callback(callback) {
                 num_ways = n;
                 missing_ways = n;
+#ifdef WITH_GEOS
                 geometry = NULL;
+#endif // WITH_GEOS
                 id = r->get_id();
                 attempt_repair = repair;
 
@@ -295,12 +301,14 @@ namespace Osmium {
             void handle_complete_multipolygon() {
                 // std::cerr << "MP multi multi=" << id << " done\n";
 
+#ifdef WITH_GEOS
                 if (build_geometry()) {
                     geos::io::WKTWriter wkt;
                     //std::cerr << "  mp geometry: " << wkt.write(geometry) << std::endl;
                 } else {
                     std::cerr << "  geom build error: " << geometry_error_message << "\n";
                 }
+#endif // WITH_GEOS
 
                 callback(this);
             }

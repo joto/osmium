@@ -77,7 +77,11 @@ namespace Osmium {
 
                 if (way2mpidx_iterator == way2mpidx.end()) { // not in any relation
                     if (way->is_closed()) { // way is closed, build simple multipolygon
+#ifdef WITH_GEOS
                         Osmium::OSM::MultipolygonFromWay *mp = new Osmium::OSM::MultipolygonFromWay(way, way->create_geos_geometry());
+#else
+                        Osmium::OSM::MultipolygonFromWay *mp = new Osmium::OSM::MultipolygonFromWay(way);
+#endif // WITH_GEOS
                         std::cerr << "MP simple way_id=" << way->get_id() << "\n";
                         callback_multipolygon(mp);
                         delete mp;
