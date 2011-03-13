@@ -39,6 +39,8 @@ namespace Osmium {
 
             // TODO XXX temporary for multipoly integration
             bool tried;
+
+            // can new nodes be added to this way?
             bool size_frozen;
 
             // construct a Way object with full node capacity.
@@ -90,8 +92,7 @@ namespace Osmium {
                 }
                 if (num_nodes < max_nodes_in_way) {
                     nodes[num_nodes++] = ref;
-                }
-                else {
+                } else {
                     throw std::range_error("no more than 2000 nodes in a way");
                 }
             }
