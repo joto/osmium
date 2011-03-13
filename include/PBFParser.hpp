@@ -33,7 +33,7 @@ namespace Osmium {
     class PBFParser {
 
         static const int NANO = 1000 * 1000 * 1000;
-        static const int MAX_BLOCK_HEADER_SIZE = 64 * 1024;
+        static const int MAX_BLOB_HEADER_SIZE = 64 * 1024;
         static const int MAX_BLOB_SIZE = 32 * 1024 * 1024;
 
         enum Mode {
@@ -302,16 +302,16 @@ namespace Osmium {
                     return false; // EOF
                 }
 
-                if (m_blockHeader.type() == "OSMData") {
-                    array_t a = read_blob(m_blockHeader.datasize());
+                if (m_blobHeader.type() == "OSMData") {
+                    array_t a = read_blob(m_blobHeader.datasize());
                     if (!m_primitiveBlock.ParseFromArray(a.data, a.size)) {
                         throw std::runtime_error("failed to parse PrimitiveBlock");
                     }
                     return true;
                 }
 
-                if (m_blockHeader.type() == "OSMHeader") {
-                    array_t a = read_blob(m_blockHeader.datasize());
+                if (m_blobHeader.type() == "OSMHeader") {
+                    array_t a = read_blob(m_blobHeader.datasize());
                     if (!m_headerBlock.ParseFromArray(a.data, a.size)) {
                         throw std::runtime_error("failed to parse HeaderBlock");
                     }
@@ -326,7 +326,7 @@ namespace Osmium {
                     }
                 } else {
                     if (debug) {
-                        std::cerr << "ignoring unknown block type (" << m_blockHeader.type().data() << ")" << std::endl;
+                        std::cerr << "ignoring unknown block type (" << m_blobHeader.type().data() << ")" << std::endl;
                     }
                 }
             }
@@ -343,17 +343,17 @@ namespace Osmium {
             }
 
             int size = convertNetworkByteOrder(size_in_network_byte_order);
-            if (size > MAX_BLOCK_HEADER_SIZE || size < 0) {
-                errmsg << "BlockHeader size invalid:" << size;
+            if (size > MAX_BLOB_HEADER_SIZE || size < 0) {
+                errmsg << "BlobHeader size invalid:" << size;
                 throw std::runtime_error(errmsg.str());
             }
 
             if (read(fd, buffer, size) != size) {
-                throw std::runtime_error("failed to read BlockHeader");
+                throw std::runtime_error("failed to read BlobHeader");
             }
 
-            if (!m_blockHeader.ParseFromArray(buffer, size)) {
-                throw std::runtime_error("failed to parse BlockHeader");
+            if (!m_blobHeader.ParseFromArray(buffer, size)) {
+                throw std::runtime_error("failed to parse BlobHeader");
             }
             return true;
         }
@@ -408,7 +408,7 @@ namespace Osmium {
             }
         }
 
-        OSMPBF::BlockHeader m_blockHeader;
+        OSMPBF::BlobHeader m_blobHeader;
 
         OSMPBF::HeaderBlock m_headerBlock;
         OSMPBF::PrimitiveBlock m_primitiveBlock;
