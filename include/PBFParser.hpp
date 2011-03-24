@@ -298,7 +298,7 @@ namespace Osmium {
         */
         bool read_next_block() {
             while (true) {
-                if (!read_block_header()) {
+                if (!read_blob_header()) {
                     return false; // EOF
                 }
 
@@ -332,7 +332,7 @@ namespace Osmium {
             }
         }
 
-        bool read_block_header() {
+        bool read_blob_header() {
             char size_in_network_byte_order[4];
             ssize_t bytes_read = read(fd, size_in_network_byte_order, sizeof(size_in_network_byte_order));
             if (bytes_read != sizeof(size_in_network_byte_order)) {
