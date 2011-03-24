@@ -12,11 +12,11 @@ bool debug;
 Osmium::Handler::Debug *osmium_handler_debug;
 
 void init_handler() {
-    std::cout << "init\n";
+    std::cout << "init" << std::endl;
 }
 
 void before_nodes_handler() {
-    std::cout << "before_nodes\n";
+    std::cout << "before_nodes" << std::endl;
 }
 
 void node_handler(Osmium::OSM::Node *node) {
@@ -25,11 +25,11 @@ void node_handler(Osmium::OSM::Node *node) {
 }
 
 void after_nodes_handler() {
-    std::cout << "after_nodes\n";
+    std::cout << "after_nodes" << std::endl;
 }
 
 void before_ways_handler() {
-    std::cout << "before_ways\n";
+    std::cout << "before_ways" << std::endl;
 }
 
 void way_handler(Osmium::OSM::Way *way) {
@@ -38,11 +38,11 @@ void way_handler(Osmium::OSM::Way *way) {
 }
 
 void after_ways_handler() {
-    std::cout << "after_ways\n";
+    std::cout << "after_ways" << std::endl;
 }
 
 void before_relations_handler() {
-    std::cout << "before_relations\n";
+    std::cout << "before_relations" << std::endl;
 }
 
 void relation_handler(Osmium::OSM::Relation *relation) {
@@ -51,11 +51,11 @@ void relation_handler(Osmium::OSM::Relation *relation) {
 }
 
 void after_relations_handler() {
-    std::cout << "after_relations\n";
+    std::cout << "after_relations" << std::endl;
 }
 
 void final_handler() {
-    std::cout << "final\n";
+    std::cout << "final" << std::endl;
 }
 
 

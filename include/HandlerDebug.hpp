@@ -13,34 +13,34 @@ namespace Osmium {
             }
 
             void callback_object(OSM::Object *object) {
-                std::cout << "object:\n";
-                std::cout << "  id="   << object->get_id() << "\n";
-                std::cout << "  version="   << object->get_version() << "\n";
-                std::cout << "  uid="       << object->get_uid() << "\n";
-                std::cout << "  user=|"      << object->get_user() << "|\n";
-                std::cout << "  changeset=" << object->get_changeset() << "\n";
-                std::cout << "  timestamp=" << object->get_timestamp_str() << "\n";
-                std::cout << "  tags:\n";
+                std::cout << "object:" << std::endl;
+                std::cout << "  id="   << object->get_id() << std::endl;
+                std::cout << "  version="   << object->get_version() << std::endl;
+                std::cout << "  uid="       << object->get_uid() << std::endl;
+                std::cout << "  user=|"      << object->get_user() << "|" << std::endl;
+                std::cout << "  changeset=" << object->get_changeset() << std::endl;
+                std::cout << "  timestamp=" << object->get_timestamp_str() << std::endl;
+                std::cout << "  tags:" << std::endl;
                 for (int i=0; i < object->tag_count(); i++) {
-                    std::cout << "    k=|" << object->get_tag_key(i) << "| v=|" << object->get_tag_value(i) << "|\n";
+                    std::cout << "    k=|" << object->get_tag_key(i) << "| v=|" << object->get_tag_value(i) << "|" << std::endl;
                 }
             }
 
             void callback_node(const OSM::Node *object) {
-                std::cout << "  node:\n";
-                std::cout << "    lon=" << object->get_lon() << "\n";
-                std::cout << "    lat=" << object->get_lat() << "\n";
+                std::cout << "  node:" << std::endl;
+                std::cout << "    lon=" << object->get_lon() << std::endl;
+                std::cout << "    lat=" << object->get_lat() << std::endl;
             }
 
             void callback_way(const OSM::Way *object) {
-                std::cout << "  way:\n";
-                std::cout << "    node_count=" << object->node_count() << "\n";
-                std::cout << "    XXX output node list\n";
+                std::cout << "  way:" << std::endl;
+                std::cout << "    node_count=" << object->node_count() << std::endl;
+                std::cout << "    XXX output node list" << std::endl;
             }
 
             void callback_relation(const OSM::Relation *object) {
-                std::cout << "  relation:\n";
-                std::cout << "    XXX output member info\n";
+                std::cout << "  relation:" << std::endl;
+                std::cout << "    XXX output member info" << std::endl;
             }
 
             void callback_final() {
