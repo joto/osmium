@@ -17,6 +17,7 @@
 
 #include "osmium.hpp"
 
+#include <geos/version.h>
 #include <geos/geom/PrecisionModel.h>
 #include <geos/geom/CoordinateSequence.h>
 #include <geos/geom/CoordinateArraySequenceFactory.h>
@@ -389,7 +390,11 @@ namespace Osmium {
                     }
                     else
                     {
+#if GEOS_VERSION_MAJOR < 3 || (GEOS_VERSION_MAJOR == 3 && GEOS_VERSION_MINOR <= 2)
+                        double dist = geos::operation::distance::DistanceOp::distance(node1, (i->second)); // deprecated in newer version of GEOS
+#else
                         double dist = geos::operation::distance::DistanceOp::distance(*node1, *(i->second));
+#endif
                         if ((dist < mindist) || (mindist < 0))
                         {
                             mindist = dist;
