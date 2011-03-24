@@ -19,10 +19,10 @@ namespace Osmium {
 
                     Osmium::OSM::Object *object = get_object(info);
 
-                    v8::String::Utf8Value key(property);
-                    const char *value = object->get_tag_by_key(*key);
+                    const char *key = v8_String_to_utf8<Osmium::OSM::Tag::max_utf16_length_key>(property);
+                    const char *value = object->get_tag_by_key(key);
                     if (value) {
-                        return handle_scope.Close(v8::String::New(value));
+                        return handle_scope.Close(utf8_to_v8_String<Osmium::OSM::Tag::max_utf16_length_value>(value));
                     }
                     return v8::Undefined();
                 }
@@ -36,7 +36,7 @@ namespace Osmium {
                     v8::Local<v8::Array> array = v8::Array::New(num_tags);
 
                     for (int i=0; i < num_tags; i++) {
-                        array->Set(v8::Integer::New(i), v8::String::New(object->get_tag_key(i)));
+                        array->Set(v8::Integer::New(i), utf8_to_v8_String<Osmium::OSM::Tag::max_utf16_length_key>(object->get_tag_key(i)));
                     }
 
                     return handle_scope.Close(array);

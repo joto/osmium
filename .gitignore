@@ -8,3 +8,4 @@ src/osmium_debug
 pbf/fileformat.pb.h
 pbf/osmformat.pb.h
 test/tmp/
+doc

@@ -84,9 +84,10 @@ namespace Osmium {
                 v8::HandleScope handle_scope;
 
                 for (int i = 0; i < args.Length(); i++) {
-                    v8::String::Utf8Value str(args[i]);
-                    printf("%s\n", *str);
+                    v8_String_to_ostream(args[i]->ToString(), std::cout);
+                    std::cout << std::endl;
                 }
+
                 return handle_scope.Close(v8::Integer::New(1));
             }
 

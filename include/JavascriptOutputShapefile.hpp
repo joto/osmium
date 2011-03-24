@@ -16,6 +16,7 @@ namespace Osmium {
 
             static const unsigned int MAX_DBF_FIELDS = 16;
             static const unsigned int MAX_FIELD_NAME_LENGTH = 11;
+            static const int max_dbf_field_length = 255;
 
             int  shp_type;
             int  num_fields;
@@ -145,8 +146,20 @@ namespace Osmium {
                         } else {
                             switch (field_type[n]) {
                                 case FTString: {
-                                        v8::String::Utf8Value str(value);
-                                        ok = DBFWriteStringAttribute(dbf_handle, ishape, n, *str);
+                                        uint16_t source[(max_dbf_field_length+2)*2];
+                                        char dest[(max_dbf_field_length+1)*4];
+                                        memset(source, 0, (max_dbf_field_length+2)*4);
+                                        memset(dest, 0, (max_dbf_field_length+1)*4);
+                                        int32_t dest_length;
+                                        UErrorCode error_code = U_ZERO_ERROR;
+                                        value->ToString()->Write(source, 0, max_dbf_field_length+1);
+                                        u_strToUTF8(dest, field_width[n], &dest_length, source, std::min(max_dbf_field_length+1, value->ToString()->Length()), &error_code);
+                                        if (error_code == U_BUFFER_OVERFLOW_ERROR) {
+                                            // thats ok, it just means we clip the text at that point
+                                        } else if (U_FAILURE(error_code)) {
+                                            throw std::runtime_error("UTF-16 to UTF-8 conversion failed");
+                                        }
+                                        ok = DBFWriteStringAttribute(dbf_handle, ishape, n, dest);
                                     }
                                     break;
                                 case FTInteger:
@@ -168,6 +181,7 @@ namespace Osmium {
                                     }
                                     break;
                             }
+                            // XXX whats this?
     /*                        if (!ok) {
                                 std::string errmsg("failed to add attribute '");
                                 errmsg += field_name[n];

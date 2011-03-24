@@ -30,7 +30,7 @@ namespace Osmium {
                     v8::HandleScope handle_scope;
 
                     OSM::RelationMember *member = (OSM::RelationMember *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
-                    return v8::String::New(member->role);
+                    return utf8_to_v8_String<Osmium::OSM::RelationMember::max_utf16_length_role>(member->role);
                 }
 
             public:

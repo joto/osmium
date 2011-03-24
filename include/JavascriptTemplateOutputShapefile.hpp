@@ -43,15 +43,6 @@ namespace Osmium {
 
                     self->add(object, v8::Local<v8::Object>::Cast(args[1]));
 
-/*                    for (int i = 0; i < args.Length(); i++) {
-                        v8::String::Utf8Value str(args[i]);
-                        if (i != 0) {
-                            self->out << '\t';
-                        }
-                        self->out << *str;
-                    }
-                    self->out << "\n";*/
-
                     return handle_scope.Close(v8::Integer::New(1));
                 }
 

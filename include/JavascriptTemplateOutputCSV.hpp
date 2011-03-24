@@ -17,13 +17,12 @@ namespace Osmium {
                     Osmium::Output::CSV *self = (Osmium::Output::CSV *) v8::Local<v8::External>::Cast(args.Holder()->GetInternalField(0))->Value();
 
                     for (int i = 0; i < args.Length(); i++) {
-                        v8::String::Utf8Value str(args[i]);
                         if (i != 0) {
                             self->out << '\t';
                         }
-                        self->out << *str;
+                        v8_String_to_ostream(args[i]->ToString(), self->out);
                     }
-                    self->out << "\n";
+                    self->out << std::endl;
                     return handle_scope.Close(v8::Integer::New(1));
                 }
 

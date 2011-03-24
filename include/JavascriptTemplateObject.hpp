@@ -31,7 +31,7 @@ namespace Osmium {
 
                 static v8::Handle<v8::Value> GetUser(v8::Local<v8::String> /*property*/, const v8::AccessorInfo &info) {
                     Osmium::Javascript::Object::Wrapper *self = (Osmium::Javascript::Object::Wrapper *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
-                    return v8::String::New(self->get_object()->user);
+                    return utf8_to_v8_String<Osmium::OSM::Object::max_utf16_length_username>(self->get_object()->user);
                 }
 
                 static v8::Handle<v8::Value> GetChangeset(v8::Local<v8::String> /*property*/, const v8::AccessorInfo &info) {

@@ -1,0 +1,84 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- test utf8_clipping.osm -->
+<osm version='0.6'>
+  <node id='1' timestamp='2010-01-01T00:00:01Z' uid='1' user='TEST' visible='true' version='1' changeset='1' lat='1' lon='1'>
+    <tag k="note" v="Just ASCII characters" />
+    <tag k="utf8" v="123456789" />
+  </node>
+  <node id='2' timestamp='2010-01-01T00:00:01Z' uid='1' user='TEST' visible='true' version='1' changeset='1' lat='1' lon='1'>
+    <tag k="note" v="One UTF-8 two-byte character on 3rd position" />
+    <tag k="utf8" v="12&#xA2;56789" />
+  </node>
+  <node id='3' timestamp='2010-01-01T00:00:01Z' uid='1' user='TEST' visible='true' version='1' changeset='1' lat='1' lon='1'>
+    <tag k="note" v="One UTF-8 three-byte character on 3rd position" />
+    <tag k="utf8" v="12&#x20AC;6789" />
+  </node>
+  <node id='4' timestamp='2010-01-01T00:00:01Z' uid='1' user='TEST' visible='true' version='1' changeset='1' lat='1' lon='1'>
+    <tag k="note" v="One UTF-8 four-byte character on 3rd position" />
+    <tag k="utf8" v="12&#x2F800;789" />
+  </node>
+  <node id='5' timestamp='2010-01-01T00:00:01Z' uid='1' user='TEST' visible='true' version='1' changeset='1' lat='1' lon='1'>
+    <tag k="note" v="One UTF-8 four-byte character on 3rd position" />
+    <tag k="utf8" v="12&#x10FFFF;789" />
+  </node>
+  <node id='12' timestamp='2010-01-01T00:00:01Z' uid='1' user='TEST' visible='true' version='1' changeset='1' lat='1' lon='1'>
+    <tag k="note" v="One UTF-8 two-byte character on 8th position" />
+    <tag k="utf8" v="1234567&#xA2;x" />
+  </node>
+  <node id='13' timestamp='2010-01-01T00:00:01Z' uid='1' user='TEST' visible='true' version='1' changeset='1' lat='1' lon='1'>
+    <tag k="note" v="One UTF-8 three-byte character on 8th position" />
+    <tag k="utf8" v="1234567&#x20AC;x" />
+  </node>
+  <node id='14' timestamp='2010-01-01T00:00:01Z' uid='1' user='TEST' visible='true' version='1' changeset='1' lat='1' lon='1'>
+    <tag k="note" v="One UTF-8 four-byte character on 8th position" />
+    <tag k="utf8" v="1234567&#x2F800;x" />
+  </node>
+  <node id='15' timestamp='2010-01-01T00:00:01Z' uid='1' user='TEST' visible='true' version='1' changeset='1' lat='1' lon='1'>
+    <tag k="note" v="One UTF-8 four-byte character on 8th position" />
+    <tag k="utf8" v="1234567&#x10FFFF;x" />
+  </node>
+  <node id='21' timestamp='2010-01-01T00:00:01Z' uid='1' user='TEST' visible='true' version='1' changeset='1' lat='1' lon='1'>
+    <tag k="note" v="One UTF-8 four-byte character on 7th position" />
+    <tag k="utf8" v="123456&#x10FFFF;x" />
+  </node>
+  <node id='22' timestamp='2010-01-01T00:00:01Z' uid='1' user='TEST' visible='true' version='1' changeset='1' lat='1' lon='1'>
+    <tag k="note" v="One UTF-8 four-byte character on 6th position" />
+    <tag k="utf8" v="12345&#x10FFFF;x" />
+  </node>
+  <node id='23' timestamp='2010-01-01T00:00:01Z' uid='1' user='TEST' visible='true' version='1' changeset='1' lat='1' lon='1'>
+    <tag k="note" v="One UTF-8 four-byte character on 5th position" />
+    <tag k="utf8" v="1234&#x10FFFF;x" />
+  </node>
+  <node id='24' timestamp='2010-01-01T00:00:01Z' uid='1' user='TEST' visible='true' version='1' changeset='1' lat='1' lon='1'>
+    <tag k="note" v="One UTF-8 four-byte character on 4th position" />
+    <tag k="utf8" v="123&#x10FFFF;x" />
+  </node>
+  <node id='30' timestamp='2010-01-01T00:00:01Z' uid='1' user='TEST' visible='true' version='1' changeset='1' lat='1' lon='1'>
+    <tag k="note" v="Long value (254)" />
+    <tag k="utf8" v="12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234" />
+  </node>
+  <node id='31' timestamp='2010-01-01T00:00:01Z' uid='1' user='TEST' visible='true' version='1' changeset='1' lat='1' lon='1'>
+    <tag k="note" v="Long value (255)" />
+    <tag k="utf8" v="123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345" />
+  </node>
+  <node id='32' timestamp='2010-01-01T00:00:01Z' uid='1' user='TEST' visible='true' version='1' changeset='1' lat='1' lon='1'>
+    <tag k="note" v="Long value (256)" />
+    <tag k="utf8" v="1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456" />
+  </node>
+  <node id='33' timestamp='2010-01-01T00:00:01Z' uid='1' user='TEST' visible='true' version='1' changeset='1' lat='1' lon='1'>
+    <tag k="note" v="Long value (257)" />
+    <tag k="utf8" v="12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567" />
+  </node>
+  <node id='40' timestamp='2010-01-01T00:00:01Z' uid='1' user='TEST' visible='true' version='1' changeset='1' lat='1' lon='1'>
+    <tag k="note" v="UTF-8 four-byte character times 254" />
+    <tag k="utf8" v="&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;" />
+  </node>
+  <node id='41' timestamp='2010-01-01T00:00:01Z' uid='1' user='TEST' visible='true' version='1' changeset='1' lat='1' lon='1'>
+    <tag k="note" v="UTF-8 four-byte character times 255" />
+    <tag k="utf8" v="&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;" />
+  </node>
+<!--  <node id='42' timestamp='2010-01-01T00:00:01Z' uid='1' user='TEST' visible='true' version='1' changeset='1' lat='1' lon='1'>
+    <tag k="note" v="UTF-8 four-byte character times 256" />
+    <tag k="utf8" v="&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;&#x10FFFF;" />
+  </node>-->
+</osm>

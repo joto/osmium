@@ -24,7 +24,7 @@ CXXFLAGS += -I../include -I../pbf
 LDFLAGS = -L/usr/local/lib -lexpat -lpthread
 LDFLAGS += $(shell geos-config --libs)
 
-LIB_V8       = -lv8
+LIB_V8       = -lv8 -licuuc
 LIB_SHAPE    = -lshp
 LIB_PROTOBUF = -lz -lprotobuf
 

@@ -27,6 +27,10 @@ namespace Osmium {
           public:
 
             static const int max_length_timestamp = 20 + 1; ///< maximum length of OSM object timestamp string (20 characters + null byte)
+
+            static const int max_characters_username = 255;
+            static const int max_utf16_length_username = 2 * (max_characters_username + 1); ///< maximum number of UTF-16 units
+
             static const int max_length_username = 255 * 4 + 1; ///< maximum length of OSM user name (255 UTF-8 characters + null byte)
 
             osm_object_id_t    id;        ///< object id
