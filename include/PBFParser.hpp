@@ -301,9 +301,9 @@ namespace Osmium {
                 if (!read_blob_header()) {
                     return false; // EOF
                 }
+                array_t a = read_blob(m_blobHeader.datasize());
 
                 if (m_blobHeader.type() == "OSMData") {
-                    array_t a = read_blob(m_blobHeader.datasize());
                     if (!m_primitiveBlock.ParseFromArray(a.data, a.size)) {
                         throw std::runtime_error("failed to parse PrimitiveBlock");
                     }
@@ -311,7 +311,6 @@ namespace Osmium {
                 }
 
                 if (m_blobHeader.type() == "OSMHeader") {
-                    array_t a = read_blob(m_blobHeader.datasize());
                     if (!m_headerBlock.ParseFromArray(a.data, a.size)) {
                         throw std::runtime_error("failed to parse HeaderBlock");
                     }
