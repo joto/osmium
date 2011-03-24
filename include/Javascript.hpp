@@ -93,7 +93,7 @@ template<int characters> const char *v8_String_to_utf8(v8::Local<v8::String> str
  */
 inline void v8_String_to_ostream(v8::Local<v8::String> string, std::ostream &os) {
     UErrorCode error_code = U_ZERO_ERROR;
-    int length = 2 * (string->Length() + 1);
+    int length = 4 * (string->Length() + 1);
     uint16_t *src = (uint16_t *) malloc(length);
     if (!src) {
         throw std::bad_alloc();
