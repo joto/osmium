@@ -54,16 +54,23 @@ namespace Osmium {
                 assert(shp_handle != 0);
                 dbf_handle = DBFCreate(filename);
                 assert(dbf_handle != 0);
-                std::string prjfile(filename);
-                prjfile = prjfile + ".prj";
-                FILE *prj = fopen(prjfile.c_str(), "w");
-                fprintf(prj, "%s\n", "GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"Degree\",0.017453292519943295]]");
-                fclose(prj);
-                std::string cpgfile(filename);
-                cpgfile = cpgfile + ".cpg";
-                FILE *cpg = fopen(cpgfile.c_str(), "w");
-                fprintf(cpg, "%s\n", "UTF-8");
-                fclose(cpg);
+
+                std::string filen(filename);
+                std::ofstream file;
+
+                file.open(filen + ".prj");
+                if (file.fail()) {
+                    throw std::runtime_error("Can't open shapefile: " + filen);
+                }
+                file << "GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"Degree\",0.017453292519943295]]" << std::endl;
+                file.close();
+
+                file.open(filen + ".cpg");
+                if (file.fail()) {
+                    throw std::runtime_error("Can't open shapefile: " + filen);
+                }
+                file << "UTF-8" << std::endl;
+                file.close();
 
                 js_object = v8::Persistent<v8::Object>::New( Osmium::Javascript::Template::create_output_shapefile_instance(this) );
                 // js_object.MakeWeak((void *)(this), JS_Cleanup); // XXX doesn't work!?
