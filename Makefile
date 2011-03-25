@@ -22,3 +22,9 @@ doc: doc/html/files.html
 doc/html/files.html: include/*.hpp src/*.cpp pbf/*.proto
 	doxygen
 
+deb:
+	debuild -I -us -uc
+
+deb-clean:
+	debuild clean
+
