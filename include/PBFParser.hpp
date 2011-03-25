@@ -32,6 +32,9 @@ extern bool debug;
 
 namespace Osmium {
 
+    /**
+     * Class for parsing PBF files
+     */
     class PBFParser {
 
         static const int NANO = 1000 * 1000 * 1000;
@@ -57,30 +60,17 @@ namespace Osmium {
         int groups_with_ways;
         int groups_with_relations;
 
-        OSMPBF::BlobHeader m_blobHeader;
-
-        OSMPBF::HeaderBlock m_headerBlock;
-        OSMPBF::PrimitiveBlock m_primitiveBlock;
-
-        std::map< std::string, int > m_nodeTags;
-        std::map< std::string, int > m_wayTags;
-        std::map< std::string, int > m_relationTags;
-
-        std::vector< int > m_nodeTagIDs;
-        std::vector< int > m_wayTagIDs;
-        std::vector< int > m_relationTagIDs;
-
-        int64_t m_lastDenseID;
-        int64_t m_lastDenseLatitude;
-        int64_t m_lastDenseLongitude;
-        int64_t m_lastDenseUID;
-        int64_t m_lastDenseUserSID;
-        int64_t m_lastDenseChangeset;
-        int64_t m_lastDenseTimestamp;
-        int m_lastDenseTag;
+        OSMPBF::BlobHeader pbf_blob_header;
+        OSMPBF::PrimitiveBlock pbf_primitive_block;
 
       public:
 
+        /**
+         * Instantiate PBF Parser
+         *
+         * @param in_fd File descripter to read data from.
+         * @param cb Structure with callbacks.
+         */
         PBFParser(int in_fd, struct callbacks *cb) : fd(in_fd), callbacks(cb) {
             GOOGLE_PROTOBUF_VERIFY_VERSION;
             groups_with_nodes     = 0;
@@ -92,30 +82,39 @@ namespace Osmium {
             google::protobuf::ShutdownProtobufLibrary();
         }
 
+        /**
+         * Parse PBF file.
+         *
+         * @param in_node Pointer to node object that can be filled with data from file.
+         * @param in_way Pointer to way object that can be filled with data from file.
+         * @param in_relation Pointer to relation object that can be filled with data from file.
+         */
         void parse(Osmium::OSM::Node *in_node, Osmium::OSM::Way *in_way, Osmium::OSM::Relation *in_relation) {
             while (read_blob_header()) {
-                array_t a = read_blob(m_blobHeader.datasize());
+                array_t a = read_blob(pbf_blob_header.datasize());
 
-                if (m_blobHeader.type() == "OSMData") {
+                if (pbf_blob_header.type() == "OSMData") {
                     if (debug) {
                         std::cerr << "Got blob of type OSMData" << std::endl;
                     }
-                    if (!m_primitiveBlock.ParseFromArray(a.data, a.size)) {
+                    if (!pbf_primitive_block.ParseFromArray(a.data, a.size)) {
                         throw std::runtime_error("Failed to parse PrimitiveBlock.");
                     }
-                    for (int i=0; i < m_primitiveBlock.primitivegroup_size(); i++) {
-                        parse_group(m_primitiveBlock.primitivegroup(i), in_node, in_way, in_relation);
+                    OSMPBF::StringTable stringtable = pbf_primitive_block.stringtable();
+                    for (int i=0; i < pbf_primitive_block.primitivegroup_size(); i++) {
+                        parse_group(pbf_primitive_block.primitivegroup(i), stringtable, in_node, in_way, in_relation);
                     }
-                } else if (m_blobHeader.type() == "OSMHeader") {
+                } else if (pbf_blob_header.type() == "OSMHeader") {
                     if (debug) {
                         std::cerr << "Got blob of type OSMHeader" << std::endl;
                     }
-                    if (!m_headerBlock.ParseFromArray(a.data, a.size)) {
+                    OSMPBF::HeaderBlock pbf_header_block;
+                    if (!pbf_header_block.ParseFromArray(a.data, a.size)) {
                         throw std::runtime_error("Failed to parse HeaderBlock.");
                     }
 
-                    for (int i=0; i < m_headerBlock.required_features_size(); i++) {
-                        const std::string& feature = m_headerBlock.required_features(i);
+                    for (int i=0; i < pbf_header_block.required_features_size(); i++) {
+                        const std::string& feature = pbf_header_block.required_features(i);
 
                         if ((feature != "OsmSchema-V0.6") && (feature != "DenseNodes")) {
                             errmsg << "Required feature not supported: " << feature;
@@ -124,7 +123,7 @@ namespace Osmium {
                     }
                 } else {
                     if (debug) {
-                        std::cerr << "Ignoring unknown blob type (" << m_blobHeader.type().data() << ")." << std::endl;
+                        std::cerr << "Ignoring unknown blob type (" << pbf_blob_header.type().data() << ")." << std::endl;
                     }
                 }
             }
@@ -141,28 +140,25 @@ namespace Osmium {
 
       private:
 
-        void parse_group(const OSMPBF::PrimitiveGroup& group, Osmium::OSM::Node *in_node, Osmium::OSM::Way *in_way, Osmium::OSM::Relation *in_relation) {
-            int max_entity;
-
+        /**
+         * Parse one PrimitiveGroup inside a PrimitiveBlock. This function will check what
+         * type of data the group contains (nodes, dense nodes, ways, or relations) and
+         * call the proper parsing function. It will also make sure the right before_*
+         * and after_* callbacks are called.
+         *
+         * @param group The PrimitiveGroup to parse.
+         * @param stringtable The string table inside the PrimitiveBlock with tags and usernames.
+         * @param in_node Pointer to node object that can be filled with data from file.
+         * @param in_way Pointer to way object that can be filled with data from file.
+         * @param in_relation Pointer to relation object that can be filled with data from file.
+         */
+        void parse_group(const OSMPBF::PrimitiveGroup& group, const OSMPBF::StringTable& stringtable, Osmium::OSM::Node *in_node, Osmium::OSM::Way *in_way, Osmium::OSM::Relation *in_relation) {
             if (group.has_dense())  {
                 if (groups_with_nodes == 0) {
                     if (callbacks->before_nodes) { callbacks->before_nodes(); }
                 }
                 groups_with_nodes++;
-                max_entity = group.dense().id_size();
-                m_lastDenseID = 0;
-                m_lastDenseUID = 0;
-                m_lastDenseUserSID = 0;
-                m_lastDenseChangeset = 0;
-                m_lastDenseTimestamp = 0;
-                m_lastDenseLatitude = 0;
-                m_lastDenseLongitude = 0;
-                m_lastDenseTag = 0;
-                assert( group.dense().id_size() != 0 );
-                for (int m_currentEntity = 0; m_currentEntity < max_entity; m_currentEntity++) {
-                    parseDense(group, m_currentEntity, in_node);
-                    if (callbacks->node) { callbacks->node(in_node); }
-                }
+                parse_dense_node_group(group, stringtable, in_node);
             } else if (group.ways_size() != 0) {
                 if (groups_with_ways == 0) {
                     if (groups_with_nodes > 0) {
@@ -171,11 +167,7 @@ namespace Osmium {
                     if (callbacks->before_ways) { callbacks->before_ways(); }
                 }
                 groups_with_ways++;
-                max_entity = group.ways_size();
-                for (int m_currentEntity = 0; m_currentEntity < max_entity; m_currentEntity++) {
-                    parseWay(group, m_currentEntity, in_way);
-                    if (callbacks->way) { callbacks->way(in_way); }
-                }
+                parse_way_group(group, stringtable, in_way);
             } else if (group.relations_size() != 0) {
                 if (groups_with_relations == 0) {
                     if (groups_with_nodes > 0 && groups_with_ways == 0) {
@@ -187,147 +179,177 @@ namespace Osmium {
                     if (callbacks->before_relations) { callbacks->before_relations(); }
                 }
                 groups_with_relations++;
-                max_entity = group.relations_size();
-                for (int m_currentEntity = 0; m_currentEntity < max_entity; m_currentEntity++) {
-                    parseRelation(group, m_currentEntity, in_relation);
-                    if (callbacks->relation) { callbacks->relation(in_relation); }
-                }
+                parse_relation_group(group, stringtable, in_relation);
             } else if (group.nodes_size() != 0) {
                 if (groups_with_nodes == 0) {
                     if (callbacks->before_nodes) { callbacks->before_nodes(); }
                 }
                 groups_with_nodes++;
-                max_entity = group.nodes_size();
-                for (int m_currentEntity = 0; m_currentEntity < max_entity; m_currentEntity++) {
-                    parseNode(group, m_currentEntity, in_node);
-                    if (callbacks->node) { callbacks->node(in_node); }
-                }
+                parse_node_group(group, stringtable, in_node);
             } else {
                 throw std::runtime_error("Group of unknown type.");
             }
         }
 
-        int convertNetworkByteOrder( char data[4] ) {
+        void parse_node_group(const OSMPBF::PrimitiveGroup& group, const OSMPBF::StringTable& stringtable, Osmium::OSM::Node* node) {
+            int max_entity = group.nodes_size();
+            for (int entity=0; entity < max_entity; entity++) {
+                node->reset();
+
+                const OSMPBF::Node& inputNode = group.nodes(entity);
+                node->id = inputNode.id();
+                node->version = inputNode.info().version();
+                node->uid = inputNode.info().uid();
+                if (! memccpy(node->user, stringtable.s(inputNode.info().user_sid()).data(), 0, Osmium::OSM::Object::max_length_username)) {
+                    throw std::length_error("user name too long");
+                }
+                node->changeset = inputNode.info().changeset();
+                node->timestamp = inputNode.info().timestamp();
+                for (int tag=0; tag < inputNode.keys_size(); tag++) {
+                    node->add_tag(stringtable.s( inputNode.keys( tag ) ).data(),
+                                  stringtable.s( inputNode.vals( tag ) ).data());
+                }
+
+                node->set_coordinates(( ( double ) inputNode.lon() * pbf_primitive_block.granularity() + pbf_primitive_block.lon_offset() ) / NANO,
+                                      ( ( double ) inputNode.lat() * pbf_primitive_block.granularity() + pbf_primitive_block.lat_offset() ) / NANO);
+
+                if (callbacks->node) { callbacks->node(node); }
+            }
+        }
+
+        void parse_way_group(const OSMPBF::PrimitiveGroup& group, const OSMPBF::StringTable& stringtable, Osmium::OSM::Way* way) {
+            int max_entity = group.ways_size();
+            for (int entity=0; entity < max_entity; entity++) {
+                way->reset();
+
+                const OSMPBF::Way& inputWay = group.ways(entity);
+                way->id = inputWay.id();
+                way->version = inputWay.info().version();
+                way->uid = inputWay.info().uid();
+                if (! memccpy(way->user, stringtable.s(inputWay.info().user_sid()).data(), 0, Osmium::OSM::Object::max_length_username)) {
+                    throw std::length_error("user name too long");
+                }
+                way->changeset = inputWay.info().changeset();
+                way->timestamp = inputWay.info().timestamp();
+                for (int tag=0; tag < inputWay.keys_size(); tag++) {
+                    way->add_tag(stringtable.s( inputWay.keys( tag ) ).data(),
+                                 stringtable.s( inputWay.vals( tag ) ).data());
+                }
+
+                uint64_t lastRef = 0;
+                for (int i=0; i < inputWay.refs_size(); i++) {
+                    lastRef += inputWay.refs( i );
+                    way->add_node( lastRef );
+                }
+
+                if (callbacks->way) { callbacks->way(way); }
+            }
+        }
+
+        void parse_relation_group(const OSMPBF::PrimitiveGroup& group, const OSMPBF::StringTable& stringtable, Osmium::OSM::Relation* relation) {
+            int max_entity = group.relations_size();
+            for (int entity=0; entity < max_entity; entity++) {
+                relation->reset();
+
+                const OSMPBF::Relation& inputRelation = group.relations(entity);
+                relation->id = inputRelation.id();
+                relation->version = inputRelation.info().version();
+                relation->uid = inputRelation.info().uid();
+                if (! memccpy(relation->user, stringtable.s(inputRelation.info().user_sid()).data(), 0, Osmium::OSM::Object::max_length_username)) {
+                    throw std::length_error("user name too long");
+                }
+                relation->changeset = inputRelation.info().changeset();
+                relation->timestamp = inputRelation.info().timestamp();
+                for (int tag=0; tag < inputRelation.keys_size(); tag++) {
+                    relation->add_tag(stringtable.s( inputRelation.keys(tag) ).data(),
+                                      stringtable.s( inputRelation.vals(tag) ).data());
+                }
+
+                uint64_t lastRef = 0;
+                for (int i=0; i < inputRelation.types_size(); i++) {
+                    char type = 'x';
+                    switch (inputRelation.types(i)) {
+                        case OSMPBF::Relation::NODE:
+                            type = 'n';
+                            break;
+                        case OSMPBF::Relation::WAY:
+                            type = 'w';
+                            break;
+                        case OSMPBF::Relation::RELATION:
+                            type = 'r';
+                            break;
+                    }
+                    lastRef += inputRelation.memids(i);
+                    relation->add_member(type, lastRef, stringtable.s( inputRelation.roles_sid( i ) ).data());
+                }
+
+                if (callbacks->relation) { callbacks->relation(relation); }
+            }
+        }
+
+        void parse_dense_node_group(const OSMPBF::PrimitiveGroup& group, const OSMPBF::StringTable& stringtable, Osmium::OSM::Node* node) {
+            int64_t last_dense_id        = 0;
+            int64_t last_dense_latitude  = 0;
+            int64_t last_dense_longitude = 0;
+            int64_t last_dense_uid       = 0;
+            int64_t last_dense_user_sid  = 0;
+            int64_t last_dense_changeset = 0;
+            int64_t last_dense_timestamp = 0;
+            int     last_dense_tag       = 0;
+
+            int max_entity = group.dense().id_size();
+            for (int entity=0; entity < max_entity; entity++) {
+                node->reset();
+
+                const OSMPBF::DenseNodes& dense = group.dense();
+                last_dense_id        += dense.id(entity);
+                last_dense_latitude  += dense.lat(entity);
+                last_dense_longitude += dense.lon(entity);
+                last_dense_uid       += dense.denseinfo().uid(entity);
+                last_dense_user_sid  += dense.denseinfo().user_sid(entity);
+                last_dense_changeset += dense.denseinfo().changeset(entity);
+                last_dense_timestamp += dense.denseinfo().timestamp(entity);
+                node->id      = last_dense_id;
+                node->uid     = last_dense_uid;
+                node->version = dense.denseinfo().version(entity);
+                if (! memccpy(node->user, stringtable.s(last_dense_user_sid).data(), 0, Osmium::OSM::Object::max_length_username)) {
+                    throw std::length_error("user name too long");
+                }
+                node->changeset = last_dense_changeset;
+                node->timestamp = last_dense_timestamp;
+                node->set_coordinates(( ( double ) last_dense_longitude * pbf_primitive_block.granularity() + pbf_primitive_block.lon_offset() ) / NANO,
+                                      ( ( double ) last_dense_latitude  * pbf_primitive_block.granularity() + pbf_primitive_block.lat_offset() ) / NANO);
+
+                while (last_dense_tag < dense.keys_vals_size()) {
+                    int tagValue = dense.keys_vals(last_dense_tag);
+
+                    if (tagValue == 0) {
+                        last_dense_tag++;
+                        break;
+                    }
+
+                    node->add_tag(stringtable.s( dense.keys_vals(last_dense_tag  ) ).data(),
+                                  stringtable.s( dense.keys_vals(last_dense_tag+1) ).data());
+
+                    last_dense_tag += 2;
+                }
+
+                if (callbacks->node) { callbacks->node(node); }
+            }
+        }
+
+        /**
+         * Convert 4 bytes from network byte order.
+         */
+        int convertNetworkByteOrder(char data[4]) {
             return ( ( ( unsigned ) data[0] ) << 24 ) | ( ( ( unsigned ) data[1] ) << 16 ) | ( ( ( unsigned ) data[2] ) << 8 ) | ( unsigned ) data[3];
         }
 
-        void parseNode(const OSMPBF::PrimitiveGroup& group, int entity, Osmium::OSM::Node* node) {
-            node->reset();
-
-            const OSMPBF::Node& inputNode = group.nodes(entity);
-            node->id = inputNode.id();
-            node->version = inputNode.info().version();
-            node->uid = inputNode.info().uid();
-            if (! memccpy(node->user, m_primitiveBlock.stringtable().s(inputNode.info().user_sid()).data(), 0, Osmium::OSM::Object::max_length_username)) {
-                throw std::length_error("user name too long");
-            }
-            node->changeset = inputNode.info().changeset();
-            node->timestamp = inputNode.info().timestamp();
-            node->set_coordinates(( ( double ) inputNode.lon() * m_primitiveBlock.granularity() + m_primitiveBlock.lon_offset() ) / NANO,
-                                  ( ( double ) inputNode.lat() * m_primitiveBlock.granularity() + m_primitiveBlock.lat_offset() ) / NANO);
-            for (int tag=0; tag < inputNode.keys_size(); tag++) {
-                node->add_tag(m_primitiveBlock.stringtable().s( inputNode.keys( tag ) ).data(),
-                              m_primitiveBlock.stringtable().s( inputNode.vals( tag ) ).data() );
-            }
-        }
-
-        void parseWay(const OSMPBF::PrimitiveGroup& group, int entity, Osmium::OSM::Way* way) {
-            way->reset();
-
-            const OSMPBF::Way& inputWay = group.ways(entity);
-            way->id = inputWay.id();
-            way->version = inputWay.info().version();
-            way->uid = inputWay.info().uid();
-            if (! memccpy(way->user, m_primitiveBlock.stringtable().s(inputWay.info().user_sid()).data(), 0, Osmium::OSM::Object::max_length_username)) {
-                throw std::length_error("user name too long");
-            }
-            way->changeset = inputWay.info().changeset();
-            way->timestamp = inputWay.info().timestamp();
-            for (int tag=0; tag < inputWay.keys_size(); tag++) {
-                way->add_tag( m_primitiveBlock.stringtable().s( inputWay.keys( tag ) ).data(),
-                            m_primitiveBlock.stringtable().s( inputWay.vals( tag ) ).data() );
-            }
-
-            uint64_t lastRef = 0;
-            for (int i=0; i < inputWay.refs_size(); i++) {
-                lastRef += inputWay.refs( i );
-                way->add_node( lastRef );
-            }
-        }
-
-        void parseRelation(const OSMPBF::PrimitiveGroup& group, int entity, Osmium::OSM::Relation* relation) {
-            relation->reset();
-
-            const OSMPBF::Relation& inputRelation = group.relations(entity);
-            relation->id = inputRelation.id();
-            relation->version = inputRelation.info().version();
-            relation->uid = inputRelation.info().uid();
-            if (! memccpy(relation->user, m_primitiveBlock.stringtable().s(inputRelation.info().user_sid()).data(), 0, Osmium::OSM::Object::max_length_username)) {
-                throw std::length_error("user name too long");
-            }
-            relation->changeset = inputRelation.info().changeset();
-            relation->timestamp = inputRelation.info().timestamp();
-            for (int tag=0; tag < inputRelation.keys_size(); tag++) {
-                relation->add_tag( m_primitiveBlock.stringtable().s( inputRelation.keys(tag) ).data(),
-                                   m_primitiveBlock.stringtable().s( inputRelation.vals(tag) ).data() );
-            }
-
-            uint64_t lastRef = 0;
-            for (int i=0; i < inputRelation.types_size(); i++) {
-                char type = 'x';
-                switch ( inputRelation.types(i) ) {
-                case OSMPBF::Relation::NODE:
-                    type = 'n';
-                    break;
-                case OSMPBF::Relation::WAY:
-                    type = 'w';
-                    break;
-                case OSMPBF::Relation::RELATION:
-                    type = 'r';
-                    break;
-                }
-                lastRef += inputRelation.memids(i);
-                relation->add_member(type, lastRef, m_primitiveBlock.stringtable().s( inputRelation.roles_sid( i ) ).data());
-            }
-        }
-
-        void parseDense(const OSMPBF::PrimitiveGroup& group, int entity, Osmium::OSM::Node* node) {
-            node->reset();
-
-            const OSMPBF::DenseNodes& dense = group.dense();
-            m_lastDenseID += dense.id(entity);
-            m_lastDenseLatitude += dense.lat(entity);
-            m_lastDenseLongitude += dense.lon(entity);
-            m_lastDenseUID += dense.denseinfo().uid(entity);
-            m_lastDenseUserSID += dense.denseinfo().user_sid(entity);
-            m_lastDenseChangeset += dense.denseinfo().changeset(entity);
-            m_lastDenseTimestamp += dense.denseinfo().timestamp(entity);
-            node->id = m_lastDenseID;
-            node->version = dense.denseinfo().version(entity);
-            node->uid = m_lastDenseUID;
-            if (! memccpy(node->user, m_primitiveBlock.stringtable().s( m_lastDenseUserSID ).data(), 0, Osmium::OSM::Object::max_length_username)) {
-                throw std::length_error("user name too long");
-            }
-            node->changeset = m_lastDenseChangeset;
-            node->timestamp = m_lastDenseTimestamp;
-            node->set_coordinates(( ( double ) m_lastDenseLongitude * m_primitiveBlock.granularity() + m_primitiveBlock.lon_offset() ) / NANO,
-                                  ( ( double ) m_lastDenseLatitude * m_primitiveBlock.granularity() + m_primitiveBlock.lat_offset() ) / NANO);
-
-            while (m_lastDenseTag < dense.keys_vals_size()) {
-                int tagValue = dense.keys_vals( m_lastDenseTag );
-
-                if (tagValue == 0) {
-                    m_lastDenseTag++;
-                    break;
-                }
-
-                node->add_tag( m_primitiveBlock.stringtable().s( dense.keys_vals( m_lastDenseTag     ) ).data(),
-                               m_primitiveBlock.stringtable().s( dense.keys_vals( m_lastDenseTag + 1 ) ).data() );
-
-                m_lastDenseTag += 2;
-            }
-        }
-
+        /**
+         * Read blob header by first reading the size and then the header
+         *
+         * @returns false for EOF, true otherwise
+         */
         bool read_blob_header() {
             char size_in_network_byte_order[4];
             ssize_t bytes_read = read(fd, size_in_network_byte_order, sizeof(size_in_network_byte_order));
@@ -348,7 +370,7 @@ namespace Osmium {
                 throw std::runtime_error("failed to read BlobHeader");
             }
 
-            if (!m_blobHeader.ParseFromArray(buffer, size)) {
+            if (!pbf_blob_header.ParseFromArray(buffer, size)) {
                 throw std::runtime_error("failed to parse BlobHeader");
             }
             return true;
@@ -373,7 +395,7 @@ namespace Osmium {
             if (blob.has_raw()) {
                 return { blob.raw().data(), blob.raw().size() };
             } else if (blob.has_zlib_data()) {
-                unpackZlib(blob.zlib_data().data(), blob.zlib_data().size(), blob.raw_size());
+                unpack_with_zlib(blob.zlib_data().data(), blob.zlib_data().size(), blob.raw_size());
                 return { unpack_buffer, blob.raw_size() };
             } else if (blob.has_lzma_data()) {
                 throw std::runtime_error("lzma blobs not implemented");
@@ -382,24 +404,31 @@ namespace Osmium {
             }
         }
 
-        void unpackZlib(const char *data, size_t size, size_t raw_size) {
-            z_stream compressedStream;
+        /**
+         * Unpack a blob thats been packed with zlib.
+         *
+         * @param data Source (packed) data.
+         * @param size Size of source data in bytes.
+         * @param raw_size Size of destination (unpacked) data.
+         */
+        void unpack_with_zlib(const char *data, size_t size, size_t raw_size) {
+            z_stream compressed_stream;
 
-            compressedStream.next_in   = (unsigned char*) data;
-            compressedStream.avail_in  = size;
-            compressedStream.next_out  = (unsigned char*) unpack_buffer;
-            compressedStream.avail_out = raw_size;
-            compressedStream.zalloc    = Z_NULL;
-            compressedStream.zfree     = Z_NULL;
-            compressedStream.opaque    = Z_NULL;
+            compressed_stream.next_in   = (unsigned char*) data;
+            compressed_stream.avail_in  = size;
+            compressed_stream.next_out  = (unsigned char*) unpack_buffer;
+            compressed_stream.avail_out = raw_size;
+            compressed_stream.zalloc    = Z_NULL;
+            compressed_stream.zfree     = Z_NULL;
+            compressed_stream.opaque    = Z_NULL;
 
-            if (inflateInit(&compressedStream) != Z_OK) {
+            if (inflateInit(&compressed_stream) != Z_OK) {
                 throw std::runtime_error("failed to init zlib stream");
             }
-            if (inflate(&compressedStream, Z_FINISH) != Z_STREAM_END) {
+            if (inflate(&compressed_stream, Z_FINISH) != Z_STREAM_END) {
                 throw std::runtime_error("failed to inflate zlib stream");
             }
-            if (inflateEnd(&compressedStream) != Z_OK) {
+            if (inflateEnd(&compressed_stream) != Z_OK) {
                 throw std::runtime_error("failed to deinit zlib stream");
             }
         }
