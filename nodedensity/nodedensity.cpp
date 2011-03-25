@@ -20,9 +20,12 @@ struct callbacks *setup_callbacks() {
     return &cb;
 }
 
+bool debug;
+
 /* ================================================== */
 
 int main(int argc, char *argv[]) {
+    debug = false;
 
     if (argc != 5) {
         std::cerr << "Usage: " << argv[0] << " OSMFILE SIZE MIN MAX" << std::endl;
