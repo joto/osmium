@@ -29,10 +29,8 @@ LIB_SHAPE    = -lshp
 LIB_PROTOBUF = -lz -lprotobuf
 
 CPP = osmium.cpp XMLParser.cpp
-CPP_JS = JavascriptTemplate.cpp
 
 OBJ = osmium.o XMLParser.o
-OBJ_JS = JavascriptTemplate.o
 OBJ_PBF = fileformat.pb.o osmformat.pb.o
 
 HPP = osmium.hpp Osm.hpp OsmObject.hpp OsmNode.hpp OsmWay.hpp OsmRelation.hpp OsmMultipolygon.hpp XMLParser.hpp wkb.hpp StringStore.hpp Handler.hpp HandlerBbox.hpp HandlerMultipolygon.hpp HandlerStatistics.hpp HandlerTagStats.hpp HandlerNodeLocationStore.hpp PBFParser.hpp
@@ -42,11 +40,6 @@ SRC_OBJ = $(patsubst %,../src/%,$(OBJ))
 SRC_HPP = $(patsubst %,../include/%,$(HPP))
 
 SRC_OBJ_PBF = $(patsubst %,../pbf/%,$(OBJ_PBF))
-
-SRC_CPP_JS = $(patsubst %,../include/%,$(CPP_JS))
-SRC_OBJ_JS = $(patsubst %,../include/%,$(OBJ_JS))
-SRC_HPP_JS = $(patsubst %,../include/%,$(HPP_JS))
-SRC_HPP_JS = $(wildcard ../include/*Javascript*.hpp)
 
 .PHONY: all clean doc protobuf install
 
@@ -58,11 +51,11 @@ protobuf:
 %.o: ../src/%.cpp $(SRC_HPP)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-osmium_sizeof: osmium_sizeof.cpp $(OBJ) $(OBJ_JS) $(SRC_HPP) $(SRC_HPP_JS)
-	$(CXX) $(CXXFLAGS) -o $@ $< $(OBJ) $(OBJ_JS) $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_V8) $(LIB_SHAPE)
+osmium_sizeof: osmium_sizeof.cpp $(OBJ) $(SRC_HPP)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(OBJ) $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_V8) $(LIB_SHAPE)
 
-osmium_debug: osmium_debug.cpp $(OBJ) $(OBJ_JS) $(SRC_HPP) $(SRC_HPP_JS)
-	$(CXX) $(CXXFLAGS) -o $@ $< $(OBJ) $(OBJ_JS) $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_V8) $(LIB_SHAPE)
+osmium_debug: osmium_debug.cpp $(OBJ) $(SRC_HPP)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(OBJ) $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_V8) $(LIB_SHAPE)
 
 install:
     
