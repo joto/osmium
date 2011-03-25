@@ -44,13 +44,9 @@ libsqlite3 (for HandlerTagStats/tagstats only)
     http://sqlite.org/
     Debian/Ubuntu: libsqlite3-0 libsqlite3-dev
 
-libgd (for HandlerTagStats/tagstats only)
+libgd (for HandlerTagStats/tagstats and nodedensity only)
     http://www.libgd.org/
     Debian/Ubuntu: libgd2-xpm libgd2-xpm-dev
-
-libpng (for HandlerTagStats/tagstats only)
-    http://www.libpng.org/
-    Debian/Ubuntu: libpng12-0 libpng12-dev
 
 Expat (for parsing XML files)
     http://expat.sourceforge.net/

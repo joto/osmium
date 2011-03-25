@@ -20,7 +20,7 @@ CXXFLAGS += -I../include -I../pbf
 LDFLAGS = -L/usr/local/lib -lexpat -lpthread
 LDFLAGS += $(shell geos-config --libs)
 
-LIB_GD       = -lgd -lpng -lz -lm
+LIB_GD       = -lgd -lz -lm
 LIB_PROTOBUF = -lz -lprotobuf
 
 CPP = osmium.cpp XMLParser.cpp
