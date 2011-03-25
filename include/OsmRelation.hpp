@@ -75,10 +75,10 @@ namespace Osmium {
             }
 
             RelationMember *get_member(int index) {
-                if (index < num_members) {
+                if (index >= 0 && index < num_members) {
                     return &members[index];
                 }
-                return 0;
+                return NULL;
             }
 
 #ifdef WITH_SHPLIB

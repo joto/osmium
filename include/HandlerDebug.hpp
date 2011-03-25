@@ -35,12 +35,20 @@ namespace Osmium {
             void callback_way(const OSM::Way *object) {
                 std::cout << "  way:" << std::endl;
                 std::cout << "    node_count=" << object->node_count() << std::endl;
-                std::cout << "    XXX output node list" << std::endl;
+                std::cout << "    nodes:" << std::endl;
+                for (int i=0; i < object->node_count(); i++) {
+                    std::cout << "      ref=" << object->nodes[i] << std::endl;
+                }
             }
 
-            void callback_relation(const OSM::Relation *object) {
+            void callback_relation(OSM::Relation *object) {
                 std::cout << "  relation:" << std::endl;
-                std::cout << "    XXX output member info" << std::endl;
+                std::cout << "    member_count=" << object->member_count() << std::endl;
+                std::cout << "    members:" << std::endl;
+                for (int i=0; i < object->member_count(); i++) {
+                    const Osmium::OSM::RelationMember *m = object->get_member(i);
+                    std::cout << "      type=" << m->type << " ref=" << m->ref << " role=|" << m->role << "|" << std::endl;
+                }
             }
 
             void callback_final() {
