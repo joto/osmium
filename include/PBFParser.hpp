@@ -16,7 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with MoNav.  If not, see <http://www.gnu.org/licenses/>.
+along with MoNav. If not, see <http://www.gnu.org/licenses/>.
 */
 
 #ifndef PBFPARSER_HPP
@@ -27,6 +27,8 @@ along with MoNav.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <fileformat.pb.h>
 #include <osmformat.pb.h>
+
+extern bool debug;
 
 namespace Osmium {
 
@@ -51,7 +53,9 @@ namespace Osmium {
             size_t size;
         } array_t;
 
-        bool debug;
+        int groups_with_nodes;
+        int groups_with_ways;
+        int groups_with_relations;
 
       public:
 
@@ -59,89 +63,139 @@ namespace Osmium {
             GOOGLE_PROTOBUF_VERIFY_VERSION;
             fd = in_fd;
             callbacks = cb;
-            last_mode = ModeNode;
-            m_loadBlock = true;
+            groups_with_nodes = 0;
+            groups_with_ways = 0;
+            groups_with_relations = 0;
         }
 
         ~PBFParser () {
             google::protobuf::ShutdownProtobufLibrary();
         }
 
-        void parse(Osmium::OSM::Node *in_node, Osmium::OSM::Way *in_way, Osmium::OSM::Relation *in_relation) {
-            if (callbacks->before_nodes) { callbacks->before_nodes(); }
-            while (1) {
-                if (m_loadBlock) {
-                    if (!read_next_block()) {
-                        if (callbacks->after_relations) { callbacks->after_relations(); }
-                        return; // EOF
-                    }
-                    loadBlock();
-                    loadGroup();
-                }
+        void handle_groups(Osmium::OSM::Node *in_node, Osmium::OSM::Way *in_way, Osmium::OSM::Relation *in_relation) {
+            int max_entity;
+            for (int m_currentGroup = 0; m_currentGroup < m_primitiveBlock.primitivegroup_size(); m_currentGroup++) {
+                const OSMPBF::PrimitiveGroup& group = m_primitiveBlock.primitivegroup(m_currentGroup);
 
-                if (last_mode != m_mode) {
-                    switch (m_mode) {
-                        case ModeNode:
-                            break;
-                        case ModeDense:
-                            break;
-                        case ModeWay:
+                if (group.has_dense())  {
+                    if (groups_with_nodes == 0) {
+                        if (callbacks->before_nodes) { callbacks->before_nodes(); }
+                    }
+                    groups_with_nodes++;
+                    max_entity = group.dense().id_size();
+                    m_lastDenseID = 0;
+                    m_lastDenseUID = 0;
+                    m_lastDenseUserSID = 0;
+                    m_lastDenseChangeset = 0;
+                    m_lastDenseTimestamp = 0;
+                    m_lastDenseLatitude = 0;
+                    m_lastDenseLongitude = 0;
+                    m_lastDenseTag = 0;
+                    assert( group.dense().id_size() != 0 );
+                    for (int m_currentEntity = 0; m_currentEntity < max_entity; m_currentEntity++) {
+                        parseDense(group, m_currentEntity, in_node);
+                        if (callbacks->node) { callbacks->node(in_node); }
+                    }
+                } else if (group.ways_size() != 0) {
+                    if (groups_with_ways == 0) {
+                        if (groups_with_nodes > 0) {
                             if (callbacks->after_nodes) { callbacks->after_nodes(); }
-                            if (callbacks->before_ways) { callbacks->before_ways(); }
-                            break;
-                        case ModeRelation:
-                            if (callbacks->after_ways) { callbacks->after_ways(); }
-                            if (callbacks->before_relations) { callbacks->before_relations(); }
-                            break;
+                        }
+                        if (callbacks->before_ways) { callbacks->before_ways(); }
                     }
-                    last_mode = m_mode;
-                }
-
-                switch (m_mode) {
-                    case ModeNode:
-                        parseNode(in_node);
-                        if (callbacks->node) { callbacks->node(in_node); }
-                        break;
-                    case ModeWay:
-                        parseWay(in_way);
+                    groups_with_ways++;
+                    max_entity = group.ways_size();
+                    for (int m_currentEntity = 0; m_currentEntity < max_entity; m_currentEntity++) {
+                        parseWay(group, m_currentEntity, in_way);
                         if (callbacks->way) { callbacks->way(in_way); }
-                        break;
-                    case ModeRelation:
-                        parseRelation(in_relation);
+                    }
+                } else if (group.relations_size() != 0) {
+                    if (groups_with_relations == 0) {
+                        if (groups_with_nodes > 0 && groups_with_ways == 0) {
+                            if (callbacks->after_nodes) { callbacks->after_nodes(); }
+                        }
+                        if (groups_with_ways > 0) {
+                            if (callbacks->after_ways) { callbacks->after_ways(); }
+                        }
+                        if (callbacks->before_relations) { callbacks->before_relations(); }
+                    }
+                    groups_with_relations++;
+                    max_entity = group.relations_size();
+                    for (int m_currentEntity = 0; m_currentEntity < max_entity; m_currentEntity++) {
+                        parseRelation(group, m_currentEntity, in_relation);
                         if (callbacks->relation) { callbacks->relation(in_relation); }
-                        break;
-                    case ModeDense:
-                        parseDense(in_node);
+                    }
+                } else if (group.nodes_size() != 0) {
+                    if (groups_with_nodes == 0) {
+                        if (callbacks->before_nodes) { callbacks->before_nodes(); }
+                    }
+                    groups_with_nodes++;
+                    max_entity = group.nodes_size();
+                    for (int m_currentEntity = 0; m_currentEntity < max_entity; m_currentEntity++) {
+                        parseNode(group, m_currentEntity, in_node);
                         if (callbacks->node) { callbacks->node(in_node); }
-                        break;
+                    }
+                } else {
+                    throw std::runtime_error("entity of unknown type");
                 }
+            }
+        }
 
+        void parse(Osmium::OSM::Node *in_node, Osmium::OSM::Way *in_way, Osmium::OSM::Relation *in_relation) {
+            while (read_blob_header()) {
+                array_t a = read_blob(m_blobHeader.datasize());
+
+                if (m_blobHeader.type() == "OSMData") {
+                    if (debug) {
+                        std::cerr << "Got blob of type OSMData" << std::endl;
+                    }
+                    if (!m_primitiveBlock.ParseFromArray(a.data, a.size)) {
+                        throw std::runtime_error("failed to parse PrimitiveBlock");
+                    }
+                    handle_groups(in_node, in_way, in_relation);
+                } else if (m_blobHeader.type() == "OSMHeader") {
+                    if (debug) {
+                        std::cerr << "Got blob of type OSMHeader" << std::endl;
+                    }
+                    if (!m_headerBlock.ParseFromArray(a.data, a.size)) {
+                        throw std::runtime_error("failed to parse HeaderBlock");
+                    }
+
+                    for (int i = 0; i < m_headerBlock.required_features_size(); i++) {
+                        const std::string& feature = m_headerBlock.required_features(i);
+
+                        if ((feature != "OsmSchema-V0.6") && (feature != "DenseNodes")) {
+                            errmsg << "required feature not supported: " << feature;
+                            throw std::runtime_error(errmsg.str());
+                        }
+                    }
+                } else {
+                    if (debug) {
+                        std::cerr << "ignoring unknown block type (" << m_blobHeader.type().data() << ")" << std::endl;
+                    }
+                }
+            }
+            if (groups_with_nodes > 0 && groups_with_ways == 0 && groups_with_relations == 0) {
+                if (callbacks->after_nodes) { callbacks->after_nodes(); }
+            }
+            if (groups_with_ways > 0 && groups_with_relations == 0) {
+                if (callbacks->after_ways) { callbacks->after_ways(); }
+            }
+            if (groups_with_relations > 0) {
+                if (callbacks->after_relations) { callbacks->after_relations(); }
             }
         }
 
     private:
 
-        void nextEntity(int max) {
-            m_currentEntity++;
-            if (m_currentEntity >= max) {
-                m_currentEntity = 0;
-                m_currentGroup++;
-                if (m_currentGroup >= m_primitiveBlock.primitivegroup_size()) {
-                    m_loadBlock = true;
-                } else {
-                    loadGroup();
-                }
-            }
-        }
-
         int convertNetworkByteOrder( char data[4] ) {
             return ( ( ( unsigned ) data[0] ) << 24 ) | ( ( ( unsigned ) data[1] ) << 16 ) | ( ( ( unsigned ) data[2] ) << 8 ) | ( unsigned ) data[3];
         }
 
-        void parseNode( Osmium::OSM::Node* node ) {
+        void parseNode(const OSMPBF::PrimitiveGroup& group, int entity, Osmium::OSM::Node* node) {
             node->reset();
 
-            const OSMPBF::Node& inputNode = m_primitiveBlock.primitivegroup( m_currentGroup ).nodes( m_currentEntity );
+            const OSMPBF::Node& inputNode = group.nodes(entity);
             node->id = inputNode.id();
             node->version = inputNode.info().version();
             node->uid = inputNode.info().uid();
@@ -156,14 +210,12 @@ namespace Osmium {
                 node->add_tag(m_primitiveBlock.stringtable().s( inputNode.keys( tag ) ).data(),
                               m_primitiveBlock.stringtable().s( inputNode.vals( tag ) ).data() );
             }
-
-            nextEntity(m_primitiveBlock.primitivegroup(m_currentGroup).nodes_size());
         }
 
-        void parseWay( Osmium::OSM::Way* way ) {
+        void parseWay(const OSMPBF::PrimitiveGroup& group, int entity, Osmium::OSM::Way* way) {
             way->reset();
 
-            const OSMPBF::Way& inputWay = m_primitiveBlock.primitivegroup( m_currentGroup ).ways( m_currentEntity );
+            const OSMPBF::Way& inputWay = group.ways(entity);
             way->id = inputWay.id();
             way->version = inputWay.info().version();
             way->uid = inputWay.info().uid();
@@ -182,14 +234,12 @@ namespace Osmium {
                 lastRef += inputWay.refs( i );
                 way->add_node( lastRef );
             }
-
-            nextEntity(m_primitiveBlock.primitivegroup(m_currentGroup).ways_size());
         }
 
-        void parseRelation( Osmium::OSM::Relation* relation ) {
+        void parseRelation(const OSMPBF::PrimitiveGroup& group, int entity, Osmium::OSM::Relation* relation) {
             relation->reset();
 
-            const OSMPBF::Relation& inputRelation = m_primitiveBlock.primitivegroup( m_currentGroup ).relations( m_currentEntity );
+            const OSMPBF::Relation& inputRelation = group.relations(entity);
             relation->id = inputRelation.id();
             relation->version = inputRelation.info().version();
             relation->uid = inputRelation.info().uid();
@@ -220,23 +270,21 @@ namespace Osmium {
                 lastRef += inputRelation.memids(i);
                 relation->add_member(type, lastRef, m_primitiveBlock.stringtable().s( inputRelation.roles_sid( i ) ).data());
             }
-
-            nextEntity(m_primitiveBlock.primitivegroup(m_currentGroup).relations_size());
         }
 
-        void parseDense( Osmium::OSM::Node* node ) {
+        void parseDense(const OSMPBF::PrimitiveGroup& group, int entity, Osmium::OSM::Node* node) {
             node->reset();
 
-            const OSMPBF::DenseNodes& dense = m_primitiveBlock.primitivegroup( m_currentGroup ).dense();
-            m_lastDenseID += dense.id( m_currentEntity );
-            m_lastDenseLatitude += dense.lat( m_currentEntity );
-            m_lastDenseLongitude += dense.lon( m_currentEntity );
-            m_lastDenseUID += dense.denseinfo().uid( m_currentEntity );
-            m_lastDenseUserSID += dense.denseinfo().user_sid( m_currentEntity );
-            m_lastDenseChangeset += dense.denseinfo().changeset( m_currentEntity );
-            m_lastDenseTimestamp += dense.denseinfo().timestamp( m_currentEntity );
+            const OSMPBF::DenseNodes& dense = group.dense();
+            m_lastDenseID += dense.id(entity);
+            m_lastDenseLatitude += dense.lat(entity);
+            m_lastDenseLongitude += dense.lon(entity);
+            m_lastDenseUID += dense.denseinfo().uid(entity);
+            m_lastDenseUserSID += dense.denseinfo().user_sid(entity);
+            m_lastDenseChangeset += dense.denseinfo().changeset(entity);
+            m_lastDenseTimestamp += dense.denseinfo().timestamp(entity);
             node->id = m_lastDenseID;
-            node->version = dense.denseinfo().version( m_currentEntity );
+            node->version = dense.denseinfo().version(entity);
             node->uid = m_lastDenseUID;
             if (! memccpy(node->user, m_primitiveBlock.stringtable().s( m_lastDenseUserSID ).data(), 0, Osmium::OSM::Object::max_length_username)) {
                 throw std::length_error("user name too long");
@@ -258,76 +306,6 @@ namespace Osmium {
                                m_primitiveBlock.stringtable().s( dense.keys_vals( m_lastDenseTag + 1 ) ).data() );
 
                 m_lastDenseTag += 2;
-            }
-
-            nextEntity(dense.id_size());
-        }
-
-        void loadGroup() {
-            const OSMPBF::PrimitiveGroup& group = m_primitiveBlock.primitivegroup( m_currentGroup );
-            if (group.nodes_size() != 0) {
-                m_mode = ModeNode;
-            } else if (group.ways_size() != 0) {
-                m_mode = ModeWay;
-            } else if (group.relations_size() != 0) {
-                m_mode = ModeRelation;
-            } else if (group.has_dense())  {
-                m_mode = ModeDense;
-                m_lastDenseID = 0;
-                m_lastDenseUID = 0;
-                m_lastDenseUserSID = 0;
-                m_lastDenseChangeset = 0;
-                m_lastDenseTimestamp = 0;
-                m_lastDenseLatitude = 0;
-                m_lastDenseLongitude = 0;
-                m_lastDenseTag = 0;
-                assert( group.dense().id_size() != 0 );
-            } else {
-                throw std::runtime_error("entity of unknown type");
-            }
-        }
-
-        void loadBlock() {
-            m_loadBlock = false;
-            m_currentGroup = 0;
-            m_currentEntity = 0;
-        }
-
-        /**
-        * Read next data block from input file. This will ignore unknown block types.
-        */
-        bool read_next_block() {
-            while (true) {
-                if (!read_blob_header()) {
-                    return false; // EOF
-                }
-                array_t a = read_blob(m_blobHeader.datasize());
-
-                if (m_blobHeader.type() == "OSMData") {
-                    if (!m_primitiveBlock.ParseFromArray(a.data, a.size)) {
-                        throw std::runtime_error("failed to parse PrimitiveBlock");
-                    }
-                    return true;
-                }
-
-                if (m_blobHeader.type() == "OSMHeader") {
-                    if (!m_headerBlock.ParseFromArray(a.data, a.size)) {
-                        throw std::runtime_error("failed to parse HeaderBlock");
-                    }
-
-                    for (int i = 0; i < m_headerBlock.required_features_size(); i++) {
-                        const std::string& feature = m_headerBlock.required_features(i);
-
-                        if ((feature != "OsmSchema-V0.6") && (feature != "DenseNodes")) {
-                            errmsg << "required feature not supported: " << feature;
-                            throw std::runtime_error(errmsg.str());
-                        }
-                    }
-                } else {
-                    if (debug) {
-                        std::cerr << "ignoring unknown block type (" << m_blobHeader.type().data() << ")" << std::endl;
-                    }
-                }
             }
         }
 
@@ -411,13 +389,6 @@ namespace Osmium {
 
         OSMPBF::HeaderBlock m_headerBlock;
         OSMPBF::PrimitiveBlock m_primitiveBlock;
-
-        int m_currentGroup;
-        int m_currentEntity;
-        bool m_loadBlock;
-
-        Mode m_mode;
-        Mode last_mode;
 
         std::map< std::string, int > m_nodeTags;
         std::map< std::string, int > m_wayTags;
