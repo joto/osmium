@@ -57,6 +57,28 @@ namespace Osmium {
         int groups_with_ways;
         int groups_with_relations;
 
+        OSMPBF::BlobHeader m_blobHeader;
+
+        OSMPBF::HeaderBlock m_headerBlock;
+        OSMPBF::PrimitiveBlock m_primitiveBlock;
+
+        std::map< std::string, int > m_nodeTags;
+        std::map< std::string, int > m_wayTags;
+        std::map< std::string, int > m_relationTags;
+
+        std::vector< int > m_nodeTagIDs;
+        std::vector< int > m_wayTagIDs;
+        std::vector< int > m_relationTagIDs;
+
+        int64_t m_lastDenseID;
+        int64_t m_lastDenseLatitude;
+        int64_t m_lastDenseLongitude;
+        int64_t m_lastDenseUID;
+        int64_t m_lastDenseUserSID;
+        int64_t m_lastDenseChangeset;
+        int64_t m_lastDenseTimestamp;
+        int m_lastDenseTag;
+
       public:
 
         PBFParser(int in_fd, struct callbacks *cb) {
@@ -71,6 +93,53 @@ namespace Osmium {
         ~PBFParser () {
             google::protobuf::ShutdownProtobufLibrary();
         }
+
+        void parse(Osmium::OSM::Node *in_node, Osmium::OSM::Way *in_way, Osmium::OSM::Relation *in_relation) {
+            while (read_blob_header()) {
+                array_t a = read_blob(m_blobHeader.datasize());
+
+                if (m_blobHeader.type() == "OSMData") {
+                    if (debug) {
+                        std::cerr << "Got blob of type OSMData" << std::endl;
+                    }
+                    if (!m_primitiveBlock.ParseFromArray(a.data, a.size)) {
+                        throw std::runtime_error("failed to parse PrimitiveBlock");
+                    }
+                    handle_groups(in_node, in_way, in_relation);
+                } else if (m_blobHeader.type() == "OSMHeader") {
+                    if (debug) {
+                        std::cerr << "Got blob of type OSMHeader" << std::endl;
+                    }
+                    if (!m_headerBlock.ParseFromArray(a.data, a.size)) {
+                        throw std::runtime_error("failed to parse HeaderBlock");
+                    }
+
+                    for (int i = 0; i < m_headerBlock.required_features_size(); i++) {
+                        const std::string& feature = m_headerBlock.required_features(i);
+
+                        if ((feature != "OsmSchema-V0.6") && (feature != "DenseNodes")) {
+                            errmsg << "required feature not supported: " << feature;
+                            throw std::runtime_error(errmsg.str());
+                        }
+                    }
+                } else {
+                    if (debug) {
+                        std::cerr << "ignoring unknown block type (" << m_blobHeader.type().data() << ")" << std::endl;
+                    }
+                }
+            }
+            if (groups_with_nodes > 0 && groups_with_ways == 0 && groups_with_relations == 0) {
+                if (callbacks->after_nodes) { callbacks->after_nodes(); }
+            }
+            if (groups_with_ways > 0 && groups_with_relations == 0) {
+                if (callbacks->after_ways) { callbacks->after_ways(); }
+            }
+            if (groups_with_relations > 0) {
+                if (callbacks->after_relations) { callbacks->after_relations(); }
+            }
+        }
+
+      private:
 
         void handle_groups(Osmium::OSM::Node *in_node, Osmium::OSM::Way *in_way, Osmium::OSM::Relation *in_relation) {
             int max_entity;
@@ -140,53 +209,6 @@ namespace Osmium {
                 }
             }
         }
-
-        void parse(Osmium::OSM::Node *in_node, Osmium::OSM::Way *in_way, Osmium::OSM::Relation *in_relation) {
-            while (read_blob_header()) {
-                array_t a = read_blob(m_blobHeader.datasize());
-
-                if (m_blobHeader.type() == "OSMData") {
-                    if (debug) {
-                        std::cerr << "Got blob of type OSMData" << std::endl;
-                    }
-                    if (!m_primitiveBlock.ParseFromArray(a.data, a.size)) {
-                        throw std::runtime_error("failed to parse PrimitiveBlock");
-                    }
-                    handle_groups(in_node, in_way, in_relation);
-                } else if (m_blobHeader.type() == "OSMHeader") {
-                    if (debug) {
-                        std::cerr << "Got blob of type OSMHeader" << std::endl;
-                    }
-                    if (!m_headerBlock.ParseFromArray(a.data, a.size)) {
-                        throw std::runtime_error("failed to parse HeaderBlock");
-                    }
-
-                    for (int i = 0; i < m_headerBlock.required_features_size(); i++) {
-                        const std::string& feature = m_headerBlock.required_features(i);
-
-                        if ((feature != "OsmSchema-V0.6") && (feature != "DenseNodes")) {
-                            errmsg << "required feature not supported: " << feature;
-                            throw std::runtime_error(errmsg.str());
-                        }
-                    }
-                } else {
-                    if (debug) {
-                        std::cerr << "ignoring unknown block type (" << m_blobHeader.type().data() << ")" << std::endl;
-                    }
-                }
-            }
-            if (groups_with_nodes > 0 && groups_with_ways == 0 && groups_with_relations == 0) {
-                if (callbacks->after_nodes) { callbacks->after_nodes(); }
-            }
-            if (groups_with_ways > 0 && groups_with_relations == 0) {
-                if (callbacks->after_ways) { callbacks->after_ways(); }
-            }
-            if (groups_with_relations > 0) {
-                if (callbacks->after_relations) { callbacks->after_relations(); }
-            }
-        }
-
-    private:
 
         int convertNetworkByteOrder( char data[4] ) {
             return ( ( ( unsigned ) data[0] ) << 24 ) | ( ( ( unsigned ) data[1] ) << 16 ) | ( ( ( unsigned ) data[2] ) << 8 ) | ( unsigned ) data[3];
@@ -384,28 +406,6 @@ namespace Osmium {
                 throw std::runtime_error("failed to deinit zlib stream");
             }
         }
-
-        OSMPBF::BlobHeader m_blobHeader;
-
-        OSMPBF::HeaderBlock m_headerBlock;
-        OSMPBF::PrimitiveBlock m_primitiveBlock;
-
-        std::map< std::string, int > m_nodeTags;
-        std::map< std::string, int > m_wayTags;
-        std::map< std::string, int > m_relationTags;
-
-        std::vector< int > m_nodeTagIDs;
-        std::vector< int > m_wayTagIDs;
-        std::vector< int > m_relationTagIDs;
-
-        int64_t m_lastDenseID;
-        int64_t m_lastDenseLatitude;
-        int64_t m_lastDenseLongitude;
-        int64_t m_lastDenseUID;
-        int64_t m_lastDenseUserSID;
-        int64_t m_lastDenseChangeset;
-        int64_t m_lastDenseTimestamp;
-        int m_lastDenseTag;
 
     }; // class PBFParser
 
