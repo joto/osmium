@@ -81,12 +81,10 @@ namespace Osmium {
 
       public:
 
-        PBFParser(int in_fd, struct callbacks *cb) {
+        PBFParser(int in_fd, struct callbacks *cb) : fd(in_fd), callbacks(cb) {
             GOOGLE_PROTOBUF_VERIFY_VERSION;
-            fd = in_fd;
-            callbacks = cb;
-            groups_with_nodes = 0;
-            groups_with_ways = 0;
+            groups_with_nodes     = 0;
+            groups_with_ways      = 0;
             groups_with_relations = 0;
         }
 
@@ -103,28 +101,30 @@ namespace Osmium {
                         std::cerr << "Got blob of type OSMData" << std::endl;
                     }
                     if (!m_primitiveBlock.ParseFromArray(a.data, a.size)) {
-                        throw std::runtime_error("failed to parse PrimitiveBlock");
+                        throw std::runtime_error("Failed to parse PrimitiveBlock.");
                     }
-                    handle_groups(in_node, in_way, in_relation);
+                    for (int i=0; i < m_primitiveBlock.primitivegroup_size(); i++) {
+                        parse_group(m_primitiveBlock.primitivegroup(i), in_node, in_way, in_relation);
+                    }
                 } else if (m_blobHeader.type() == "OSMHeader") {
                     if (debug) {
                         std::cerr << "Got blob of type OSMHeader" << std::endl;
                     }
                     if (!m_headerBlock.ParseFromArray(a.data, a.size)) {
-                        throw std::runtime_error("failed to parse HeaderBlock");
+                        throw std::runtime_error("Failed to parse HeaderBlock.");
                     }
 
-                    for (int i = 0; i < m_headerBlock.required_features_size(); i++) {
+                    for (int i=0; i < m_headerBlock.required_features_size(); i++) {
                         const std::string& feature = m_headerBlock.required_features(i);
 
                         if ((feature != "OsmSchema-V0.6") && (feature != "DenseNodes")) {
-                            errmsg << "required feature not supported: " << feature;
+                            errmsg << "Required feature not supported: " << feature;
                             throw std::runtime_error(errmsg.str());
                         }
                     }
                 } else {
                     if (debug) {
-                        std::cerr << "ignoring unknown block type (" << m_blobHeader.type().data() << ")" << std::endl;
+                        std::cerr << "Ignoring unknown blob type (" << m_blobHeader.type().data() << ")." << std::endl;
                     }
                 }
             }
@@ -141,72 +141,69 @@ namespace Osmium {
 
       private:
 
-        void handle_groups(Osmium::OSM::Node *in_node, Osmium::OSM::Way *in_way, Osmium::OSM::Relation *in_relation) {
+        void parse_group(const OSMPBF::PrimitiveGroup& group, Osmium::OSM::Node *in_node, Osmium::OSM::Way *in_way, Osmium::OSM::Relation *in_relation) {
             int max_entity;
-            for (int m_currentGroup = 0; m_currentGroup < m_primitiveBlock.primitivegroup_size(); m_currentGroup++) {
-                const OSMPBF::PrimitiveGroup& group = m_primitiveBlock.primitivegroup(m_currentGroup);
 
-                if (group.has_dense())  {
-                    if (groups_with_nodes == 0) {
-                        if (callbacks->before_nodes) { callbacks->before_nodes(); }
-                    }
-                    groups_with_nodes++;
-                    max_entity = group.dense().id_size();
-                    m_lastDenseID = 0;
-                    m_lastDenseUID = 0;
-                    m_lastDenseUserSID = 0;
-                    m_lastDenseChangeset = 0;
-                    m_lastDenseTimestamp = 0;
-                    m_lastDenseLatitude = 0;
-                    m_lastDenseLongitude = 0;
-                    m_lastDenseTag = 0;
-                    assert( group.dense().id_size() != 0 );
-                    for (int m_currentEntity = 0; m_currentEntity < max_entity; m_currentEntity++) {
-                        parseDense(group, m_currentEntity, in_node);
-                        if (callbacks->node) { callbacks->node(in_node); }
-                    }
-                } else if (group.ways_size() != 0) {
-                    if (groups_with_ways == 0) {
-                        if (groups_with_nodes > 0) {
-                            if (callbacks->after_nodes) { callbacks->after_nodes(); }
-                        }
-                        if (callbacks->before_ways) { callbacks->before_ways(); }
-                    }
-                    groups_with_ways++;
-                    max_entity = group.ways_size();
-                    for (int m_currentEntity = 0; m_currentEntity < max_entity; m_currentEntity++) {
-                        parseWay(group, m_currentEntity, in_way);
-                        if (callbacks->way) { callbacks->way(in_way); }
-                    }
-                } else if (group.relations_size() != 0) {
-                    if (groups_with_relations == 0) {
-                        if (groups_with_nodes > 0 && groups_with_ways == 0) {
-                            if (callbacks->after_nodes) { callbacks->after_nodes(); }
-                        }
-                        if (groups_with_ways > 0) {
-                            if (callbacks->after_ways) { callbacks->after_ways(); }
-                        }
-                        if (callbacks->before_relations) { callbacks->before_relations(); }
-                    }
-                    groups_with_relations++;
-                    max_entity = group.relations_size();
-                    for (int m_currentEntity = 0; m_currentEntity < max_entity; m_currentEntity++) {
-                        parseRelation(group, m_currentEntity, in_relation);
-                        if (callbacks->relation) { callbacks->relation(in_relation); }
-                    }
-                } else if (group.nodes_size() != 0) {
-                    if (groups_with_nodes == 0) {
-                        if (callbacks->before_nodes) { callbacks->before_nodes(); }
-                    }
-                    groups_with_nodes++;
-                    max_entity = group.nodes_size();
-                    for (int m_currentEntity = 0; m_currentEntity < max_entity; m_currentEntity++) {
-                        parseNode(group, m_currentEntity, in_node);
-                        if (callbacks->node) { callbacks->node(in_node); }
-                    }
-                } else {
-                    throw std::runtime_error("entity of unknown type");
+            if (group.has_dense())  {
+                if (groups_with_nodes == 0) {
+                    if (callbacks->before_nodes) { callbacks->before_nodes(); }
                 }
+                groups_with_nodes++;
+                max_entity = group.dense().id_size();
+                m_lastDenseID = 0;
+                m_lastDenseUID = 0;
+                m_lastDenseUserSID = 0;
+                m_lastDenseChangeset = 0;
+                m_lastDenseTimestamp = 0;
+                m_lastDenseLatitude = 0;
+                m_lastDenseLongitude = 0;
+                m_lastDenseTag = 0;
+                assert( group.dense().id_size() != 0 );
+                for (int m_currentEntity = 0; m_currentEntity < max_entity; m_currentEntity++) {
+                    parseDense(group, m_currentEntity, in_node);
+                    if (callbacks->node) { callbacks->node(in_node); }
+                }
+            } else if (group.ways_size() != 0) {
+                if (groups_with_ways == 0) {
+                    if (groups_with_nodes > 0) {
+                        if (callbacks->after_nodes) { callbacks->after_nodes(); }
+                    }
+                    if (callbacks->before_ways) { callbacks->before_ways(); }
+                }
+                groups_with_ways++;
+                max_entity = group.ways_size();
+                for (int m_currentEntity = 0; m_currentEntity < max_entity; m_currentEntity++) {
+                    parseWay(group, m_currentEntity, in_way);
+                    if (callbacks->way) { callbacks->way(in_way); }
+                }
+            } else if (group.relations_size() != 0) {
+                if (groups_with_relations == 0) {
+                    if (groups_with_nodes > 0 && groups_with_ways == 0) {
+                        if (callbacks->after_nodes) { callbacks->after_nodes(); }
+                    }
+                    if (groups_with_ways > 0) {
+                        if (callbacks->after_ways) { callbacks->after_ways(); }
+                    }
+                    if (callbacks->before_relations) { callbacks->before_relations(); }
+                }
+                groups_with_relations++;
+                max_entity = group.relations_size();
+                for (int m_currentEntity = 0; m_currentEntity < max_entity; m_currentEntity++) {
+                    parseRelation(group, m_currentEntity, in_relation);
+                    if (callbacks->relation) { callbacks->relation(in_relation); }
+                }
+            } else if (group.nodes_size() != 0) {
+                if (groups_with_nodes == 0) {
+                    if (callbacks->before_nodes) { callbacks->before_nodes(); }
+                }
+                groups_with_nodes++;
+                max_entity = group.nodes_size();
+                for (int m_currentEntity = 0; m_currentEntity < max_entity; m_currentEntity++) {
+                    parseNode(group, m_currentEntity, in_node);
+                    if (callbacks->node) { callbacks->node(in_node); }
+                }
+            } else {
+                throw std::runtime_error("Group of unknown type.");
             }
         }
 
@@ -228,7 +225,7 @@ namespace Osmium {
             node->timestamp = inputNode.info().timestamp();
             node->set_coordinates(( ( double ) inputNode.lon() * m_primitiveBlock.granularity() + m_primitiveBlock.lon_offset() ) / NANO,
                                   ( ( double ) inputNode.lat() * m_primitiveBlock.granularity() + m_primitiveBlock.lat_offset() ) / NANO);
-            for ( int tag = 0; tag < inputNode.keys_size(); tag++ ) {
+            for (int tag=0; tag < inputNode.keys_size(); tag++) {
                 node->add_tag(m_primitiveBlock.stringtable().s( inputNode.keys( tag ) ).data(),
                               m_primitiveBlock.stringtable().s( inputNode.vals( tag ) ).data() );
             }
@@ -246,13 +243,13 @@ namespace Osmium {
             }
             way->changeset = inputWay.info().changeset();
             way->timestamp = inputWay.info().timestamp();
-            for (int tag = 0; tag < inputWay.keys_size(); tag++) {
+            for (int tag=0; tag < inputWay.keys_size(); tag++) {
                 way->add_tag( m_primitiveBlock.stringtable().s( inputWay.keys( tag ) ).data(),
                             m_primitiveBlock.stringtable().s( inputWay.vals( tag ) ).data() );
             }
 
             uint64_t lastRef = 0;
-            for (int i = 0; i < inputWay.refs_size(); i++) {
+            for (int i=0; i < inputWay.refs_size(); i++) {
                 lastRef += inputWay.refs( i );
                 way->add_node( lastRef );
             }
@@ -270,13 +267,13 @@ namespace Osmium {
             }
             relation->changeset = inputRelation.info().changeset();
             relation->timestamp = inputRelation.info().timestamp();
-            for (int tag = 0; tag < inputRelation.keys_size(); tag++) {
+            for (int tag=0; tag < inputRelation.keys_size(); tag++) {
                 relation->add_tag( m_primitiveBlock.stringtable().s( inputRelation.keys(tag) ).data(),
                                    m_primitiveBlock.stringtable().s( inputRelation.vals(tag) ).data() );
             }
 
             uint64_t lastRef = 0;
-            for (int i = 0; i < inputRelation.types_size(); i++) {
+            for (int i=0; i < inputRelation.types_size(); i++) {
                 char type = 'x';
                 switch ( inputRelation.types(i) ) {
                 case OSMPBF::Relation::NODE:
