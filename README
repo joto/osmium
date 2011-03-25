@@ -68,6 +68,10 @@ Google V8 Javascript engine (for Javascript support)
     http://code.google.com/apis/v8/
     Debian/Ubuntu: libv8-2.2.18 libv8-dev
 
+LibICU (for UTF-8/UTF-16 conversion, only for Javascript support)
+    http://site.icu-project.org/
+    Debian/Ubuntu: libicu42 libicu-dev
+
 Google protocol buffers for PBF support
     http://code.google.com/p/protobuf/ (at least Version 2.3.0 needed)
     (Debian/Ubuntu: libprotobuf6, libprotobuf-dev, protobuf-compiler)
@@ -88,10 +92,11 @@ include     - C/C++ include files. Most of Osmium is in those header files which
 osmjs       - Osmium application "osmjs".
 osmjs/js    - Example Javascript handlers.
 pbf         - Protobuf stuff needed for parsing PBF files.
-src         - Osmium source code (C++-Files)
+src         - Osmium source code (C++-Files).
 tagstats    - Osmium application "tagstats".
 nodedensity - Osmium application "nodedensity" creates PNGs showing density
-              of nodes in OSM data
+              of nodes in OSM data.
+
 
 BUILDING
 --------
@@ -106,4 +111,7 @@ Call "make clean" in any of those places to clean up.
 Call "make doc" in the top-level directory to build the Osmium C++ docs.
 
 Call "make install" to install applications.
+
+To build the debugging applications "osmium_debug" and "osmium_sizeof" to to
+the "src" directory and type "make" there.
 
