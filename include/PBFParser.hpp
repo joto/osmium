@@ -151,7 +151,7 @@ namespace Osmium {
                     if (callbacks->before_nodes) { callbacks->before_nodes(); }
                 }
                 groups_with_nodes++;
-                parse_dense_node_group(group, stringtable, in_node);
+                if (callbacks->node) { parse_dense_node_group(group, stringtable, in_node); }
             } else if (group.ways_size() != 0) {
                 if (groups_with_ways == 0) {
                     if (groups_with_nodes > 0) {
@@ -160,7 +160,7 @@ namespace Osmium {
                     if (callbacks->before_ways) { callbacks->before_ways(); }
                 }
                 groups_with_ways++;
-                parse_way_group(group, stringtable, in_way);
+                if (callbacks->way) { parse_way_group(group, stringtable, in_way); }
             } else if (group.relations_size() != 0) {
                 if (groups_with_relations == 0) {
                     if (groups_with_nodes > 0 && groups_with_ways == 0) {
@@ -172,13 +172,13 @@ namespace Osmium {
                     if (callbacks->before_relations) { callbacks->before_relations(); }
                 }
                 groups_with_relations++;
-                parse_relation_group(group, stringtable, in_relation);
+                if (callbacks->relation) { parse_relation_group(group, stringtable, in_relation); }
             } else if (group.nodes_size() != 0) {
                 if (groups_with_nodes == 0) {
                     if (callbacks->before_nodes) { callbacks->before_nodes(); }
                 }
                 groups_with_nodes++;
-                parse_node_group(group, stringtable, in_node);
+                if (callbacks->node) { parse_node_group(group, stringtable, in_node); }
             } else {
                 throw std::runtime_error("Group of unknown type.");
             }
