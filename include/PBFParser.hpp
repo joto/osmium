@@ -1,7 +1,9 @@
 /*
 
-The code in this file is based on the MoNav code, see
-http://wiki.openstreetmap.org/wiki/MoNav .
+The code in this file is based on the MoNav code, although it
+has changed quite a bit since then.
+
+For MoNav see http://wiki.openstreetmap.org/wiki/MoNav .
 
 Copyright 2010  Christian Vetter veaac.fdirct@gmail.com
 
@@ -41,24 +43,20 @@ namespace Osmium {
         static const int MAX_BLOB_HEADER_SIZE = 64 * 1024;
         static const int MAX_BLOB_SIZE = 32 * 1024 * 1024;
 
-        enum Mode {
-            ModeNode, ModeWay, ModeRelation, ModeDense
-        };
-
         char buffer[MAX_BLOB_SIZE];
         char unpack_buffer[MAX_BLOB_SIZE];
-        int fd;
-        std::ostringstream errmsg;
-        struct callbacks *callbacks;
+
+        int fd; ///< The file descriptor we are reading the data from.
+        struct callbacks *callbacks; ///< Functions to call for each object etc.
 
         typedef struct {
             const void *data;
             size_t size;
         } array_t;
 
-        int groups_with_nodes;
-        int groups_with_ways;
-        int groups_with_relations;
+        int groups_with_nodes; ///< Number of groups containing nodes.
+        int groups_with_ways; ///< Number of groups containing ways.
+        int groups_with_relations; ///< Number of groups containing relations.
 
         OSMPBF::BlobHeader pbf_blob_header;
         OSMPBF::PrimitiveBlock pbf_primitive_block;
@@ -94,9 +92,6 @@ namespace Osmium {
                 array_t a = read_blob(pbf_blob_header.datasize());
 
                 if (pbf_blob_header.type() == "OSMData") {
-                    if (debug) {
-                        std::cerr << "Got blob of type OSMData" << std::endl;
-                    }
                     if (!pbf_primitive_block.ParseFromArray(a.data, a.size)) {
                         throw std::runtime_error("Failed to parse PrimitiveBlock.");
                     }
@@ -105,9 +100,6 @@ namespace Osmium {
                         parse_group(pbf_primitive_block.primitivegroup(i), stringtable, in_node, in_way, in_relation);
                     }
                 } else if (pbf_blob_header.type() == "OSMHeader") {
-                    if (debug) {
-                        std::cerr << "Got blob of type OSMHeader" << std::endl;
-                    }
                     OSMPBF::HeaderBlock pbf_header_block;
                     if (!pbf_header_block.ParseFromArray(a.data, a.size)) {
                         throw std::runtime_error("Failed to parse HeaderBlock.");
@@ -117,6 +109,7 @@ namespace Osmium {
                         const std::string& feature = pbf_header_block.required_features(i);
 
                         if ((feature != "OsmSchema-V0.6") && (feature != "DenseNodes")) {
+                            std::ostringstream errmsg;
                             errmsg << "Required feature not supported: " << feature;
                             throw std::runtime_error(errmsg.str());
                         }
@@ -341,8 +334,8 @@ namespace Osmium {
         /**
          * Convert 4 bytes from network byte order.
          */
-        int convertNetworkByteOrder(char data[4]) {
-            return ( ( ( unsigned ) data[0] ) << 24 ) | ( ( ( unsigned ) data[1] ) << 16 ) | ( ( ( unsigned ) data[2] ) << 8 ) | ( unsigned ) data[3];
+        int convert_from_network_byte_order(unsigned char data[4]) {
+            return (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
         }
 
         /**
@@ -351,7 +344,7 @@ namespace Osmium {
          * @returns false for EOF, true otherwise
          */
         bool read_blob_header() {
-            char size_in_network_byte_order[4];
+            unsigned char size_in_network_byte_order[4];
             ssize_t bytes_read = read(fd, size_in_network_byte_order, sizeof(size_in_network_byte_order));
             if (bytes_read != sizeof(size_in_network_byte_order)) {
                 if (bytes_read == 0) {
@@ -360,8 +353,9 @@ namespace Osmium {
                 throw std::runtime_error("read error");
             }
 
-            int size = convertNetworkByteOrder(size_in_network_byte_order);
+            int size = convert_from_network_byte_order(size_in_network_byte_order);
             if (size > MAX_BLOB_HEADER_SIZE || size < 0) {
+                std::ostringstream errmsg;
                 errmsg << "BlobHeader size invalid:" << size;
                 throw std::runtime_error(errmsg.str());
             }
@@ -382,6 +376,7 @@ namespace Osmium {
         array_t read_blob(int size) {
             static OSMPBF::Blob blob;
             if (size < 0 || size > MAX_BLOB_SIZE) {
+                std::ostringstream errmsg;
                 errmsg << "invalid blob size: " << size;
                 throw std::runtime_error(errmsg.str());
             }
