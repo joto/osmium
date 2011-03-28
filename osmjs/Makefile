@@ -28,10 +28,10 @@ LIB_V8       = -lv8 -licuuc
 LIB_SHAPE    = -lshp
 LIB_PROTOBUF = -lz -lprotobuf
 
-CPP = osmium.cpp XMLParser.cpp
+CPP = osmium.cpp
 CPP_JS = JavascriptTemplate.cpp
 
-OBJ = osmium.o XMLParser.o
+OBJ = osmium.o
 OBJ_JS = JavascriptTemplate.o
 OBJ_PBF = fileformat.pb.o osmformat.pb.o
 

@@ -90,12 +90,18 @@ void parse_osmfile(char *osmfilename, struct callbacks *callbacks, Osmium::OSM::
     if (callbacks->init) { callbacks->init(); }
     switch (file_format) {
         case xml:
-            Osmium::XMLParser::parse(fd, callbacks, node, way, relation);
+            {
+            Osmium::XMLParser *xml_parser = new Osmium::XMLParser(fd, callbacks);
+            xml_parser->parse(node, way, relation);
+            delete xml_parser;
+            }
             break;
         case pbf:
+            {
             Osmium::PBFParser *pbf_parser = new Osmium::PBFParser(fd, callbacks);
             pbf_parser->parse(node, way, relation);
             delete pbf_parser;
+            }
             break;
     }
     if (callbacks->final) { callbacks->final(); }

@@ -23,9 +23,9 @@ LDFLAGS += $(shell geos-config --libs)
 LIB_GD       = -lgd -lz -lm
 LIB_PROTOBUF = -lz -lprotobuf
 
-CPP = osmium.cpp XMLParser.cpp
+CPP = osmium.cpp
 
-OBJ = osmium.o XMLParser.o
+OBJ = osmium.o
 OBJ_PBF = fileformat.pb.o osmformat.pb.o
 
 HPP = osmium.hpp Osm.hpp OsmObject.hpp OsmNode.hpp OsmWay.hpp OsmRelation.hpp XMLParser.hpp wkb.hpp Handler.hpp PBFParser.hpp

@@ -29,9 +29,9 @@ LIB_V8       = -lv8
 LIB_SHAPE    = -lshp
 LIB_PROTOBUF = -lz -lprotobuf
 
-CPP = osmium.cpp XMLParser.cpp
+CPP = osmium.cpp
 
-OBJ = osmium.o XMLParser.o
+OBJ = osmium.o
 OBJ_PBF = fileformat.pb.o osmformat.pb.o
 
 HPP = osmium.hpp Osm.hpp OsmObject.hpp OsmNode.hpp OsmWay.hpp OsmRelation.hpp OsmMultipolygon.hpp XMLParser.hpp wkb.hpp StringStore.hpp Handler.hpp HandlerBbox.hpp HandlerMultipolygon.hpp HandlerStatistics.hpp HandlerTagStats.hpp HandlerNodeLocationStore.hpp PBFParser.hpp
