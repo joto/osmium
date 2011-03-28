@@ -26,10 +26,8 @@ LIB_GD       = -lgd -lz -lm
 LIB_PROTOBUF = -lz -lprotobuf
 
 CPP = osmium.cpp XMLParser.cpp OsmMultipolygon.cpp
-CPP_TAGSTAT = HandlerStatistics.cpp
 
 OBJ = osmium.o XMLParser.o OsmMultipolygon.o
-OBJ_TAGSTAT = HandlerStatistics.o
 OBJ_PBF = fileformat.pb.o osmformat.pb.o
 
 HPP = osmium.hpp Osm.hpp OsmObject.hpp OsmNode.hpp OsmWay.hpp OsmRelation.hpp OsmMultipolygon.hpp XMLParser.hpp wkb.hpp StringStore.hpp Handler.hpp HandlerBbox.hpp HandlerMultipolygon.hpp HandlerStatistics.hpp HandlerTagStats.hpp HandlerNodeLocationStore.hpp PBFParser.hpp
@@ -37,9 +35,6 @@ HPP = osmium.hpp Osm.hpp OsmObject.hpp OsmNode.hpp OsmWay.hpp OsmRelation.hpp Os
 SRC_CPP = $(patsubst %,../src/%,$(CPP))
 SRC_OBJ = $(patsubst %,../src/%,$(OBJ))
 SRC_HPP = $(patsubst %,../include/%,$(HPP))
-
-SRC_CPP_TAGSTAT = $(patsubst %,../src/%,$(CPP_TAGSTAT))
-SRC_OBJ_TAGSTAT = $(patsubst %,../src/%,$(OBJ_TAGSTAT))
 
 SRC_OBJ_PBF = $(patsubst %,../pbf/%,$(OBJ_PBF))
 
@@ -53,8 +48,8 @@ protobuf:
 %.o: ../src/%.cpp $(SRC_HPP)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-tagstats: tagstats.cpp $(OBJ) $(OBJ_TAGSTAT) $(SRC_HPP)
-	$(CXX) $(CXXFLAGS) -o $@ $< $(OBJ) $(SRC_OBJ_PBF) $(OBJ_TAGSTAT) $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_GD) $(LIB_SQLITE) $(LIB_SHAPE)
+tagstats: tagstats.cpp $(OBJ) $(SRC_HPP)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(OBJ) $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_GD) $(LIB_SQLITE) $(LIB_SHAPE)
 
 install:
 	install -m 755 -g root -o root tagstats $(DESTDIR)/usr/bin/tagstat

@@ -7,9 +7,13 @@ namespace Osmium {
 
     namespace Handler {
 
+        /**
+         * Osmium handler that collects basic statistics from OSM data and
+         * writes it to a Sqlite database.
+         */
         class Statistics : public Base {
 
-            // if you change anything in this struct, also change the corresponding array in Statistics.cpp
+            // if you change anything in this struct, also change the corresponding array below
             struct statistics {
                 uint64_t nodes;
                 uint64_t nodes_without_tags;
@@ -41,17 +45,49 @@ namespace Osmium {
                 uint64_t max_changeset_id;
             } stats;
 
-            static const char *stat_names[];
+            const char **stat_names;
 
             osm_object_id_t id;
             osm_version_t   version;
             int             tag_count;
 
-            Sqlite::Database *db;
-
         public:
 
             Statistics() : Base() {
+                // if you change anything in this array, also change the corresponding struct above
+                static const char *sn[] = {
+                    "nodes",
+                    "nodes_without_tags",
+                    "node_tags",
+                    "max_node_id",
+                    "max_tags_on_node",
+                    "ways",
+                    "way_tags",
+                    "way_nodes",
+                    "max_way_id",
+                    "max_tags_on_way",
+                    "max_nodes_on_way",
+                    "closed_ways",
+                    "relations",
+                    "relation_tags",
+                    "relation_members",
+                    "max_relation_id",
+                    "max_tags_on_relation",
+                    "max_members_on_relation",
+                    "users",
+                    "max_user_id",
+                    "anon_user_objects",
+                    "max_node_version",
+                    "max_way_version",
+                    "max_relation_version",
+                    "sum_node_version",
+                    "sum_way_version",
+                    "sum_relation_version",
+                    "max_changeset_id",
+                    0    // last element must always be 0
+                };
+                stat_names = sn;
+
                 // initialize all statistics to zero
                 for (int i=0; stat_names[i]; i++) {
                     ((uint64_t *) &stats)[i] = 0;
@@ -123,7 +159,7 @@ namespace Osmium {
 
             void callback_final() {
                 unlink("count.db");
-                db = new Sqlite::Database("count.db");
+                Sqlite::Database *db = new Sqlite::Database("count.db");
 
                 sqlite3 *sqlite_db = db->get_sqlite3();
                 if (SQLITE_OK != sqlite3_exec(sqlite_db, \

@@ -5,6 +5,7 @@ tagstats/tagstats
 nodedensity/nodedensity
 src/osmium_sizeof
 src/osmium_debug
+src/osmium_stats
 pbf/fileformat.pb.h
 pbf/osmformat.pb.h
 test/tmp/

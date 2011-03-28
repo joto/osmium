@@ -24,6 +24,7 @@ CXXFLAGS += -I../include -I../pbf
 LDFLAGS = -L/usr/local/lib -lexpat -lpthread
 LDFLAGS += $(shell geos-config --libs)
 
+LIB_SQLITE   = -lsqlite3
 LIB_V8       = -lv8
 LIB_SHAPE    = -lshp
 LIB_PROTOBUF = -lz -lprotobuf
@@ -43,7 +44,7 @@ SRC_OBJ_PBF = $(patsubst %,../pbf/%,$(OBJ_PBF))
 
 .PHONY: all clean doc protobuf install
 
-all: protobuf osmium_sizeof osmium_debug
+all: protobuf osmium_sizeof osmium_debug osmium_stats
 
 protobuf:
 	$(MAKE) -C ../pbf CXX="$(CXX)" CXXFLAGS="$(CXXFLAGS)"
@@ -57,8 +58,11 @@ osmium_sizeof: osmium_sizeof.cpp $(OBJ) $(SRC_HPP)
 osmium_debug: osmium_debug.cpp $(OBJ) $(SRC_HPP)
 	$(CXX) $(CXXFLAGS) -o $@ $< $(OBJ) $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_V8) $(LIB_SHAPE)
 
+osmium_stats: osmium_stats.cpp $(OBJ) $(SRC_HPP)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(OBJ) $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_SQLITE) $(LIB_PROTOBUF) $(LIB_SHAPE)
+
 install:
     
 clean:
-	rm -f *.o core osmium_sizeof osmium_debug
+	rm -f *.o core osmium_sizeof osmium_debug osmium_stats
 
