@@ -118,6 +118,12 @@ namespace Osmium {
                 cb->multipolygon(multipolygon);
             }
 
+            void callback_init() {
+#ifdef WITH_MULTIPOLYGON_PROFILING
+                Osmium::OSM::MultipolygonFromRelation::init_timings();
+#endif
+            }
+
             void callback_final() {
 #ifdef WITH_MULTIPOLYGON_PROFILING
                 Osmium::OSM::MultipolygonFromRelation::print_timings();

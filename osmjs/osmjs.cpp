@@ -48,6 +48,7 @@ struct callbacks *setup_callbacks_single_pass() {
 }
 
 void dual_pass_init_handler() {
+    osmium_handler_multipolygon->callback_init();
     osmium_handler_node_location_store->callback_init();
     osmium_handler_javascript->callback_init();
 }
