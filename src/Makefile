@@ -60,5 +60,5 @@ osmium_debug: osmium_debug.cpp $(OBJ) $(SRC_HPP)
 install:
     
 clean:
-	rm -f *.o osmium_sizeof osmium_debug
+	rm -f *.o core osmium_sizeof osmium_debug
 

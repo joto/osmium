@@ -60,5 +60,5 @@ install:
 	install -m 755 -g root -o root tagstats $(DESTDIR)/usr/bin/tagstat
     
 clean:
-	rm -f *.o tagstats
+	rm -f *.o core tagstats
 

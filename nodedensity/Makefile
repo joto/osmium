@@ -53,5 +53,5 @@ install:
 	install -m 755 -g root -o root nodedensity $(DESTDIR)/usr/bin/nodedensity
     
 clean:
-	rm -f *.o nodedensity
+	rm -f *.o core nodedensity
 

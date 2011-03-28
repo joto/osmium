@@ -67,5 +67,5 @@ install:
 	install -m 644 -g root -o root js/osm2shape.js $(DESTDIR)/usr/share/osmjs/osm2shape.js
     
 clean:
-	rm -f *.o osmjs
+	rm -f *.o core osmjs
 
