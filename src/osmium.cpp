@@ -1,5 +1,6 @@
 
 #include "osmium.hpp"
+#include "Input.hpp"
 #include "XMLParser.hpp"
 #include "PBFParser.hpp"
 
@@ -88,22 +89,17 @@ void parse_osmfile(char *osmfilename, struct callbacks *callbacks, Osmium::OSM::
     }
 
     if (callbacks->init) { callbacks->init(); }
+    Osmium::Input::Base *input;
     switch (file_format) {
         case xml:
-            {
-            Osmium::XMLParser *xml_parser = new Osmium::XMLParser(fd, callbacks);
-            xml_parser->parse(node, way, relation);
-            delete xml_parser;
-            }
+            input = new Osmium::Input::XML(fd, callbacks);
             break;
         case pbf:
-            {
-            Osmium::PBFParser *pbf_parser = new Osmium::PBFParser(fd, callbacks);
-            pbf_parser->parse(node, way, relation);
-            delete pbf_parser;
-            }
+            input = new Osmium::Input::PBF(fd, callbacks);
             break;
     }
+    input->parse(node, way, relation);
+    delete input;
     if (callbacks->final) { callbacks->final(); }
 
     close(fd);
