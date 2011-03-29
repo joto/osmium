@@ -38,12 +38,26 @@ namespace Osmium {
 
           public:
 
+#ifdef WITH_JAVASCRIPT
+            v8::Local<v8::Object> js_members_instance;
+#endif
+
             Relation() : Object(), members() {
+#ifdef WITH_JAVASCRIPT
+                js_tags_instance    = Osmium::Javascript::Template::create_tags_instance(this);
+                js_object_instance  = Osmium::Javascript::Template::create_relation_instance(this);
+                js_members_instance = Osmium::Javascript::Template::create_relation_members_instance(this);
+#endif
             }
 
             Relation(const Relation &r) : Object(r) {
                 num_members = r.num_members;
                 members = r.members;
+#ifdef WITH_JAVASCRIPT
+                js_tags_instance    = Osmium::Javascript::Template::create_tags_instance(this);
+                js_object_instance  = Osmium::Javascript::Template::create_relation_instance(this);
+                js_members_instance = Osmium::Javascript::Template::create_relation_members_instance(this);
+#endif
             }
 
             osm_object_type_t get_type() const {

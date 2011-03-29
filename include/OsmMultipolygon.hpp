@@ -169,11 +169,19 @@ namespace Osmium {
 #ifdef WITH_GEOS
                 geometry = NULL;
 #endif
+#ifdef WITH_JAVASCRIPT
+                js_tags_instance    = Osmium::Javascript::Template::create_tags_instance(this);
+                js_object_instance  = Osmium::Javascript::Template::create_multipolygon_instance(this);
+#endif
             }
 
 #ifdef WITH_GEOS
             Multipolygon(geos::geom::Geometry *geom) {
                 geometry = geom;
+#ifdef WITH_JAVASCRIPT
+                js_tags_instance    = Osmium::Javascript::Template::create_tags_instance(this);
+                js_object_instance  = Osmium::Javascript::Template::create_multipolygon_instance(this);
+#endif
             }
 #endif
 

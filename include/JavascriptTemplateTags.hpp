@@ -9,15 +9,10 @@ namespace Osmium {
 
             class Tags : public Base {
 
-                static Osmium::OSM::Object *get_object(const v8::AccessorInfo &info) {
-                    Osmium::Javascript::Object::Wrapper *self = (Osmium::Javascript::Object::Wrapper *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
-                    return self->get_object();
-                }
-
                 static v8::Handle<v8::Value> Getter(v8::Local<v8::String> property, const v8::AccessorInfo &info) {
                     v8::HandleScope handle_scope;
 
-                    Osmium::OSM::Object *object = get_object(info);
+                    Osmium::OSM::Object *object = (Osmium::OSM::Object *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
 
                     const char *key = v8_String_to_utf8<Osmium::OSM::Tag::max_utf16_length_key>(property);
                     const char *value = object->get_tag_by_key(key);
@@ -30,7 +25,7 @@ namespace Osmium {
                 static v8::Handle<v8::Array> Enumerator(const v8::AccessorInfo &info) {
                     v8::HandleScope handle_scope;
 
-                    Osmium::OSM::Object *object = get_object(info);
+                    Osmium::OSM::Object *object = (Osmium::OSM::Object *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
 
                     const int num_tags = object->tag_count();
                     v8::Local<v8::Array> array = v8::Array::New(num_tags);

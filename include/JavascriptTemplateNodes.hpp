@@ -12,8 +12,8 @@ namespace Osmium {
                 static v8::Handle<v8::Value> Getter(uint32_t index, const v8::AccessorInfo &info) {
                     v8::HandleScope handle_scope;
 
-                    Osmium::Javascript::Way::Wrapper *self = (Osmium::Javascript::Way::Wrapper *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
-                    osm_object_id_t ref = self->object->nodes[index];
+                    Osmium::OSM::Way *self = (Osmium::OSM::Way *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
+                    osm_object_id_t ref = self->nodes[index];
                     if (sizeof(osm_object_id_t) <= 4)
                         return handle_scope.Close(v8::Integer::New(ref));
                     else
@@ -23,9 +23,9 @@ namespace Osmium {
                 static v8::Handle<v8::Array> Enumerator(const v8::AccessorInfo &info) {
                     v8::HandleScope handle_scope;
 
-                    Osmium::Javascript::Way::Wrapper *self = (Osmium::Javascript::Way::Wrapper *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
+                    Osmium::OSM::Way *self = (Osmium::OSM::Way *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
 
-                    const osm_sequence_id_t num_nodes = self->object->node_count();
+                    const osm_sequence_id_t num_nodes = self->node_count();
                     v8::Local<v8::Array> array = v8::Array::New(num_nodes);
 
                     for (osm_sequence_id_t i=0; i < num_nodes; i++) {

@@ -12,14 +12,14 @@ namespace Osmium {
                 static v8::Handle<v8::Value> GetNodes(v8::Local<v8::String> /*property*/, const v8::AccessorInfo &info) {
                     v8::HandleScope handle_scope;
 
-                    Osmium::Javascript::Way::Wrapper *self = (Osmium::Javascript::Way::Wrapper *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
+                    Osmium::OSM::Way *self = (Osmium::OSM::Way *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
                     return self->js_nodes_instance;
                 }
 
                 static v8::Handle<v8::Value> GetGeom(v8::Local<v8::String> /*property*/, const v8::AccessorInfo &info) {
                     v8::HandleScope handle_scope;
 
-                    Osmium::Javascript::Way::Wrapper *self = (Osmium::Javascript::Way::Wrapper *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
+                    Osmium::OSM::Way *self = (Osmium::OSM::Way *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
                     return self->js_geom_instance;
                 }
 

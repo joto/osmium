@@ -12,7 +12,7 @@ namespace Osmium {
                 static v8::Handle<v8::Value> GetMembers(v8::Local<v8::String> /*property*/, const v8::AccessorInfo &info) {
                     v8::HandleScope handle_scope;
 
-                    Osmium::Javascript::Relation::Wrapper *self = (Osmium::Javascript::Relation::Wrapper *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
+                    Osmium::OSM::Relation *self = (Osmium::OSM::Relation *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
                     return self->js_members_instance;
                 }
 

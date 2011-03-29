@@ -12,8 +12,8 @@ namespace Osmium {
                 static v8::Handle<v8::Value> GetFrom(v8::Local<v8::String> /*property*/, const v8::AccessorInfo &info) {
                     v8::HandleScope handle_scope;
 
-                    Osmium::Javascript::Multipolygon::Wrapper *self = (Osmium::Javascript::Multipolygon::Wrapper *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
-                    const char *value = (self->object->get_type() == MULTIPOLYGON_FROM_WAY) ? "way" : "relation";
+                    Osmium::OSM::Multipolygon *self = (Osmium::OSM::Multipolygon *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
+                    const char *value = (self->get_type() == MULTIPOLYGON_FROM_WAY) ? "way" : "relation";
                     return v8::String::New(value);
                 }
 

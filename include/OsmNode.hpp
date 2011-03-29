@@ -4,7 +4,7 @@
 #include <cmath>
 
 #ifdef WITH_SHPLIB
-#include <shapefil.h>
+# include <shapefil.h>
 #endif
 
 /** @file
@@ -29,6 +29,11 @@ namespace Osmium {
 
             Node() : Object() {
                 reset();
+#ifdef WITH_JAVASCRIPT
+                js_tags_instance   = Osmium::Javascript::Template::create_tags_instance(this);
+                js_object_instance = Osmium::Javascript::Template::create_node_instance(this);
+                js_geom_instance   = Osmium::Javascript::Template::create_node_geom_instance(this);
+#endif
             }
 
             void reset() {
@@ -87,6 +92,10 @@ namespace Osmium {
                 }
                 return SHPCreateSimpleObject(shp_type, 1, &geom.point.x, &geom.point.y, NULL);
             }
+#endif
+
+#ifdef WITH_JAVASCRIPT
+            v8::Local<v8::Object> js_geom_instance;
 #endif
 
         }; // class Node

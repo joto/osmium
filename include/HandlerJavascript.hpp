@@ -14,8 +14,6 @@ namespace Osmium {
 
         class Javascript : public Base {
 
-            Osmium::Javascript::Multipolygon::Wrapper *wrap_multipolygon;
-
             /***
             * Load Javascript file into string
             */
@@ -236,11 +234,9 @@ namespace Osmium {
                 if (cc->IsFunction()) {
                     cb.end = v8::Handle<v8::Function>::Cast(cc);
                 }
-                wrap_multipolygon = new Osmium::Javascript::Multipolygon::Wrapper;
             }
 
             ~Javascript() {
-                delete wrap_multipolygon;
                 callbacks_object.Dispose();
             }
 
@@ -252,36 +248,31 @@ namespace Osmium {
 
             void callback_object(OSM::Object *object) {
                 if (!cb.object.IsEmpty()) {
-                    Osmium::Javascript::Object::Wrapper *wrapper = (Osmium::Javascript::Object::Wrapper *) object->wrapper;
-                    (void) cb.object->Call(wrapper->get_instance(), 0, 0);
+                    (void) cb.object->Call(object->get_instance(), 0, 0);
                 }
             }
 
             void callback_node(OSM::Node *object) {
                 if (!cb.node.IsEmpty()) {
-                    Osmium::Javascript::Node::Wrapper *wrapper = (Osmium::Javascript::Node::Wrapper *) object->wrapper;
-                    (void) cb.node->Call(wrapper->get_instance(), 0, 0);
+                    (void) cb.node->Call(object->get_instance(), 0, 0);
                 }
             }
 
             void callback_way(OSM::Way *object) {
                 if (!cb.way.IsEmpty()) {
-                    Osmium::Javascript::Way::Wrapper *wrapper = (Osmium::Javascript::Way::Wrapper *) object->wrapper;
-                    (void) cb.way->Call(wrapper->get_instance(), 0, 0);
+                    (void) cb.way->Call(object->get_instance(), 0, 0);
                 }
             }
 
             void callback_relation(OSM::Relation *object) {
                 if (!cb.relation.IsEmpty()) {
-                    Osmium::Javascript::Relation::Wrapper *wrapper = (Osmium::Javascript::Relation::Wrapper *) object->wrapper;
-                    (void) cb.relation->Call(wrapper->get_instance(), 0, 0);
+                    (void) cb.relation->Call(object->get_instance(), 0, 0);
                 }
             }
 
             void callback_multipolygon(OSM::Multipolygon *object) {
                 if (!cb.multipolygon.IsEmpty()) {
-                    wrap_multipolygon->set_object(object);
-                    (void) cb.multipolygon->Call(wrap_multipolygon->get_instance(), 0, 0);
+                    (void) cb.multipolygon->Call(object->get_instance(), 0, 0);
                 }
             }
 

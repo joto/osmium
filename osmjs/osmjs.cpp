@@ -282,13 +282,9 @@ int main(int argc, char *argv[]) {
         osmium_handler_multipolygon = new Osmium::Handler::Multipolygon(attempt_repair, callbacks_2nd_pass);
     }
 
-    Osmium::Javascript::Node::Wrapper     *wrap_node     = new Osmium::Javascript::Node::Wrapper;
-    Osmium::Javascript::Way::Wrapper      *wrap_way      = new Osmium::Javascript::Way::Wrapper;
-    Osmium::Javascript::Relation::Wrapper *wrap_relation = new Osmium::Javascript::Relation::Wrapper;
-
-    Osmium::OSM::Node     *node     = wrap_node->object;
-    Osmium::OSM::Way      *way      = wrap_way->object;
-    Osmium::OSM::Relation *relation = wrap_relation->object;
+    Osmium::OSM::Node     *node     = new Osmium::OSM::Node;
+    Osmium::OSM::Way      *way      = new Osmium::OSM::Way;
+    Osmium::OSM::Relation *relation = new Osmium::OSM::Relation;
 
     if (two_passes) {
         parse_osmfile(osm_filename, callbacks_1st_pass,    node, way, relation);
@@ -297,9 +293,9 @@ int main(int argc, char *argv[]) {
         parse_osmfile(osm_filename, callbacks_single_pass, node, way, relation);
     }
 
-    delete wrap_relation;
-    delete wrap_way;
-    delete wrap_node;
+    delete relation;
+    delete way;
+    delete node;
 
     if (two_passes) {
         delete osmium_handler_multipolygon;

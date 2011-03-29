@@ -86,11 +86,11 @@ void parse_osmfile(char *osmfilename, struct callbacks *callbacks, Osmium::OSM::
 #include "HandlerStatistics.hpp"
 #include "HandlerTagStats.hpp"
 
-#include "JavascriptOutputCSV.hpp"
-#include "JavascriptOutputShapefile.hpp"
-
-#include "HandlerJavascript.hpp"
-
-#include "Javascript.hpp"
+#ifdef WITH_JAVASCRIPT
+# include "JavascriptOutputCSV.hpp"
+# include "JavascriptOutputShapefile.hpp"
+# include "HandlerJavascript.hpp"
+# include "Javascript.hpp"
+#endif
 
 #endif // OSMIUM_OSMIUM_HPP

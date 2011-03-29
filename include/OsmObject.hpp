@@ -10,7 +10,12 @@
 #include <time.h>
 
 #ifdef WITH_SHPLIB
-#include <shapefil.h>
+# include <shapefil.h>
+#endif
+
+#ifdef WITH_JAVASCRIPT
+# include "v8.h"
+# include "JavascriptTemplate.hpp"
 #endif
 
 namespace Osmium {
@@ -198,6 +203,20 @@ namespace Osmium {
 
 #ifdef WITH_SHPLIB
             virtual SHPObject *create_shpobject(int shp_type) = 0;
+#endif
+
+#ifdef WITH_JAVASCRIPT
+            v8::Local<v8::Object> js_object_instance;
+            v8::Local<v8::Object> js_tags_instance;
+#endif
+
+#ifdef WITH_JAVASCRIPT
+            v8::Local<v8::Object> get_instance() {
+                return js_object_instance;
+            }
+            v8::Local<v8::Object> get_tags_instance() {
+                return js_tags_instance;
+            }
 #endif
 
         }; // class Object

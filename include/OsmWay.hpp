@@ -40,6 +40,11 @@ namespace Osmium {
             // can new nodes be added to this way?
             bool size_frozen;
 
+#ifdef WITH_JAVASCRIPT
+            v8::Local<v8::Object> js_nodes_instance;
+            v8::Local<v8::Object> js_geom_instance;
+#endif
+
             // construct a Way object with full node capacity.
             Way() : Object() {
                 nodes = (osm_object_id_t *) malloc(sizeof(osm_object_id_t) * max_nodes_in_way);
@@ -47,6 +52,12 @@ namespace Osmium {
                 lat = (double *) malloc(sizeof(double) * max_nodes_in_way);
                 size_frozen = false;
                 reset();
+#ifdef WITH_JAVASCRIPT
+                js_tags_instance   = Osmium::Javascript::Template::create_tags_instance(this);
+                js_object_instance = Osmium::Javascript::Template::create_way_instance(this);
+                js_nodes_instance  = Osmium::Javascript::Template::create_way_nodes_instance(this);
+                js_geom_instance   = Osmium::Javascript::Template::create_way_geom_instance(this);
+#endif
             }
 
             // copy a Way object. allocate only the required capacity.
@@ -60,6 +71,12 @@ namespace Osmium {
                 lat = (double *) malloc(s = sizeof(double) * num_nodes);
                 memcpy(lat, w.lat, s);
                 size_frozen = true;
+#ifdef WITH_JAVASCRIPT
+                js_tags_instance   = Osmium::Javascript::Template::create_tags_instance(this);
+                js_object_instance = Osmium::Javascript::Template::create_node_instance(this);
+                js_nodes_instance  = Osmium::Javascript::Template::create_way_nodes_instance(this);
+                js_geom_instance   = Osmium::Javascript::Template::create_way_geom_instance(this);
+#endif
             }
 
             ~Way() {

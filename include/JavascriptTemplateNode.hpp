@@ -12,23 +12,23 @@ namespace Osmium {
                 static v8::Handle<v8::Value> GetLon(v8::Local<v8::String> /*property*/, const v8::AccessorInfo &info) {
                     v8::HandleScope handle_scope;
 
-                    Osmium::Javascript::Node::Wrapper *self = (Osmium::Javascript::Node::Wrapper *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
-                    const char *value = self->object->get_lon_str();
+                    Osmium::OSM::Node *self = (Osmium::OSM::Node *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
+                    const char *value = self->get_lon_str();
                     return v8::String::New(value);
                 }
 
                 static v8::Handle<v8::Value> GetLat(v8::Local<v8::String> /*property*/, const v8::AccessorInfo &info) {
                     v8::HandleScope handle_scope;
 
-                    Osmium::Javascript::Node::Wrapper *self = (Osmium::Javascript::Node::Wrapper *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
-                    const char *value = self->object->get_lat_str();
+                    Osmium::OSM::Node *self = (Osmium::OSM::Node *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
+                    const char *value = self->get_lat_str();
                     return v8::String::New(value);
                 }
 
                 static v8::Handle<v8::Value> GetGeom(v8::Local<v8::String> /*property*/, const v8::AccessorInfo &info) {
                     v8::HandleScope handle_scope;
 
-                    Osmium::Javascript::Node::Wrapper *self = (Osmium::Javascript::Node::Wrapper *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
+                    Osmium::OSM::Node *self = (Osmium::OSM::Node *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
                     return self->js_geom_instance;
                 }
 

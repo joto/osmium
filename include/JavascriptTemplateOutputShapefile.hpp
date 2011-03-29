@@ -38,8 +38,7 @@ namespace Osmium {
                     }
 
                     v8::Local<v8::Object> xxx = v8::Local<v8::Object>::Cast(args[0]);
-                    Osmium::Javascript::Object::Wrapper *object_wrapper = (Osmium::Javascript::Object::Wrapper *) v8::Local<v8::External>::Cast(xxx->GetInternalField(0))->Value();
-                    Osmium::OSM::Object *object = object_wrapper->get_object();
+                    Osmium::OSM::Object *object = (Osmium::OSM::Object *) v8::Local<v8::External>::Cast(xxx->GetInternalField(0))->Value();
 
                     self->add(object, v8::Local<v8::Object>::Cast(args[1]));
 

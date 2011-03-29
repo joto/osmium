@@ -12,18 +12,18 @@ namespace Osmium {
                 static v8::Handle<v8::Value> Getter(v8::Local<v8::String> property, const v8::AccessorInfo &info) {
                     v8::HandleScope handle_scope;
 
-                    Osmium::Javascript::Way::Wrapper *self = (Osmium::Javascript::Way::Wrapper *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
+                    Osmium::OSM::Way *self = (Osmium::OSM::Way *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
                     v8::String::Utf8Value key(property);
 
                     if (!strcmp(*key, "linestring_wkt")) {
-                        const osm_sequence_id_t num_nodes = self->object->node_count();
+                        const osm_sequence_id_t num_nodes = self->node_count();
                         std::ostringstream oss;
                         oss << "LINESTRING(";
                         for (osm_sequence_id_t i=0; i < num_nodes; i++) {
                             if (i != 0) {
                                 oss << ",";
                             }
-                            oss << self->object->lon[i] << " " << self->object->lat[i];
+                            oss << self->lon[i] << " " << self->lat[i];
                         }
                         oss << ")";
                         return v8::String::New(oss.str().c_str());

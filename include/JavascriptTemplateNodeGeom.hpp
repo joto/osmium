@@ -13,18 +13,18 @@ namespace Osmium {
                 static v8::Handle<v8::Value> Getter(v8::Local<v8::String> property, const v8::AccessorInfo &info) {
                     v8::HandleScope handle_scope;
 
-                    Osmium::Javascript::Node::Wrapper *self = (Osmium::Javascript::Node::Wrapper *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
+                    Osmium::OSM::Node *self = (Osmium::OSM::Node *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
                     v8::String::Utf8Value key(property);
                     std::ostringstream oss;
 
                     if (!strcmp(*key, "as_wkt")) {
-                        oss << "POINT(" << self->object->get_lon_str() << " " << self->object->get_lat_str() << ")";
+                        oss << "POINT(" << self->get_lon_str() << " " << self->get_lat_str() << ")";
                     } else if (!strcmp(*key, "as_ewkt")) {
-                        oss << "SRID=4326;POINT(" << self->object->get_lon_str() << " " << self->object->get_lat_str() << ")";
+                        oss << "SRID=4326;POINT(" << self->get_lon_str() << " " << self->get_lat_str() << ")";
                     } else if (!strcmp(*key, "as_hex_wkb")) {
-                        oss << self->object->geom_as_hex_wkb();
+                        oss << self->geom_as_hex_wkb();
         //            } else if (!strcmp(*key, "as_hex_ewkb")) {
-        //                oss << self->object->geom.to_hex();             TODO TODO
+        //                oss << self->geom.to_hex();             TODO TODO
                     }
 
                     return v8::String::New(oss.str().c_str());
