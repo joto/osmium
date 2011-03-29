@@ -5,7 +5,6 @@
 
 */
 
-
 #include <stdlib.h>
 #include "osmium.hpp"
 
@@ -19,7 +18,7 @@ int main() {
     std::cout << "sizeof(Osmium::OSM::Multipolygon)="             << sizeof(Osmium::OSM::Multipolygon)             << "  (Object+" << sizeof(Osmium::OSM::Multipolygon)             - sizeof(Osmium::OSM::Object) << ")" << std::endl;
     std::cout << "sizeof(Osmium::OSM::MultipolygonFromWay)="      << sizeof(Osmium::OSM::MultipolygonFromWay)      << "  (Object+" << sizeof(Osmium::OSM::MultipolygonFromWay)      - sizeof(Osmium::OSM::Object) << ")" << std::endl;
     std::cout << "sizeof(Osmium::OSM::MultipolygonFromRelation)=" << sizeof(Osmium::OSM::MultipolygonFromRelation) << "  (Object+" << sizeof(Osmium::OSM::MultipolygonFromRelation) - sizeof(Osmium::OSM::Object) << ")" << std::endl;
-    std::cout << "sizeof(Osmium::OSM::WayInfo)="                  << sizeof(Osmium::OSM::WayInfo) << std::endl;
-    std::cout << "sizeof(Osmium::OSM::RingInfo)="                 << sizeof(Osmium::OSM::RingInfo) << std::endl;
+//    std::cout << "sizeof(Osmium::OSM::WayInfo)="                  << sizeof(Osmium::OSM::WayInfo) << std::endl;
+//    std::cout << "sizeof(Osmium::OSM::RingInfo)="                 << sizeof(Osmium::OSM::RingInfo) << std::endl;
 }
 

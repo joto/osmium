@@ -16,13 +16,13 @@ CXXFLAGS += -std=c++0x -Wall -W -Wredundant-decls -Wdisabled-optimization -pedan
 #CXXFLAGS += -DWITH_MULTIPOLYGON_PROFILING
 
 CXXFLAGS += -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
-CXXFLAGS += -DWITH_GEOS $(shell geos-config --cflags)
-CXXFLAGS += -DWITH_SHPLIB
+#CXXFLAGS += -DWITH_GEOS $(shell geos-config --cflags)
+#CXXFLAGS += -DWITH_SHPLIB
 
 CXXFLAGS += -I../include -I../pbf
 
 LDFLAGS = -L/usr/local/lib -lexpat -lpthread
-LDFLAGS += $(shell geos-config --libs)
+#LDFLAGS += $(shell geos-config --libs)
 
 LIB_SQLITE   = -lsqlite3
 LIB_V8       = -lv8
@@ -53,13 +53,13 @@ protobuf:
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 osmium_sizeof: osmium_sizeof.cpp $(OBJ) $(SRC_HPP)
-	$(CXX) $(CXXFLAGS) -o $@ $< $(OBJ) $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_V8) $(LIB_SHAPE)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(OBJ) $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_PROTOBUF)
 
 osmium_debug: osmium_debug.cpp $(OBJ) $(SRC_HPP)
-	$(CXX) $(CXXFLAGS) -o $@ $< $(OBJ) $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_V8) $(LIB_SHAPE)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(OBJ) $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_PROTOBUF)
 
 osmium_stats: osmium_stats.cpp $(OBJ) $(SRC_HPP)
-	$(CXX) $(CXXFLAGS) -o $@ $< $(OBJ) $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_SQLITE) $(LIB_PROTOBUF) $(LIB_SHAPE)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(OBJ) $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_SQLITE) $(LIB_PROTOBUF)
 
 install:
     
