@@ -19,10 +19,6 @@ namespace Osmium {
 
             static const int buffer_size = 10240;
 
-            OSM::Node     *node;
-            OSM::Way      *way;
-            OSM::Relation *relation;
-
             int fd; ///< The file descriptor we are reading the data from.
             struct callbacks *callbacks; ///< Functions to call for each object etc.
 
@@ -46,13 +42,9 @@ namespace Osmium {
             ~XML() {
             }
 
-            void parse(Osmium::OSM::Node *in_node, Osmium::OSM::Way *in_way, Osmium::OSM::Relation *in_relation) {
+            void parse() {
                 int done;
                 current_object = 0;
-
-                node     = in_node;
-                way      = in_way;
-                relation = in_relation;
 
                 last_object_type = NODE;
 

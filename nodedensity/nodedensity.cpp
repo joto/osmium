@@ -38,11 +38,7 @@ int main(int argc, char *argv[]) {
 
     osmium_handler_node_density = new Osmium::Handler::NodeDensity(size, min, max);
 
-    Osmium::OSM::Node     *node     = new Osmium::OSM::Node;
-    Osmium::OSM::Way      *way      = new Osmium::OSM::Way;
-    Osmium::OSM::Relation *relation = new Osmium::OSM::Relation;
-
-    parse_osmfile(argv[1], setup_callbacks(), node, way, relation);
+    parse_osmfile(argv[1], setup_callbacks());
 
     return 0;
 }

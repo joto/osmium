@@ -278,28 +278,16 @@ int main(int argc, char *argv[]) {
         osmium_handler_node_location_store = new Osmium::Handler::NLS_Sparsetable();
     }
     osmium_handler_javascript = new Osmium::Handler::Javascript(include_files, javascript_filename);
+
     if (two_passes) {
         osmium_handler_multipolygon = new Osmium::Handler::Multipolygon(attempt_repair, callbacks_2nd_pass);
-    }
-
-    Osmium::OSM::Node     *node     = new Osmium::OSM::Node;
-    Osmium::OSM::Way      *way      = new Osmium::OSM::Way;
-    Osmium::OSM::Relation *relation = new Osmium::OSM::Relation;
-
-    if (two_passes) {
-        parse_osmfile(osm_filename, callbacks_1st_pass,    node, way, relation);
-        parse_osmfile(osm_filename, callbacks_2nd_pass,    node, way, relation);
-    } else {
-        parse_osmfile(osm_filename, callbacks_single_pass, node, way, relation);
-    }
-
-    delete relation;
-    delete way;
-    delete node;
-
-    if (two_passes) {
+        parse_osmfile(osm_filename, callbacks_1st_pass);
+        parse_osmfile(osm_filename, callbacks_2nd_pass);
         delete osmium_handler_multipolygon;
+    } else {
+        parse_osmfile(osm_filename, callbacks_single_pass);
     }
+
     delete osmium_handler_javascript;
     delete osmium_handler_node_location_store;
 	

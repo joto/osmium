@@ -94,11 +94,7 @@ int main(int argc, char *argv[]) {
     osmium_handler_tagstats            = new Osmium::Handler::TagStats();
 //    osmium_handler_node_location_store = new Osmium::Handler::NLS_Sparsetable();
 
-    Osmium::OSM::Node     *node     = new Osmium::OSM::Node;
-    Osmium::OSM::Way      *way      = new Osmium::OSM::Way;
-    Osmium::OSM::Relation *relation = new Osmium::OSM::Relation;
-
-    parse_osmfile(argv[1], setup_callbacks(), node, way, relation);
+    parse_osmfile(argv[1], setup_callbacks());
 
     return 0;
 }

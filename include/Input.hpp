@@ -9,7 +9,23 @@ namespace Osmium {
 
           public:
             
-            virtual void parse(Osmium::OSM::Node *in_node, Osmium::OSM::Way *in_way, Osmium::OSM::Relation *in_relation) = 0;
+            OSM::Node     *node;
+            OSM::Way      *way;
+            OSM::Relation *relation;
+
+            Base() {
+                node     = new Osmium::OSM::Node;
+                way      = new Osmium::OSM::Way;
+                relation = new Osmium::OSM::Relation;
+            }
+
+            ~Base() {
+                delete relation;
+                delete way;
+                delete node;
+            }
+
+            virtual void parse() = 0;
 
         };
 

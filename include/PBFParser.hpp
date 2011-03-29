@@ -84,12 +84,8 @@ namespace Osmium {
 
             /**
             * Parse PBF file.
-            *
-            * @param in_node Pointer to node object that can be filled with data from file.
-            * @param in_way Pointer to way object that can be filled with data from file.
-            * @param in_relation Pointer to relation object that can be filled with data from file.
             */
-            void parse(Osmium::OSM::Node *in_node, Osmium::OSM::Way *in_way, Osmium::OSM::Relation *in_relation) {
+            void parse() {
                 while (read_blob_header()) {
                     array_t a = read_blob(pbf_blob_header.datasize());
 
@@ -99,7 +95,7 @@ namespace Osmium {
                         }
                         OSMPBF::StringTable stringtable = pbf_primitive_block.stringtable();
                         for (int i=0; i < pbf_primitive_block.primitivegroup_size(); i++) {
-                            parse_group(pbf_primitive_block.primitivegroup(i), stringtable, in_node, in_way, in_relation);
+                            parse_group(pbf_primitive_block.primitivegroup(i), stringtable);
                         }
                     } else if (pbf_blob_header.type() == "OSMHeader") {
                         OSMPBF::HeaderBlock pbf_header_block;
@@ -143,17 +139,14 @@ namespace Osmium {
             *
             * @param group The PrimitiveGroup to parse.
             * @param stringtable The string table inside the PrimitiveBlock with tags and usernames.
-            * @param in_node Pointer to node object that can be filled with data from file.
-            * @param in_way Pointer to way object that can be filled with data from file.
-            * @param in_relation Pointer to relation object that can be filled with data from file.
             */
-            void parse_group(const OSMPBF::PrimitiveGroup& group, const OSMPBF::StringTable& stringtable, Osmium::OSM::Node *in_node, Osmium::OSM::Way *in_way, Osmium::OSM::Relation *in_relation) {
+            void parse_group(const OSMPBF::PrimitiveGroup& group, const OSMPBF::StringTable& stringtable) {
                 if (group.has_dense())  {
                     if (groups_with_nodes == 0) {
                         if (callbacks->before_nodes) { callbacks->before_nodes(); }
                     }
                     groups_with_nodes++;
-                    if (callbacks->node) { parse_dense_node_group(group, stringtable, in_node); }
+                    if (callbacks->node) { parse_dense_node_group(group, stringtable); }
                 } else if (group.ways_size() != 0) {
                     if (groups_with_ways == 0) {
                         if (groups_with_nodes > 0) {
@@ -162,7 +155,7 @@ namespace Osmium {
                         if (callbacks->before_ways) { callbacks->before_ways(); }
                     }
                     groups_with_ways++;
-                    if (callbacks->way) { parse_way_group(group, stringtable, in_way); }
+                    if (callbacks->way) { parse_way_group(group, stringtable); }
                 } else if (group.relations_size() != 0) {
                     if (groups_with_relations == 0) {
                         if (groups_with_nodes > 0 && groups_with_ways == 0) {
@@ -174,19 +167,19 @@ namespace Osmium {
                         if (callbacks->before_relations) { callbacks->before_relations(); }
                     }
                     groups_with_relations++;
-                    if (callbacks->relation) { parse_relation_group(group, stringtable, in_relation); }
+                    if (callbacks->relation) { parse_relation_group(group, stringtable); }
                 } else if (group.nodes_size() != 0) {
                     if (groups_with_nodes == 0) {
                         if (callbacks->before_nodes) { callbacks->before_nodes(); }
                     }
                     groups_with_nodes++;
-                    if (callbacks->node) { parse_node_group(group, stringtable, in_node); }
+                    if (callbacks->node) { parse_node_group(group, stringtable); }
                 } else {
                     throw std::runtime_error("Group of unknown type.");
                 }
             }
 
-            void parse_node_group(const OSMPBF::PrimitiveGroup& group, const OSMPBF::StringTable& stringtable, Osmium::OSM::Node* node) {
+            void parse_node_group(const OSMPBF::PrimitiveGroup& group, const OSMPBF::StringTable& stringtable) {
                 int max_entity = group.nodes_size();
                 for (int entity=0; entity < max_entity; entity++) {
                     node->reset();
@@ -212,7 +205,7 @@ namespace Osmium {
                 }
             }
 
-            void parse_way_group(const OSMPBF::PrimitiveGroup& group, const OSMPBF::StringTable& stringtable, Osmium::OSM::Way* way) {
+            void parse_way_group(const OSMPBF::PrimitiveGroup& group, const OSMPBF::StringTable& stringtable) {
                 int max_entity = group.ways_size();
                 for (int entity=0; entity < max_entity; entity++) {
                     way->reset();
@@ -241,7 +234,7 @@ namespace Osmium {
                 }
             }
 
-            void parse_relation_group(const OSMPBF::PrimitiveGroup& group, const OSMPBF::StringTable& stringtable, Osmium::OSM::Relation* relation) {
+            void parse_relation_group(const OSMPBF::PrimitiveGroup& group, const OSMPBF::StringTable& stringtable) {
                 int max_entity = group.relations_size();
                 for (int entity=0; entity < max_entity; entity++) {
                     relation->reset();
@@ -282,7 +275,7 @@ namespace Osmium {
                 }
             }
 
-            void parse_dense_node_group(const OSMPBF::PrimitiveGroup& group, const OSMPBF::StringTable& stringtable, Osmium::OSM::Node* node) {
+            void parse_dense_node_group(const OSMPBF::PrimitiveGroup& group, const OSMPBF::StringTable& stringtable) {
                 int64_t last_dense_id        = 0;
                 int64_t last_dense_latitude  = 0;
                 int64_t last_dense_longitude = 0;

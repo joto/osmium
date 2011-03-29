@@ -60,7 +60,7 @@ timer Osmium::OSM::MultipolygonFromRelation::error_write_timer;
 *  Reads from STDIN if the filename is '-', in this case it assumes XML format.
 *
 */
-void parse_osmfile(char *osmfilename, struct callbacks *callbacks, Osmium::OSM::Node *node, Osmium::OSM::Way *way, Osmium::OSM::Relation *relation) {
+void parse_osmfile(char *osmfilename, struct callbacks *callbacks) {
     int fd = 0;
     if (osmfilename[0] == '-' && osmfilename[1] == '\0') {
         // fd is already 0, read STDIN
@@ -98,7 +98,7 @@ void parse_osmfile(char *osmfilename, struct callbacks *callbacks, Osmium::OSM::
             input = new Osmium::Input::PBF(fd, callbacks);
             break;
     }
-    input->parse(node, way, relation);
+    input->parse();
     delete input;
     if (callbacks->final) { callbacks->final(); }
 
