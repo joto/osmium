@@ -1,8 +1,6 @@
 #ifndef OSMIUM_WKB_HPP
 #define OSMIUM_WKB_HPP
 
-extern const char lookup_hex[];
-
 // see 99-049_OpenGIS_Simple_Features_Specification_For_SQL_Rev_1.1.pdf for WKB
 // see PostGIS doc/ZMSgeoms.txt for EWKB
 
@@ -53,6 +51,7 @@ class WKBPoint {
     }
 
     char *to_hex() {
+        static const char *lookup_hex = "0123456789abcdef";
         for (unsigned int i = 0; i < sizeof(byteOrder) + sizeof(wkbType) + sizeof(point); i++) {
             buffer[2*i]   = lookup_hex[((const unsigned char *)&byteOrder)[i] >> 4];
             buffer[2*i+1] = lookup_hex[((const unsigned char *)&byteOrder)[i] & 0xf];

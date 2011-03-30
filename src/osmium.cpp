@@ -29,9 +29,6 @@ namespace Osmium {
 char Osmium::OSM::Node::lon_str[];
 char Osmium::OSM::Node::lat_str[];
 
-// needed for writing WKB (see wkb.hpp)
-extern const char lookup_hex[] = "0123456789abcdef";
-
 #ifdef WITH_MULTIPOLYGON_PROFILING
 std::vector<std::pair<std::string, timer *> > Osmium::OSM::MultipolygonFromRelation::timers;
 
