@@ -19,10 +19,6 @@ namespace Osmium {
 
             static const int max_length_coordinate = 12 + 1; ///< maximum length of coordinate string (3 digits + dot + 8 digits + null byte)
 
-            /// used for conversion of coordinates to strings
-            static char lon_str[max_length_coordinate];
-            static char lat_str[max_length_coordinate];
-
             WKBPoint geom;
 
           public:
@@ -63,12 +59,14 @@ namespace Osmium {
 
             /// get longitude as string, returns a pointer to statically allocated memory thats valid until the next call to get_lon_str()
             const char *get_lon_str() {
+                static char lon_str[max_length_coordinate];
                 snprintf(lon_str, max_length_coordinate, "%.7f", geom.point.x);
                 return lon_str;
             }
 
             /// get latitude as string, returns a pointer to statically allocated memory thats valid until the next call to get_lat_str()
             const char *get_lat_str() {
+                static char lat_str[max_length_coordinate];
                 snprintf(lat_str, max_length_coordinate, "%.7f", geom.point.y);
                 return lat_str;
             }

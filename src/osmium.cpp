@@ -25,9 +25,3 @@ namespace Osmium {
 
 #endif
 
-// static buffers
-char Osmium::OSM::Node::lon_str[];
-char Osmium::OSM::Node::lat_str[];
-
-#include <fcntl.h>
-
