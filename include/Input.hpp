@@ -19,7 +19,7 @@ namespace Osmium {
                 relation = new Osmium::OSM::Relation;
             }
 
-            ~Base() {
+            virtual ~Base() {
                 delete relation;
                 delete way;
                 delete node;

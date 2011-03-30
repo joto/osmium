@@ -293,6 +293,9 @@ int main(int argc, char *argv[]) {
 	
     global_context.Dispose();
 
+    // this is needed even if the protobuf lib was never used so that valgrind doesn't report any errors
+    google::protobuf::ShutdownProtobufLibrary();
+
     return 0;
 }
 

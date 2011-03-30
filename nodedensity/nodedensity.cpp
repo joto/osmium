@@ -10,13 +10,13 @@ void node_handler(Osmium::OSM::Node *node) {
 
 void after_nodes_handler() {
     osmium_handler_node_density->callback_after_nodes();
-    exit(0);
+    exit(0); // XXX this is suboptimal as objects don't get destructed properly
 }
 
 struct callbacks *setup_callbacks() {
     static struct callbacks cb;
-    cb.node             = node_handler;
-    cb.after_nodes      = after_nodes_handler;
+    cb.node        = node_handler;
+    cb.after_nodes = after_nodes_handler;
     return &cb;
 }
 
@@ -39,6 +39,11 @@ int main(int argc, char *argv[]) {
     osmium_handler_node_density = new Osmium::Handler::NodeDensity(size, min, max);
 
     parse_osmfile(argv[1], setup_callbacks());
+
+    delete osmium_handler_node_density;
+
+    // this is needed even if the protobuf lib was never used so that valgrind doesn't report any errors
+    google::protobuf::ShutdownProtobufLibrary();
 
     return 0;
 }

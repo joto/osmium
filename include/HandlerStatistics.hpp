@@ -192,7 +192,10 @@ namespace Osmium {
 
                 db->commit();
 
-                db->close();
+//                db->close();
+
+                delete statement_insert_into_main_stats;
+                delete db;
             }
 
         }; // class Statistics

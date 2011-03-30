@@ -101,6 +101,10 @@ namespace Osmium {
                 max_timestamp[0] = 0;
             }
 
+            ~TagStats() {
+                delete string_store;
+            }
+
             void update_tag_stats(ObjectTagStat *stat, const char * /* key */, const char *value, OSM::Object *object) {
                 stat->key.count[0]++;
                 stat->key.count[object->get_type()]++;
@@ -257,6 +261,7 @@ namespace Osmium {
                 std::cerr << "sum of location image sizes: " << sum_size + size << "\n";
 
                 db->commit();
+                delete statement_insert_into_key_distributions;
             }
 
             void print_memory_usage() {
@@ -420,10 +425,19 @@ namespace Osmium {
                             ->bind_int64(values_iterator->second.by_type.relations)
                             ->execute();
                     }
+                    
+                    delete stat; // lets make valgrind happy
                 }
 
                 db->commit();
-                db->close();
+
+                delete statement_update_meta;
+                delete statement_insert_into_keypairs;
+                delete statement_insert_into_tags;
+                delete statement_insert_into_keys;
+
+                delete db;
+
                 timer_info("dumping to db");
 
                 std::cerr << "\nhash map sizes:\n";

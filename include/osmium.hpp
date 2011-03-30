@@ -9,6 +9,8 @@
 #include <iostream>
 #include <assert.h>
 
+#include <google/protobuf/stubs/common.h>
+
 #include "wkb.hpp"
 #include "StringStore.hpp"
 

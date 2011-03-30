@@ -96,6 +96,13 @@ int main(int argc, char *argv[]) {
 
     parse_osmfile(argv[1], setup_callbacks());
 
+//    delete osmium_handler_node_location_store;
+    delete osmium_handler_tagstats;
+    delete osmium_handler_stats;
+
+    // this is needed even if the protobuf lib was never used so that valgrind doesn't report any errors
+    google::protobuf::ShutdownProtobufLibrary();
+
     return 0;
 }
 

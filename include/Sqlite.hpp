@@ -47,9 +47,7 @@ namespace Sqlite {
         }
 
         ~Database() {
-            if (db) {
-                sqlite3_close(db);
-            }
+            sqlite3_close(db);
         }
 
         const std::string &errmsg() const {
@@ -61,13 +59,23 @@ namespace Sqlite {
             return db;
         }
 
+        void begin_transaction() {
+            if (SQLITE_OK != sqlite3_exec(db, "BEGIN TRANSACTION;", 0, 0, 0)) {
+                std::cerr << "Database error: " << sqlite3_errmsg(db) << "\n";
+                sqlite3_close(db);
+                exit(1);
+            }
+        }
+
+        void commit() {
+            if (SQLITE_OK != sqlite3_exec(db, "COMMIT;", 0, 0, 0)) {
+                std::cerr << "Database error: " << sqlite3_errmsg(db) << "\n";
+                sqlite3_close(db);
+                exit(1);
+            }
+        }
+
         Statement *prepare(const char *sql);
-
-        void begin_transaction();
-
-        void commit();
-
-        void close();
 
     }; // class Database
 
@@ -145,21 +153,6 @@ namespace Sqlite {
 
     inline Statement *Database::prepare(const char *sql) {
         return new Statement(this, sql);
-    }
-
-    inline void Database::begin_transaction() {
-        prepare("BEGIN TRANSACTION;")->execute();
-    }
-
-    inline void Database::commit() {
-        prepare("COMMIT;")->execute();
-    }
-
-    inline void Database::close() {
-        if (db) {
-            sqlite3_close(db);
-            db = 0;
-        }
     }
 
 } // namespace Sqlite

@@ -70,8 +70,7 @@ namespace Osmium {
                         exit(1);
                     }
                     done = (result == 0);
-                    if (XML_ParseBuffer(parser, result, done) == XML_STATUS_ERROR)
-                    {
+                    if (XML_ParseBuffer(parser, result, done) == XML_STATUS_ERROR) {
                         XML_Error errorCode = XML_GetErrorCode(parser);
                         long errorLine = XML_GetCurrentLineNumber(parser);
                         long errorCol = XML_GetCurrentColumnNumber(parser);

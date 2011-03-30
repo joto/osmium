@@ -79,7 +79,6 @@ namespace Osmium {
             }
 
             ~PBF () {
-                google::protobuf::ShutdownProtobufLibrary();
             }
 
             /**
