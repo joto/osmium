@@ -69,17 +69,13 @@ class MyDebugHandler : public Osmium::Handler::Base {
 
 int main(int argc, char *argv[]) {
     debug = true;
+    Osmium::Framework osmium;
 
     if (argc != 2) {
         std::cerr << "Usage: " << argv[0] << " OSMFILE" << std::endl;
         exit(1);
     }
 
-    parse_osmfile<MyDebugHandler>(argv[1]);
-
-    // this is needed even if the protobuf lib was never used so that valgrind doesn't report any errors
-    google::protobuf::ShutdownProtobufLibrary();
-
-    return 0;
+    osmium.parse_osmfile<MyDebugHandler>(argv[1]);
 }
 

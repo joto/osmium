@@ -4,6 +4,8 @@
 #include <stdlib.h>
 
 #include "osmium.hpp"
+#include "HandlerNodeLocationStore.hpp"
+#include "HandlerMultipolygon.hpp"
 
 bool debug;
 
@@ -193,6 +195,7 @@ void cbmp(Osmium::OSM::Multipolygon *multipolygon) {
 }
 
 int main(int argc, char *argv[]) {
+    Osmium::Framework osmium;
     bool two_passes = false;
     bool attempt_repair = true;
     char javascript_filename[512] = "";
@@ -300,20 +303,15 @@ int main(int argc, char *argv[]) {
     
     if (two_passes) {
         Osmium::Handler::Multipolygon *handler_multipolygon = new Osmium::Handler::Multipolygon(attempt_repair, cbmp);
-        parse_osmfile<DualPass1>(osm_filename, new DualPass1(handler_node_location_store, handler_multipolygon, handler_javascript));
-        parse_osmfile<DualPass2>(osm_filename, new DualPass2(handler_node_location_store, handler_multipolygon, handler_javascript));
+        osmium.parse_osmfile<DualPass1>(osm_filename, new DualPass1(handler_node_location_store, handler_multipolygon, handler_javascript));
+        osmium.parse_osmfile<DualPass2>(osm_filename, new DualPass2(handler_node_location_store, handler_multipolygon, handler_javascript));
         delete handler_multipolygon;
     } else {
-        parse_osmfile<SinglePass>(osm_filename, new SinglePass(handler_node_location_store, handler_javascript));
+        osmium.parse_osmfile<SinglePass>(osm_filename, new SinglePass(handler_node_location_store, handler_javascript));
     }
     delete handler_javascript;
     delete handler_node_location_store;
 
     global_context.Dispose();
-
-    // this is needed even if the protobuf lib was never used so that valgrind doesn't report any errors
-    google::protobuf::ShutdownProtobufLibrary();
-
-    return 0;
 }
 

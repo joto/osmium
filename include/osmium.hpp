@@ -8,6 +8,9 @@
 #include <fstream>
 #include <iostream>
 #include <assert.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include <google/protobuf/stubs/common.h>
 
@@ -58,71 +61,81 @@ namespace Osmium {
 
 #include "Osm.hpp"
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-
 #include "Input.hpp"
 #include "XMLParser.hpp"
 #include "PBFParser.hpp"
 
-/**
-*
-*  Parse OSM file and call callback functions.
-*  This works for OSM XML files (suffix .osm) and OSM binary files (suffix .pbf).
-*  Reads from STDIN if the filename is '-', in this case it assumes XML format.
-*
-*/
-template <class T> void parse_osmfile(char *osmfilename, T* handler = NULL) {
-    int fd = 0;
-    if (osmfilename[0] == '-' && osmfilename[1] == '\0') {
-        // fd is already 0, read STDIN
-    } else {
-        fd = open(osmfilename, O_RDONLY);
-        if (fd < 0) {
-            std::cerr << "Can't open osm file: " << strerror(errno) << std::endl;
-            exit(1);
+namespace Osmium {
+
+    class Framework {
+
+      public:
+
+        bool debug;
+
+        Framework() {
+            debug = false;
         }
-    }
 
-    osm_file_format_t file_format;
-    char *suffix = strrchr(osmfilename, '.');
-
-    if (suffix == NULL) {
-        file_format = xml;
-    } else {
-        if (!strcmp(suffix, ".osm")) {
-            file_format = xml;
-        } else if (!strcmp(suffix, ".pbf")) {
-            file_format = pbf;
-        } else {
-            std::cerr << "Unknown file suffix: " << suffix << std::endl;
-            exit(1);
+        ~Framework() {
+            // this is needed even if the protobuf lib was never used so that valgrind doesn't report any errors
+            google::protobuf::ShutdownProtobufLibrary();
         }
-    }
 
-    Osmium::Input::Base<T> *input;
-    switch (file_format) {
-        case xml:
-            input = new Osmium::Input::XML<T>(fd, handler);
-            break;
-        case pbf:
-            input = new Osmium::Input::PBF<T>(fd, handler);
-            break;
-    }
-    input->parse();
-    delete input;
+        /**
+        *  Parse OSM file and call callback functions.
+        *  This works for OSM XML files (suffix .osm) and OSM binary files (suffix .pbf).
+        *  Reads from STDIN if the filename is '-', in this case it assumes XML format.
+        */
+        template <class T>
+        void parse_osmfile(char *osmfilename, T* handler = NULL) {
+            int fd = 0;
+            if (osmfilename[0] == '-' && osmfilename[1] == '\0') {
+                // fd is already 0, read STDIN
+            } else {
+                fd = open(osmfilename, O_RDONLY);
+                if (fd < 0) {
+                    std::cerr << "Can't open osm file: " << strerror(errno) << std::endl;
+                    exit(1);
+                }
+            }
 
-    close(fd);
-}
+            osm_file_format_t file_format;
+            char *suffix = strrchr(osmfilename, '.');
 
+            if (suffix == NULL) {
+                file_format = xml;
+            } else {
+                if (!strcmp(suffix, ".osm")) {
+                    file_format = xml;
+                } else if (!strcmp(suffix, ".pbf")) {
+                    file_format = pbf;
+                } else {
+                    std::cerr << "Unknown file suffix: " << suffix << std::endl;
+                    exit(1);
+                }
+            }
+
+            Osmium::Input::Base<T> *input;
+            switch (file_format) {
+                case xml:
+                    input = new Osmium::Input::XML<T>(fd, handler);
+                    break;
+                case pbf:
+                    input = new Osmium::Input::PBF<T>(fd, handler);
+                    break;
+            }
+            input->parse();
+            delete input;
+
+            close(fd);
+        }
+
+    };
+
+} // namespace Osmium
 
 #include "Handler.hpp"
-#include "HandlerBbox.hpp"
-#include "HandlerMultipolygon.hpp"
-#include "HandlerNodeLocationStore.hpp"
-#include "HandlerStatistics.hpp"
-#include "HandlerTagStats.hpp"
 
 #ifdef WITH_JAVASCRIPT
 # include "JavascriptOutputCSV.hpp"
