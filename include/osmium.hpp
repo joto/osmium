@@ -58,28 +58,64 @@ namespace Osmium {
 
 #include "Osm.hpp"
 
-// callbacks that should be called from OSM file parser
-struct callbacks {
-    void (*init)();
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
-    void (*before_nodes)();
-    void (*node)(Osmium::OSM::Node *node);
-    void (*after_nodes)();
+#include "Input.hpp"
+#include "XMLParser.hpp"
+#include "PBFParser.hpp"
 
-    void (*before_ways)();
-    void (*way)(Osmium::OSM::Way *way);
-    void (*after_ways)();
+/**
+*
+*  Parse OSM file and call callback functions.
+*  This works for OSM XML files (suffix .osm) and OSM binary files (suffix .pbf).
+*  Reads from STDIN if the filename is '-', in this case it assumes XML format.
+*
+*/
+template <class T> void parse_osmfile(char *osmfilename, T* handler = NULL) {
+    int fd = 0;
+    if (osmfilename[0] == '-' && osmfilename[1] == '\0') {
+        // fd is already 0, read STDIN
+    } else {
+        fd = open(osmfilename, O_RDONLY);
+        if (fd < 0) {
+            std::cerr << "Can't open osm file: " << strerror(errno) << std::endl;
+            exit(1);
+        }
+    }
 
-    void (*before_relations)();
-    void (*relation)(Osmium::OSM::Relation *relation);
-    void (*after_relations)();
+    osm_file_format_t file_format;
+    char *suffix = strrchr(osmfilename, '.');
 
-    void (*multipolygon)(Osmium::OSM::Multipolygon *multipolygon);
+    if (suffix == NULL) {
+        file_format = xml;
+    } else {
+        if (!strcmp(suffix, ".osm")) {
+            file_format = xml;
+        } else if (!strcmp(suffix, ".pbf")) {
+            file_format = pbf;
+        } else {
+            std::cerr << "Unknown file suffix: " << suffix << std::endl;
+            exit(1);
+        }
+    }
 
-    void (*final)();
-};
+    Osmium::Input::Base<T> *input;
+    switch (file_format) {
+        case xml:
+            input = new Osmium::Input::XML<T>(fd, handler);
+            break;
+        case pbf:
+            input = new Osmium::Input::PBF<T>(fd, handler);
+            break;
+    }
+    input->parse();
+    delete input;
 
-void parse_osmfile(char *osmfilename, struct callbacks *callbacks);
+    close(fd);
+}
+
 
 #include "Handler.hpp"
 #include "HandlerBbox.hpp"

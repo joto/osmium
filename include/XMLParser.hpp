@@ -15,28 +15,27 @@ namespace Osmium {
 
     namespace Input {
 
-        class XML : public Base {
+        template <class THandler> class XML : public Base<THandler> {
 
             static const int buffer_size = 10240;
 
             int fd; ///< The file descriptor we are reading the data from.
-            struct callbacks *callbacks; ///< Functions to call for each object etc.
 
             osm_object_type_t last_object_type;
 
             Osmium::OSM::Object *current_object;
 
             static void XMLCALL start_element_wrapper(void *data, const XML_Char* element, const XML_Char** attrs) {
-                ((Osmium::Input::XML *)data)->start_element(element, attrs);
+                ((Osmium::Input::XML<THandler> *)data)->start_element(element, attrs);
             }
 
             static void XMLCALL end_element_wrapper(void *data, const XML_Char* element) {
-                ((Osmium::Input::XML *)data)->end_element(element);
+                ((Osmium::Input::XML<THandler> *)data)->end_element(element);
             }
 
         public:
 
-            XML(int in_fd, struct callbacks *cb) : Base(), fd(in_fd), callbacks(cb) {
+            XML(int in_fd, THandler *h) : Base<THandler>(h), fd(in_fd) {
             }
 
             ~XML() {
@@ -55,9 +54,9 @@ namespace Osmium {
 
                 XML_SetUserData(parser, this);
 
-                XML_SetElementHandler(parser, Osmium::Input::XML::start_element_wrapper, Osmium::Input::XML::end_element_wrapper);
+                XML_SetElementHandler(parser, Osmium::Input::XML<THandler>::start_element_wrapper, Osmium::Input::XML<THandler>::end_element_wrapper);
 
-                if (callbacks->before_nodes) { callbacks->before_nodes(); }
+                this->handler->callback_before_nodes();
 
                 do {
                     void *buffer = XML_GetBuffer(parser, buffer_size);
@@ -85,7 +84,7 @@ namespace Osmium {
 
                 XML_ParserFree(parser);
 
-                if (callbacks->after_relations) { callbacks->after_relations(); }
+                this->handler->callback_after_relations();
             }
 
         private:
@@ -103,7 +102,7 @@ namespace Osmium {
                 if (!strcmp(element, "nd")) {
                     for (int count = 0; attrs[count]; count += 2) {
                         if (!strcmp(attrs[count], "ref")) {
-                            way->add_node(atoll(attrs[count+1]));
+                            this->way->add_node(atoll(attrs[count+1]));
                         }
                     }
                 }
@@ -111,7 +110,7 @@ namespace Osmium {
                     if (last_object_type != NODE) {
                         throw std::runtime_error("OSM files must be ordered: first nodes, then ways, then relations. You can use Osmosis with the --sort option to do this.");
                     }
-                    init_object(node, attrs);
+                    init_object(this->node, attrs);
                 }
                 else if (!strcmp(element, "tag")) {
                     const char *key = "", *value = "";
@@ -130,14 +129,14 @@ namespace Osmium {
                 }
                 else if (!strcmp(element, "way")) {
                     if (last_object_type == NODE) {
-                        if (callbacks->after_nodes) { callbacks->after_nodes(); }
+                        this->handler->callback_after_nodes();
                         last_object_type = WAY;
-                        if (callbacks->before_ways) { callbacks->before_ways(); }
+                        this->handler->callback_before_ways();
                     }
                     if (last_object_type == RELATION) {
                         throw std::runtime_error("OSM files must be ordered: first nodes, then ways, then relations. You can use Osmosis with the --sort option to do this.");
                     }
-                    init_object(way, attrs);
+                    init_object(this->way, attrs);
                 }
                 else if (!strcmp(element, "member")) {
                     char        type = 'x';
@@ -155,32 +154,35 @@ namespace Osmium {
                         }
                     }
                     // XXX assert type, ref, role are set
-                    relation->add_member(type, ref, role);
+                    this->relation->add_member(type, ref, role);
                 }
                 else if (!strcmp(element, "relation")) {
                     if (last_object_type == WAY) {
-                        if (callbacks->after_ways) { callbacks->after_ways(); }
+                        this->handler->callback_after_ways();
                         last_object_type = RELATION;
-                        if (callbacks->before_relations) { callbacks->before_relations(); }
+                        this->handler->callback_before_relations();
                     }
                     if (last_object_type == NODE) {
                         throw std::runtime_error("OSM files must be ordered: first nodes, then ways, then relations. You can use Osmosis with the --sort option to do this.");
                     }
-                    init_object(relation, attrs);
+                    init_object(this->relation, attrs);
                 }
             }
 
             void end_element(const XML_Char* element) {
                 if (!strcmp(element, "node")) {
-                    if (callbacks->node) { callbacks->node(node); }
+                    this->handler->callback_object(this->node);
+                    this->handler->callback_node(this->node);
                     current_object = 0;
                 }
                 if (!strcmp(element, "way")) {
-                    if (callbacks->way) { callbacks->way(way); }
+                    this->handler->callback_object(this->way);
+                    this->handler->callback_way(this->way);
                     current_object = 0;
                 }
                 if (!strcmp(element, "relation")) {
-                    if (callbacks->relation) { callbacks->relation(relation); }
+                    this->handler->callback_object(this->relation);
+                    this->handler->callback_relation(this->relation);
                     current_object = 0;
                 }
             }

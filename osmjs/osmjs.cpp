@@ -5,118 +5,134 @@
 
 #include "osmium.hpp"
 
-Osmium::Handler::NodeLocationStore *osmium_handler_node_location_store;
-Osmium::Handler::Multipolygon      *osmium_handler_multipolygon;
-Osmium::Handler::Javascript        *osmium_handler_javascript;
-//Osmium::Handler::Bbox              *osmium_handler_bbox;
-
 bool debug;
 
-void single_pass_init_handler() {
-    osmium_handler_node_location_store->callback_init();
-    osmium_handler_javascript->callback_init();
-}
+class SinglePass : public Osmium::Handler::Base {
 
-void single_pass_node_handler(Osmium::OSM::Node *node) {
-    osmium_handler_node_location_store->callback_node(node);
-    osmium_handler_javascript->callback_node(node);
-//    osmium_handler_bbox->callback_node(node);
-}
+    Osmium::Handler::NodeLocationStore *handler_node_location_store;
+    Osmium::Handler::Javascript        *handler_javascript;
 
-void single_pass_way_handler(Osmium::OSM::Way *way) {
-    osmium_handler_node_location_store->callback_way(way);
-    osmium_handler_javascript->callback_way(way);
-}
+  public:
 
-void single_pass_relation_handler(Osmium::OSM::Relation *relation) {
-    osmium_handler_javascript->callback_relation(relation);
-}
+    SinglePass(Osmium::Handler::NodeLocationStore *nls = NULL,
+               Osmium::Handler::Javascript        *js  = NULL)
+             : Base(),
+               handler_node_location_store(nls),
+               handler_javascript(js) {
+    }
 
-void single_pass_final_handler() {
-//    osmium_handler_bbox->callback_final();
-    osmium_handler_javascript->callback_final();
-}
+    void callback_init() {
+        handler_node_location_store->callback_init();
+        handler_javascript->callback_init();
+    }
 
-struct callbacks *setup_callbacks_single_pass() {
-    static struct callbacks cb;
-    cb.init             = single_pass_init_handler;
-    cb.node             = single_pass_node_handler;
-    cb.way              = single_pass_way_handler;
-    cb.relation         = single_pass_relation_handler;
-    cb.final            = single_pass_final_handler;
-    return &cb;
-}
+    void callback_node(Osmium::OSM::Node *node) {
+        handler_node_location_store->callback_node(node);
+        handler_javascript->callback_node(node);
+    }
 
-void dual_pass_init_handler() {
-    osmium_handler_multipolygon->callback_init();
-    osmium_handler_node_location_store->callback_init();
-    osmium_handler_javascript->callback_init();
-}
+    void callback_way(Osmium::OSM::Way *way) {
+        handler_node_location_store->callback_way(way);
+        handler_javascript->callback_way(way);
+    }
 
-void dual_pass_node_handler1(Osmium::OSM::Node *node) {
-    osmium_handler_javascript->callback_node(node);
-}
+    void callback_relation(Osmium::OSM::Relation *relation) {
+        handler_javascript->callback_relation(relation);
+    }
 
-void dual_pass_before_relations_handler1() {
-    osmium_handler_multipolygon->callback_before_relations();
-}
+    void callback_final() {
+        handler_javascript->callback_final();
+    }
 
-void dual_pass_relation_handler1(Osmium::OSM::Relation *relation) {
-    osmium_handler_multipolygon->callback_relation(relation);
-    osmium_handler_javascript->callback_relation(relation);
-}
+};
 
-void dual_pass_after_relations_handler1() {
-    osmium_handler_multipolygon->callback_after_relations();
-    std::cerr << "1st pass finished" << std::endl;
-}
+class DualPass1 : public Osmium::Handler::Base {
 
-void dual_pass_node_handler2(Osmium::OSM::Node *node) {
-    osmium_handler_node_location_store->callback_node(node);
-}
+    Osmium::Handler::NodeLocationStore *handler_node_location_store;
+    Osmium::Handler::Multipolygon      *handler_multipolygon;
+    Osmium::Handler::Javascript        *handler_javascript;
 
-void dual_pass_after_nodes_handler2() {
-    osmium_handler_node_location_store->callback_after_nodes();
-}
+  public:
 
-void dual_pass_way_handler2(Osmium::OSM::Way *way) {
-    osmium_handler_node_location_store->callback_way(way);
-    osmium_handler_multipolygon->callback_way(way);
-    osmium_handler_javascript->callback_way(way);
-}
+    DualPass1(Osmium::Handler::NodeLocationStore *nls = NULL,
+              Osmium::Handler::Multipolygon      *mp  = NULL,
+              Osmium::Handler::Javascript        *js  = NULL)
+            : Base(),
+              handler_node_location_store(nls),
+              handler_multipolygon(mp),
+              handler_javascript(js) {
+    }
 
-void dual_pass_after_ways_handler2() {
-    osmium_handler_multipolygon->callback_after_ways();
-}
+    void callback_init() {
+        handler_multipolygon->callback_init();
+        handler_node_location_store->callback_init();
+        handler_javascript->callback_init();
+    }
 
-void dual_pass_multipolygon_handler(Osmium::OSM::Multipolygon *multipolygon) {
-    osmium_handler_javascript->callback_multipolygon(multipolygon);
-}
+    void callback_node(Osmium::OSM::Node *node) {
+        handler_javascript->callback_node(node);
+    }
 
-void dual_pass_final_handler() {
-    osmium_handler_javascript->callback_final();
-    osmium_handler_multipolygon->callback_final();
-}
-struct callbacks *setup_callbacks_1st_pass() {
-    static struct callbacks cb;
-    cb.init             = dual_pass_init_handler;
-    cb.node             = dual_pass_node_handler1;
-    cb.before_relations = dual_pass_before_relations_handler1;
-    cb.relation         = dual_pass_relation_handler1;
-    cb.after_relations  = dual_pass_after_relations_handler1;
-    return &cb;
-}
+    void callback_before_relations() {
+        handler_multipolygon->callback_before_relations();
+    }
 
-struct callbacks *setup_callbacks_2nd_pass() {
-    static struct callbacks cb;
-    cb.node             = dual_pass_node_handler2;
-    cb.after_nodes      = dual_pass_after_nodes_handler2;
-    cb.way              = dual_pass_way_handler2;
-    cb.after_ways       = dual_pass_after_ways_handler2;
-    cb.multipolygon     = dual_pass_multipolygon_handler;
-    cb.final            = dual_pass_final_handler;
-    return &cb;
-}
+    void callback_relation(Osmium::OSM::Relation *relation) {
+        handler_multipolygon->callback_relation(relation);
+        handler_javascript->callback_relation(relation);
+    }
+
+    void callback_after_relations() {
+        handler_multipolygon->callback_after_relations();
+        std::cerr << "1st pass finished" << std::endl;
+    }
+
+};
+
+class DualPass2 : public Osmium::Handler::Base {
+
+    Osmium::Handler::NodeLocationStore *handler_node_location_store;
+    Osmium::Handler::Multipolygon      *handler_multipolygon;
+    Osmium::Handler::Javascript        *handler_javascript;
+
+  public:
+
+    DualPass2(Osmium::Handler::NodeLocationStore *nls = NULL,
+              Osmium::Handler::Multipolygon      *mp  = NULL,
+              Osmium::Handler::Javascript        *js  = NULL)
+            : Base(),
+              handler_node_location_store(nls),
+              handler_multipolygon(mp),
+              handler_javascript(js) {
+    }
+
+    void callback_node(Osmium::OSM::Node *node) {
+        handler_node_location_store->callback_node(node);
+    }
+
+    void callback_after_nodes() {
+        handler_node_location_store->callback_after_nodes();
+    }
+
+    void callback_way(Osmium::OSM::Way *way) {
+        handler_node_location_store->callback_way(way);
+        handler_multipolygon->callback_way(way);
+        handler_javascript->callback_way(way);
+    }
+
+    void callback_after_ways() {
+        handler_multipolygon->callback_after_ways();
+    }
+
+/*    void callback_multipolygon(Osmium::OSM::Multipolygon *multipolygon) {
+        handler_javascript->callback_multipolygon(multipolygon);
+    }*/
+
+    void callback_final() {
+        handler_javascript->callback_final();
+        handler_multipolygon->callback_final();
+    }
+};
 
 /* ================================================== */
 
@@ -168,6 +184,12 @@ std::string find_include_file(std::string filename) {
     }
     std::cerr << ")" << std::endl;
     exit(1);
+}
+
+Osmium::Handler::Javascript *handler_javascript;
+
+void cbmp(Osmium::OSM::Multipolygon *multipolygon) {
+    handler_javascript->callback_multipolygon(multipolygon);
 }
 
 int main(int argc, char *argv[]) {
@@ -266,31 +288,27 @@ int main(int argc, char *argv[]) {
 
     Osmium::Javascript::Template::init();
 
-    struct callbacks *callbacks_single_pass = setup_callbacks_single_pass();
-    struct callbacks *callbacks_1st_pass    = setup_callbacks_1st_pass();
-    struct callbacks *callbacks_2nd_pass    = setup_callbacks_2nd_pass();
-
+    Osmium::Handler::NodeLocationStore *handler_node_location_store;
     if (location_store == ARRAY) {
-        osmium_handler_node_location_store = new Osmium::Handler::NLS_Array();
+        handler_node_location_store = new Osmium::Handler::NLS_Array();
     } else if (location_store == DISK) {
-        osmium_handler_node_location_store = new Osmium::Handler::NLS_Disk();
+        handler_node_location_store = new Osmium::Handler::NLS_Disk();
     } else {
-        osmium_handler_node_location_store = new Osmium::Handler::NLS_Sparsetable();
+        handler_node_location_store = new Osmium::Handler::NLS_Sparsetable();
     }
-    osmium_handler_javascript = new Osmium::Handler::Javascript(include_files, javascript_filename);
-
+    handler_javascript = new Osmium::Handler::Javascript(include_files, javascript_filename);
+    
     if (two_passes) {
-        osmium_handler_multipolygon = new Osmium::Handler::Multipolygon(attempt_repair, callbacks_2nd_pass);
-        parse_osmfile(osm_filename, callbacks_1st_pass);
-        parse_osmfile(osm_filename, callbacks_2nd_pass);
-        delete osmium_handler_multipolygon;
+        Osmium::Handler::Multipolygon *handler_multipolygon = new Osmium::Handler::Multipolygon(attempt_repair, cbmp);
+        parse_osmfile<DualPass1>(osm_filename, new DualPass1(handler_node_location_store, handler_multipolygon, handler_javascript));
+        parse_osmfile<DualPass2>(osm_filename, new DualPass2(handler_node_location_store, handler_multipolygon, handler_javascript));
+        delete handler_multipolygon;
     } else {
-        parse_osmfile(osm_filename, callbacks_single_pass);
+        parse_osmfile<SinglePass>(osm_filename, new SinglePass(handler_node_location_store, handler_javascript));
     }
+    delete handler_javascript;
+    delete handler_node_location_store;
 
-    delete osmium_handler_javascript;
-    delete osmium_handler_node_location_store;
-	
     global_context.Dispose();
 
     // this is needed even if the protobuf lib was never used so that valgrind doesn't report any errors

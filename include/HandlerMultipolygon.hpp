@@ -20,13 +20,13 @@ namespace Osmium {
             way2mpidx_t way2mpidx;
 
             bool attempt_repair;
-            struct callbacks *cb;
+            void (*callback_multipolygon_parent)(Osmium::OSM::Multipolygon *);
 
             uint64_t count_ways_in_all_multipolygons;
 
           public:
 
-            Multipolygon(bool attempt_repair, struct callbacks *cb) : Base(), attempt_repair(attempt_repair), cb(cb) {
+            Multipolygon(bool attempt_repair, void (*cb)(Osmium::OSM::Multipolygon *)) : Base(), attempt_repair(attempt_repair), callback_multipolygon_parent(cb) {
                 count_ways_in_all_multipolygons = 0;
             }
 
@@ -59,7 +59,7 @@ namespace Osmium {
 
                 count_ways_in_all_multipolygons += num_ways;
 
-                Osmium::OSM::MultipolygonFromRelation *mp = new Osmium::OSM::MultipolygonFromRelation(r, is_boundary, num_ways, cb->multipolygon, attempt_repair);
+                Osmium::OSM::MultipolygonFromRelation *mp = new Osmium::OSM::MultipolygonFromRelation(r, is_boundary, num_ways, callback_multipolygon_parent, attempt_repair);
                 multipolygons.push_back(mp);
             }
 
@@ -115,7 +115,7 @@ namespace Osmium {
 
             // in pass 2
             void callback_multipolygon(Osmium::OSM::Multipolygon *multipolygon) {
-                cb->multipolygon(multipolygon);
+                callback_multipolygon_parent(multipolygon);
             }
 
             void callback_init() {

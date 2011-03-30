@@ -24,7 +24,7 @@ namespace Osmium {
 
           public:
           
-            NodeDensity(int _size, int _min, int _max) : xsize(_size*2), ysize(_size), min(_min), max(_max) {
+            NodeDensity(int _size = 1024, int _min = 0, int _max = 99999) : Base(), xsize(_size*2), ysize(_size), min(_min), max(_max) {
                 factor = ysize / 180;
                 node_count = (node_count_t *) calloc(xsize * ysize, sizeof(uint16_t));
                 max_count = 0;

@@ -2,82 +2,69 @@
 #include <osmium.hpp>
 
 bool debug;
-Osmium::Handler::Statistics      *osmium_handler_stats;
-Osmium::Handler::TagStats        *osmium_handler_tagstats;
-//Osmium::Handler::NLS_Sparsetable *osmium_handler_node_location_store;
 
-void init_handler() {
-    // osmium_handler_stats->callback_init();
-    osmium_handler_tagstats->callback_init();
-    // osmium_handler_node_location_store->callback_init();
-}
+class MyTagStatsHandler : public Osmium::Handler::Base {
 
-void before_nodes_handler() {
-    osmium_handler_tagstats->callback_before_nodes();
-}
+    Osmium::Handler::Statistics      osmium_handler_stats;
+    Osmium::Handler::TagStats        osmium_handler_tagstats;
+    //Osmium::Handler::NLS_Sparsetable osmium_handler_node_location_store;
 
-void node_handler(Osmium::OSM::Node *node) {
-    osmium_handler_stats->callback_object(node);
-    osmium_handler_tagstats->callback_object(node);
-    osmium_handler_stats->callback_node(node);
-//    osmium_handler_node_location_store->callback_node(node);
-}
+  public:
 
-void after_nodes_handler() {
-    osmium_handler_tagstats->callback_after_nodes();
-}
+    void callback_init() {
+        osmium_handler_tagstats.callback_init();
+        // osmium_handler_node_location_store.callback_init();
+    }
 
-void before_ways_handler() {
-    osmium_handler_tagstats->callback_before_ways();
-}
+    void callback_before_nodes() {
+        osmium_handler_tagstats.callback_before_nodes();
+    }
 
-void way_handler(Osmium::OSM::Way *way) {
-    osmium_handler_stats->callback_object(way);
-    osmium_handler_tagstats->callback_object(way);
-    osmium_handler_stats->callback_way(way);
-//    osmium_handler_node_location_store->callback_way(way);
-}
+    void callback_object(Osmium::OSM::Object *object) {
+        osmium_handler_stats.callback_object(object);
+        osmium_handler_tagstats.callback_object(object);
+    }
 
-void after_ways_handler() {
-    osmium_handler_tagstats->callback_after_ways();
-}
+    void callback_node(Osmium::OSM::Node *node) {
+        osmium_handler_stats.callback_node(node);
+    //    osmium_handler_node_location_store.callback_node(node);
+    }
 
-void before_relations_handler() {
-    osmium_handler_tagstats->callback_before_relations();
-}
+    void callback_after_nodes() {
+        osmium_handler_tagstats.callback_after_nodes();
+    }
 
-void relation_handler(Osmium::OSM::Relation *relation) {
-    osmium_handler_stats->callback_object(relation);
-    osmium_handler_tagstats->callback_object(relation);
-    osmium_handler_stats->callback_relation(relation);
-}
+    void callback_before_ways() {
+        osmium_handler_tagstats.callback_before_ways();
+    }
 
-void after_relations_handler() {
-    osmium_handler_tagstats->callback_after_relations();
-}
+    void callback_way(Osmium::OSM::Way *way) {
+        osmium_handler_stats.callback_way(way);
+    //    osmium_handler_node_location_store.callback_way(way);
+    }
 
-void final_handler() {
-    // osmium_handler_node_location_store->callback_final();
-    osmium_handler_stats->callback_final();
-    osmium_handler_tagstats->callback_final();
-}
+    void callback_after_ways() {
+        osmium_handler_tagstats.callback_after_ways();
+    }
 
+    void callback_before_relations() {
+        osmium_handler_tagstats.callback_before_relations();
+    }
 
-struct callbacks *setup_callbacks() {
-    static struct callbacks cb;
-    cb.init             = init_handler;
-    cb.before_nodes     = before_nodes_handler;
-    cb.node             = node_handler;
-    cb.after_nodes      = after_nodes_handler;
-    cb.before_ways      = before_ways_handler;
-    cb.way              = way_handler;
-    cb.after_ways       = after_ways_handler;
-    cb.before_relations = before_relations_handler;
-    cb.relation         = relation_handler;
-    cb.after_relations  = after_relations_handler;
-    cb.final            = final_handler;
-    return &cb;
-}
+    void callback_relation(Osmium::OSM::Relation *relation) {
+        osmium_handler_stats.callback_relation(relation);
+    }
+
+    void callback_after_relations() {
+        osmium_handler_tagstats.callback_after_relations();
+    }
+
+    void callback_final() {
+        // osmium_handler_node_location_store.callback_final();
+        osmium_handler_stats.callback_final();
+        osmium_handler_tagstats.callback_final();
+    }
+};
 
 /* ================================================== */
 
@@ -90,15 +77,7 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    osmium_handler_stats               = new Osmium::Handler::Statistics();
-    osmium_handler_tagstats            = new Osmium::Handler::TagStats();
-//    osmium_handler_node_location_store = new Osmium::Handler::NLS_Sparsetable();
-
-    parse_osmfile(argv[1], setup_callbacks());
-
-//    delete osmium_handler_node_location_store;
-    delete osmium_handler_tagstats;
-    delete osmium_handler_stats;
+    parse_osmfile<MyTagStatsHandler>(argv[1]);
 
     // this is needed even if the protobuf lib was never used so that valgrind doesn't report any errors
     google::protobuf::ShutdownProtobufLibrary();

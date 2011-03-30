@@ -9,71 +9,61 @@
 #include <HandlerDebug.hpp>
 
 bool debug;
-Osmium::Handler::Debug *osmium_handler_debug;
 
-void init_handler() {
-    std::cout << "init" << std::endl;
-}
+class MyDebugHandler : public Osmium::Handler::Base {
 
-void before_nodes_handler() {
-    std::cout << "before_nodes" << std::endl;
-}
+    Osmium::Handler::Debug handler_debug;
 
-void node_handler(Osmium::OSM::Node *node) {
-    osmium_handler_debug->callback_object(node);
-    osmium_handler_debug->callback_node(node);
-}
+  public:
 
-void after_nodes_handler() {
-    std::cout << "after_nodes" << std::endl;
-}
+    void callback_init() {
+        std::cout << "init" << std::endl;
+    }
 
-void before_ways_handler() {
-    std::cout << "before_ways" << std::endl;
-}
+    void callback_object(Osmium::OSM::Object *object) {
+        handler_debug.callback_object(object);
+    }
 
-void way_handler(Osmium::OSM::Way *way) {
-    osmium_handler_debug->callback_object(way);
-    osmium_handler_debug->callback_way(way);
-}
+    void callback_before_nodes() {
+        std::cout << "before_nodes" << std::endl;
+    }
 
-void after_ways_handler() {
-    std::cout << "after_ways" << std::endl;
-}
+    void callback_node(Osmium::OSM::Node *node) {
+        handler_debug.callback_node(node);
+    }
 
-void before_relations_handler() {
-    std::cout << "before_relations" << std::endl;
-}
+    void callback_after_nodes() {
+        std::cout << "after_nodes" << std::endl;
+    }
 
-void relation_handler(Osmium::OSM::Relation *relation) {
-    osmium_handler_debug->callback_object(relation);
-    osmium_handler_debug->callback_relation(relation);
-}
+    void callback_before_ways() {
+        std::cout << "before_ways" << std::endl;
+    }
 
-void after_relations_handler() {
-    std::cout << "after_relations" << std::endl;
-}
+    void callback_way(Osmium::OSM::Way *way) {
+        handler_debug.callback_way(way);
+    }
 
-void final_handler() {
-    std::cout << "final" << std::endl;
-}
+    void callback_after_ways() {
+        std::cout << "after_ways" << std::endl;
+    }
 
+    void callback_before_relations() {
+        std::cout << "before_relations" << std::endl;
+    }
 
-struct callbacks *setup_callbacks() {
-    static struct callbacks cb;
-    cb.init             = init_handler;
-    cb.before_nodes     = before_nodes_handler;
-    cb.node             = node_handler;
-    cb.after_nodes      = after_nodes_handler;
-    cb.before_ways      = before_ways_handler;
-    cb.way              = way_handler;
-    cb.after_ways       = after_ways_handler;
-    cb.before_relations = before_relations_handler;
-    cb.relation         = relation_handler;
-    cb.after_relations  = after_relations_handler;
-    cb.final            = final_handler;
-    return &cb;
-}
+    void callback_relation(Osmium::OSM::Relation *relation) {
+        handler_debug.callback_relation(relation);
+    }
+
+    void callback_after_relations() {
+        std::cout << "after_relations" << std::endl;
+    }
+
+    void callback_final() {
+        std::cout << "final" << std::endl;
+    }
+};
 
 /* ================================================== */
 
@@ -85,11 +75,7 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    osmium_handler_debug = new Osmium::Handler::Debug();
-
-    parse_osmfile(argv[1], setup_callbacks());
-
-    delete osmium_handler_debug;
+    parse_osmfile<MyDebugHandler>(argv[1]);
 
     // this is needed even if the protobuf lib was never used so that valgrind doesn't report any errors
     google::protobuf::ShutdownProtobufLibrary();
