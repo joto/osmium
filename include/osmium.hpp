@@ -144,4 +144,25 @@ namespace Osmium {
 # include "Javascript.hpp"
 #endif
 
+#ifdef WITH_GEOS
+#include <geos/geom/GeometryFactory.h>
+#include <geos/geom/PrecisionModel.h>
+
+#ifndef IN_JAVASCRIPT_TEMPLATE
+namespace Osmium {
+    geos::geom::GeometryFactory *geos_factory() {
+        static geos::geom::GeometryFactory *global_geometry_factory;
+
+        if (! global_geometry_factory) {
+            geos::geom::PrecisionModel *pm = new geos::geom::PrecisionModel();
+            global_geometry_factory = new geos::geom::GeometryFactory(pm, -1);
+        }
+
+        return global_geometry_factory;
+    }
+} // namespace Osmium
+#endif
+
+#endif
+
 #endif // OSMIUM_OSMIUM_HPP

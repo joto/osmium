@@ -1,5 +1,9 @@
 
+// ugly workaround which will re removed soon...
+#define IN_JAVASCRIPT_TEMPLATE
+
 #include "osmium.hpp"
+#include <v8.h>
 
 #include "JavascriptTemplate.hpp"
 
@@ -16,6 +20,8 @@
 #include "JavascriptTemplateMultipolygon.hpp"
 #include "JavascriptTemplateOutputCSV.hpp"
 #include "JavascriptTemplateOutputShapefile.hpp"
+
+#undef IN_JAVASCRIPT_TEMPLATE
 
 namespace Osmium {
 

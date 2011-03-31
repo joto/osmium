@@ -29,17 +29,13 @@ LIB_V8       = -lv8 -licuuc
 LIB_SHAPE    = -lshp
 LIB_PROTOBUF = -lz -lprotobuf
 
-CPP = osmium.cpp
 CPP_JS = JavascriptTemplate.cpp
 
-OBJ = osmium.o
 OBJ_JS = JavascriptTemplate.o
 OBJ_PBF = fileformat.pb.o osmformat.pb.o
 
 HPP = osmium.hpp Osm.hpp OsmObject.hpp OsmNode.hpp OsmWay.hpp OsmRelation.hpp OsmMultipolygon.hpp XMLParser.hpp wkb.hpp StringStore.hpp Handler.hpp HandlerBbox.hpp HandlerMultipolygon.hpp HandlerStatistics.hpp HandlerTagStats.hpp HandlerNodeLocationStore.hpp PBFParser.hpp
 
-SRC_CPP = $(patsubst %,../src/%,$(CPP))
-SRC_OBJ = $(patsubst %,../src/%,$(OBJ))
 SRC_HPP = $(patsubst %,../include/%,$(HPP))
 
 SRC_OBJ_PBF = $(patsubst %,../pbf/%,$(OBJ_PBF))
@@ -59,8 +55,8 @@ protobuf:
 %.o: ../src/%.cpp $(SRC_HPP)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-osmjs: osmjs.cpp $(OBJ) $(OBJ_JS) $(SRC_HPP) $(SRC_HPP_JS)
-	$(CXX) $(CXXFLAGS) -o $@ $< $(OBJ) $(OBJ_JS) $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_V8) $(LIB_SHAPE)
+osmjs: osmjs.cpp $(OBJ_JS) $(SRC_HPP) $(SRC_HPP_JS)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(OBJ_JS) $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_V8) $(LIB_SHAPE)
 
 install:
 	install -m 755 -g root -o root osmjs $(DESTDIR)/usr/bin/osmjs
