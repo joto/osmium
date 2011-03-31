@@ -1,8 +1,9 @@
 
 #include <osmium.hpp>
-#include "HandlerStatistics.hpp"
-#include "HandlerTagStats.hpp"
-//#include "HandlerNodeLocationStore.hpp"
+
+#include <HandlerStatistics.hpp>
+#include <HandlerTagStats.hpp>
+//#include <HandlerNodeLocationStore.hpp>
 
 bool debug;
 

@@ -1,11 +1,11 @@
 
+#include <cstdlib>
 #include <getopt.h>
 #include <unistd.h>
-#include <stdlib.h>
 
-#include "osmium.hpp"
-#include "HandlerNodeLocationStore.hpp"
-#include "HandlerMultipolygon.hpp"
+#include <osmium.hpp>
+#include <HandlerNodeLocationStore.hpp>
+#include <HandlerMultipolygon.hpp>
 
 #ifdef WITH_MULTIPOLYGON_PROFILING
 std::vector<std::pair<std::string, timer *> > Osmium::OSM::MultipolygonFromRelation::timers;

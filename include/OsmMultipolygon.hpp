@@ -12,7 +12,7 @@
 #include <map>
 
 #ifdef WITH_MULTIPOLYGON_PROFILING
-# include "timer.h"
+# include <timer.h>
 # define START_TIMER(x) x##_timer.start();
 # define STOP_TIMER(x) x##_timer.stop();
 #else

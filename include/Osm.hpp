@@ -53,10 +53,10 @@ namespace Osmium {
 
 } // namespace Osmium
 
-#include "OsmObject.hpp"
-#include "OsmNode.hpp"
-#include "OsmWay.hpp"
-#include "OsmRelation.hpp"
-#include "OsmMultipolygon.hpp"
+#include <OsmObject.hpp>
+#include <OsmNode.hpp>
+#include <OsmWay.hpp>
+#include <OsmRelation.hpp>
+#include <OsmMultipolygon.hpp>
 
 #endif // OSMIUM_OSM_HPP

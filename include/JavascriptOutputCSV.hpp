@@ -1,6 +1,8 @@
 #ifndef OSMIUM_OUTPUT_CSV_HPP
 #define OSMIUM_OUTPUT_CSV_HPP
 
+#include <fstream>
+
 #include "Javascript.hpp"
 
 namespace Osmium {

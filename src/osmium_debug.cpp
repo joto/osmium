@@ -4,8 +4,9 @@
 
 */
 
-#include <stdlib.h>
-#include "osmium.hpp"
+#include <cstdlib>
+
+#include <osmium.hpp>
 #include <HandlerDebug.hpp>
 
 bool debug;

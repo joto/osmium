@@ -5,7 +5,7 @@
 #include <sstream>
 
 #ifdef WITH_SHPLIB
-#include <shapefil.h>
+# include <shapefil.h>
 #endif
 
 namespace Osmium {

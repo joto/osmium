@@ -2,8 +2,9 @@
 // ugly workaround which will re removed soon...
 #define IN_JAVASCRIPT_TEMPLATE
 
-#include "osmium.hpp"
 #include <v8.h>
+
+#include <osmium.hpp>
 
 #include "JavascriptTemplate.hpp"
 

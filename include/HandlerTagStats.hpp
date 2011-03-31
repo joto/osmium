@@ -4,10 +4,12 @@
 #include <google/sparse_hash_map>
 #include <bitset>
 #include <string>
+#include <fstream>
 
 #include <gd.h>
 
-#include "Sqlite.hpp"
+#include <StringStore.hpp>
+#include <Sqlite.hpp>
 
 union counter_t {
     uint32_t count[4];

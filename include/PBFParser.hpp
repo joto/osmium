@@ -31,8 +31,6 @@ along with MoNav. If not, see <http://www.gnu.org/licenses/>.
 #include <fileformat.pb.h>
 #include <osmformat.pb.h>
 
-#include "Handler.hpp"
-
 extern bool debug;
 
 namespace Osmium {
@@ -66,6 +64,11 @@ namespace Osmium {
             OSMPBF::PrimitiveBlock pbf_primitive_block;
 
         public:
+
+            static void cleanup() {
+                // this is needed even if the protobuf lib was never used so that valgrind doesn't report any errors
+                google::protobuf::ShutdownProtobufLibrary();
+            }
 
             /**
             * Instantiate PBF Parser

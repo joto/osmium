@@ -1,6 +1,8 @@
 #ifndef OSMIUM_OSM_WAY_HPP
 #define OSMIUM_OSM_WAY_HPP
 
+#include <stdexcept>
+
 #ifdef WITH_SHPLIB
 # include <shapefil.h>
 #endif
@@ -16,8 +18,6 @@
 # include <geos/geom/Point.h>
 # include <geos/util/GEOSException.h>
 #endif
-
-#include <stdexcept>
 
 extern bool debug;
 

@@ -127,4 +127,3 @@ inline std::ostream& operator<<(std::ostream& os, timer& t)
 //===========================================================================
 
 #endif // TIMER_H
-

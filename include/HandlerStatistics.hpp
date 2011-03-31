@@ -1,7 +1,7 @@
 #ifndef OSMIUM_HANDLER_STATISTICS_HPP
 #define OSMIUM_HANDLER_STATISTICS_HPP
 
-#include "Sqlite.hpp"
+#include <Sqlite.hpp>
 
 namespace Osmium {
 

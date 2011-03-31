@@ -7,6 +7,8 @@
 
 #include <stdexcept>
 #include <vector>
+#include <cstring>
+#include <assert.h>
 #include <time.h>
 
 #ifdef WITH_SHPLIB

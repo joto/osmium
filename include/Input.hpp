@@ -1,6 +1,8 @@
 #ifndef OSMIUM_INPUT_HPP
 #define OSMIUM_INPUT_HPP
 
+#include <Handler.hpp>
+
 namespace Osmium {
 
     namespace Input {
@@ -45,5 +47,8 @@ namespace Osmium {
     } // namespace Input
 
 } // namespace Osmium
+
+#include <XMLParser.hpp>
+#include <PBFParser.hpp>
 
 #endif // OSMIUM_INPUT_HPP

@@ -1,21 +1,7 @@
 #ifndef OSMIUM_OSMIUM_HPP
 #define OSMIUM_OSMIUM_HPP
 
-#include <stdint.h>
-#include <cstdlib>
-#include <cstring>
-#include <sstream>
-#include <fstream>
-#include <iostream>
-#include <assert.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
-
-#include <google/protobuf/stubs/common.h>
-
-#include "wkb.hpp"
-#include "StringStore.hpp"
 
 // check way geometry before making a shplib object from it
 // normally this should be defined, otherwise you will generate invalid linestring geometries
@@ -31,11 +17,8 @@ namespace Osmium {
 
 #endif
 
-#include "Osm.hpp"
-
-#include "Input.hpp"
-#include "XMLParser.hpp"
-#include "PBFParser.hpp"
+#include <Osm.hpp>
+#include <Input.hpp>
 
 namespace Osmium {
 
@@ -50,8 +33,7 @@ namespace Osmium {
         }
 
         ~Framework() {
-            // this is needed even if the protobuf lib was never used so that valgrind doesn't report any errors
-            google::protobuf::ShutdownProtobufLibrary();
+            Osmium::Input::PBF<Osmium::Handler::Base>::cleanup();
         }
 
         /**
@@ -93,8 +75,6 @@ namespace Osmium {
     };
 
 } // namespace Osmium
-
-#include "Handler.hpp"
 
 #ifdef WITH_JAVASCRIPT
 # include "JavascriptOutputCSV.hpp"

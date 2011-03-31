@@ -7,6 +7,8 @@
 # include <shapefil.h>
 #endif
 
+#include <wkb.hpp>
+
 /** @file
 *   @brief Contains the Osmium::OSM::Node class.
 */
