@@ -1,6 +1,14 @@
 #ifndef OSMIUM_OSM_HPP
 #define OSMIUM_OSM_HPP
 
+enum osm_object_type_t {
+    NODE                       = 1,
+    WAY                        = 2,
+    RELATION                   = 3,
+    MULTIPOLYGON_FROM_WAY      = 4,
+    MULTIPOLYGON_FROM_RELATION = 5
+};
+
 /*
 * The following typedefs are chosen so that they can represent all needed
 * numbers and still be reasonably space efficient. As the OSM database is

@@ -48,6 +48,24 @@ namespace Osmium {
             time_t timestamp;
             char user[max_length_username]; ///< name of user who last changed this object
 
+          private:
+
+            osm_object_id_t string_to_osm_object_id(const char *x) {
+                return atol(x);
+            }
+
+            osm_version_t string_to_osm_version(const char *x) {
+                return atoi(x);
+            }
+
+            osm_changeset_id_t string_to_osm_changeset_id(const char *x) {
+                return atol(x);
+            }
+
+            osm_user_id_t string_to_osm_user_id(const char *x) {
+                return atol(x);
+            }
+
           protected:
 
             // how many tags are there on this object (XXX we could probably live without this and just use tags.size())
@@ -94,21 +112,21 @@ namespace Osmium {
 
             virtual void set_attribute(const char *attr, const char *value) {
                 if (!strcmp(attr, "id")) {
-                    id = STR_TO_OBJECT_ID(value);
+                    id = string_to_osm_object_id(value);
                 } else if (!strcmp(attr, "version")) {
-                    version = STR_TO_VERSION(value);
+                    version = string_to_osm_version(value);
                 } else if (!strcmp(attr, "timestamp")) {
                     if (! memccpy(timestamp_str, value, 0, max_length_timestamp)) {
                         throw std::length_error("timestamp too long");
                     }
                 } else if (!strcmp(attr, "uid")) {
-                    uid = STR_TO_USER_ID(value);
+                    uid = string_to_osm_user_id(value);
                 } else if (!strcmp(attr, "user")) {
                     if (! memccpy(user, value, 0, max_length_username)) {
                         throw std::length_error("user name too long");
                     }
                 } else if (!strcmp(attr, "changeset")) {
-                    changeset = STR_TO_CHANGESET_ID(value);
+                    changeset = string_to_osm_changeset_id(value);
                 }
             }
 
