@@ -3,8 +3,6 @@
 
 #include <fstream>
 
-#include "Javascript.hpp"
-
 extern v8::Persistent<v8::Context> global_context;
 extern bool debug;
 

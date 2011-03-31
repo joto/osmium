@@ -3,8 +3,6 @@
 
 #include <fstream>
 
-#include "Javascript.hpp"
-
 namespace Osmium {
 
     namespace Output {

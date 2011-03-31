@@ -1,10 +1,8 @@
 #ifndef OSMIUM_JAVASCRIPT_HPP
 #define OSMIUM_JAVASCRIPT_HPP
 
-#include "v8.h"
+#include <v8.h>
 #include <unicode/ustring.h>
-
-#include "JavascriptTemplate.hpp"
 
 /* These unicode conversion functions are used to convert UTF-8 to UTF-16 and then into
    a v8::String and back, because the functions that v8 has for this do not handle
@@ -112,5 +110,10 @@ inline void v8_String_to_ostream(v8::Local<v8::String> string, std::ostream &os)
     free(buffer);
     free(src);
 }
+
+#include <JavascriptTemplate.hpp>
+#include <JavascriptOutputCSV.hpp>
+#include <JavascriptOutputShapefile.hpp>
+#include <HandlerJavascript.hpp>
 
 #endif // OSMIUM_JAVASCRIPT_HPP

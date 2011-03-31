@@ -77,10 +77,7 @@ namespace Osmium {
 } // namespace Osmium
 
 #ifdef WITH_JAVASCRIPT
-# include "JavascriptOutputCSV.hpp"
-# include "JavascriptOutputShapefile.hpp"
-# include "HandlerJavascript.hpp"
-# include "Javascript.hpp"
+# include <Javascript.hpp>
 #endif
 
 #ifdef WITH_GEOS
