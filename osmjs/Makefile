@@ -34,15 +34,10 @@ CPP_JS = JavascriptTemplate.cpp
 OBJ_JS = JavascriptTemplate.o
 OBJ_PBF = fileformat.pb.o osmformat.pb.o
 
-HPP = osmium.hpp Osm.hpp OsmObject.hpp OsmNode.hpp OsmWay.hpp OsmRelation.hpp OsmMultipolygon.hpp XMLParser.hpp wkb.hpp StringStore.hpp Handler.hpp HandlerBbox.hpp HandlerMultipolygon.hpp HandlerStatistics.hpp HandlerTagStats.hpp HandlerNodeLocationStore.hpp PBFParser.hpp
-
-SRC_HPP = $(patsubst %,../include/%,$(HPP))
-
 SRC_OBJ_PBF = $(patsubst %,../pbf/%,$(OBJ_PBF))
 
 SRC_CPP_JS = $(patsubst %,../include/%,$(CPP_JS))
 SRC_OBJ_JS = $(patsubst %,../include/%,$(OBJ_JS))
-SRC_HPP_JS = $(patsubst %,../include/%,$(HPP_JS))
 SRC_HPP_JS = $(wildcard ../include/*Javascript*.hpp)
 
 .PHONY: all clean doc protobuf install
@@ -52,10 +47,10 @@ all: protobuf osmjs
 protobuf:
 	$(MAKE) -C ../pbf CXX="$(CXX)" CXXFLAGS="$(CXXFLAGS)"
 
-%.o: ../src/%.cpp $(SRC_HPP)
+%.o: ../src/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-osmjs: osmjs.cpp $(OBJ_JS) $(SRC_HPP) $(SRC_HPP_JS)
+osmjs: osmjs.cpp $(OBJ_JS) $(SRC_HPP_JS)
 	$(CXX) $(CXXFLAGS) -o $@ $< $(OBJ_JS) $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_V8) $(LIB_SHAPE)
 
 install:

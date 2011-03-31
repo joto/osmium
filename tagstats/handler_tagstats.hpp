@@ -8,8 +8,8 @@
 
 #include <gd.h>
 
-#include <StringStore.hpp>
-#include <Sqlite.hpp>
+#include <osmium/utils/sqlite.hpp>
+#include "string_store.hpp"
 
 union counter_t {
     uint32_t count[4];

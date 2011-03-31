@@ -27,10 +27,6 @@ LIB_PROTOBUF = -lz -lprotobuf
 
 OBJ_PBF = fileformat.pb.o osmformat.pb.o
 
-HPP = osmium.hpp Osm.hpp OsmObject.hpp OsmNode.hpp OsmWay.hpp OsmRelation.hpp OsmMultipolygon.hpp XMLParser.hpp wkb.hpp StringStore.hpp Handler.hpp HandlerBbox.hpp HandlerMultipolygon.hpp HandlerStatistics.hpp HandlerTagStats.hpp HandlerNodeLocationStore.hpp PBFParser.hpp
-
-SRC_HPP = $(patsubst %,../include/%,$(HPP))
-
 SRC_OBJ_PBF = $(patsubst %,../pbf/%,$(OBJ_PBF))
 
 .PHONY: all clean doc protobuf
@@ -40,10 +36,10 @@ all: protobuf tagstats
 protobuf:
 	$(MAKE) -C ../pbf CXX="$(CXX)" CXXFLAGS="$(CXXFLAGS)"
 
-%.o: ../src/%.cpp $(SRC_HPP)
+%.o: ../src/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-tagstats: tagstats.cpp $(SRC_HPP)
+tagstats: tagstats.cpp handler_tagstats.hpp string_store.hpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_GD) $(LIB_SQLITE) $(LIB_SHAPE)
 
 install:

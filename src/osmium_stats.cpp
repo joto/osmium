@@ -7,7 +7,7 @@
 #include <cstdlib>
 
 #include <osmium.hpp>
-#include <HandlerStatistics.hpp>
+#include <osmium/handler/statistics.hpp>
 
 bool debug;
 

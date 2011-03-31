@@ -1,6 +1,6 @@
 
 #include <osmium.hpp>
-#include "HandlerNodeDensity.hpp"
+#include "handler_nodedensity.hpp"
 
 bool debug;
 

@@ -1,6 +1,8 @@
 #ifndef OSMIUM_OSM_HPP
 #define OSMIUM_OSM_HPP
 
+#include <stdint.h>
+
 enum osm_object_type_t {
     NODE                       = 1,
     WAY                        = 2,
@@ -53,10 +55,10 @@ namespace Osmium {
 
 } // namespace Osmium
 
-#include <OsmObject.hpp>
-#include <OsmNode.hpp>
-#include <OsmWay.hpp>
-#include <OsmRelation.hpp>
-#include <OsmMultipolygon.hpp>
+#include <osmium/osm/object.hpp>
+#include <osmium/osm/node.hpp>
+#include <osmium/osm/way.hpp>
+#include <osmium/osm/relation.hpp>
+#include <osmium/osm/multipolygon.hpp>
 
 #endif // OSMIUM_OSM_HPP
