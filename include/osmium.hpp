@@ -17,12 +17,6 @@
 #include "wkb.hpp"
 #include "StringStore.hpp"
 
-/// OSM file format
-enum osm_file_format_t {
-    xml, ///< XML format (see http://wiki.openstreetmap.org/wiki/Data_Primitives)
-    pbf  ///< PBF format (see http://wiki.openstreetmap.org/wiki/PBF_Format)
-};
-
 enum osm_object_type_t {
     NODE                       = 1,
     WAY                        = 2,
@@ -100,31 +94,18 @@ namespace Osmium {
                 }
             }
 
-            osm_file_format_t file_format;
-            char *suffix = strrchr(osmfilename, '.');
-
-            if (suffix == NULL) {
-                file_format = xml;
-            } else {
-                if (!strcmp(suffix, ".osm")) {
-                    file_format = xml;
-                } else if (!strcmp(suffix, ".pbf")) {
-                    file_format = pbf;
-                } else {
-                    std::cerr << "Unknown file suffix: " << suffix << std::endl;
-                    exit(1);
-                }
-            }
-
             Osmium::Input::Base<T> *input;
-            switch (file_format) {
-                case xml:
-                    input = new Osmium::Input::XML<T>(fd, handler);
-                    break;
-                case pbf:
-                    input = new Osmium::Input::PBF<T>(fd, handler);
-                    break;
+
+            char *suffix = strrchr(osmfilename, '.');
+            if (suffix == NULL || !strcmp(suffix, ".osm")) {
+                input = new Osmium::Input::XML<T>(fd, handler);
+            } else if (!strcmp(suffix, ".pbf")) {
+                input = new Osmium::Input::PBF<T>(fd, handler);
+            } else {
+                std::cerr << "Unknown file suffix: " << suffix << std::endl;
+                exit(1);
             }
+
             input->parse();
             delete input;
 
