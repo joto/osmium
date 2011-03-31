@@ -6,10 +6,9 @@
 
 #include <cstdlib>
 
+#define OSMIUM_MAIN
 #include <osmium.hpp>
 #include <osmium/handler/debug.hpp>
-
-bool debug;
 
 class MyDebugHandler : public Osmium::Handler::Base {
 
@@ -69,8 +68,7 @@ class MyDebugHandler : public Osmium::Handler::Base {
 /* ================================================== */
 
 int main(int argc, char *argv[]) {
-    debug = true;
-    Osmium::Framework osmium;
+    Osmium::Framework osmium(true);
 
     if (argc != 2) {
         std::cerr << "Usage: " << argv[0] << " OSMFILE" << std::endl;

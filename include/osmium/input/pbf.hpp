@@ -31,8 +31,6 @@ along with MoNav. If not, see <http://www.gnu.org/licenses/>.
 #include <fileformat.pb.h>
 #include <osmformat.pb.h>
 
-extern bool debug;
-
 namespace Osmium {
 
     namespace Input {
@@ -116,7 +114,7 @@ namespace Osmium {
                             }
                         }
                     } else {
-                        if (debug) {
+                        if (Osmium::global.debug) {
                             std::cerr << "Ignoring unknown blob type (" << pbf_blob_header.type().data() << ")." << std::endl;
                         }
                     }

@@ -7,11 +7,11 @@
 
 #include <cstdlib>
 
+#define OSMIUM_MAIN
 #include <osmium.hpp>
 
-bool debug;
-
 int main() {
+    Osmium::Framework osmium;
     std::cout << "sizeof(Osmium::OSM::Object)="                   << sizeof(Osmium::OSM::Object) << std::endl;
     std::cout << "sizeof(Osmium::OSM::Node)="                     << sizeof(Osmium::OSM::Node)                     << "  (Object+" << sizeof(Osmium::OSM::Node)                     - sizeof(Osmium::OSM::Object) << ")" << std::endl;
     std::cout << "sizeof(Osmium::OSM::Way)="                      << sizeof(Osmium::OSM::Way)                      << "  (Object+" << sizeof(Osmium::OSM::Way)                      - sizeof(Osmium::OSM::Object) << ")" << std::endl;

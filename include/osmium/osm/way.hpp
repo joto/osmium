@@ -19,8 +19,6 @@
 # include <geos/util/GEOSException.h>
 #endif
 
-extern bool debug;
-
 namespace Osmium {
 
     namespace OSM {
@@ -140,7 +138,7 @@ namespace Osmium {
                 geos::geom::Coordinate c;
                 c.x = lon[0];
                 c.y = lat[0];
-                return Osmium::geos_factory()->createPoint(c);
+                return Osmium::global.geos_geometry_factory->createPoint(c);
             }
 
             /** 
@@ -151,7 +149,7 @@ namespace Osmium {
                 geos::geom::Coordinate c;
                 c.x = lon[num_nodes - 1];
                 c.y = lat[num_nodes - 1];
-                return Osmium::geos_factory()->createPoint(c);
+                return Osmium::global.geos_geometry_factory->createPoint(c);
             }
 #endif // WITH_GEOS
 
@@ -182,8 +180,8 @@ namespace Osmium {
                     for (int i=0; i<num_nodes; i++) {
                         c->push_back(geos::geom::Coordinate(lon[i], lat[i], DoubleNotANumber));
                     }
-                    geos::geom::CoordinateSequence *cs = Osmium::geos_factory()->getCoordinateSequenceFactory()->create(c);
-                    return (geos::geom::Geometry *) Osmium::geos_factory()->createLineString(cs);
+                    geos::geom::CoordinateSequence *cs = Osmium::global.geos_geometry_factory->getCoordinateSequenceFactory()->create(c);
+                    return (geos::geom::Geometry *) Osmium::global.geos_geometry_factory->createLineString(cs);
                 } catch (const geos::util::GEOSException& exc) {
                     std::cerr << "error building way geometry, leave it as NULL" << std::endl;
                     return NULL;
@@ -203,7 +201,7 @@ namespace Osmium {
                 }
 #ifdef CHECK_WAY_GEOMETRY
                 if (num_nodes == 0 || num_nodes == 1) {
-                    if (debug) std::cerr << "error building way geometry for way " << id << ": must at least contain two nodes" << std::endl;
+                    if (Osmium::global.debug) std::cerr << "error building way geometry for way " << id << ": must at least contain two nodes" << std::endl;
                     return NULL;
                 }
                 osm_sequence_id_t num_nodes_checked = 1;
@@ -213,9 +211,9 @@ namespace Osmium {
                 lat_checked[0] = lat[0];
                 for (int i=1; i < num_nodes; i++) {
                     if (nodes[i] == nodes[i-1]) {
-                        if (debug) std::cerr << "warning building way geometry for way " << id << ": contains node " << nodes[i] << " twice" << std::endl;
+                        if (Osmium::global.debug) std::cerr << "warning building way geometry for way " << id << ": contains node " << nodes[i] << " twice" << std::endl;
                     } else if (lon[i] == lon[i-1] && lat[i] == lat[i-1]) {
-                        if (debug) std::cerr << "warning building way geometry for way " << id << ": contains location " << lon[i] << ", " << lat[i] << " twice" << std::endl;
+                        if (Osmium::global.debug) std::cerr << "warning building way geometry for way " << id << ": contains location " << lon[i] << ", " << lat[i] << " twice" << std::endl;
                     } else {
                         lon_checked[num_nodes_checked] = lon[i];
                         lat_checked[num_nodes_checked] = lat[i];
@@ -223,7 +221,7 @@ namespace Osmium {
                     }
                 }
                 if (num_nodes_checked == 1) {
-                    if (debug) std::cerr << "error building way geometry for way " << id << ": must at least contain two different points" << std::endl;
+                    if (Osmium::global.debug) std::cerr << "error building way geometry for way " << id << ": must at least contain two different points" << std::endl;
                     return NULL;
                 }
                 return SHPCreateSimpleObject(shp_type, num_nodes_checked, lon_checked, lat_checked, NULL);

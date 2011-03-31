@@ -1,7 +1,4 @@
 
-// ugly workaround which will re removed soon...
-#define IN_JAVASCRIPT_TEMPLATE
-
 #include <v8.h>
 
 #include <osmium.hpp>
@@ -21,8 +18,6 @@
 #include "JavascriptTemplateMultipolygon.hpp"
 #include "JavascriptTemplateOutputCSV.hpp"
 #include "JavascriptTemplateOutputShapefile.hpp"
-
-#undef IN_JAVASCRIPT_TEMPLATE
 
 namespace Osmium {
 

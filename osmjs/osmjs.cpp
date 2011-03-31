@@ -3,6 +3,7 @@
 #include <getopt.h>
 #include <unistd.h>
 
+#define OSMIUM_MAIN
 #include <osmium.hpp>
 #include <osmium/handler/node_location_store.hpp>
 #include <osmium/handler/multipolygon.hpp>
@@ -25,8 +26,6 @@ timer Osmium::OSM::MultipolygonFromRelation::multipolygon_build_timer;
 timer Osmium::OSM::MultipolygonFromRelation::multipolygon_write_timer;
 timer Osmium::OSM::MultipolygonFromRelation::error_write_timer;
 #endif
-
-bool debug;
 
 class SinglePass : public Osmium::Handler::Base {
 
@@ -214,7 +213,6 @@ void cbmp(Osmium::OSM::Multipolygon *multipolygon) {
 }
 
 int main(int argc, char *argv[]) {
-    Osmium::Framework osmium;
     bool two_passes = false;
     bool attempt_repair = true;
     char javascript_filename[512] = "";
@@ -237,7 +235,7 @@ int main(int argc, char *argv[]) {
         {0, 0, 0, 0}
     };
 
-    debug = false;
+    bool debug = false;
 
     while (1) {
         int c = getopt_long(argc, argv, "dhi:j:l:r2", long_options, 0);
@@ -299,6 +297,7 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
+    Osmium::Framework osmium(debug);
     v8::HandleScope handle_scope;
 
     v8::Handle<v8::ObjectTemplate> global_template = v8::ObjectTemplate::New();

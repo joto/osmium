@@ -4,7 +4,6 @@
 #include <fstream>
 
 extern v8::Persistent<v8::Context> global_context;
-extern bool debug;
 
 namespace Osmium {
 
@@ -146,7 +145,7 @@ namespace Osmium {
                 osmium_object = v8::Persistent<v8::Object>::New(init_script->Run()->ToObject());
                 v8::Handle<v8::Object> output_object = osmium_object->Get(v8::String::New("Output"))->ToObject();
 
-                osmium_object->Set(v8::String::New("debug"), v8::Boolean::New(debug));
+                osmium_object->Set(v8::String::New("debug"), v8::Boolean::New(Osmium::global.debug));
 
                 v8::Handle<v8::ObjectTemplate> output_csv_template = v8::ObjectTemplate::New();
                 output_csv_template->Set(v8::String::New("open"), v8::FunctionTemplate::New(OutputCSVOpen));
@@ -163,7 +162,7 @@ namespace Osmium {
                 v8::TryCatch tryCatch;
 
                 for (std::vector<std::string>::iterator vi = include_files.begin(); vi != include_files.end(); vi++) {
-                    if (debug) {
+                    if (Osmium::global.debug) {
                         std::cerr << "include javascript file: " << *vi << std::endl;
                     }
                     std::string javascript_source = load_file((*vi).c_str());

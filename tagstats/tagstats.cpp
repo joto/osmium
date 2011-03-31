@@ -1,11 +1,10 @@
 
+#define OSMIUM_MAIN
 #include <osmium.hpp>
 
 #include <osmium/handler/statistics.hpp>
 //#include <osmium/handler/node_location_store.hpp>
 #include "handler_tagstats.hpp"
-
-bool debug;
 
 class MyTagStatsHandler : public Osmium::Handler::Base {
 
@@ -74,8 +73,6 @@ class MyTagStatsHandler : public Osmium::Handler::Base {
 
 int main(int argc, char *argv[]) {
     Osmium::Framework osmium;
-
-    debug = false; // XXX set this from command line
 
     if (argc != 2) {
         std::cerr << "Usage: " << argv[0] << " OSMFILE" << std::endl;

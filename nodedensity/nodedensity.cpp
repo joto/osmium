@@ -1,13 +1,11 @@
 
+#define OSMIUM_MAIN
 #include <osmium.hpp>
 #include "handler_nodedensity.hpp"
-
-bool debug;
 
 /* ================================================== */
 
 int main(int argc, char *argv[]) {
-    debug = false;
     Osmium::Framework osmium;
 
     if (argc != 5) {

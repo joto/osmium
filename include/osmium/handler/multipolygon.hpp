@@ -3,8 +3,6 @@
 
 #include <google/sparse_hash_map>
 
-extern bool debug;
-
 namespace Osmium {
 
     namespace Handler {
@@ -65,7 +63,7 @@ namespace Osmium {
 
             // in pass 1
             void callback_after_relations() {
-                if (debug) {
+                if (Osmium::global.debug) {
                     std::cerr << "found " << multipolygons.size() << " multipolygons (each needs " << sizeof(Osmium::OSM::Multipolygon) << " bytes, thats together about " << sizeof(Osmium::OSM::Multipolygon) * multipolygons.size() / (1024 * 1024) << "MB)" << std::endl;
                     std::cerr << "they used " << count_ways_in_all_multipolygons << " ways (each will need " << sizeof(Osmium::OSM::Way) << " bytes, thats in the worst case together about " << sizeof(Osmium::OSM::Way) * count_ways_in_all_multipolygons / (1024 * 1024) << "MB)" << std::endl;
                 }
@@ -92,7 +90,7 @@ namespace Osmium {
                 // is in at least one multipolygon relation
 
                 std::vector<osm_object_id_t> v = way2mpidx_iterator->second;
-                if (debug) std::cerr << "MP way_id=" << way->get_id() << " is in " << v.size() << " multipolygons\n";
+                if (Osmium::global.debug) std::cerr << "MP way_id=" << way->get_id() << " is in " << v.size() << " multipolygons\n";
 
                 // go through all the multipolygons this way is in
                 for (unsigned int i=0; i < v.size(); i++) {
@@ -100,7 +98,7 @@ namespace Osmium {
                     if (!mp) {
                         throw std::runtime_error("Zero multipolygon. This should not happen. Reason can be a way appearing more than once in your input file.");
                     }
-                    if (debug) std::cerr << "MP multi way_id=" << way->get_id() << " is in relation_id=" << mp->get_id() << "\n";
+                    if (Osmium::global.debug) std::cerr << "MP multi way_id=" << way->get_id() << " is in relation_id=" << mp->get_id() << "\n";
 
                     // store copy of current way in multipolygon
                     mp->add_member_way(way);

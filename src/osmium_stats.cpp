@@ -6,15 +6,13 @@
 
 #include <cstdlib>
 
+#define OSMIUM_MAIN
 #include <osmium.hpp>
 #include <osmium/handler/statistics.hpp>
-
-bool debug;
 
 /* ================================================== */
 
 int main(int argc, char *argv[]) {
-    debug = true;
     Osmium::Framework osmium;
 
     if (argc != 2) {

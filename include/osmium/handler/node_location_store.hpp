@@ -5,8 +5,6 @@
 #include <google/sparsetable>
 #include <sys/mman.h>
 
-extern bool debug;
-
 namespace Osmium {
 
     namespace Handler {
@@ -93,7 +91,7 @@ namespace Osmium {
             }
             
             void callback_after_nodes() {
-                if (debug) {
+                if (Osmium::global.debug) {
                     std::cerr << "NodeLocationStore (Array) needs " << max_nodes << " * " << sizeof(struct coordinates) << "Bytes = " << max_nodes * sizeof(struct coordinates) / (1024 * 1204) << "MBytes" << std::endl;
                 }
             }
@@ -143,7 +141,7 @@ namespace Osmium {
             }
             
             void callback_after_nodes() {
-                if (debug) {
+                if (Osmium::global.debug) {
                     std::cerr << "NodeLocationStore (Sparsetable) has size=" << nodes_table.size() << " * " << sizeof(struct coordinates) << " B (sizeof struct coordinates) = " << nodes_table.size() * sizeof(struct coordinates) / (1024 * 1204) << "MBytes" << std::endl;
                 }
             }
@@ -204,7 +202,7 @@ namespace Osmium {
             }
             
             void callback_after_nodes() {
-                if (debug) {
+                if (Osmium::global.debug) {
                     std::cerr << "NodeLocationStore (Disk) needs " << max_nodes << " * " << sizeof(struct coordinates) << "Bytes = " << max_nodes * sizeof(struct coordinates) / (1024 * 1204) << "MBytes" << std::endl;
                 }
             }

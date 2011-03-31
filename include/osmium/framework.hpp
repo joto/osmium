@@ -3,20 +3,30 @@
 
 #include <fcntl.h>
 
+#ifdef WITH_GEOS
+# include <geos/geom/GeometryFactory.h>
+# include <geos/geom/PrecisionModel.h>
+#endif
+
 namespace Osmium {
 
     class Framework {
 
       public:
 
-        bool debug;
-
-        Framework() {
-            debug = false;
+        Framework(bool debug = false) {
+            Osmium::global.debug = debug;
+#ifdef WITH_GEOS
+            geos::geom::PrecisionModel pm;
+            Osmium::global.geos_geometry_factory = new geos::geom::GeometryFactory(&pm, -1);
+#endif
         }
 
         ~Framework() {
             Osmium::Input::PBF<Osmium::Handler::Base>::cleanup();
+#ifdef WITH_GEOS
+            delete Osmium::global.geos_geometry_factory;
+#endif
         }
 
         /**
