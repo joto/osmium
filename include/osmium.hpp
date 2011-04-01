@@ -13,7 +13,10 @@
 
 namespace Osmium {
 
+    class Framework;
+
     struct global {
+        Framework *framework;
         bool debug;
 #ifdef WITH_GEOS
         geos::geom::GeometryFactory *geos_geometry_factory;

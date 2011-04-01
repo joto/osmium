@@ -15,11 +15,15 @@ namespace Osmium {
       public:
 
         Framework(bool debug = false) {
+            if (Osmium::global.framework) {
+                throw std::runtime_error("Do not instantiate Osmium::Framework more than once!");
+            }
             Osmium::global.debug = debug;
 #ifdef WITH_GEOS
             geos::geom::PrecisionModel pm;
             Osmium::global.geos_geometry_factory = new geos::geom::GeometryFactory(&pm, -1);
 #endif
+            Osmium::global.framework = this;
         }
 
         ~Framework() {
