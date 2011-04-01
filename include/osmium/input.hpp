@@ -17,14 +17,18 @@ namespace Osmium {
             OSM::Relation *relation;
 
             THandler *handler;
+            bool delete_handler_on_destruction;
 
             Base(THandler *h) : handler(h) {
                 node     = new Osmium::OSM::Node;
                 way      = new Osmium::OSM::Way;
                 relation = new Osmium::OSM::Relation;
 
-                if (! handler) {
+                if (handler) {
+                    delete_handler_on_destruction = false;
+                } else {
                     handler = new THandler;
+                    delete_handler_on_destruction = true;
                 }
 
                 handler->callback_init();
@@ -33,7 +37,9 @@ namespace Osmium {
             virtual ~Base() {
                 handler->callback_final();
 
-                delete handler;
+                if (delete_handler_on_destruction) {
+                    delete handler;
+                }
 
                 delete relation;
                 delete way;
