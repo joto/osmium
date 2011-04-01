@@ -71,7 +71,7 @@ namespace Osmium {
                 size_frozen = true;
 #ifdef WITH_JAVASCRIPT
                 js_tags_instance   = Osmium::Javascript::Template::create_tags_instance(this);
-                js_object_instance = Osmium::Javascript::Template::create_node_instance(this);
+                js_object_instance = Osmium::Javascript::Template::create_way_instance(this);
                 js_nodes_instance  = Osmium::Javascript::Template::create_way_nodes_instance(this);
                 js_geom_instance   = Osmium::Javascript::Template::create_way_geom_instance(this);
 #endif
