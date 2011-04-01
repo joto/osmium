@@ -25,7 +25,7 @@ namespace Osmium {
                 int32_t y;
             };
 
-        protected:
+          protected:
 
             /**
             * the node location store will add this number to all ids,
@@ -41,7 +41,7 @@ namespace Osmium {
                 return ((double)c) / 10000000;
             }
 
-        public:
+          public:
 
             NodeLocationStore() : Base() {
             }
@@ -70,7 +70,7 @@ namespace Osmium {
             int max_nodes;
             struct coordinates *coordinates;
 
-        public:
+          public:
 
             NLS_Array() : NodeLocationStore() {
                 max_nodes = 1.2 * 1024 * 1024 * 1024; // XXX make configurable, or autosizing?

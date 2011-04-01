@@ -48,7 +48,7 @@ class WKBPoint {
     WKBPoint() : byteOrder(wkbNDR), wkbType(wkbPoint) {
     }
 
-    char *to_hex() {
+    const char *to_hex() const {
         static const char *lookup_hex = "0123456789abcdef";
         static char buffer[2*(sizeof(uint8_t) + sizeof(uint32_t) + sizeof(Point))+1];
 

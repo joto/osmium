@@ -118,14 +118,14 @@ namespace Osmium {
             /** 
              * Returns the id of the first node.
              */
-            osm_object_id_t get_first_node_id() {
+            osm_object_id_t get_first_node_id() const {
                 return nodes[0];
             }
 
             /** 
              * Returns the id of the last node.
              */
-            osm_object_id_t get_last_node_id() {
+            osm_object_id_t get_last_node_id() const {
                 return nodes[num_nodes - 1];
             }
 
@@ -134,7 +134,7 @@ namespace Osmium {
              * Returns the GEOS geometry of the first node.
              * Caller takes ownership of the pointer.
              */
-            geos::geom::Point *get_first_node_geometry() {
+            geos::geom::Point *get_first_node_geometry() const {
                 geos::geom::Coordinate c;
                 c.x = lon[0];
                 c.y = lat[0];
@@ -145,7 +145,7 @@ namespace Osmium {
              * Returns the GEOS geometry of the last node.
              * Caller takes ownership of the pointer.
              */
-            geos::geom::Point *get_last_node_geometry() {
+            geos::geom::Point *get_last_node_geometry() const {
                 geos::geom::Coordinate c;
                 c.x = lon[num_nodes - 1];
                 c.y = lat[num_nodes - 1];
@@ -174,7 +174,7 @@ namespace Osmium {
              * Returns the GEOS geometry of the way.
              * Caller takes ownership of the pointer.
              */
-            geos::geom::Geometry *create_geos_geometry() {
+            geos::geom::Geometry *create_geos_geometry() const {
                 try {
                     std::vector<geos::geom::Coordinate> *c = new std::vector<geos::geom::Coordinate>;
                     for (int i=0; i<num_nodes; i++) {

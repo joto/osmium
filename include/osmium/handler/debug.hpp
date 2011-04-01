@@ -12,7 +12,7 @@ namespace Osmium {
             Debug() : Base() {
             }
 
-            void callback_object(OSM::Object *object) {
+            void callback_object(OSM::Object *object) const {
                 std::cout << "object:" << std::endl;
                 std::cout << "  id="   << object->get_id() << std::endl;
                 std::cout << "  version="   << object->get_version() << std::endl;
@@ -26,13 +26,13 @@ namespace Osmium {
                 }
             }
 
-            void callback_node(const OSM::Node *object) {
+            void callback_node(const OSM::Node *object) const {
                 std::cout << "  node:" << std::endl;
                 std::cout << "    lon=" << object->get_lon() << std::endl;
                 std::cout << "    lat=" << object->get_lat() << std::endl;
             }
 
-            void callback_way(const OSM::Way *object) {
+            void callback_way(const OSM::Way *object) const {
                 std::cout << "  way:" << std::endl;
                 std::cout << "    node_count=" << object->node_count() << std::endl;
                 std::cout << "    nodes:" << std::endl;
@@ -41,7 +41,7 @@ namespace Osmium {
                 }
             }
 
-            void callback_relation(OSM::Relation *object) {
+            void callback_relation(OSM::Relation *object) const {
                 std::cout << "  relation:" << std::endl;
                 std::cout << "    member_count=" << object->member_count() << std::endl;
                 std::cout << "    members:" << std::endl;
@@ -49,9 +49,6 @@ namespace Osmium {
                     const Osmium::OSM::RelationMember *m = object->get_member(i);
                     std::cout << "      type=" << m->type << " ref=" << m->ref << " role=|" << m->role << "|" << std::endl;
                 }
-            }
-
-            void callback_final() {
             }
 
         }; // class Debug

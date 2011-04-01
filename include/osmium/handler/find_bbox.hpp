@@ -41,7 +41,7 @@ namespace Osmium {
                 if (node->get_lat() > maxlat) maxlat = node->get_lat();
             }
 
-            void callback_after_nodes() {
+            void callback_after_nodes() const {
                 throw Osmium::Input::StopReading();
             }
 

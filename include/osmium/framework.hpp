@@ -39,7 +39,7 @@ namespace Osmium {
         *  Reads from STDIN if the filename is '-', in this case it assumes XML format.
         */
         template <class T>
-        void parse_osmfile(char *osmfilename, T* handler = NULL) {
+        void parse_osmfile(char *osmfilename, T* handler = NULL) const {
             int fd = 0;
             if (osmfilename[0] == '-' && osmfilename[1] == '\0') {
                 // fd is already 0, read STDIN

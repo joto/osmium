@@ -428,7 +428,7 @@ namespace Osmium {
             * @param size Size of source data in bytes.
             * @param raw_size Size of destination (unpacked) data.
             */
-            void unpack_with_zlib(const char *data, size_t size, size_t raw_size) {
+            void unpack_with_zlib(const char *data, size_t size, size_t raw_size) const {
                 z_stream compressed_stream;
 
                 compressed_stream.next_in   = (unsigned char*) data;

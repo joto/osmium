@@ -81,7 +81,7 @@ namespace Osmium {
                 return geom.point.y;
             }
 
-            char *geom_as_hex_wkb() {
+            const char *geom_as_hex_wkb() const {
                 return geom.to_hex();
             }
 

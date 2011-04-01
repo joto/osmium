@@ -52,19 +52,19 @@ namespace Osmium {
 
           private:
 
-            osm_object_id_t string_to_osm_object_id(const char *x) {
+            static osm_object_id_t string_to_osm_object_id(const char *x) {
                 return atol(x);
             }
 
-            osm_version_t string_to_osm_version(const char *x) {
+            static osm_version_t string_to_osm_version(const char *x) {
                 return atoi(x);
             }
 
-            osm_changeset_id_t string_to_osm_changeset_id(const char *x) {
+            static osm_changeset_id_t string_to_osm_changeset_id(const char *x) {
                 return atol(x);
             }
 
-            osm_user_id_t string_to_osm_user_id(const char *x) {
+            static osm_user_id_t string_to_osm_user_id(const char *x) {
                 return atol(x);
             }
 
