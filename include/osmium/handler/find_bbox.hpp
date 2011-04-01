@@ -1,21 +1,37 @@
-#ifndef OSMIUM_HANDLER_BBOX_HPP
-#define OSMIUM_HANDLER_BBOX_HPP
+#ifndef OSMIUM_HANDLER_FIND_BBOX_HPP
+#define OSMIUM_HANDLER_FIND_BBOX_HPP
 
 namespace Osmium {
 
     namespace Handler {
 
-        class Bbox : public Base {
+        class FindBbox : public Base {
 
             double minlon, maxlon, minlat, maxlat;
 
           public:
 
-            Bbox() : Base() {
+            FindBbox() : Base() {
                 minlon =  1000;
                 maxlon = -1000;
                 minlat =  1000;
                 maxlat = -1000;
+            }
+
+            double get_minlon() {
+                return minlon;
+            }
+
+            double get_maxlon() {
+                return maxlon;
+            }
+
+            double get_minlat() {
+                return minlat;
+            }
+
+            double get_maxlat() {
+                return maxlat;
             }
 
             void callback_node(OSM::Node *node) {
@@ -25,14 +41,10 @@ namespace Osmium {
                 if (node->get_lat() > maxlat) maxlat = node->get_lat();
             }
 
-            void callback_final() {
-                std::cerr << "minlon=" << minlon << " maxlon=" << maxlon << " minlat=" << minlat << " maxlat=" << maxlat << std::endl;
-            }
-
-        }; // class Bbox
+        }; // class FindBbox
 
     } // namespace Handler
 
 } // namespace Osmium
 
-#endif // OSMIUM_HANDLER_BBOX_HPP
+#endif // OSMIUM_HANDLER_FIND_BBOX_HPP

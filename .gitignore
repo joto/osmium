@@ -6,6 +6,7 @@ nodedensity/nodedensity
 src/osmium_sizeof
 src/osmium_debug
 src/osmium_stats
+src/osmium_find_bbox
 pbf/fileformat.pb.h
 pbf/osmformat.pb.h
 test/tmp/
