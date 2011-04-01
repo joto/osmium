@@ -32,9 +32,6 @@ all: protobuf nodedensity
 protobuf:
 	$(MAKE) -C ../pbf CXX="$(CXX)" CXXFLAGS="$(CXXFLAGS)"
 
-%.o: ../src/%.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
-
 nodedensity: nodedensity.cpp handler_nodedensity.hpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_GD)
 

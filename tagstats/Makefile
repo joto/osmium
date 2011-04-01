@@ -36,11 +36,8 @@ all: protobuf tagstats
 protobuf:
 	$(MAKE) -C ../pbf CXX="$(CXX)" CXXFLAGS="$(CXXFLAGS)"
 
-%.o: ../src/%.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
-
 tagstats: tagstats.cpp handler_tagstats.hpp string_store.hpp
-	$(CXX) $(CXXFLAGS) -o $@ $< $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_GD) $(LIB_SQLITE) $(LIB_SHAPE)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_GD) $(LIB_SQLITE)
 
 install:
 	install -m 755 -g root -o root tagstats $(DESTDIR)/usr/bin/tagstat
