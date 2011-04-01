@@ -41,6 +41,10 @@ namespace Osmium {
                 if (node->get_lat() > maxlat) maxlat = node->get_lat();
             }
 
+            void callback_after_nodes() {
+                throw Osmium::Input::StopReading();
+            }
+
         }; // class FindBbox
 
     } // namespace Handler

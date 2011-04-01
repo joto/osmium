@@ -58,29 +58,33 @@ namespace Osmium {
 
                 this->handler->callback_before_nodes();
 
-                do {
-                    void *buffer = XML_GetBuffer(parser, buffer_size);
-                    if (buffer == 0) {
-                        throw std::runtime_error("out of memory");
-                    }
+                try {
+                    do {
+                        void *buffer = XML_GetBuffer(parser, buffer_size);
+                        if (buffer == 0) {
+                            throw std::runtime_error("out of memory");
+                        }
 
-                    int result = read(fd, buffer, buffer_size);
-                    if (result < 0) {
-                        exit(1);
-                    }
-                    done = (result == 0);
-                    if (XML_ParseBuffer(parser, result, done) == XML_STATUS_ERROR) {
-                        XML_Error errorCode = XML_GetErrorCode(parser);
-                        long errorLine = XML_GetCurrentLineNumber(parser);
-                        long errorCol = XML_GetCurrentColumnNumber(parser);
-                        const XML_LChar *errorString = XML_ErrorString(errorCode);
+                        int result = read(fd, buffer, buffer_size);
+                        if (result < 0) {
+                            exit(1);
+                        }
+                        done = (result == 0);
+                        if (XML_ParseBuffer(parser, result, done) == XML_STATUS_ERROR) {
+                            XML_Error errorCode = XML_GetErrorCode(parser);
+                            long errorLine = XML_GetCurrentLineNumber(parser);
+                            long errorCol = XML_GetCurrentColumnNumber(parser);
+                            const XML_LChar *errorString = XML_ErrorString(errorCode);
 
-                        std::stringstream errorDesc;
-                        errorDesc << "XML parsing error at line " << errorLine << ":" << errorCol;
-                        errorDesc << ": " << errorString;
-                        throw std::runtime_error(errorDesc.str());
-                    }
-                } while (!done);
+                            std::stringstream errorDesc;
+                            errorDesc << "XML parsing error at line " << errorLine << ":" << errorCol;
+                            errorDesc << ": " << errorString;
+                            throw std::runtime_error(errorDesc.str());
+                        }
+                    } while (!done);
+                } catch (Osmium::Input::StopReading) {
+                    // if a handler says to stop reading, we do
+                }
 
                 XML_ParserFree(parser);
 

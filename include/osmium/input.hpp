@@ -7,6 +7,19 @@ namespace Osmium {
 
     namespace Input {
 
+        /**
+         * Handlers can throw this exception to show that they are done.
+         * When a handler, for instance, is only interested in nodes, it
+         * can throw this in the after_nodes() callback. The parser will
+         * stop reading the input file after this.
+         *
+         * Note that when you write a handler that calls other handlers
+         * that can throw this, you might have to catch this exception
+         * in your handler.
+         */
+        class StopReading {
+        };
+
         template <class THandler>
         class Base {
 

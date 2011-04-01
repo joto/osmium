@@ -87,46 +87,50 @@ namespace Osmium {
             * Parse PBF file.
             */
             void parse() {
-                while (read_blob_header()) {
-                    array_t a = read_blob(pbf_blob_header.datasize());
+                try {
+                    while (read_blob_header()) {
+                        array_t a = read_blob(pbf_blob_header.datasize());
 
-                    if (pbf_blob_header.type() == "OSMData") {
-                        if (!pbf_primitive_block.ParseFromArray(a.data, a.size)) {
-                            throw std::runtime_error("Failed to parse PrimitiveBlock.");
-                        }
-                        OSMPBF::StringTable stringtable = pbf_primitive_block.stringtable();
-                        for (int i=0; i < pbf_primitive_block.primitivegroup_size(); i++) {
-                            parse_group(pbf_primitive_block.primitivegroup(i), stringtable);
-                        }
-                    } else if (pbf_blob_header.type() == "OSMHeader") {
-                        OSMPBF::HeaderBlock pbf_header_block;
-                        if (!pbf_header_block.ParseFromArray(a.data, a.size)) {
-                            throw std::runtime_error("Failed to parse HeaderBlock.");
-                        }
+                        if (pbf_blob_header.type() == "OSMData") {
+                            if (!pbf_primitive_block.ParseFromArray(a.data, a.size)) {
+                                throw std::runtime_error("Failed to parse PrimitiveBlock.");
+                            }
+                            OSMPBF::StringTable stringtable = pbf_primitive_block.stringtable();
+                            for (int i=0; i < pbf_primitive_block.primitivegroup_size(); i++) {
+                                parse_group(pbf_primitive_block.primitivegroup(i), stringtable);
+                            }
+                        } else if (pbf_blob_header.type() == "OSMHeader") {
+                            OSMPBF::HeaderBlock pbf_header_block;
+                            if (!pbf_header_block.ParseFromArray(a.data, a.size)) {
+                                throw std::runtime_error("Failed to parse HeaderBlock.");
+                            }
 
-                        for (int i=0; i < pbf_header_block.required_features_size(); i++) {
-                            const std::string& feature = pbf_header_block.required_features(i);
+                            for (int i=0; i < pbf_header_block.required_features_size(); i++) {
+                                const std::string& feature = pbf_header_block.required_features(i);
 
-                            if ((feature != "OsmSchema-V0.6") && (feature != "DenseNodes")) {
-                                std::ostringstream errmsg;
-                                errmsg << "Required feature not supported: " << feature;
-                                throw std::runtime_error(errmsg.str());
+                                if ((feature != "OsmSchema-V0.6") && (feature != "DenseNodes")) {
+                                    std::ostringstream errmsg;
+                                    errmsg << "Required feature not supported: " << feature;
+                                    throw std::runtime_error(errmsg.str());
+                                }
+                            }
+                        } else {
+                            if (Osmium::global.debug) {
+                                std::cerr << "Ignoring unknown blob type (" << pbf_blob_header.type().data() << ")." << std::endl;
                             }
                         }
-                    } else {
-                        if (Osmium::global.debug) {
-                            std::cerr << "Ignoring unknown blob type (" << pbf_blob_header.type().data() << ")." << std::endl;
-                        }
                     }
-                }
-                if (groups_with_nodes > 0 && groups_with_ways == 0 && groups_with_relations == 0) {
-                    this->handler->callback_after_nodes();
-                }
-                if (groups_with_ways > 0 && groups_with_relations == 0) {
-                    this->handler->callback_after_ways();
-                }
-                if (groups_with_relations > 0) {
-                    this->handler->callback_after_relations();
+                    if (groups_with_nodes > 0 && groups_with_ways == 0 && groups_with_relations == 0) {
+                        this->handler->callback_after_nodes();
+                    }
+                    if (groups_with_ways > 0 && groups_with_relations == 0) {
+                        this->handler->callback_after_ways();
+                    }
+                    if (groups_with_relations > 0) {
+                        this->handler->callback_after_relations();
+                    }
+                } catch (Osmium::Input::StopReading) {
+                    // if a handler says to stop reading, we do
                 }
             }
 

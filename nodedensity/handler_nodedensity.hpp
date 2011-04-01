@@ -69,6 +69,7 @@ namespace Osmium {
                 }
                 gdImagePng(im, stdout);
                 gdImageDestroy(im);
+                throw Osmium::Input::StopReading();
             }
 
         }; // class NodeDensity
