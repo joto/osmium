@@ -4,7 +4,6 @@
 #ifdef WITH_SHPLIB
 
 #include <shapefil.h>
-#include "Javascript.hpp"
 
 namespace Osmium {
 
@@ -217,6 +216,6 @@ namespace Osmium {
 
 } // namespace Osmium
 
-#endif
+#endif // WITH_SHPLIB
 
 #endif // OSMIUM_OUTPUT_SHAPEFILE_HPP

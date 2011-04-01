@@ -5,6 +5,12 @@
 # include <geos/geom/GeometryFactory.h>
 #endif
 
+#ifdef WITH_JAVASCRIPT
+# include <v8.h>
+# include <unicode/ustring.h>
+# include <osmium/utils/unicode.hpp>
+#endif // WITH_JAVASCRIPT
+
 namespace Osmium {
 
     struct global {
@@ -31,7 +37,10 @@ struct Osmium::global Osmium::global;
 #include <osmium/framework.hpp>
 
 #ifdef WITH_JAVASCRIPT
-# include <Javascript.hpp>
-#endif
+# include <JavascriptTemplate.hpp>
+# include <JavascriptOutputCSV.hpp>
+# include <JavascriptOutputShapefile.hpp>
+# include <HandlerJavascript.hpp>
+#endif // WITH_JAVASCRIPT
 
 #endif // OSMIUM_OSMIUM_HPP

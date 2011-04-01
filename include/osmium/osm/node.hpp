@@ -31,7 +31,7 @@ namespace Osmium {
                 js_tags_instance   = Osmium::Javascript::Template::create_tags_instance(this);
                 js_object_instance = Osmium::Javascript::Template::create_node_instance(this);
                 js_geom_instance   = Osmium::Javascript::Template::create_node_geom_instance(this);
-#endif
+#endif // WITH_JAVASCRIPT
             }
 
             void reset() {
