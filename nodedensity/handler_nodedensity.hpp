@@ -54,9 +54,8 @@ namespace Osmium {
                 std::cerr << "max_count=" << max_count << "\n";
                 gdImagePtr im = gdImageCreate(xsize, ysize);
 
-                int colors[256];
                 for (int i=0; i <= 255; i++) {
-                    colors[i] = gdImageColorAllocate(im, i, i, i);
+                    gdImageColorAllocate(im, i, i, i);
                 }
 
                 int n=0;

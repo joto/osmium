@@ -17,7 +17,7 @@ class Unicode_Conversion_Error {
     Unicode_Conversion_Error(UErrorCode ec) : error_code(ec) { }
 
     /// Is this a buffer overflow?
-    bool buffer_overflow() {
+    bool buffer_overflow() const {
         return error_code == U_BUFFER_OVERFLOW_ERROR;
     }
 

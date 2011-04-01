@@ -34,7 +34,7 @@ namespace Osmium {
                 out.close();
             }
 
-            v8::Handle<v8::Object> get_js_object() {
+            v8::Handle<v8::Object> get_js_object() const {
                 return js_object;
             }
 

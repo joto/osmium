@@ -43,6 +43,7 @@ namespace Osmium {
 #endif
 
             Relation() : Object(), members() {
+                num_members = 0;
 #ifdef WITH_JAVASCRIPT
                 js_tags_instance    = Osmium::Javascript::Template::create_tags_instance(this);
                 js_object_instance  = Osmium::Javascript::Template::create_relation_instance(this);

@@ -215,7 +215,7 @@ void cbmp(Osmium::OSM::Multipolygon *multipolygon) {
 int main(int argc, char *argv[]) {
     bool two_passes = false;
     bool attempt_repair = true;
-    char javascript_filename[512] = "";
+    std::string javascript_filename;
     char *osm_filename;
     std::vector<std::string> include_files;
     enum location_store_t {
@@ -252,7 +252,7 @@ int main(int argc, char *argv[]) {
                 break;
             }
             case 'j':
-                strncpy(javascript_filename, optarg, 512);
+                javascript_filename = optarg;
                 break;
             case 'h':
                 print_help();
@@ -280,7 +280,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if (javascript_filename[0] == '\0') {
+    if (javascript_filename.empty()) {
         std::cerr << "No --javascript/-j option given" << std::endl;
         exit(1);
     }
@@ -317,7 +317,7 @@ int main(int argc, char *argv[]) {
     } else {
         handler_node_location_store = new Osmium::Handler::NLS_Sparsetable();
     }
-    handler_javascript = new Osmium::Handler::Javascript(include_files, javascript_filename);
+    handler_javascript = new Osmium::Handler::Javascript(include_files, javascript_filename.c_str());
     
     if (two_passes) {
         Osmium::Handler::Multipolygon *handler_multipolygon = new Osmium::Handler::Multipolygon(attempt_repair, cbmp);

@@ -17,6 +17,9 @@ install:
 	$(MAKE) -C tagstats install
 	$(MAKE) -C osmjs install
 
+check:
+	cppcheck --enable=all -I include */*.cpp
+
 doc: doc/html/files.html
 
 doc/html/files.html: include/*.hpp src/*.cpp pbf/*.proto

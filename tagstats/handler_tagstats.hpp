@@ -101,9 +101,11 @@ namespace Osmium {
             TagStats() : Base() {
                 string_store = new StringStore(string_store_size);
                 max_timestamp[0] = 0;
+                db = new Sqlite::Database("taginfo-db.db");
             }
 
             ~TagStats() {
+                delete db;
                 delete string_store;
             }
 
@@ -328,8 +330,6 @@ namespace Osmium {
             }
 
             void callback_init() {
-                db = new Sqlite::Database("taginfo-db.db");
-
                 std::cerr << "sizeof(counter_t) = " << sizeof(counter_t) << "\n";
                 std::cerr << "sizeof(value_hash_map) = " << sizeof(value_hash_map) << "\n";
                 std::cerr << "sizeof(user_hash_map) = " << sizeof(user_hash_map) << "\n";
@@ -437,8 +437,6 @@ namespace Osmium {
                 delete statement_insert_into_keypairs;
                 delete statement_insert_into_tags;
                 delete statement_insert_into_keys;
-
-                delete db;
 
                 timer_info("dumping to db");
 

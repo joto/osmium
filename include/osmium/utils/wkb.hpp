@@ -45,17 +45,18 @@ class WKBPoint {
     uint32_t      wkbType; // wkbPoint = 1
     Point         point;
 
-    char buffer[2*(sizeof(uint8_t) + sizeof(uint32_t) + sizeof(Point))+1];
-
     WKBPoint() : byteOrder(wkbNDR), wkbType(wkbPoint) {
     }
 
     char *to_hex() {
         static const char *lookup_hex = "0123456789abcdef";
+        static char buffer[2*(sizeof(uint8_t) + sizeof(uint32_t) + sizeof(Point))+1];
+
         for (unsigned int i = 0; i < sizeof(byteOrder) + sizeof(wkbType) + sizeof(point); i++) {
             buffer[2*i]   = lookup_hex[((const unsigned char *)&byteOrder)[i] >> 4];
             buffer[2*i+1] = lookup_hex[((const unsigned char *)&byteOrder)[i] & 0xf];
         }
+
         buffer[sizeof(buffer)-1] = 0;
         return buffer;
     }

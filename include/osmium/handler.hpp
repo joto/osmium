@@ -21,43 +21,43 @@ namespace Osmium {
             Base() {
             }
 
-            void callback_init() {
+            void callback_init() const {
             }
 
-            void callback_object(OSM::Object *) {
+            void callback_object(OSM::Object *) const {
             }
 
-            void callback_before_nodes() {
+            void callback_before_nodes() const {
             }
 
-            void callback_node(OSM::Node *) {
+            void callback_node(OSM::Node *) const {
             }
 
-            void callback_after_nodes() {
+            void callback_after_nodes() const {
             }
 
-            void callback_before_ways() {
+            void callback_before_ways() const {
             }
 
-            void callback_way(OSM::Way *) {
+            void callback_way(OSM::Way *) const {
             }
 
-            void callback_after_ways() {
+            void callback_after_ways() const {
             }
 
-            void callback_before_relations() {
+            void callback_before_relations() const {
             }
 
-            void callback_relation(OSM::Relation *) {
+            void callback_relation(OSM::Relation *) const {
             }
 
-            void callback_after_relations() {
+            void callback_after_relations() const {
             }
 
-            void callback_multipolygon(OSM::Multipolygon *) {
+            void callback_multipolygon(OSM::Multipolygon *) const {
             }
 
-            void callback_final() {
+            void callback_final() const {
             }
 
         }; // class Base

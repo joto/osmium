@@ -77,8 +77,6 @@ namespace Osmium {
 
             std::vector<Tag> tags;
 
-            void *wrapper;
-
             Object() : tags() {
                 reset();
             }
@@ -231,10 +229,10 @@ namespace Osmium {
 #endif
 
 #ifdef WITH_JAVASCRIPT
-            v8::Local<v8::Object> get_instance() {
+            v8::Local<v8::Object> get_instance() const {
                 return js_object_instance;
             }
-            v8::Local<v8::Object> get_tags_instance() {
+            v8::Local<v8::Object> get_tags_instance() const {
                 return js_tags_instance;
             }
 #endif

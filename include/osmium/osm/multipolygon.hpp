@@ -187,7 +187,7 @@ namespace Osmium {
 
             ~Multipolygon() {
 #ifdef WITH_GEOS
-                if (geometry) delete(geometry);
+                delete(geometry);
 #endif
             }
 
@@ -1064,7 +1064,7 @@ namespace Osmium {
                                 // geometry, so avoid to delete it again.
                                 special_mp = NULL;
                             }
-                            if (special_mp) delete special_mp;
+                            delete special_mp;
                         }
                     }
                 }
