@@ -45,8 +45,6 @@ namespace Osmium {
             osm_user_id_t      uid;       ///< user id of user who last changed this object
             osm_changeset_id_t changeset; ///< id of last changeset that changed this object
 
-            // timestamp is stored as string, no need to parse it in most cases
-            char timestamp_str[max_length_timestamp];
             time_t timestamp;
             char user[max_length_username]; ///< name of user who last changed this object
 
@@ -89,7 +87,6 @@ namespace Osmium {
                 timestamp = o.timestamp;
                 num_tags  = o.num_tags;
                 tags      = o.tags;
-                strncpy(timestamp_str, o.timestamp_str, max_length_timestamp);
                 strncpy(user, o.user, max_length_username);
             }
 
@@ -103,7 +100,6 @@ namespace Osmium {
                 version          = 0;
                 uid              = 0;
                 changeset        = 0;
-                timestamp_str[0] = '\0';
                 timestamp        = 0;
                 user[0]          = '\0';
                 num_tags         = 0;
@@ -116,8 +112,11 @@ namespace Osmium {
                 } else if (!strcmp(attr, "version")) {
                     version = string_to_osm_version(value);
                 } else if (!strcmp(attr, "timestamp")) {
-                    if (! memccpy(timestamp_str, value, 0, max_length_timestamp)) {
-                        throw std::length_error("timestamp too long");
+                    struct tm tm = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+                    if (strptime(value, "%Y-%m-%dT%H:%M:%SZ", &tm) == NULL) {
+                        throw std::length_error("can't parse timestamp");
+                    } else {
+                        timestamp = timegm(&tm);
                     }
                 } else if (!strcmp(attr, "uid")) {
                     uid = string_to_osm_user_id(value);
@@ -151,30 +150,18 @@ namespace Osmium {
                 return changeset;
             }
 
-            time_t get_timestamp() {
-                if (timestamp == 0) {
-                    if (timestamp_str[0] == '\0') {
-                        return 0;
-                    }
-                    struct tm tm;
-                    if (strptime(timestamp_str, "%Y-%m-%dT%H:%M:%SZ", &tm) == NULL) {
-                        timestamp = -1;
-                    } else {
-                        timestamp = mktime(&tm);
-                    }
-                }
+            time_t get_timestamp() const {
                 return timestamp;
             }
 
-            const char *get_timestamp_str() {
-                if (timestamp_str[0] == '\0') {
-                    if (timestamp == 0) {
-                        return "";
-                    }
-                    struct tm *tm;
-                    tm = gmtime(&timestamp);
-                    strftime(timestamp_str, sizeof(timestamp_str), "%Y-%m-%dT%H:%M:%SZ", tm);
-                }
+            /**
+             * Return timestamp as string.
+             * @returns Pointer to \0-terminated string in a static buffer.
+             */
+            const char *get_timestamp_str() const {
+                static char timestamp_str[max_length_timestamp+1];
+                struct tm *tm = gmtime(&timestamp);
+                strftime(timestamp_str, sizeof(timestamp_str), "%Y-%m-%dT%H:%M:%SZ", tm);
                 return timestamp_str;
             }
 
