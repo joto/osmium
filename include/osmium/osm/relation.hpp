@@ -72,7 +72,7 @@ namespace Osmium {
                 return num_members;
             }
 
-            RelationMember *get_member(int index) {
+            const RelationMember *get_member(osm_sequence_id_t index) const {
                 if (index >= 0 && index < num_members) {
                     return &members[index];
                 }
@@ -90,14 +90,12 @@ namespace Osmium {
                 return js_members_instance;
             }
 
-#if 0
-            v8::Handle<v8::Value> js_get_member(uint32_t index) const {
-                v8::Local<v8::Object> member = create_relation_member_instance(this);
-                member->SetInternalField(0, v8::External::New(get_member(index)));
+            v8::Handle<v8::Value> js_get_member(uint32_t index) {
+                v8::Local<v8::Object> member = Osmium::Javascript::Template::create_relation_member_instance(this);
+                member->SetInternalField(0, v8::External::New((void *)get_member(index)));
 
                 return member;
             }
-#endif
 
             v8::Handle<v8::Array> js_enumerate_members() const {
                 v8::Local<v8::Array> array = v8::Array::New(num_members);

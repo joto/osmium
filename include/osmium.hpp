@@ -35,12 +35,15 @@ struct Osmium::global Osmium::global;
 // normally this should be defined, otherwise you will generate invalid linestring geometries
 #define CHECK_WAY_GEOMETRY
 
+#ifdef WITH_JAVASCRIPT
+# include <JavascriptTemplate.hpp>
+#endif // WITH_JAVASCRIPT
+
 #include <osmium/osm.hpp>
 #include <osmium/input.hpp>
 #include <osmium/framework.hpp>
 
 #ifdef WITH_JAVASCRIPT
-# include <JavascriptTemplate.hpp>
 # include <JavascriptTemplateObject.hpp>
 # include <JavascriptTemplateTags.hpp>
 # include <JavascriptTemplateNodeGeom.hpp>

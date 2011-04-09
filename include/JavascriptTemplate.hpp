@@ -12,7 +12,7 @@ namespace Osmium {
             */
             class Base {
 
-            protected:
+              protected:
 
                 v8::Persistent<v8::ObjectTemplate> js_template;
 
@@ -25,7 +25,7 @@ namespace Osmium {
                     js_template.Dispose();
                 }
 
-            public:
+              public:
 
                 v8::Local<v8::Object> create_instance(void *wrapper) {
                     v8::Local<v8::Object> instance = js_template->NewInstance();
@@ -58,6 +58,11 @@ namespace Osmium {
                 }
 
                 template<class TObject, v8::Handle<v8::Value> (TObject::*func)(uint32_t index) const>
+                static v8::Handle<v8::Value> indexed_property_getter(uint32_t index, const v8::AccessorInfo &info) {
+                    return (( reinterpret_cast<TObject *>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()) )->*(func))(index);
+                }
+
+                template<class TObject, v8::Handle<v8::Value> (TObject::*func)(uint32_t index)>
                 static v8::Handle<v8::Value> indexed_property_getter(uint32_t index, const v8::AccessorInfo &info) {
                     return (( reinterpret_cast<TObject *>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()) )->*(func))(index);
                 }
