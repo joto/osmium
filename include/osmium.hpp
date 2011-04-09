@@ -36,7 +36,7 @@ struct Osmium::global Osmium::global;
 #define CHECK_WAY_GEOMETRY
 
 #ifdef WITH_JAVASCRIPT
-# include <JavascriptTemplate.hpp>
+# include <osmium/javascript/template.hpp>
 #endif // WITH_JAVASCRIPT
 
 #include <osmium/osm.hpp>
@@ -44,17 +44,7 @@ struct Osmium::global Osmium::global;
 #include <osmium/framework.hpp>
 
 #ifdef WITH_JAVASCRIPT
-# include <JavascriptTemplateObject.hpp>
-# include <JavascriptTemplateTags.hpp>
-# include <JavascriptTemplateNodeGeom.hpp>
-# include <JavascriptTemplateNode.hpp>
-# include <JavascriptTemplateNodes.hpp>
-# include <JavascriptTemplateWayGeom.hpp>
-# include <JavascriptTemplateWay.hpp>
-# include <JavascriptTemplateMember.hpp>
-# include <JavascriptTemplateMembers.hpp>
-# include <JavascriptTemplateRelation.hpp>
-# include <JavascriptTemplateMultipolygon.hpp>
+# include <osmium/javascript/object_templates.hpp>
 # include <JavascriptTemplateOutputCSV.hpp>
 # include <JavascriptTemplateOutputShapefile.hpp>
 # include <JavascriptOutputCSV.hpp>

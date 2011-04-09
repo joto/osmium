@@ -15,11 +15,6 @@
 # include <shapefil.h>
 #endif
 
-#ifdef WITH_JAVASCRIPT
-# include "v8.h"
-# include "JavascriptTemplate.hpp"
-#endif
-
 namespace Osmium {
 
     namespace OSM {
