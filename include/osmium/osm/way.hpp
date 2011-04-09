@@ -74,7 +74,7 @@ namespace Osmium {
                 js_object_instance = Osmium::Javascript::Template::create_way_instance(this);
                 js_nodes_instance  = Osmium::Javascript::Template::create_way_nodes_instance(this);
                 js_geom_instance   = Osmium::Javascript::Template::create_way_geom_instance(this);
-#endif
+#endif // WITH_JAVASCRIPT
             }
 
             ~Way() {
@@ -230,6 +230,53 @@ namespace Osmium {
 #endif // CHECK_WAY_GEOMETRY
             }
 #endif // WITH_SHPLIB
+
+#ifdef WITH_JAVASCRIPT
+            v8::Handle<v8::Value> js_get_nodes() const {
+                return js_nodes_instance;
+            }
+
+            v8::Handle<v8::Value> js_get_geom() const {
+                return js_geom_instance;
+            }
+
+            v8::Handle<v8::Value> js_get_node_id(uint32_t index) const {
+                if (sizeof(osm_object_id_t) <= 4)
+                    return v8::Integer::New(nodes[index]);
+                else
+                    return v8::Number::New(nodes[index]);
+            }
+
+            v8::Handle<v8::Array> js_enumerate_nodes() const {
+                v8::Local<v8::Array> array = v8::Array::New(num_nodes);
+
+                for (osm_sequence_id_t i=0; i < num_nodes; i++) {
+                    v8::Local<v8::Integer> ii = v8::Integer::New(i);
+                    array->Set(ii, ii);
+                }
+
+                return array;
+            }
+
+            v8::Handle<v8::Value> js_get_geom_property(v8::Local<v8::String> property) const {
+                v8::String::Utf8Value key(property);
+
+                if (!strcmp(*key, "linestring_wkt")) {
+                    std::ostringstream oss;
+                    oss << "LINESTRING(";
+                    for (osm_sequence_id_t i=0; i < num_nodes; i++) {
+                        if (i != 0) {
+                            oss << ",";
+                        }
+                        oss << lon[i] << " " << lat[i];
+                    }
+                    oss << ")";
+                    return v8::String::New(oss.str().c_str());
+                }
+
+                return v8::Undefined();
+            }
+#endif // WITH_JAVASCRIPT
 
         }; // class Way
 

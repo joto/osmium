@@ -12,23 +12,6 @@ namespace Osmium {
 
     namespace OSM {
 
-        class RelationMember {
-
-          public:
-
-            static const int max_characters_role = 255;
-
-            static const int max_utf16_length_role = 2 * (max_characters_role + 1); ///< maximum number of UTF-16 units
-
-            static const int max_length_role = 255 * 4 + 1; /* 255 UTF-8 characters + null byte */
-
-            osm_object_id_t ref;
-            char            type;
-            char            role[max_length_role];
-            Object         *object;
-
-        };
-
         class Relation : public Object {
 
             // how many members are there on this object
@@ -40,7 +23,7 @@ namespace Osmium {
 
 #ifdef WITH_JAVASCRIPT
             v8::Local<v8::Object> js_members_instance;
-#endif
+#endif // WITH_JAVASCRIPT
 
             Relation() : Object(), members() {
                 num_members = 0;
@@ -48,7 +31,7 @@ namespace Osmium {
                 js_tags_instance    = Osmium::Javascript::Template::create_tags_instance(this);
                 js_object_instance  = Osmium::Javascript::Template::create_relation_instance(this);
                 js_members_instance = Osmium::Javascript::Template::create_relation_members_instance(this);
-#endif
+#endif // WITH_JAVASCRIPT
             }
 
             Relation(const Relation &r) : Object(r) {
@@ -58,7 +41,7 @@ namespace Osmium {
                 js_tags_instance    = Osmium::Javascript::Template::create_tags_instance(this);
                 js_object_instance  = Osmium::Javascript::Template::create_relation_instance(this);
                 js_members_instance = Osmium::Javascript::Template::create_relation_members_instance(this);
-#endif
+#endif // WITH_JAVASCRIPT
             }
 
             osm_object_type_t get_type() const {
@@ -101,6 +84,33 @@ namespace Osmium {
                 throw std::runtime_error("a relation can not be added to a shapefile of any type");
             }
 #endif
+
+#ifdef WITH_JAVASCRIPT
+            v8::Handle<v8::Value> js_get_members() const {
+                return js_members_instance;
+            }
+
+#if 0
+            v8::Handle<v8::Value> js_get_member(uint32_t index) const {
+                v8::Local<v8::Object> member = create_relation_member_instance(this);
+                member->SetInternalField(0, v8::External::New(get_member(index)));
+
+                return member;
+            }
+#endif
+
+            v8::Handle<v8::Array> js_enumerate_members() const {
+                v8::Local<v8::Array> array = v8::Array::New(num_members);
+
+                for (osm_sequence_id_t i=0; i < num_members; i++) {
+                    v8::Local<v8::Integer> ii = v8::Integer::New(i);
+                    array->Set(ii, ii);
+                }
+
+                return array;
+            }
+
+#endif // WITH_JAVASCRIPT
 
         }; // class Relation
 

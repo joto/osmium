@@ -33,6 +33,40 @@ namespace Osmium {
                     return instance;
                 }
 
+                /*
+                   These magic helper function are used to connect Javascript
+                   methods to C++ methods. They are given to the SetAccessor,
+                   SetIndexedPropertyHandler and SetNamedPropertyHandler
+                   functions of a v8::ObjectTemplate object, respectively.
+
+                   The first template argument is the class of the object we
+                   want to access, for instance Osmium::OSM::Node.
+
+                   The second template argument is the member function on the
+                   object that we want to call when this function is called
+                   from Javascript.
+
+                */
+                template<class TObject, v8::Handle<v8::Value> (TObject::*func)() const>
+                static v8::Handle<v8::Value> accessor_getter(v8::Local<v8::String>, const v8::AccessorInfo &info) {
+                    return (( reinterpret_cast<TObject *>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()) )->*(func))();
+                }
+
+                template<class TObject, v8::Handle<v8::Value> (TObject::*func)(v8::Local<v8::String> property) const>
+                static v8::Handle<v8::Value> named_property_getter(v8::Local<v8::String> property, const v8::AccessorInfo &info) {
+                    return (( reinterpret_cast<TObject *>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()) )->*(func))(property);
+                }
+
+                template<class TObject, v8::Handle<v8::Value> (TObject::*func)(uint32_t index) const>
+                static v8::Handle<v8::Value> indexed_property_getter(uint32_t index, const v8::AccessorInfo &info) {
+                    return (( reinterpret_cast<TObject *>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()) )->*(func))(index);
+                }
+
+                template<class TObject, v8::Handle<v8::Array> (TObject::*func)() const>
+                static v8::Handle<v8::Array> property_enumerator(const v8::AccessorInfo &info) {
+                    return (( reinterpret_cast<TObject *>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()) )->*(func))();
+                }
+
             }; //class Base
 
             v8::Local<v8::Object> create_tags_instance(void *wrapper);

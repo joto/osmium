@@ -9,36 +9,12 @@ namespace Osmium {
 
             class Member : public Base {
 
-                static v8::Handle<v8::Value> GetType(v8::Local<v8::String> /*property*/, const v8::AccessorInfo &info) {
-                    v8::HandleScope handle_scope;
-
-                    OSM::RelationMember *member = (OSM::RelationMember *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
-                    char type[2];
-                    type[0] = member->type;
-                    type[1] = 0;
-                    return v8::String::New(type);
-                }
-
-                static v8::Handle<v8::Value> GetRef(v8::Local<v8::String> /*property*/, const v8::AccessorInfo &info) {
-                    v8::HandleScope handle_scope;
-
-                    OSM::RelationMember *member = (OSM::RelationMember *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
-                    return v8::Number::New(member->ref);
-                }
-
-                static v8::Handle<v8::Value> GetRole(v8::Local<v8::String> /*property*/, const v8::AccessorInfo &info) {
-                    v8::HandleScope handle_scope;
-
-                    OSM::RelationMember *member = (OSM::RelationMember *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
-                    return utf8_to_v8_String<Osmium::OSM::RelationMember::max_utf16_length_role>(member->role);
-                }
-
-            public:
+              public:
 
                 Member() : Base(1) {
-                    js_template->SetAccessor(v8::String::New("type"), GetType);
-                    js_template->SetAccessor(v8::String::New("ref"),  GetRef);
-                    js_template->SetAccessor(v8::String::New("role"), GetRole);
+                    js_template->SetAccessor(v8::String::New("type"), accessor_getter<Osmium::OSM::RelationMember, &Osmium::OSM::RelationMember::js_get_type>);
+                    js_template->SetAccessor(v8::String::New("ref"),  accessor_getter<Osmium::OSM::RelationMember, &Osmium::OSM::RelationMember::js_get_ref>);
+                    js_template->SetAccessor(v8::String::New("role"), accessor_getter<Osmium::OSM::RelationMember, &Osmium::OSM::RelationMember::js_get_role>);
                 }
 
             }; // class Member

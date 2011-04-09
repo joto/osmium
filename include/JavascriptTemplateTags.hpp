@@ -9,38 +9,16 @@ namespace Osmium {
 
             class Tags : public Base {
 
-                static v8::Handle<v8::Value> Getter(v8::Local<v8::String> property, const v8::AccessorInfo &info) {
-                    v8::HandleScope handle_scope;
-
-                    Osmium::OSM::Object *object = (Osmium::OSM::Object *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
-
-                    const char *key = v8_String_to_utf8<Osmium::OSM::Tag::max_utf16_length_key>(property);
-                    const char *value = object->get_tag_by_key(key);
-                    if (value) {
-                        return handle_scope.Close(utf8_to_v8_String<Osmium::OSM::Tag::max_utf16_length_value>(value));
-                    }
-                    return v8::Undefined();
-                }
-
-                static v8::Handle<v8::Array> Enumerator(const v8::AccessorInfo &info) {
-                    v8::HandleScope handle_scope;
-
-                    Osmium::OSM::Object *object = (Osmium::OSM::Object *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
-
-                    const int num_tags = object->tag_count();
-                    v8::Local<v8::Array> array = v8::Array::New(num_tags);
-
-                    for (int i=0; i < num_tags; i++) {
-                        array->Set(v8::Integer::New(i), utf8_to_v8_String<Osmium::OSM::Tag::max_utf16_length_key>(object->get_tag_key(i)));
-                    }
-
-                    return handle_scope.Close(array);
-                }
-
-            public:
+              public:
 
                 Tags() : Base(1) {
-                    js_template->SetNamedPropertyHandler(Getter, 0, 0, 0, Enumerator);
+                    js_template->SetNamedPropertyHandler(
+                        named_property_getter<Osmium::OSM::Object, &Osmium::OSM::Object::js_get_tag_value_by_key>,
+                        0,
+                        0,
+                        0,
+                        property_enumerator<Osmium::OSM::Object, &Osmium::OSM::Object::js_enumerate_tag_keys>
+                    );
                 }
 
             }; // class Tags

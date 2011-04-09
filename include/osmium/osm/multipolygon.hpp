@@ -191,6 +191,15 @@ namespace Osmium {
 #endif
             }
 
+          public:
+
+#ifdef WITH_JAVASCRIPT
+            v8::Handle<v8::Value> js_get_from() const {
+                const char *value = (get_type() == MULTIPOLYGON_FROM_WAY) ? "way" : "relation";
+                return v8::String::New(value);
+            }
+#endif // WITH_JAVASCRIPT
+
         }; // class Multipolygon
 
         /***
@@ -1261,6 +1270,7 @@ namespace Osmium {
                 return false;
             }
 #endif // WITH_GEOS
+
         }; // class MultipolygonFromRelation
 
     } // namespace OSM

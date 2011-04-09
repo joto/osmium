@@ -9,30 +9,10 @@ namespace Osmium {
 
             class NodeGeom : public Base {
 
-                static v8::Handle<v8::Value> Getter(v8::Local<v8::String> property, const v8::AccessorInfo &info) {
-                    v8::HandleScope handle_scope;
-
-                    Osmium::OSM::Node *self = (Osmium::OSM::Node *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
-                    v8::String::Utf8Value key(property);
-                    std::ostringstream oss;
-
-                    if (!strcmp(*key, "as_wkt")) {
-                        oss << "POINT(" << self->get_lon_str() << " " << self->get_lat_str() << ")";
-                    } else if (!strcmp(*key, "as_ewkt")) {
-                        oss << "SRID=4326;POINT(" << self->get_lon_str() << " " << self->get_lat_str() << ")";
-                    } else if (!strcmp(*key, "as_hex_wkb")) {
-                        oss << self->geom_as_hex_wkb();
-        //            } else if (!strcmp(*key, "as_hex_ewkb")) {
-        //                oss << self->geom.to_hex();             TODO TODO
-                    }
-
-                    return v8::String::New(oss.str().c_str());
-                }
-
-            public:
+              public:
 
                 NodeGeom() : Base(1) {
-                    js_template->SetNamedPropertyHandler(Getter);
+                    js_template->SetNamedPropertyHandler(named_property_getter<Osmium::OSM::Node, &Osmium::OSM::Node::js_get_geom_property>);
                 }
 
             }; // class NodeGeom

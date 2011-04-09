@@ -2,6 +2,7 @@
 #define OSMIUM_OSM_NODE_HPP
 
 #include <cmath>
+#include <sstream>
 
 #ifdef WITH_SHPLIB
 # include <shapefil.h>
@@ -60,14 +61,14 @@ namespace Osmium {
             }
 
             /// get longitude as string, returns a pointer to statically allocated memory thats valid until the next call to get_lon_str()
-            const char *get_lon_str() {
+            const char *get_lon_str() const {
                 static char lon_str[max_length_coordinate];
                 snprintf(lon_str, max_length_coordinate, "%.7f", geom.point.x);
                 return lon_str;
             }
 
             /// get latitude as string, returns a pointer to statically allocated memory thats valid until the next call to get_lat_str()
-            const char *get_lat_str() {
+            const char *get_lat_str() const {
                 static char lat_str[max_length_coordinate];
                 snprintf(lat_str, max_length_coordinate, "%.7f", geom.point.y);
                 return lat_str;
@@ -96,6 +97,35 @@ namespace Osmium {
 
 #ifdef WITH_JAVASCRIPT
             v8::Local<v8::Object> js_geom_instance;
+
+            v8::Handle<v8::Value> js_get_lon() const {
+                return v8::String::New(get_lon_str());
+            }
+
+            v8::Handle<v8::Value> js_get_lat() const {
+                return v8::String::New(get_lat_str());
+            }
+
+            v8::Handle<v8::Value> js_get_geom() const {
+                return js_geom_instance;
+            }
+
+            v8::Handle<v8::Value> js_get_geom_property(v8::Local<v8::String> property) const {
+                v8::String::Utf8Value key(property);
+                std::ostringstream oss;
+
+                if (!strcmp(*key, "as_wkt")) {
+                    oss << "POINT(" << get_lon_str() << " " << get_lat_str() << ")";
+                } else if (!strcmp(*key, "as_ewkt")) {
+                    oss << "SRID=4326;POINT(" << get_lon_str() << " " << get_lat_str() << ")";
+                } else if (!strcmp(*key, "as_hex_wkb")) {
+                    oss << geom_as_hex_wkb();
+    //            } else if (!strcmp(*key, "as_hex_ewkb")) {
+    //                oss << geom.to_hex();             TODO TODO
+                }
+
+                return v8::String::New(oss.str().c_str());
+            }
 #endif
 
         }; // class Node

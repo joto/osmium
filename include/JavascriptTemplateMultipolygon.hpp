@@ -9,18 +9,10 @@ namespace Osmium {
 
             class Multipolygon : public Object {
 
-                static v8::Handle<v8::Value> GetFrom(v8::Local<v8::String> /*property*/, const v8::AccessorInfo &info) {
-                    v8::HandleScope handle_scope;
-
-                    Osmium::OSM::Multipolygon *self = (Osmium::OSM::Multipolygon *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
-                    const char *value = (self->get_type() == MULTIPOLYGON_FROM_WAY) ? "way" : "relation";
-                    return v8::String::New(value);
-                }
-
-            public:
+              public:
 
                 Multipolygon() : Object() {
-                    js_template->SetAccessor(v8::String::New("from"), GetFrom);
+                    js_template->SetAccessor(v8::String::New("from"), accessor_getter<Osmium::OSM::Multipolygon, &Osmium::OSM::Multipolygon::js_get_from>);
                 }
 
             }; // class Multipolygon

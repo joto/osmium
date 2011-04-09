@@ -219,10 +219,55 @@ namespace Osmium {
             v8::Local<v8::Object> get_instance() const {
                 return js_object_instance;
             }
-            v8::Local<v8::Object> get_tags_instance() const {
+
+            v8::Handle<v8::Value> js_get_id() const {
+                return v8::Number::New(get_id());
+            }
+
+            v8::Handle<v8::Value> js_get_version() const {
+                return v8::Integer::New(get_version());
+            }
+
+            v8::Handle<v8::Value> js_get_timestamp_str() const {
+                return v8::String::New(get_timestamp_str());
+            }
+
+            v8::Handle<v8::Value> js_get_uid() const {
+                return v8::Integer::New(get_uid());
+            }
+
+            v8::Handle<v8::Value> js_get_user() const {
+                return utf8_to_v8_String<max_utf16_length_username>(get_user());
+            }
+
+            v8::Handle<v8::Value> js_get_changeset() const {
+                return v8::Number::New(get_changeset());
+            }
+
+            v8::Handle<v8::Value> js_get_tags() const {
                 return js_tags_instance;
             }
-#endif
+
+            v8::Handle<v8::Value> js_get_tag_value_by_key(v8::Local<v8::String> property) const {
+                const char *key = v8_String_to_utf8<Osmium::OSM::Tag::max_utf16_length_key>(property);
+                const char *value = get_tag_by_key(key);
+                if (value) {
+                    return utf8_to_v8_String<Osmium::OSM::Tag::max_utf16_length_value>(value);
+                }
+                return v8::Undefined();
+            }
+
+            v8::Handle<v8::Array> js_enumerate_tag_keys() const {
+                v8::Local<v8::Array> array = v8::Array::New(num_tags);
+
+                for (int i=0; i < num_tags; i++) {
+                    array->Set(v8::Integer::New(i), utf8_to_v8_String<Osmium::OSM::Tag::max_utf16_length_key>(get_tag_key(i)));
+                }
+
+                return array;
+            }
+
+#endif // WITH_JAVASCRIPT
 
         }; // class Object
 

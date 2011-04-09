@@ -9,25 +9,11 @@ namespace Osmium {
 
             class Way : public Object {
 
-                static v8::Handle<v8::Value> GetNodes(v8::Local<v8::String> /*property*/, const v8::AccessorInfo &info) {
-                    v8::HandleScope handle_scope;
-
-                    Osmium::OSM::Way *self = (Osmium::OSM::Way *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
-                    return self->js_nodes_instance;
-                }
-
-                static v8::Handle<v8::Value> GetGeom(v8::Local<v8::String> /*property*/, const v8::AccessorInfo &info) {
-                    v8::HandleScope handle_scope;
-
-                    Osmium::OSM::Way *self = (Osmium::OSM::Way *) v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value();
-                    return self->js_geom_instance;
-                }
-
-            public:
+              public:
 
                 Way() : Object() {
-                    js_template->SetAccessor(v8::String::New("nodes"), GetNodes);
-                    js_template->SetAccessor(v8::String::New("geom"),  GetGeom);
+                    js_template->SetAccessor(v8::String::New("nodes"), accessor_getter<Osmium::OSM::Way, &Osmium::OSM::Way::js_get_nodes>);
+                    js_template->SetAccessor(v8::String::New("geom"),  accessor_getter<Osmium::OSM::Way, &Osmium::OSM::Way::js_get_geom>);
                 }
 
             }; // class Way

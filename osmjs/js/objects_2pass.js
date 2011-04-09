@@ -33,7 +33,7 @@ Osmium.Callbacks.relation = function() {
 }
 
 Osmium.Callbacks.multipolygon = function() {
-    print('multipolygon ' + this.id + ' ' + this.version + ' ' + this.timestamp + ' ' + this.uid + ' ' + this.changeset);
+    print('multipolygon from ' + this.from + ' ' + this.id + ' ' + this.version + ' ' + this.timestamp + ' ' + this.uid + ' ' + this.changeset);
     for (key in this.tags) {
         print(' ' + key + '=' + this.tags[key]);
     }

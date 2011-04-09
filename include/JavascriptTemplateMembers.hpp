@@ -19,6 +19,7 @@ namespace Osmium {
                     return handle_scope.Close(member);
                 }
 
+#if 0
                 static v8::Handle<v8::Array> Enumerator(const v8::AccessorInfo &info) {
                     v8::HandleScope handle_scope;
 
@@ -34,11 +35,19 @@ namespace Osmium {
 
                     return handle_scope.Close(array);
                 }
+#endif
 
             public:
 
                 Members() : Base(1) {
-                    js_template->SetIndexedPropertyHandler(Getter, 0, 0, 0, Enumerator);
+//                    js_template->SetIndexedPropertyHandler(Getter, 0, 0, 0, Enumerator);
+                    js_template->SetIndexedPropertyHandler(
+                        Getter, //indexed_property_getter<Osmium::OSM::Relation, &Osmium::OSM::Relation::js_get_member>,
+                        0,
+                        0,
+                        0,
+                        property_enumerator<Osmium::OSM::Relation, &Osmium::OSM::Relation::js_enumerate_members>
+                    );
                 }
 
             }; // class Members
