@@ -1,8 +1,6 @@
 #ifndef OSMIUM_JAVASCRIPT_TEMPLATE_OUTPUTCSV_HPP
 #define OSMIUM_JAVASCRIPT_TEMPLATE_OUTPUTCSV_HPP
 
-#include "JavascriptOutputCSV.hpp"
-
 namespace Osmium {
 
     namespace Javascript {
@@ -34,7 +32,7 @@ namespace Osmium {
                     return v8::Undefined();
                 }
 
-            public:
+              public:
 
                 OutputCSV() : Base(1) {
                     js_template->Set("print", v8::FunctionTemplate::New(Print));

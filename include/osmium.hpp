@@ -45,10 +45,10 @@ struct Osmium::global Osmium::global;
 
 #ifdef WITH_JAVASCRIPT
 # include <osmium/javascript/object_templates.hpp>
-# include <JavascriptTemplateOutputCSV.hpp>
-# include <JavascriptTemplateOutputShapefile.hpp>
 # include <JavascriptOutputCSV.hpp>
 # include <JavascriptOutputShapefile.hpp>
+# include <JavascriptTemplateOutputCSV.hpp>
+# include <JavascriptTemplateOutputShapefile.hpp>
 # include <HandlerJavascript.hpp>
 # ifdef OSMIUM_MAIN
 namespace Osmium {

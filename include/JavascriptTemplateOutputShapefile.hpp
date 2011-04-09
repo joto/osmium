@@ -1,8 +1,6 @@
 #ifndef OSMIUM_JAVASCRIPT_TEMPLATE_OUTPUTSHAPEFILE_HPP
 #define OSMIUM_JAVASCRIPT_TEMPLATE_OUTPUTSHAPEFILE_HPP
 
-#include "JavascriptOutputShapefile.hpp"
-
 namespace Osmium {
 
     namespace Javascript {
@@ -52,7 +50,7 @@ namespace Osmium {
                     return v8::Undefined();
                 }
 
-            public:
+              public:
 
                 OutputShapefile() : Base(1) {
                     js_template->Set("add_field", v8::FunctionTemplate::New(AddField));

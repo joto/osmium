@@ -11,7 +11,7 @@ namespace Osmium {
 
         class Shapefile {
 
-            public:
+          public:
 
             static const unsigned int MAX_DBF_FIELDS = 16;
             static const unsigned int MAX_FIELD_NAME_LENGTH = 11;
@@ -28,13 +28,6 @@ namespace Osmium {
             DBFHandle dbf_handle;
 
             v8::Persistent<v8::Object> js_object;
-
-            public:
-
-            static void JS_Cleanup(v8::Persistent<v8::Value> /*obj*/, void *self) { // XXX is never called
-                printf("cleanup\n\n");
-                ((Shapefile *)self)->close();
-            }
 
             Shapefile(const char *filename, const char *shape_type) {
                 if (!strcmp(shape_type, "point")) {
