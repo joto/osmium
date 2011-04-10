@@ -29,6 +29,23 @@ namespace Osmium {
                 return js_object;
             }
 
+            v8::Handle<v8::Value> js_print(const v8::Arguments& args) {
+                for (int i = 0; i < args.Length(); i++) {
+                    if (i != 0) {
+                        out << '\t';
+                    }
+                    v8_String_to_ostream(args[i]->ToString(), out);
+                }
+                out << std::endl;
+                return v8::Integer::New(1);
+            }
+
+            v8::Handle<v8::Value> js_close(const v8::Arguments& /*args*/) {
+                out.flush();
+                out.close();
+                return v8::Undefined();
+            }
+
         }; // class CSV
 
     } // namespace Output

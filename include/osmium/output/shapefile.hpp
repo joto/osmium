@@ -203,6 +203,37 @@ namespace Osmium {
                 return js_object;
             }
 
+            v8::Handle<v8::Value> js_add_field(const v8::Arguments& args) {
+                if (args.Length() < 3 || args.Length() > 4) {
+                    throw std::runtime_error("wrong number of arguments");
+                }
+                v8::String::Utf8Value name(args[0]);
+                v8::String::Utf8Value type(args[1]);
+                int width = args[2]->Int32Value();
+                int decimals = (args.Length() == 4) ? args[3]->Int32Value() : 0;
+                add_field(*name, *type, width, decimals);
+
+                return v8::Integer::New(1);
+            }
+
+            v8::Handle<v8::Value> js_add(const v8::Arguments& args) {
+                if (args.Length() != 2) {
+                    throw std::runtime_error("wrong number of arguments");
+                }
+
+                v8::Local<v8::Object> xxx = v8::Local<v8::Object>::Cast(args[0]);
+                Osmium::OSM::Object *object = (Osmium::OSM::Object *) v8::Local<v8::External>::Cast(xxx->GetInternalField(0))->Value();
+
+                add(object, v8::Local<v8::Object>::Cast(args[1]));
+
+                return v8::Integer::New(1);
+            }
+
+            v8::Handle<v8::Value> js_close(const v8::Arguments& /*args*/) {
+                close();
+                return v8::Undefined();
+            }
+
         }; // class Shapefile
 
     } // namespace Output

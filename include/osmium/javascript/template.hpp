@@ -52,17 +52,17 @@ namespace Osmium {
                     return (( reinterpret_cast<TObject *>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()) )->*(func))();
                 }
 
-                template<class TObject, v8::Handle<v8::Value> (TObject::*func)(v8::Local<v8::String> property) const>
+                template<class TObject, v8::Handle<v8::Value> (TObject::*func)(v8::Local<v8::String>) const>
                 static v8::Handle<v8::Value> named_property_getter(v8::Local<v8::String> property, const v8::AccessorInfo &info) {
                     return (( reinterpret_cast<TObject *>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()) )->*(func))(property);
                 }
 
-                template<class TObject, v8::Handle<v8::Value> (TObject::*func)(uint32_t index) const>
+                template<class TObject, v8::Handle<v8::Value> (TObject::*func)(uint32_t) const>
                 static v8::Handle<v8::Value> indexed_property_getter(uint32_t index, const v8::AccessorInfo &info) {
                     return (( reinterpret_cast<TObject *>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()) )->*(func))(index);
                 }
 
-                template<class TObject, v8::Handle<v8::Value> (TObject::*func)(uint32_t index)>
+                template<class TObject, v8::Handle<v8::Value> (TObject::*func)(uint32_t)>
                 static v8::Handle<v8::Value> indexed_property_getter(uint32_t index, const v8::AccessorInfo &info) {
                     return (( reinterpret_cast<TObject *>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()) )->*(func))(index);
                 }
@@ -70,6 +70,11 @@ namespace Osmium {
                 template<class TObject, v8::Handle<v8::Array> (TObject::*func)() const>
                 static v8::Handle<v8::Array> property_enumerator(const v8::AccessorInfo &info) {
                     return (( reinterpret_cast<TObject *>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()) )->*(func))();
+                }
+
+                template<class TObject, v8::Handle<v8::Value> (TObject::*func)(const v8::Arguments&)>
+                static v8::Handle<v8::Value> function_template(const v8::Arguments& args) {
+                    return (( reinterpret_cast<TObject *>(v8::Local<v8::External>::Cast(args.Holder()->GetInternalField(0))->Value()) )->*(func))(args);
                 }
 
             }; //class Base
