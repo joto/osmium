@@ -1,3 +1,6 @@
+#ifndef OSMIUM_INPUT_PBF_HPP
+#define OSMIUM_INPUT_PBF_HPP
+
 /*
 
 The code in this file is based on the MoNav code, although it
@@ -20,9 +23,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with MoNav. If not, see <http://www.gnu.org/licenses/>.
 */
-
-#ifndef PBFPARSER_HPP
-#define PBFPARSER_HPP
 
 #include <string>
 #include <zlib.h>
@@ -456,4 +456,4 @@ namespace Osmium {
 
 } // namespace Osmium
 
-#endif // PBFPARSER_HPP
+#endif // OSMIUM_INPUT_PBF_HPP

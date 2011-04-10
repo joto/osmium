@@ -4,9 +4,9 @@
 #include <vector>
 #include <sstream>
 
-#ifdef WITH_SHPLIB
+#ifdef OSMIUM_WITH_SHPLIB
 # include <shapefil.h>
-#endif
+#endif // OSMIUM_WITH_SHPLIB
 
 namespace Osmium {
 
@@ -21,27 +21,27 @@ namespace Osmium {
 
           public:
 
-#ifdef WITH_JAVASCRIPT
+#ifdef OSMIUM_WITH_JAVASCRIPT
             v8::Local<v8::Object> js_members_instance;
-#endif // WITH_JAVASCRIPT
+#endif // OSMIUM_WITH_JAVASCRIPT
 
             Relation() : Object(), members() {
                 num_members = 0;
-#ifdef WITH_JAVASCRIPT
+#ifdef OSMIUM_WITH_JAVASCRIPT
                 js_tags_instance    = Osmium::Javascript::Template::create_tags_instance(this);
                 js_object_instance  = Osmium::Javascript::Template::create_relation_instance(this);
                 js_members_instance = Osmium::Javascript::Template::create_relation_members_instance(this);
-#endif // WITH_JAVASCRIPT
+#endif // OSMIUM_WITH_JAVASCRIPT
             }
 
             Relation(const Relation &r) : Object(r) {
                 num_members = r.num_members;
                 members = r.members;
-#ifdef WITH_JAVASCRIPT
+#ifdef OSMIUM_WITH_JAVASCRIPT
                 js_tags_instance    = Osmium::Javascript::Template::create_tags_instance(this);
                 js_object_instance  = Osmium::Javascript::Template::create_relation_instance(this);
                 js_members_instance = Osmium::Javascript::Template::create_relation_members_instance(this);
-#endif // WITH_JAVASCRIPT
+#endif // OSMIUM_WITH_JAVASCRIPT
             }
 
             osm_object_type_t get_type() const {
@@ -79,13 +79,13 @@ namespace Osmium {
                 return NULL;
             }
 
-#ifdef WITH_SHPLIB
+#ifdef OSMIUM_WITH_SHPLIB
             SHPObject *create_shpobject(int /*shp_type*/) {
                 throw std::runtime_error("a relation can not be added to a shapefile of any type");
             }
-#endif
+#endif // OSMIUM_WITH_SHPLIB
 
-#ifdef WITH_JAVASCRIPT
+#ifdef OSMIUM_WITH_JAVASCRIPT
             v8::Handle<v8::Value> js_get_members() const {
                 return js_members_instance;
             }
@@ -108,7 +108,7 @@ namespace Osmium {
                 return array;
             }
 
-#endif // WITH_JAVASCRIPT
+#endif // OSMIUM_WITH_JAVASCRIPT
 
         }; // class Relation
 

@@ -8,7 +8,7 @@
 #include <osmium/handler/node_location_store.hpp>
 #include <osmium/handler/multipolygon.hpp>
 
-#ifdef WITH_MULTIPOLYGON_PROFILING
+#ifdef OSMIUM_WITH_MULTIPOLYGON_PROFILING
 std::vector<std::pair<std::string, timer *> > Osmium::OSM::MultipolygonFromRelation::timers;
 
 timer Osmium::OSM::MultipolygonFromRelation::write_complex_poly_timer;
@@ -25,7 +25,7 @@ timer Osmium::OSM::MultipolygonFromRelation::polygon_intersection_timer;
 timer Osmium::OSM::MultipolygonFromRelation::multipolygon_build_timer;
 timer Osmium::OSM::MultipolygonFromRelation::multipolygon_write_timer;
 timer Osmium::OSM::MultipolygonFromRelation::error_write_timer;
-#endif
+#endif // OSMIUM_WITH_MULTIPOLYGON_PROFILING
 
 class SinglePass : public Osmium::Handler::Base {
 

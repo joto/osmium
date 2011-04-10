@@ -13,12 +13,12 @@ CXXFLAGS += -std=c++0x -Wall -W -Wredundant-decls -Wdisabled-optimization -pedan
 #CXXFLAGS += -Wpadded -Winline
 
 # uncomment this if you want information on how long it took to build the multipolygons
-#CXXFLAGS += -DWITH_MULTIPOLYGON_PROFILING
+#CXXFLAGS += -DOSMIUM_WITH_MULTIPOLYGON_PROFILING
 
 CXXFLAGS += -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
-CXXFLAGS += -DWITH_GEOS $(shell geos-config --cflags)
-CXXFLAGS += -DWITH_SHPLIB
-CXXFLAGS += -DWITH_JAVASCRIPT
+CXXFLAGS += -DOSMIUM_WITH_GEOS $(shell geos-config --cflags)
+CXXFLAGS += -DOSMIUM_WITH_SHPLIB
+CXXFLAGS += -DOSMIUM_WITH_JAVASCRIPT
 
 # Add this to force V8 garbage collection after each object/node/way/relation callback.
 # Use only to find memory leaks. It will make osmjs really slow.

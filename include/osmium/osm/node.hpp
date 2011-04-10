@@ -4,9 +4,9 @@
 #include <cmath>
 #include <sstream>
 
-#ifdef WITH_SHPLIB
+#ifdef OSMIUM_WITH_SHPLIB
 # include <shapefil.h>
-#endif
+#endif // OSMIUM_WITH_SHPLIB
 
 #include <osmium/utils/wkb.hpp>
 
@@ -28,11 +28,11 @@ namespace Osmium {
 
             Node() : Object() {
                 reset();
-#ifdef WITH_JAVASCRIPT
+#ifdef OSMIUM_WITH_JAVASCRIPT
                 js_tags_instance   = Osmium::Javascript::Template::create_tags_instance(this);
                 js_object_instance = Osmium::Javascript::Template::create_node_instance(this);
                 js_geom_instance   = Osmium::Javascript::Template::create_node_geom_instance(this);
-#endif // WITH_JAVASCRIPT
+#endif // OSMIUM_WITH_JAVASCRIPT
             }
 
             void reset() {
@@ -86,16 +86,16 @@ namespace Osmium {
                 return geom.to_hex();
             }
 
-#ifdef WITH_SHPLIB
+#ifdef OSMIUM_WITH_SHPLIB
             SHPObject *create_shpobject(int shp_type) {
                 if (shp_type != SHPT_POINT) {
                     throw std::runtime_error("a node can only be added to a shapefile of type point");
                 }
                 return SHPCreateSimpleObject(shp_type, 1, &geom.point.x, &geom.point.y, NULL);
             }
-#endif
+#endif // OSMIUM_WITH_SHPLIB
 
-#ifdef WITH_JAVASCRIPT
+#ifdef OSMIUM_WITH_JAVASCRIPT
             v8::Local<v8::Object> js_geom_instance;
 
             v8::Handle<v8::Value> js_get_lon() const {
@@ -126,7 +126,7 @@ namespace Osmium {
 
                 return v8::String::New(oss.str().c_str());
             }
-#endif
+#endif // OSMIUM_WITH_JAVASCRIPT
 
         }; // class Node
 

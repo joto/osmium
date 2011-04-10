@@ -11,9 +11,9 @@
 #include <assert.h>
 #include <time.h>
 
-#ifdef WITH_SHPLIB
+#ifdef OSMIUM_WITH_SHPLIB
 # include <shapefil.h>
-#endif
+#endif // OSMIUM_WITH_SHPLIB
 
 namespace Osmium {
 
@@ -217,16 +217,16 @@ namespace Osmium {
                 throw std::range_error("no tag with this index");
             }
 
-#ifdef WITH_SHPLIB
+#ifdef OSMIUM_WITH_SHPLIB
             virtual SHPObject *create_shpobject(int shp_type) = 0;
-#endif
+#endif // OSMIUM_WITH_SHPLIB
 
-#ifdef WITH_JAVASCRIPT
+#ifdef OSMIUM_WITH_JAVASCRIPT
             v8::Local<v8::Object> js_object_instance;
             v8::Local<v8::Object> js_tags_instance;
-#endif
+#endif // OSMIUM_WITH_JAVASCRIPT
 
-#ifdef WITH_JAVASCRIPT
+#ifdef OSMIUM_WITH_JAVASCRIPT
             v8::Local<v8::Object> get_instance() const {
                 return js_object_instance;
             }
@@ -282,7 +282,7 @@ namespace Osmium {
                 return array;
             }
 
-#endif // WITH_JAVASCRIPT
+#endif // OSMIUM_WITH_JAVASCRIPT
 
         }; // class Object
 

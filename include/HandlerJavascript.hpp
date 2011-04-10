@@ -123,7 +123,7 @@ namespace Osmium {
                 }
             }
 
-#ifdef WITH_SHPLIB
+#ifdef OSMIUM_WITH_SHPLIB
             static v8::Handle<v8::Value> OutputShapefileOpen(const v8::Arguments& args) {
                 if (args.Length() != 2) {
                     return v8::Undefined();
@@ -134,7 +134,7 @@ namespace Osmium {
                     return oc->get_js_object();
                 }
             }
-#endif
+#endif // OSMIUM_WITH_SHPLIB
 
             Javascript(std::vector<std::string> include_files, const char *filename) : Base() {
 //                v8::HandleScope handle_scope;
@@ -151,11 +151,11 @@ namespace Osmium {
                 output_csv_template->Set(v8::String::New("open"), v8::FunctionTemplate::New(OutputCSVOpen));
                 output_object->Set(v8::String::New("CSV"), output_csv_template->NewInstance());
 
-#ifdef WITH_SHPLIB
+#ifdef OSMIUM_WITH_SHPLIB
                 v8::Handle<v8::ObjectTemplate> output_shapefile_template = v8::ObjectTemplate::New();
                 output_shapefile_template->Set(v8::String::New("open"), v8::FunctionTemplate::New(OutputShapefileOpen));
                 output_object->Set(v8::String::New("Shapefile"), output_shapefile_template->NewInstance());
-#endif
+#endif // OSMIUM_WITH_SHPLIB
 
                 v8::Handle<v8::Object> callbacks_object = osmium_object->Get(v8::String::New("Callbacks"))->ToObject();
 
@@ -249,7 +249,7 @@ namespace Osmium {
                 }
 #ifdef OSMIUM_V8_FORCE_GC
                 while (!v8::V8::IdleNotification()) { };
-#endif
+#endif // OSMIUM_V8_FORCE_GC
             }
 
             void callback_node(OSM::Node *object) {
@@ -258,7 +258,7 @@ namespace Osmium {
                 }
 #ifdef OSMIUM_V8_FORCE_GC
                 while (!v8::V8::IdleNotification()) { };
-#endif
+#endif // OSMIUM_V8_FORCE_GC
             }
 
             void callback_way(OSM::Way *object) {
@@ -267,7 +267,7 @@ namespace Osmium {
                 }
 #ifdef OSMIUM_V8_FORCE_GC
                 while (!v8::V8::IdleNotification()) { };
-#endif
+#endif // OSMIUM_V8_FORCE_GC
             }
 
             void callback_relation(OSM::Relation *object) {
@@ -276,7 +276,7 @@ namespace Osmium {
                 }
 #ifdef OSMIUM_V8_FORCE_GC
                 while (!v8::V8::IdleNotification()) { };
-#endif
+#endif // OSMIUM_V8_FORCE_GC
             }
 
             void callback_multipolygon(OSM::Multipolygon *object) {

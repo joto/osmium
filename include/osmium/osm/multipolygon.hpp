@@ -11,16 +11,16 @@
 #include <iomanip>
 #include <map>
 
-#ifdef WITH_MULTIPOLYGON_PROFILING
+#ifdef OSMIUM_WITH_MULTIPOLYGON_PROFILING
 # include <osmium/utils/timer.h>
 # define START_TIMER(x) x##_timer.start();
 # define STOP_TIMER(x) x##_timer.stop();
 #else
 # define START_TIMER(x)
 # define STOP_TIMER(x)
-#endif
+#endif // OSMIUM_WITH_MULTIPOLYGON_PROFILING
 
-#ifdef WITH_GEOS
+#ifdef OSMIUM_WITH_GEOS
 # include <geos/version.h>
 # include <geos/geom/Geometry.h>
 # include <geos/geom/Point.h>
@@ -45,11 +45,11 @@
 
 // this should come from /usr/include/geos/algorithm, but its missing there in some Ubuntu versions
 # include "../include/CGAlgorithms.h"
-#endif
+#endif // OSMIUM_WITH_GEOS
 
-#ifdef WITH_SHPLIB
+#ifdef OSMIUM_WITH_SHPLIB
 # include <shapefil.h>
-#endif
+#endif // OSMIUM_WITH_SHPLIB
 
 namespace Osmium {
 
@@ -58,7 +58,7 @@ namespace Osmium {
         enum innerouter_t { UNSET, INNER, OUTER };
         enum direction_t { NO_DIRECTION, CLOCKWISE, COUNTERCLOCKWISE };
 
-#ifdef WITH_GEOS
+#ifdef OSMIUM_WITH_GEOS
         class WayInfo {
 
             friend class MultipolygonFromRelation;
@@ -154,51 +154,52 @@ namespace Osmium {
                 ring_id = -1;
             }
         };
-#endif
+#endif // OSMIUM_WITH_GEOS
 
         /// virtual parent class for MultipolygonFromWay and MultipolygonFromRelation
         class Multipolygon : public Object {
 
           protected:
 
-#ifdef WITH_GEOS
+#ifdef OSMIUM_WITH_GEOS
             geos::geom::Geometry *geometry;
-#endif
+#endif // OSMIUM_WITH_GEOS
 
             Multipolygon() {
-#ifdef WITH_GEOS
+#ifdef OSMIUM_WITH_GEOS
                 geometry = NULL;
-#endif
-#ifdef WITH_JAVASCRIPT
+#endif // OSMIUM_WITH_GEOS
+
+#ifdef OSMIUM_WITH_JAVASCRIPT
                 js_tags_instance    = Osmium::Javascript::Template::create_tags_instance(this);
                 js_object_instance  = Osmium::Javascript::Template::create_multipolygon_instance(this);
-#endif
+#endif // OSMIUM_WITH_JAVASCRIPT
             }
 
-#ifdef WITH_GEOS
+#ifdef OSMIUM_WITH_GEOS
             Multipolygon(geos::geom::Geometry *geom) {
                 geometry = geom;
-#ifdef WITH_JAVASCRIPT
+# ifdef OSMIUM_WITH_JAVASCRIPT
                 js_tags_instance    = Osmium::Javascript::Template::create_tags_instance(this);
                 js_object_instance  = Osmium::Javascript::Template::create_multipolygon_instance(this);
-#endif
+# endif // OSMIUM_WITH_JAVASCRIPT
             }
-#endif
+#endif // OSMIUM_WITH_GEOS
 
             ~Multipolygon() {
-#ifdef WITH_GEOS
+#ifdef OSMIUM_WITH_GEOS
                 delete(geometry);
-#endif
+#endif // OSMIUM_WITH_GEOS
             }
 
           public:
 
-#ifdef WITH_JAVASCRIPT
+#ifdef OSMIUM_WITH_JAVASCRIPT
             v8::Handle<v8::Value> js_get_from() const {
                 const char *value = (get_type() == MULTIPOLYGON_FROM_WAY) ? "way" : "relation";
                 return v8::String::New(value);
             }
-#endif // WITH_JAVASCRIPT
+#endif // OSMIUM_WITH_JAVASCRIPT
 
         }; // class Multipolygon
 
@@ -216,11 +217,11 @@ namespace Osmium {
 
           public:
 
-#ifdef WITH_GEOS
+#ifdef OSMIUM_WITH_GEOS
             MultipolygonFromWay(Way *way, geos::geom::Geometry *geom) : Multipolygon(geom) {
 #else
             MultipolygonFromWay(Way *way) : Multipolygon() {
-#endif // WITH_GEOS
+#endif // OSMIUM_WITH_GEOS
                 id        = way->get_id();
                 version   = way->get_version();
                 uid       = way->get_uid();
@@ -241,7 +242,7 @@ namespace Osmium {
                 return MULTIPOLYGON_FROM_WAY;
             }
 
-#ifdef WITH_SHPLIB
+#ifdef OSMIUM_WITH_SHPLIB
             /**
             * Create a SHPObject for this multipolygon and return it. You have to call
             * SHPDestroyObject() with this object when you are done.
@@ -252,7 +253,7 @@ namespace Osmium {
                 }
                 return SHPCreateSimpleObject(shp_type, num_nodes, lon, lat, NULL);
             }
-#endif // WITH_SHPLIB
+#endif // OSMIUM_WITH_SHPLIB
 
         }; // class MultipolygonFromWay
 
@@ -343,14 +344,14 @@ namespace Osmium {
             MultipolygonFromRelation(Relation *r, bool b, int n, void (*callback)(Osmium::OSM::Multipolygon *), bool repair) : Multipolygon(), boundary(b), relation(r), callback(callback) {
                 num_ways = n;
                 missing_ways = n;
-#ifdef WITH_GEOS
+#ifdef OSMIUM_WITH_GEOS
                 geometry = NULL;
-#endif // WITH_GEOS
+#endif // OSMIUM_WITH_GEOS
                 id = r->get_id();
                 attempt_repair = repair;
             }
 
-#ifdef WITH_MULTIPOLYGON_PROFILING
+#ifdef OSMIUM_WITH_MULTIPOLYGON_PROFILING
             static std::vector<std::pair<std::string, timer *> > timers;
 
             static timer write_complex_poly_timer;
@@ -388,7 +389,7 @@ namespace Osmium {
                     std::cerr << timers[i].first << ": " << *(timers[i].second) << std::endl;
                 }
             }
-#endif
+#endif // OSMIUM_WITH_MULTIPOLYGON_PROFILING
 
             ~MultipolygonFromRelation() {
                 delete relation;
@@ -413,14 +414,14 @@ namespace Osmium {
             void handle_complete_multipolygon() {
                 // std::cerr << "MP multi multi=" << id << " done\n";
 
-#ifdef WITH_GEOS
+#ifdef OSMIUM_WITH_GEOS
                 if (build_geometry()) {
                     geos::io::WKTWriter wkt;
                     //std::cerr << "  mp geometry: " << wkt.write(geometry) << std::endl;
                 } else {
                     std::cerr << "  geom build error: " << geometry_error_message << "\n";
                 }
-#endif // WITH_GEOS
+#endif // OSMIUM_WITH_GEOS
 
                 callback(this);
             }
@@ -430,7 +431,7 @@ namespace Osmium {
             * SHPDestroyObject() with this object when you are done.
             * Returns NULL if a valid SHPObject could not be created.
             */
-#ifdef WITH_SHPLIB
+#ifdef OSMIUM_WITH_SHPLIB
             SHPObject *create_shpobject(int shp_type) {
                 if (shp_type != SHPT_POLYGON) {
                     throw std::runtime_error("a multipolygon can only be added to a shapefile of type polygon");
@@ -471,12 +472,12 @@ namespace Osmium {
                 
                 return o;
             }
-#endif
+#endif // OSMIUM_WITH_SHPLIB
 
           private:
 
-#ifdef WITH_SHPLIB
-#ifdef WITH_GEOS
+#ifdef OSMIUM_WITH_SHPLIB
+# ifdef OSMIUM_WITH_GEOS
             bool dump_geometry(const geos::geom::Geometry *g, std::vector<int>& partStart, std::vector<double>& x, std::vector<double>& y) {
                 switch(g->getGeometryTypeId()) {
                     case geos::geom::GEOS_MULTIPOLYGON:
@@ -510,8 +511,8 @@ namespace Osmium {
                 }
                 return true;
             }
-#endif
-#endif
+# endif // OSMIUM_WITH_GEOS
+#endif // OSMIUM_WITH_SHPLIB
 
             /**
             * This helper gets called when we find a ring that is not valid - 
@@ -524,7 +525,7 @@ namespace Osmium {
             * limitation is that this method does not deliver results for 
             * linear rings with more than one self-intersection.
             */
-#ifdef WITH_GEOS
+#ifdef OSMIUM_WITH_GEOS
             geos::geom::LinearRing *create_non_intersecting_linear_ring(geos::geom::CoordinateSequence *orig_cs)
             {
                 const std::vector<geos::geom::Coordinate>* coords = orig_cs->toVector();
@@ -800,11 +801,11 @@ namespace Osmium {
                         }
                         else
                         {
-#if GEOS_VERSION_MAJOR < 3 || (GEOS_VERSION_MAJOR == 3 && GEOS_VERSION_MINOR <= 2)
+# if GEOS_VERSION_MAJOR < 3 || (GEOS_VERSION_MAJOR == 3 && GEOS_VERSION_MINOR <= 2)
                             double dist = geos::operation::distance::DistanceOp::distance(node1, (i->second)); // deprecated in newer version of GEOS
-#else
+# else
                             double dist = geos::operation::distance::DistanceOp::distance(*node1, *(i->second));
-#endif
+# endif
                             if ((dist < mindist) || (mindist < 0))
                             {
                                 mindist = dist;
@@ -1269,7 +1270,7 @@ namespace Osmium {
                 geometry = NULL;
                 return false;
             }
-#endif // WITH_GEOS
+#endif // OSMIUM_WITH_GEOS
 
         }; // class MultipolygonFromRelation
 

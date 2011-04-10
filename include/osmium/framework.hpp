@@ -3,10 +3,10 @@
 
 #include <fcntl.h>
 
-#ifdef WITH_GEOS
+#ifdef OSMIUM_WITH_GEOS
 # include <geos/geom/GeometryFactory.h>
 # include <geos/geom/PrecisionModel.h>
-#endif
+#endif // OSMIUM_WITH_GEOS
 
 namespace Osmium {
 
@@ -19,18 +19,18 @@ namespace Osmium {
                 throw std::runtime_error("Do not instantiate Osmium::Framework more than once!");
             }
             Osmium::global.debug = debug;
-#ifdef WITH_GEOS
+#ifdef OSMIUM_WITH_GEOS
             geos::geom::PrecisionModel pm;
             Osmium::global.geos_geometry_factory = new geos::geom::GeometryFactory(&pm, -1);
-#endif
+#endif // OSMIUM_WITH_GEOS
             Osmium::global.framework = this;
         }
 
         ~Framework() {
             Osmium::Input::PBF<Osmium::Handler::Base>::cleanup();
-#ifdef WITH_GEOS
+#ifdef OSMIUM_WITH_GEOS
             delete Osmium::global.geos_geometry_factory;
-#endif
+#endif // OSMIUM_WITH_GEOS
         }
 
         /**

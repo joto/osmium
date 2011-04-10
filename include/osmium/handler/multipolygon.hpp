@@ -75,11 +75,11 @@ namespace Osmium {
 
                 if (way2mpidx_iterator == way2mpidx.end()) { // not in any relation
                     if (way->is_closed()) { // way is closed, build simple multipolygon
-#ifdef WITH_GEOS
+#ifdef OSMIUM_WITH_GEOS
                         Osmium::OSM::MultipolygonFromWay *mp = new Osmium::OSM::MultipolygonFromWay(way, way->create_geos_geometry());
 #else
                         Osmium::OSM::MultipolygonFromWay *mp = new Osmium::OSM::MultipolygonFromWay(way);
-#endif // WITH_GEOS
+#endif // OSMIUM_WITH_GEOS
                         std::cerr << "MP simple way_id=" << way->get_id() << "\n";
                         callback_multipolygon(mp);
                         delete mp;
@@ -117,15 +117,15 @@ namespace Osmium {
             }
 
             void callback_init() {
-#ifdef WITH_MULTIPOLYGON_PROFILING
+#ifdef OSMIUM_WITH_MULTIPOLYGON_PROFILING
                 Osmium::OSM::MultipolygonFromRelation::init_timings();
-#endif
+#endif // OSMIUM_WITH_MULTIPOLYGON_PROFILING
             }
 
             void callback_final() {
-#ifdef WITH_MULTIPOLYGON_PROFILING
+#ifdef OSMIUM_WITH_MULTIPOLYGON_PROFILING
                 Osmium::OSM::MultipolygonFromRelation::print_timings();
-#endif
+#endif // OSMIUM_WITH_MULTIPOLYGON_PROFILING
             }
 
         }; // class Multipolygon

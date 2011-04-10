@@ -1,15 +1,15 @@
 #ifndef OSMIUM_OSMIUM_HPP
 #define OSMIUM_OSMIUM_HPP
 
-#ifdef WITH_GEOS
+#ifdef OSMIUM_WITH_GEOS
 # include <geos/geom/GeometryFactory.h>
-#endif
+#endif // OSMIUM_WITH_GEOS
 
-#ifdef WITH_JAVASCRIPT
+#ifdef OSMIUM_WITH_JAVASCRIPT
 # include <v8.h>
 # include <unicode/ustring.h>
 # include <osmium/utils/unicode.hpp>
-#endif // WITH_JAVASCRIPT
+#endif // OSMIUM_WITH_JAVASCRIPT
 
 namespace Osmium {
 
@@ -18,9 +18,9 @@ namespace Osmium {
     struct global {
         Framework *framework;
         bool debug;
-#ifdef WITH_GEOS
+#ifdef OSMIUM_WITH_GEOS
         geos::geom::GeometryFactory *geos_geometry_factory;
-#endif
+#endif // OSMIUM_WITH_GEOS
     };
 
     extern struct global global;
@@ -29,21 +29,21 @@ namespace Osmium {
 
 #ifdef OSMIUM_MAIN
 struct Osmium::global Osmium::global;
-#endif
+#endif // OSMIUM_MAIN
 
 // check way geometry before making a shplib object from it
 // normally this should be defined, otherwise you will generate invalid linestring geometries
-#define CHECK_WAY_GEOMETRY
+#define OSMIUM_CHECK_WAY_GEOMETRY
 
-#ifdef WITH_JAVASCRIPT
+#ifdef OSMIUM_WITH_JAVASCRIPT
 # include <osmium/javascript/template.hpp>
-#endif // WITH_JAVASCRIPT
+#endif // OSMIUM_WITH_JAVASCRIPT
 
 #include <osmium/osm.hpp>
 #include <osmium/input.hpp>
 #include <osmium/framework.hpp>
 
-#ifdef WITH_JAVASCRIPT
+#ifdef OSMIUM_WITH_JAVASCRIPT
 # include <osmium/output/csv.hpp>
 # include <osmium/output/shapefile.hpp>
 # include <osmium/javascript/object_templates.hpp>
@@ -152,6 +152,6 @@ namespace Osmium {
 
 } // namespace Osmium
 # endif // OSMIUM_MAIN
-#endif // WITH_JAVASCRIPT
+#endif // OSMIUM_WITH_JAVASCRIPT
 
 #endif // OSMIUM_OSMIUM_HPP

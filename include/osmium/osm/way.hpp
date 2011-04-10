@@ -3,21 +3,21 @@
 
 #include <stdexcept>
 
-#ifdef WITH_SHPLIB
+#ifdef OSMIUM_WITH_SHPLIB
 # include <shapefil.h>
-#endif
+#endif // OSMIUM_WITH_SHPLIB
 
 /** @file
 *   @brief Contains the Osmium::OSM::Way class.
 */
 
-#ifdef WITH_GEOS
+#ifdef OSMIUM_WITH_GEOS
 # include <geos/geom/Coordinate.h>
 # include <geos/geom/CoordinateSequenceFactory.h>
 # include <geos/geom/Geometry.h>
 # include <geos/geom/Point.h>
 # include <geos/util/GEOSException.h>
-#endif
+#endif // OSMIUM_WITH_GEOS
 
 namespace Osmium {
 
@@ -38,10 +38,10 @@ namespace Osmium {
             // can new nodes be added to this way?
             bool size_frozen;
 
-#ifdef WITH_JAVASCRIPT
+#ifdef OSMIUM_WITH_JAVASCRIPT
             v8::Local<v8::Object> js_nodes_instance;
             v8::Local<v8::Object> js_geom_instance;
-#endif
+#endif // OSMIUM_WITH_JAVASCRIPT
 
             // construct a Way object with full node capacity.
             Way() : Object() {
@@ -50,12 +50,12 @@ namespace Osmium {
                 lat = (double *) malloc(sizeof(double) * max_nodes_in_way);
                 size_frozen = false;
                 reset();
-#ifdef WITH_JAVASCRIPT
+#ifdef OSMIUM_WITH_JAVASCRIPT
                 js_tags_instance   = Osmium::Javascript::Template::create_tags_instance(this);
                 js_object_instance = Osmium::Javascript::Template::create_way_instance(this);
                 js_nodes_instance  = Osmium::Javascript::Template::create_way_nodes_instance(this);
                 js_geom_instance   = Osmium::Javascript::Template::create_way_geom_instance(this);
-#endif
+#endif // OSMIUM_WITH_JAVASCRIPT
             }
 
             // copy a Way object. allocate only the required capacity.
@@ -69,12 +69,12 @@ namespace Osmium {
                 lat = (double *) malloc(s = sizeof(double) * num_nodes);
                 memcpy(lat, w.lat, s);
                 size_frozen = true;
-#ifdef WITH_JAVASCRIPT
+#ifdef OSMIUM_WITH_JAVASCRIPT
                 js_tags_instance   = Osmium::Javascript::Template::create_tags_instance(this);
                 js_object_instance = Osmium::Javascript::Template::create_way_instance(this);
                 js_nodes_instance  = Osmium::Javascript::Template::create_way_nodes_instance(this);
                 js_geom_instance   = Osmium::Javascript::Template::create_way_geom_instance(this);
-#endif // WITH_JAVASCRIPT
+#endif // OSMIUM_WITH_JAVASCRIPT
             }
 
             ~Way() {
@@ -131,7 +131,7 @@ namespace Osmium {
                 return nodes[num_nodes - 1];
             }
 
-#ifdef WITH_GEOS
+#ifdef OSMIUM_WITH_GEOS
             /** 
              * Returns the GEOS geometry of the first node.
              * Caller takes ownership of the pointer.
@@ -153,7 +153,7 @@ namespace Osmium {
                 c.y = lat[num_nodes - 1];
                 return Osmium::global.geos_geometry_factory->createPoint(c);
             }
-#endif // WITH_GEOS
+#endif // OSMIUM_WITH_GEOS
 
             /**
             * Check whether this way is closed. A way is closed if the first and last node have the same id.
@@ -171,7 +171,7 @@ namespace Osmium {
                 lat[n] = nlat;
             }
 
-#ifdef WITH_GEOS
+#ifdef OSMIUM_WITH_GEOS
             /** 
              * Returns the GEOS geometry of the way.
              * Caller takes ownership of the pointer.
@@ -189,10 +189,10 @@ namespace Osmium {
                     return NULL;
                 }
             }
-#endif // WITH_GEOS
+#endif // OSMIUM_WITH_GEOS
 
 
-#ifdef WITH_SHPLIB
+#ifdef OSMIUM_WITH_SHPLIB
             /**
             * Create a SHPObject for this way and return it. You have to call
             * SHPDestroyObject() with this object when you are done.
@@ -201,7 +201,7 @@ namespace Osmium {
                 if (shp_type != SHPT_ARC && shp_type != SHPT_POLYGON) {
                     throw std::runtime_error("a way can only be added to a shapefile of type line or polygon");
                 }
-#ifdef CHECK_WAY_GEOMETRY
+#ifdef OSMIUM_CHECK_WAY_GEOMETRY
                 if (num_nodes == 0 || num_nodes == 1) {
                     if (Osmium::global.debug) std::cerr << "error building way geometry for way " << id << ": must at least contain two nodes" << std::endl;
                     return NULL;
@@ -229,11 +229,11 @@ namespace Osmium {
                 return SHPCreateSimpleObject(shp_type, num_nodes_checked, lon_checked, lat_checked, NULL);
 #else
                 return SHPCreateSimpleObject(shp_type, num_nodes, lon, lat, NULL);
-#endif // CHECK_WAY_GEOMETRY
+#endif // OSMIUM_CHECK_WAY_GEOMETRY
             }
-#endif // WITH_SHPLIB
+#endif // OSMIUM_WITH_SHPLIB
 
-#ifdef WITH_JAVASCRIPT
+#ifdef OSMIUM_WITH_JAVASCRIPT
             v8::Handle<v8::Value> js_get_nodes() const {
                 return js_nodes_instance;
             }
@@ -278,7 +278,7 @@ namespace Osmium {
 
                 return v8::Undefined();
             }
-#endif // WITH_JAVASCRIPT
+#endif // OSMIUM_WITH_JAVASCRIPT
 
         }; // class Way
 

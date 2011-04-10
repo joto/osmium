@@ -31,7 +31,7 @@ namespace Osmium {
                 return role;
             }
 
-#ifdef WITH_JAVASCRIPT
+#ifdef OSMIUM_WITH_JAVASCRIPT
             v8::Handle<v8::Value> js_get_ref() const {
                 return v8::Number::New(get_ref());
             }
@@ -46,7 +46,7 @@ namespace Osmium {
             v8::Handle<v8::Value> js_get_role() const {
                 return utf8_to_v8_String<max_utf16_length_role>(get_role());
             }
-#endif // WITH_JAVASCRIPT
+#endif // OSMIUM_WITH_JAVASCRIPT
 
         };
 

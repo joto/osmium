@@ -1,7 +1,7 @@
 #ifndef OSMIUM_OUTPUT_SHAPEFILE_HPP
 #define OSMIUM_OUTPUT_SHAPEFILE_HPP
 
-#ifdef WITH_SHPLIB
+#ifdef OSMIUM_WITH_SHPLIB
 
 #include <shapefil.h>
 
@@ -240,6 +240,6 @@ namespace Osmium {
 
 } // namespace Osmium
 
-#endif // WITH_SHPLIB
+#endif // OSMIUM_WITH_SHPLIB
 
 #endif // OSMIUM_OUTPUT_SHAPEFILE_HPP
