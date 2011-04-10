@@ -3,6 +3,9 @@
 
 namespace Osmium {
 
+    /**
+     * @brief Namespace for callback handlers.
+     */
     namespace Handler {
 
         /**

@@ -5,6 +5,9 @@
 
 namespace Osmium {
 
+    /**
+     * @brief Namespace for input classes implementing file parsers.
+     */
     namespace Input {
 
         /**

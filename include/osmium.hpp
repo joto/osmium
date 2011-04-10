@@ -1,6 +1,17 @@
 #ifndef OSMIUM_OSMIUM_HPP
 #define OSMIUM_OSMIUM_HPP
 
+/**
+ * @mainpage
+ *
+ * Osmium is a C++/Javascript framework for processing OSM files.
+ *
+ * For more information see http://wiki.openstreetmap.org/wiki/Osmium .
+ *
+ * The source code is at https://github.com/joto/osmium .
+ *
+ */
+
 #ifdef OSMIUM_WITH_GEOS
 # include <geos/geom/GeometryFactory.h>
 #endif // OSMIUM_WITH_GEOS
@@ -11,6 +22,9 @@
 # include <osmium/utils/unicode.hpp>
 #endif // OSMIUM_WITH_JAVASCRIPT
 
+/**
+ * @brief All Osmium code should be in this namespace.
+ */
 namespace Osmium {
 
     class Framework;
@@ -44,8 +58,7 @@ struct Osmium::global Osmium::global;
 #include <osmium/framework.hpp>
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
-# include <osmium/output/csv.hpp>
-# include <osmium/output/shapefile.hpp>
+# include <osmium/output.hpp>
 # include <osmium/javascript/object_templates.hpp>
 # include <HandlerJavascript.hpp>
 # ifdef OSMIUM_MAIN
