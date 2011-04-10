@@ -32,7 +32,7 @@ SRC_OBJ_PBF = $(patsubst %,../pbf/%,$(OBJ_PBF))
 
 .PHONY: all clean doc protobuf install
 
-all: protobuf osmium_sizeof osmium_debug osmium_stats osmium_find_bbox
+all: protobuf osmium_sizeof osmium_debug osmium_stats osmium_find_bbox osmium_time
 
 protobuf:
 	$(MAKE) -C ../pbf CXX="$(CXX)" CXXFLAGS="$(CXXFLAGS)"
@@ -49,8 +49,11 @@ osmium_stats: osmium_stats.cpp
 osmium_find_bbox: osmium_find_bbox.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_PROTOBUF)
 
+osmium_time: osmium_time.cpp
+	$(CXX) $(CXXFLAGS) -o $@ $< $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_PROTOBUF)
+
 install:
     
 clean:
-	rm -f *.o core osmium_sizeof osmium_debug osmium_stats osmium_find_bbox
+	rm -f *.o core osmium_sizeof osmium_debug osmium_stats osmium_find_bbox osmium_time
 
