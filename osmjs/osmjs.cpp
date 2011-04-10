@@ -42,17 +42,20 @@ class SinglePass : public Osmium::Handler::Base {
     }
 
     void callback_init() {
-        handler_node_location_store->callback_init();
+        if (handler_node_location_store)
+            handler_node_location_store->callback_init();
         handler_javascript->callback_init();
     }
 
     void callback_node(Osmium::OSM::Node *node) {
-        handler_node_location_store->callback_node(node);
+        if (handler_node_location_store)
+            handler_node_location_store->callback_node(node);
         handler_javascript->callback_node(node);
     }
 
     void callback_way(Osmium::OSM::Way *way) {
-        handler_node_location_store->callback_way(way);
+        if (handler_node_location_store)
+            handler_node_location_store->callback_way(way);
         handler_javascript->callback_way(way);
     }
 
@@ -85,7 +88,8 @@ class DualPass1 : public Osmium::Handler::Base {
 
     void callback_init() {
         handler_multipolygon->callback_init();
-        handler_node_location_store->callback_init();
+        if (handler_node_location_store)
+            handler_node_location_store->callback_init();
         handler_javascript->callback_init();
     }
 
@@ -127,15 +131,18 @@ class DualPass2 : public Osmium::Handler::Base {
     }
 
     void callback_node(Osmium::OSM::Node *node) {
-        handler_node_location_store->callback_node(node);
+        if (handler_node_location_store)
+            handler_node_location_store->callback_node(node);
     }
 
     void callback_after_nodes() {
-        handler_node_location_store->callback_after_nodes();
+        if (handler_node_location_store)
+            handler_node_location_store->callback_after_nodes();
     }
 
     void callback_way(Osmium::OSM::Way *way) {
-        handler_node_location_store->callback_way(way);
+        if (handler_node_location_store)
+            handler_node_location_store->callback_way(way);
         handler_multipolygon->callback_way(way);
         handler_javascript->callback_way(way);
     }
@@ -143,10 +150,6 @@ class DualPass2 : public Osmium::Handler::Base {
     void callback_after_ways() {
         handler_multipolygon->callback_after_ways();
     }
-
-/*    void callback_multipolygon(Osmium::OSM::Multipolygon *multipolygon) {
-        handler_javascript->callback_multipolygon(multipolygon);
-    }*/
 
     void callback_final() {
         handler_javascript->callback_final();
@@ -165,10 +168,11 @@ void print_help() {
               << "  --debug, -d                      - Enable debugging output" << std::endl \
               << "  --include=FILE, -i FILE          - Include Javascript file (can be given several times)" << std::endl \
               << "  --javascript=FILE, -j FILE       - Process given Javascript file" << std::endl \
-              << "  --location-store=STORE, -l STORE - Set location store (default: 'sparsetable')" << std::endl \
+              << "  --location-store=STORE, -l STORE - Set location store (default: 'none')" << std::endl \
               << "  --no-repair, -r                  - Do not attempt to repair broken multipolygons" << std::endl \
               << "  --2pass, -2                      - Read OSMFILE twice and build multipolygons" << std::endl \
               << "Location stores:" << std::endl \
+              << "  none        - Do not store node locations (you will have no way or polygon geometries)" << std::endl \
               << "  array       - Store node locations in large array (use for large OSM files)" << std::endl \
               << "  disk        - Store node locations on disk (use when low on memory)" << std::endl \
               << "  sparsetable - Store node locations in sparse table (use for small OSM files)" << std::endl;
@@ -219,10 +223,11 @@ int main(int argc, char *argv[]) {
     char *osm_filename;
     std::vector<std::string> include_files;
     enum location_store_t {
+        NONE,
         ARRAY,
         DISK,
         SPARSETABLE
-    } location_store = SPARSETABLE;
+    } location_store = NONE;
 
     static struct option long_options[] = {
         {"debug",                no_argument, 0, 'd'},
@@ -258,7 +263,9 @@ int main(int argc, char *argv[]) {
                 print_help();
                 exit(0);
             case 'l':
-                if (!strcmp(optarg, "array")) {
+                if (!strcmp(optarg, "none")) {
+                    location_store = NONE;
+                } else if (!strcmp(optarg, "array")) {
                     location_store = ARRAY;
                 } else if (!strcmp(optarg, "disk")) {
                     location_store = DISK;
@@ -314,8 +321,10 @@ int main(int argc, char *argv[]) {
         handler_node_location_store = new Osmium::Handler::NLS_Array();
     } else if (location_store == DISK) {
         handler_node_location_store = new Osmium::Handler::NLS_Disk();
-    } else {
+    } else if (location_store == SPARSETABLE) {
         handler_node_location_store = new Osmium::Handler::NLS_Sparsetable();
+    } else {
+        handler_node_location_store = NULL;
     }
     handler_javascript = new Osmium::Handler::Javascript(include_files, javascript_filename.c_str());
     
