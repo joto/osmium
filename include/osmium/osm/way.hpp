@@ -102,6 +102,8 @@ namespace Osmium {
                     throw std::range_error("cannot add nodes to frozen way");
                 }
                 if (num_nodes < max_nodes_in_way) {
+                    lon[num_nodes] = 0;
+                    lat[num_nodes] = 0;
                     nodes[num_nodes++] = ref;
                 } else {
                     throw std::range_error("no more than 2000 nodes in a way");
@@ -164,7 +166,7 @@ namespace Osmium {
             * Set coordinates for the nth node in this way.
             */
             void set_node_coordinates(osm_sequence_id_t n, double nlon, double nlat) {
-                assert(0 <= n && n < num_nodes);
+                if (0 <= n && n < num_nodes) throw std::range_error("trying to set coordinate for unknown node");
                 lon[n] = nlon;
                 lat[n] = nlat;
             }
