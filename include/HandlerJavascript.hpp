@@ -247,24 +247,36 @@ namespace Osmium {
                 if (!cb.object.IsEmpty()) {
                     (void) cb.object->Call(object->get_instance(), 0, 0);
                 }
+#ifdef OSMIUM_V8_FORCE_GC
+                while (!v8::V8::IdleNotification()) { };
+#endif
             }
 
             void callback_node(OSM::Node *object) {
                 if (!cb.node.IsEmpty()) {
                     (void) cb.node->Call(object->get_instance(), 0, 0);
                 }
+#ifdef OSMIUM_V8_FORCE_GC
+                while (!v8::V8::IdleNotification()) { };
+#endif
             }
 
             void callback_way(OSM::Way *object) {
                 if (!cb.way.IsEmpty()) {
                     (void) cb.way->Call(object->get_instance(), 0, 0);
                 }
+#ifdef OSMIUM_V8_FORCE_GC
+                while (!v8::V8::IdleNotification()) { };
+#endif
             }
 
             void callback_relation(OSM::Relation *object) {
                 if (!cb.relation.IsEmpty()) {
                     (void) cb.relation->Call(object->get_instance(), 0, 0);
                 }
+#ifdef OSMIUM_V8_FORCE_GC
+                while (!v8::V8::IdleNotification()) { };
+#endif
             }
 
             void callback_multipolygon(OSM::Multipolygon *object) {

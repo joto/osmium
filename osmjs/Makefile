@@ -20,6 +20,10 @@ CXXFLAGS += -DWITH_GEOS $(shell geos-config --cflags)
 CXXFLAGS += -DWITH_SHPLIB
 CXXFLAGS += -DWITH_JAVASCRIPT
 
+# Add this to force V8 garbage collection after each object/node/way/relation callback.
+# Use only to find memory leaks. It will make osmjs really slow.
+#CXXFLAGS += -DOSMIUM_V8_FORCE_GC
+
 CXXFLAGS += -I../include -I../pbf
 
 LDFLAGS = -L/usr/local/lib -lexpat -lpthread
