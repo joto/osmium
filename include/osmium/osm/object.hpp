@@ -42,6 +42,8 @@ namespace Osmium {
 
             time_t timestamp;
             char user[max_length_username]; ///< name of user who last changed this object
+            
+            bool visible;
 
           private:
 
@@ -82,6 +84,7 @@ namespace Osmium {
                 timestamp = o.timestamp;
                 num_tags  = o.num_tags;
                 tags      = o.tags;
+                visible   = o.visible;
                 strncpy(user, o.user, max_length_username);
             }
 
@@ -99,6 +102,7 @@ namespace Osmium {
                 user[0]          = '\0';
                 num_tags         = 0;
                 tags.clear();
+                visible          = true;
             }
 
             virtual void set_attribute(const char *attr, const char *value) {
@@ -121,6 +125,10 @@ namespace Osmium {
                     }
                 } else if (!strcmp(attr, "changeset")) {
                     changeset = string_to_osm_changeset_id(value);
+                } else if (!strcmp(attr, "visible")) {
+                    if (!strcmp(value, "false")) {
+                        visible = false;
+                    }
                 }
             }
 
@@ -158,6 +166,14 @@ namespace Osmium {
                 struct tm *tm = gmtime(&timestamp);
                 strftime(timestamp_str, sizeof(timestamp_str), "%Y-%m-%dT%H:%M:%SZ", tm);
                 return timestamp_str;
+            }
+
+            /**
+             * Return visible flag. This is only used in OSM files with history.
+             * @returns Visible flag.
+             */
+            bool get_visible() const {
+                return visible;
             }
 
             void add_tag(const char *key, const char *value) {
@@ -237,6 +253,10 @@ namespace Osmium {
 
             v8::Handle<v8::Value> js_get_changeset() const {
                 return v8::Number::New(get_changeset());
+            }
+
+            v8::Handle<v8::Value> js_get_visible() const {
+                return v8::Boolean::New(get_visible());
             }
 
             v8::Handle<v8::Value> js_get_tags() const {

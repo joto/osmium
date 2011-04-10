@@ -19,6 +19,7 @@ namespace Osmium {
                     js_template->SetAccessor(v8::String::New("user"),      accessor_getter<Osmium::OSM::Object, &Osmium::OSM::Object::js_get_user>);
                     js_template->SetAccessor(v8::String::New("changeset"), accessor_getter<Osmium::OSM::Object, &Osmium::OSM::Object::js_get_changeset>);
                     js_template->SetAccessor(v8::String::New("tags"),      accessor_getter<Osmium::OSM::Object, &Osmium::OSM::Object::js_get_tags>);
+                    js_template->SetAccessor(v8::String::New("visible"),   accessor_getter<Osmium::OSM::Object, &Osmium::OSM::Object::js_get_visible>);
                 }
 
             }; // class Object
