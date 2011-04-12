@@ -9,7 +9,7 @@
 class MyTagStatsHandler : public Osmium::Handler::Base {
 
     Osmium::Handler::Statistics      osmium_handler_stats;
-    Osmium::Handler::TagStats        osmium_handler_tagstats;
+    TagStatsHandler                  osmium_handler_tagstats;
     //Osmium::Handler::NLS_Sparsetable osmium_handler_node_location_store;
 
   public:

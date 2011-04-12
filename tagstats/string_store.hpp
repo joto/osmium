@@ -1,23 +1,22 @@
-#ifndef OSMIUM_STRINGSTORE_HPP
-#define OSMIUM_STRINGSTORE_HPP
+#ifndef STRING_STORE_HPP
+#define STRING_STORE_HPP
 
 #include <list>
 #include <stdexcept>
 #include <new>
 #include <cstring>
 
-/*
-
-  class StringStore
-
-  Storage of lots of strings (const char *). Memory is allocated in chunks.
-  If a string is added and there is no space in the current chunk, a new
-  chunk will be allocated.
-
-  All memory is released when the destructor is called. There is no other way
-  to release all or part of the memory.
-
-*/
+/**
+ * class StringStore
+ *
+ * Storage of lots of strings (const char *). Memory is allocated in chunks.
+ * If a string is added and there is no space in the current chunk, a new
+ * chunk will be allocated.
+ *
+ * All memory is released when the destructor is called. There is no other way
+ * to release all or part of the memory.
+ *
+ */
 class StringStore {
 
     int chunk_size;
@@ -54,7 +53,7 @@ class StringStore {
         return false;
     }
 
-    public:
+  public:
 
     StringStore(int chunk_size) : chunk_size(chunk_size) {
         _add_chunk();
@@ -67,13 +66,15 @@ class StringStore {
         }
     }
 
-    // Add a null terminated string to the store. This will
-    // automatically get more memory if we are out.
-    // Returns a pointer to the copy of the string we have
-    // allocated.
-    //
-    // Throws std::length_error if the string we want to
-    // add is longer then the chunk size.
+    /**
+     * Add a null terminated string to the store. This will
+     * automatically get more memory if we are out.
+     * Returns a pointer to the copy of the string we have
+     * allocated.
+     * 
+     * Throws std::length_error if the string we want to
+     * add is longer then the chunk size.
+     */
     const char *add(const char *string) {
         const char *string_ptr = current_ptr;
 
@@ -103,4 +104,4 @@ class StringStore {
 
 };
 
-#endif // OSMIUM_STRINGSTORE_HPP
+#endif // STRING_STORE_HPP
