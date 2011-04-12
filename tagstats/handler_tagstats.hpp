@@ -61,13 +61,13 @@ class KeyCombinationStats {
 };
 #endif // TAGSTATS_COUNT_KEY_COMBINATIONS
 
-typedef google::sparse_hash_map<const char *, counter_t, djb2_hash, eqstr> value_hash_map;
+typedef google::sparse_hash_map<const char *, counter_t, djb2_hash, eqstr> value_hash_map_t;
+typedef google::sparse_hash_map<osm_user_id_t, uint32_t> user_hash_map_t;
 #ifdef TAGSTATS_COUNT_KEY_COMBINATIONS
 typedef google::sparse_hash_map<const char *, KeyCombinationStats, djb2_hash, eqstr> key_combination_hash_map_t;
 #endif // TAGSTATS_COUNT_KEY_COMBINATIONS
-typedef google::sparse_hash_map<osm_user_id_t, uint32_t> user_hash_map;
 
-class ObjectTagStat {
+class KeyStats {
 
   public:
 
@@ -75,11 +75,11 @@ class ObjectTagStat {
     counter_t values;
     counter_t users;
 
-    value_hash_map values_stat;
+    value_hash_map_t values_stat;
 #ifdef TAGSTATS_COUNT_KEY_COMBINATIONS
     key_combination_hash_map_t key_combination_hash;
 #endif // TAGSTATS_COUNT_KEY_COMBINATIONS
-    user_hash_map  users_stat;
+    user_hash_map_t user_hash;
 
     static const int location_image_y_size = 360;
     static const int location_image_x_size = 2 * location_image_y_size;
@@ -88,25 +88,23 @@ class ObjectTagStat {
 
     int grids;
 
-    ObjectTagStat() {
+    KeyStats() {
         memset(&key,    0, sizeof(key));
         memset(&values, 0, sizeof(values));
         memset(&users,  0, sizeof(users));
         grids = 0;
     }
 
-}; // class ObjectTagStat
+}; // class KeyStats
 
-typedef google::sparse_hash_map<const char *, ObjectTagStat *, djb2_hash, eqstr> tag_hash_map;
+typedef google::sparse_hash_map<const char *, KeyStats *, djb2_hash, eqstr> key_hash_map_t;
 
 class TagStatsHandler : public Osmium::Handler::Base {
 
     time_t timer;
 
-    tag_hash_map             tags_stat;
-    tag_hash_map::iterator   tags_iterator;
-    value_hash_map::iterator values_iterator;
-    user_hash_map::iterator  users_iterator;
+    key_hash_map_t           tags_stat;
+    key_hash_map_t::iterator tags_iterator;
 
     time_t max_timestamp;
 
@@ -129,11 +127,11 @@ class TagStatsHandler : public Osmium::Handler::Base {
         delete string_store;
     }
 
-    void update_tag_stats(ObjectTagStat *stat, const char * /* key */, const char *value, Osmium::OSM::Object *object) {
+    void update_tag_stats(KeyStats *stat, const char * /* key */, const char *value, Osmium::OSM::Object *object) {
         stat->key.count[0]++;
         stat->key.count[object->get_type()]++;
 
-        values_iterator = stat->values_stat.find(value);
+        value_hash_map_t::iterator values_iterator = stat->values_stat.find(value);
         if (values_iterator == stat->values_stat.end()) {
             const char *ptr = string_store->add(value);
             counter_t counter;
@@ -153,19 +151,19 @@ class TagStatsHandler : public Osmium::Handler::Base {
             }
         }
 
-        stat->users_stat[object->get_uid()]++;
+        stat->user_hash[object->get_uid()]++;
 
         if (object->get_type() == NODE) {
-            int x =                                                int(2 * (((Osmium::OSM::Node *)object)->get_lon() + 180));
-            int y = ObjectTagStat::location_image_y_size - int(2 * (((Osmium::OSM::Node *)object)->get_lat() +  90));
-            stat->location[ObjectTagStat::location_image_x_size * y + x] = true;
+            int x =                                   int(2 * (((Osmium::OSM::Node *)object)->get_lon() + 180));
+            int y = KeyStats::location_image_y_size - int(2 * (((Osmium::OSM::Node *)object)->get_lat() +  90));
+            stat->location[KeyStats::location_image_x_size * y + x] = true;
         }
     }
 
 #ifdef TAGSTATS_COUNT_KEY_COMBINATIONS
     void update_key_combination_hash(Osmium::OSM::Object *object) {
-        ObjectTagStat *stat;
-        tag_hash_map::iterator tsi1, tsi2;
+        KeyStats *stat;
+        key_hash_map_t::iterator tsi1, tsi2;
         const char *key, *key1, *key2;
 
         int tag_count = object->tag_count();
@@ -189,7 +187,7 @@ class TagStatsHandler : public Osmium::Handler::Base {
 #endif // TAGSTATS_COUNT_KEY_COMBINATIONS
 
     void callback_object(Osmium::OSM::Object *object) {
-        ObjectTagStat *stat;
+        KeyStats *stat;
 
         if (max_timestamp < object->get_timestamp()) {
             max_timestamp = object->get_timestamp();
@@ -201,8 +199,8 @@ class TagStatsHandler : public Osmium::Handler::Base {
 
             tags_iterator = tags_stat.find(key);
             if (tags_iterator == tags_stat.end()) {
-                stat = new ObjectTagStat();
-                tags_stat.insert(std::pair<const char *, ObjectTagStat *>(string_store->add(key), stat));
+                stat = new KeyStats();
+                tags_stat.insert(std::pair<const char *, KeyStats *>(string_store->add(key), stat));
             } else {
                 stat = tags_iterator->second;
             }
@@ -215,7 +213,7 @@ class TagStatsHandler : public Osmium::Handler::Base {
     }
 
     void print_images() {
-        std::bitset<ObjectTagStat::location_image_x_size * ObjectTagStat::location_image_y_size> location_all;
+        std::bitset<KeyStats::location_image_x_size * KeyStats::location_image_y_size> location_all;
         int sum_size=0;
 
         Sqlite::Statement *statement_insert_into_key_distributions = db->prepare("INSERT INTO key_distributions (key, png) VALUES (?, ?);");
@@ -223,16 +221,16 @@ class TagStatsHandler : public Osmium::Handler::Base {
 
         for (tags_iterator = tags_stat.begin(); tags_iterator != tags_stat.end(); tags_iterator++) {
             const char *key = tags_iterator->first;
-            ObjectTagStat *stat = tags_iterator->second;
+            KeyStats *stat = tags_iterator->second;
 
-            gdImagePtr im = gdImageCreate(ObjectTagStat::location_image_x_size, ObjectTagStat::location_image_y_size);
+            gdImagePtr im = gdImageCreate(KeyStats::location_image_x_size, KeyStats::location_image_y_size);
             int bgColor = gdImageColorAllocate(im, 0, 0, 0);
             gdImageColorTransparent(im, bgColor);
             int fgColor = gdImageColorAllocate(im, 180, 0, 0);
 
             int n=0;
-            for (int y=0; y < ObjectTagStat::location_image_y_size; y++) {
-                for (int x=0; x < ObjectTagStat::location_image_x_size; x++) {
+            for (int y=0; y < KeyStats::location_image_y_size; y++) {
+                for (int x=0; x < KeyStats::location_image_x_size; x++) {
                     if (stat->location[n]) {
                         stat->grids++;
                         gdImageSetPixel(im, x, y, fgColor);
@@ -254,12 +252,12 @@ class TagStatsHandler : public Osmium::Handler::Base {
             gdImageDestroy(im);
         }
 
-        gdImagePtr im_all = gdImageCreate(ObjectTagStat::location_image_x_size, ObjectTagStat::location_image_y_size);
+        gdImagePtr im_all = gdImageCreate(KeyStats::location_image_x_size, KeyStats::location_image_y_size);
         gdImageColorAllocate(im_all, 0, 0, 0);
         int white_all = gdImageColorAllocate(im_all, 255, 255, 255);
         int n=0, count_grid=0;
-        for (int y=0; y < ObjectTagStat::location_image_y_size; y++) {
-            for (int x=0; x < ObjectTagStat::location_image_x_size; x++) {
+        for (int y=0; y < KeyStats::location_image_y_size; y++) {
+            for (int x=0; x < KeyStats::location_image_x_size; x++) {
                 if (location_all[n]) {
                     gdImageSetPixel(im_all, x, y, white_all);
                     count_grid++;
@@ -346,14 +344,14 @@ class TagStatsHandler : public Osmium::Handler::Base {
 
     void callback_init() {
         std::cerr << "sizeof(counter_t) = " << sizeof(counter_t) << "\n";
-        std::cerr << "sizeof(value_hash_map) = " << sizeof(value_hash_map) << "\n";
+        std::cerr << "sizeof(value_hash_map_t) = " << sizeof(value_hash_map_t) << "\n";
 #ifdef TAGSTATS_COUNT_KEY_COMBINATIONS
         std::cerr << "sizeof(KeyCombinationStats) = " << sizeof(KeyCombinationStats) << "\n";
         std::cerr << "sizeof(key_combination_hash_map_t) = " << sizeof(key_combination_hash_map_t) << "\n";
 #endif // TAGSTATS_COUNT_KEY_COMBINATIONS
-        std::cerr << "sizeof(user_hash_map) = " << sizeof(user_hash_map) << "\n";
-        std::cerr << "sizeof(std::bitset<x_size*y_size>) = " << sizeof(std::bitset<ObjectTagStat::location_image_x_size * ObjectTagStat::location_image_y_size>) << "\n";
-        std::cerr << "sizeof(ObjectTagStat) = " << sizeof(ObjectTagStat) << "\n\n";
+        std::cerr << "sizeof(user_hash_map_t) = " << sizeof(user_hash_map_t) << "\n";
+        std::cerr << "sizeof(std::bitset<x_size*y_size>) = " << sizeof(std::bitset<KeyStats::location_image_x_size * KeyStats::location_image_y_size>) << "\n";
+        std::cerr << "sizeof(KeyStats) = " << sizeof(KeyStats) << "\n\n";
 
         print_memory_usage();
         std::cerr << "init done\n\n";
@@ -388,25 +386,26 @@ class TagStatsHandler : public Osmium::Handler::Base {
         strftime(max_timestamp_str, sizeof(max_timestamp_str), "%Y-%m-%d %H:%M:%S", tm);
         statement_update_meta->bind_text(max_timestamp_str)->execute();
 
-        uint64_t tags_hash_map_size=tags_stat.size();
-        uint64_t tags_hash_map_buckets=tags_stat.size()*2; //bucket_count();
+        uint64_t tags_hash_size=tags_stat.size();
+        uint64_t tags_hash_buckets=tags_stat.size()*2; //bucket_count();
 
-        uint64_t values_hash_map_size=0;
-        uint64_t values_hash_map_buckets=0;
+        uint64_t values_hash_size=0;
+        uint64_t values_hash_buckets=0;
 
 #ifdef TAGSTATS_COUNT_KEY_COMBINATIONS
         uint64_t key_combination_hash_size=0;
         uint64_t key_combination_hash_buckets=0;
 #endif // TAGSTATS_COUNT_KEY_COMBINATIONS
 
-        uint64_t users_hash_map_size=0;
-        uint64_t users_hash_map_buckets=0;
+        uint64_t user_hash_size=0;
+        uint64_t user_hash_buckets=0;
 
+        value_hash_map_t::iterator values_iterator;
         for (tags_iterator = tags_stat.begin(); tags_iterator != tags_stat.end(); tags_iterator++) {
-            ObjectTagStat *stat = tags_iterator->second;
+            KeyStats *stat = tags_iterator->second;
 
-            values_hash_map_size    += stat->values_stat.size();
-            values_hash_map_buckets += stat->values_stat.bucket_count();
+            values_hash_size    += stat->values_stat.size();
+            values_hash_buckets += stat->values_stat.bucket_count();
 
             for (values_iterator = stat->values_stat.begin(); values_iterator != stat->values_stat.end(); values_iterator++) {
                 statement_insert_into_tags
@@ -419,9 +418,9 @@ class TagStatsHandler : public Osmium::Handler::Base {
                     ->execute();
             }
 
-            stat->users.by_type.all = stat->users_stat.size();
-            users_hash_map_size    += stat->users.by_type.all;
-            users_hash_map_buckets += stat->users_stat.bucket_count();
+            stat->users.by_type.all = stat->user_hash.size();
+            user_hash_size    += stat->users.by_type.all;
+            user_hash_buckets += stat->user_hash.bucket_count();
 
             statement_insert_into_keys
                 ->bind_text(tags_iterator->first)
@@ -472,29 +471,29 @@ class TagStatsHandler : public Osmium::Handler::Base {
         timer_info("dumping to db");
 
         std::cerr << "\nhash map sizes:\n";
-        std::cerr << "  tags:     size=" <<     tags_hash_map_size << " buckets=" <<     tags_hash_map_buckets << " sizeof(ObjectTagStat)=" << sizeof(ObjectTagStat) << " *=" <<     tags_hash_map_size * sizeof(ObjectTagStat) << "\n";
-        std::cerr << "  values:   size=" <<   values_hash_map_size << " buckets=" <<   values_hash_map_buckets << " sizeof(counter_t)="     << sizeof(counter_t)     << " *=" <<   values_hash_map_size * sizeof(counter_t) << "\n";
+        std::cerr << "  tags:     size=" <<   tags_hash_size << " buckets=" <<   tags_hash_buckets << " sizeof(KeyStats)="  << sizeof(KeyStats)  << " *=" <<   tags_hash_size * sizeof(KeyStats) << "\n";
+        std::cerr << "  values:   size=" << values_hash_size << " buckets=" << values_hash_buckets << " sizeof(counter_t)=" << sizeof(counter_t) << " *=" << values_hash_size * sizeof(counter_t) << "\n";
 #ifdef TAGSTATS_COUNT_KEY_COMBINATIONS
         std::cerr << "  key combinations: size=" << key_combination_hash_size << " buckets=" << key_combination_hash_buckets << " sizeof(KeyCombinationStats)=" << sizeof(KeyCombinationStats) << " *=" << key_combination_hash_size * sizeof(KeyCombinationStats) << "\n";
 #endif // TAGSTATS_COUNT_KEY_COMBINATIONS
-        std::cerr << "  users:    size=" <<    users_hash_map_size << " buckets=" <<    users_hash_map_buckets << " sizeof(uint32_t)="      << sizeof(uint32_t)      << " *=" <<    users_hash_map_size * sizeof(uint32_t) << "\n";
+        std::cerr << "  users:    size=" << user_hash_size << " buckets=" << user_hash_buckets << " sizeof(uint32_t)=" << sizeof(uint32_t) << " *=" << user_hash_size * sizeof(uint32_t) << "\n";
         std::cerr << "  sum: " <<
-            tags_hash_map_size * sizeof(ObjectTagStat) +
-            values_hash_map_size * sizeof(counter_t) +
+              tags_hash_size * sizeof(KeyStats) +
+            values_hash_size * sizeof(counter_t) +
 #ifdef TAGSTATS_COUNT_KEY_COMBINATIONS
             key_combination_hash_size * sizeof(KeyCombinationStats) +
 #endif // TAGSTATS_COUNT_KEY_COMBINATIONS
-            users_hash_map_size * sizeof(uint32_t) << "\n";
+            user_hash_size * sizeof(uint32_t) << "\n";
 
         std::cerr << "\ntotal memory for hashes:\n";
         std::cerr << "  (sizeof(hash key) + sizeof(hash value *) + 2.5 bit overhead) * bucket_count + sizeof(hash value) * size \n";
-        std::cerr << " tags:     " << ((sizeof(const char*)*8 + sizeof(ObjectTagStat *)*8 + 3) * tags_hash_map_buckets / 8 ) + sizeof(ObjectTagStat) * tags_hash_map_size << "\n";
+        std::cerr << " tags:     " << ((sizeof(const char*)*8 + sizeof(KeyStats *)*8 + 3) * tags_hash_buckets / 8 ) + sizeof(KeyStats) * tags_hash_size << "\n";
         std::cerr << "  (sizeof(hash key) + sizeof(hash value  ) + 2.5 bit overhead) * bucket_count\n";
-        std::cerr << " values:   " << ((sizeof(const char*)*8 + sizeof(counter_t)*8 + 3) * values_hash_map_buckets / 8 ) << "\n";
+        std::cerr << " values:   " << ((sizeof(const char*)*8 + sizeof(counter_t)*8 + 3) * values_hash_buckets / 8 ) << "\n";
 #ifdef TAGSTATS_COUNT_KEY_COMBINATIONS
         std::cerr << " key combinations: " << ((sizeof(const char*)*8 + sizeof(KeyCombinationStats)*8 + 3) * key_combination_hash_buckets / 8 ) << "\n";
 #endif // TAGSTATS_COUNT_KEY_COMBINATIONS
-        std::cerr << " users:    " << ((sizeof(osm_user_id_t)*8 + sizeof(uint32_t)*8 + 3) * users_hash_map_buckets / 8 )  << "\n";
+        std::cerr << " users:    " << ((sizeof(osm_user_id_t)*8 + sizeof(uint32_t)*8 + 3) * user_hash_buckets / 8 )  << "\n";
         std::cerr << "\n";
 
         print_memory_usage();
