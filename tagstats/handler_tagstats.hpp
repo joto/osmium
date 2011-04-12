@@ -84,7 +84,7 @@ class TagStatsHandler : public Osmium::Handler::Base {
     value_hash_map::iterator values_iterator;
     user_hash_map::iterator  users_iterator;
 
-    char max_timestamp[Osmium::OSM::Object::max_length_timestamp];
+    time_t max_timestamp;
 
     // this must be much bigger than the largest string we want to store
     static const int string_store_size = 1024 * 1024 * 10;
@@ -96,7 +96,7 @@ class TagStatsHandler : public Osmium::Handler::Base {
 
     TagStatsHandler() : Base() {
         string_store = new StringStore(string_store_size);
-        max_timestamp[0] = 0;
+        max_timestamp = 0;
         db = new Sqlite::Database("taginfo-db.db");
     }
 
@@ -141,8 +141,8 @@ class TagStatsHandler : public Osmium::Handler::Base {
     void callback_object(Osmium::OSM::Object *object) {
         ObjectTagStat *stat;
 
-        if (strcmp(max_timestamp, object->get_timestamp_str()) < 0) {
-            memccpy(max_timestamp, object->get_timestamp_str(), 0, Osmium::OSM::Object::max_length_timestamp);
+        if (max_timestamp < object->get_timestamp()) {
+            max_timestamp = object->get_timestamp();
         }
 
         int tag_count = object->tag_count();
@@ -354,11 +354,14 @@ class TagStatsHandler : public Osmium::Handler::Base {
             "count_all, count_nodes, count_ways, count_relations) " \
             "VALUES (?, ?, ?, ?, ?, ?);");
 
-        Sqlite::Statement *statement_update_meta = db->prepare("UPDATE source SET data_until=(date(?) || ' ' || time(?))");
+        Sqlite::Statement *statement_update_meta = db->prepare("UPDATE source SET data_until=?");
 
         db->begin_transaction();
 
-        statement_update_meta->bind_text(max_timestamp)->bind_text(max_timestamp)->execute();
+        struct tm *tm = gmtime(&max_timestamp);
+        static char max_timestamp_str[Osmium::OSM::Object::max_length_timestamp+1];
+        strftime(max_timestamp_str, sizeof(max_timestamp_str), "%Y-%m-%d %H:%M:%S", tm);
+        statement_update_meta->bind_text(max_timestamp_str)->execute();
 
         uint64_t tags_hash_map_size=tags_stat.size();
         uint64_t tags_hash_map_buckets=tags_stat.size()*2; //bucket_count();
