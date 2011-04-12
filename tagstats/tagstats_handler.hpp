@@ -1,5 +1,5 @@
-#ifndef OSMIUM_HANDLER_TAGSTATS_HPP
-#define OSMIUM_HANDLER_TAGSTATS_HPP
+#ifndef TAGSTATS_HANDLER_HPP
+#define TAGSTATS_HANDLER_HPP
 
 #include <google/sparse_hash_map>
 #include <bitset>
@@ -514,4 +514,4 @@ class TagStatsHandler : public Osmium::Handler::Base {
 
 }; // class TagStatsHandler
 
-#endif // OSMIUM_HANDLER_TAGSTATS_HPP
+#endif // TAGSTATS_HANDLER_HPP

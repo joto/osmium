@@ -4,7 +4,7 @@
 
 #include <osmium/handler/statistics.hpp>
 //#include <osmium/handler/node_location_store.hpp>
-#include "handler_tagstats.hpp"
+#include "tagstats_handler.hpp"
 
 class MyTagStatsHandler : public Osmium::Handler::Base {
 

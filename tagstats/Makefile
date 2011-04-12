@@ -1,6 +1,6 @@
 #------------------------------------------------------------------------------
 #
-#  Osmium tagstats makefile
+#  Tagstats Makefile
 #
 #------------------------------------------------------------------------------
 
@@ -36,11 +36,11 @@ all: protobuf tagstats
 protobuf:
 	$(MAKE) -C ../pbf CXX="$(CXX)" CXXFLAGS="$(CXXFLAGS)"
 
-tagstats: tagstats.cpp handler_tagstats.hpp string_store.hpp
+tagstats: tagstats.cpp tagstats_handler.hpp string_store.hpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_GD) $(LIB_SQLITE)
 
 install:
-	install -m 755 -g root -o root tagstats $(DESTDIR)/usr/bin/tagstat
+	install -m 755 -g root -o root tagstats $(DESTDIR)/usr/bin/tagstats
     
 clean:
 	rm -f *.o core tagstats
