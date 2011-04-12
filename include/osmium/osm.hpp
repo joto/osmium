@@ -4,11 +4,11 @@
 #include <stdint.h>
 
 enum osm_object_type_t {
-    NODE                       = 1,
-    WAY                        = 2,
-    RELATION                   = 3,
-    MULTIPOLYGON_FROM_WAY      = 4,
-    MULTIPOLYGON_FROM_RELATION = 5
+    NODE                       = 0,
+    WAY                        = 1,
+    RELATION                   = 2,
+    MULTIPOLYGON_FROM_WAY      = 3,
+    MULTIPOLYGON_FROM_RELATION = 4
 };
 
 /*
