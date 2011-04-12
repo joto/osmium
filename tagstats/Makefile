@@ -12,8 +12,7 @@ CXXFLAGS = -g
 CXXFLAGS += -std=c++0x -Wall -W -Wredundant-decls -Wdisabled-optimization -pedantic
 #CXXFLAGS += -Wpadded -Winline
 
-# uncomment this if you want information on how long it took to build the multipolygons
-#CXXFLAGS += -DOSMIUM_WITH_MULTIPOLYGON_PROFILING
+CXXFLAGS += -DTAGSTATS_COUNT_KEY_COMBINATIONS
 
 CXXFLAGS += -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 
