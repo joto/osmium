@@ -115,6 +115,35 @@ namespace Osmium {
                 num_fields++;
             }
 
+            int add_string_attribute(int ishape, int n, v8::Local<v8::Value> value) const {
+                uint16_t source[(max_dbf_field_length+2)*2];
+                char dest[(max_dbf_field_length+1)*4];
+                memset(source, 0, (max_dbf_field_length+2)*4);
+                memset(dest, 0, (max_dbf_field_length+1)*4);
+                int32_t dest_length;
+                UErrorCode error_code = U_ZERO_ERROR;
+                value->ToString()->Write(source, 0, max_dbf_field_length+1);
+                u_strToUTF8(dest, field_width[n], &dest_length, source, std::min(max_dbf_field_length+1, value->ToString()->Length()), &error_code);
+                if (error_code == U_BUFFER_OVERFLOW_ERROR) {
+                    // thats ok, it just means we clip the text at that point
+                } else if (U_FAILURE(error_code)) {
+                    throw std::runtime_error("UTF-16 to UTF-8 conversion failed");
+                }
+                return DBFWriteStringAttribute(dbf_handle, ishape, n, dest);
+            }
+
+            int add_logical_attribute(int ishape, int n, v8::Local<v8::Value> value) const {
+                v8::String::Utf8Value str(value);
+
+                if (atoi(*str) == 1 || !strncasecmp(*str, "T", 1) || !strncasecmp(*str, "Y", 1)) {
+                    return DBFWriteLogicalAttribute(dbf_handle, ishape, n, 'T');
+                } else if ((!strcmp(*str, "0")) || !strncasecmp(*str, "F", 1) || !strncasecmp(*str, "N", 1)) {
+                    return DBFWriteLogicalAttribute(dbf_handle, ishape, n, 'F');
+                } else {
+                    return DBFWriteNULLAttribute(dbf_handle, ishape, n);
+                }
+            }
+
             /**
             * Add an %OSM object to the shapefile.
             */
@@ -144,22 +173,8 @@ namespace Osmium {
                             DBFWriteNULLAttribute(dbf_handle, ishape, n);
                         } else {
                             switch (field_type[n]) {
-                                case FTString: {
-                                        uint16_t source[(max_dbf_field_length+2)*2];
-                                        char dest[(max_dbf_field_length+1)*4];
-                                        memset(source, 0, (max_dbf_field_length+2)*4);
-                                        memset(dest, 0, (max_dbf_field_length+1)*4);
-                                        int32_t dest_length;
-                                        UErrorCode error_code = U_ZERO_ERROR;
-                                        value->ToString()->Write(source, 0, max_dbf_field_length+1);
-                                        u_strToUTF8(dest, field_width[n], &dest_length, source, std::min(max_dbf_field_length+1, value->ToString()->Length()), &error_code);
-                                        if (error_code == U_BUFFER_OVERFLOW_ERROR) {
-                                            // thats ok, it just means we clip the text at that point
-                                        } else if (U_FAILURE(error_code)) {
-                                            throw std::runtime_error("UTF-16 to UTF-8 conversion failed");
-                                        }
-                                        ok = DBFWriteStringAttribute(dbf_handle, ishape, n, dest);
-                                    }
+                                case FTString:
+                                    ok = add_string_attribute(ishape, n, value);
                                     break;
                                 case FTInteger:
                                     ok = DBFWriteIntegerAttribute(dbf_handle, ishape, n, value->Int32Value());
@@ -167,26 +182,19 @@ namespace Osmium {
                                 case FTDouble:
                                     throw std::runtime_error("fields of type double not implemented");
                                     break;
-                                case FTLogical: {
-                                        v8::String::Utf8Value str(value);
-
-                                        if (atoi(*str) == 1 || !strncasecmp(*str, "T", 1) || !strncasecmp(*str, "Y", 1)) {
-                                            ok = DBFWriteLogicalAttribute(dbf_handle, ishape, n, 'T');
-                                        } else if ((!strcmp(*str, "0")) || !strncasecmp(*str, "F", 1) || !strncasecmp(*str, "N", 1)) {
-                                            ok = DBFWriteLogicalAttribute(dbf_handle, ishape, n, 'F');
-                                        } else {
-                                            ok = DBFWriteNULLAttribute(dbf_handle, ishape, n);
-                                        }
-                                    }
+                                case FTLogical:
+                                    ok = add_logical_attribute(ishape, n, value);
+                                    break;
+                                default:
+                                    ok = 0; // should never be here
                                     break;
                             }
-                            // XXX whats this?
-    /*                        if (!ok) {
+                            if (!ok) {
                                 std::string errmsg("failed to add attribute '");
                                 errmsg += field_name[n];
                                 errmsg += "'\n";
                                 throw std::runtime_error(errmsg);
-                            }*/
+                            }
                         }
                     } else {
                         DBFWriteNULLAttribute(dbf_handle, ishape, n);

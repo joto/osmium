@@ -82,7 +82,7 @@ namespace Osmium {
 #else
                         Osmium::OSM::MultipolygonFromWay *mp = new Osmium::OSM::MultipolygonFromWay(way);
 #endif // OSMIUM_WITH_GEOS
-                        std::cerr << "MP simple way_id=" << way->get_id() << "\n";
+                        if (Osmium::global.debug) std::cerr << "MP simple way_id=" << way->get_id() << "\n";
                         callback_multipolygon(mp);
                         delete mp;
                     }
