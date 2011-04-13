@@ -148,7 +148,6 @@ namespace Osmium {
             RingInfo() {
                 polygon = NULL;
                 direction = NO_DIRECTION;
-                contained_by = NULL;
                 nested = false;
                 contained_by = NULL;
                 ring_id = -1;
