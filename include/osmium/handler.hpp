@@ -19,7 +19,7 @@ namespace Osmium {
          */
         class Base {
 
-          public:
+        public:
 
             Base() {
             }

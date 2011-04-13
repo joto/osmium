@@ -26,7 +26,7 @@ namespace Osmium {
         */
         class Object {
 
-          public:
+        public:
 
             static const int max_length_timestamp = 20 + 1; ///< maximum length of OSM object timestamp string (20 characters + null byte)
 
@@ -42,10 +42,10 @@ namespace Osmium {
 
             time_t timestamp;
             char user[max_length_username]; ///< name of user who last changed this object
-            
+
             bool visible;
 
-          private:
+        private:
 
             static osm_object_id_t string_to_osm_object_id(const char *x) {
                 return atol(x);
@@ -63,12 +63,12 @@ namespace Osmium {
                 return atol(x);
             }
 
-          protected:
+        protected:
 
             // how many tags are there on this object (XXX we could probably live without this and just use tags.size())
             int num_tags;
 
-          public:
+        public:
 
             std::vector<Tag> tags;
 

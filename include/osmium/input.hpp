@@ -26,8 +26,8 @@ namespace Osmium {
         template <class THandler>
         class Base {
 
-          public:
-            
+        public:
+
             OSM::Node     *node;
             OSM::Way      *way;
             OSM::Relation *relation;

@@ -9,7 +9,7 @@ namespace Osmium {
 
         class CSV {
 
-          public:
+        public:
 
             std::ofstream out;
 

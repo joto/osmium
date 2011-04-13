@@ -53,7 +53,7 @@ class StringStore {
         return false;
     }
 
-  public:
+public:
 
     StringStore(int chunk_size) : chunk_size(chunk_size) {
         _add_chunk();
@@ -71,7 +71,7 @@ class StringStore {
      * automatically get more memory if we are out.
      * Returns a pointer to the copy of the string we have
      * allocated.
-     * 
+     *
      * Throws std::length_error if the string we want to
      * add is longer then the chunk size.
      */

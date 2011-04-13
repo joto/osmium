@@ -9,7 +9,7 @@ namespace Osmium {
 
             class Object : public Base {
 
-              protected:
+            protected:
 
                 Object() : Base(1) {
                     js_template->SetAccessor(v8::String::New("id"),        accessor_getter<Osmium::OSM::Object, &Osmium::OSM::Object::js_get_id>);
@@ -26,7 +26,7 @@ namespace Osmium {
 
             class Tags : public Base {
 
-              public:
+            public:
 
                 Tags() : Base(1) {
                     js_template->SetNamedPropertyHandler(
@@ -42,7 +42,7 @@ namespace Osmium {
 
             class NodeGeom : public Base {
 
-              public:
+            public:
 
                 NodeGeom() : Base(1) {
                     js_template->SetNamedPropertyHandler(named_property_getter<Osmium::OSM::Node, &Osmium::OSM::Node::js_get_geom_property>);
@@ -52,7 +52,7 @@ namespace Osmium {
 
             class Node : public Object {
 
-              public:
+            public:
 
                 Node() : Object() {
                     js_template->SetAccessor(v8::String::New("lon"),  accessor_getter<Osmium::OSM::Node, &Osmium::OSM::Node::js_get_lon>);
@@ -64,7 +64,7 @@ namespace Osmium {
 
             class WayGeom : public Base {
 
-              public:
+            public:
 
                 WayGeom() : Base(1) {
                     js_template->SetNamedPropertyHandler(named_property_getter<Osmium::OSM::Way, &Osmium::OSM::Way::js_get_geom_property>);
@@ -74,7 +74,7 @@ namespace Osmium {
 
             class Nodes : public Base {
 
-              public:
+            public:
 
                 Nodes() : Base(1) {
                     js_template->SetIndexedPropertyHandler(
@@ -90,7 +90,7 @@ namespace Osmium {
 
             class Way : public Object {
 
-              public:
+            public:
 
                 Way() : Object() {
                     js_template->SetAccessor(v8::String::New("nodes"), accessor_getter<Osmium::OSM::Way, &Osmium::OSM::Way::js_get_nodes>);
@@ -101,7 +101,7 @@ namespace Osmium {
 
             class Member : public Base {
 
-              public:
+            public:
 
                 Member() : Base(1) {
                     js_template->SetAccessor(v8::String::New("type"), accessor_getter<Osmium::OSM::RelationMember, &Osmium::OSM::RelationMember::js_get_type>);
@@ -113,7 +113,7 @@ namespace Osmium {
 
             class Members : public Base {
 
-              public:
+            public:
 
                 Members() : Base(1) {
                     js_template->SetIndexedPropertyHandler(
@@ -129,7 +129,7 @@ namespace Osmium {
 
             class Relation : public Object {
 
-              public:
+            public:
 
                 Relation() : Object() {
                     js_template->SetAccessor(v8::String::New("members"), accessor_getter<Osmium::OSM::Relation, &Osmium::OSM::Relation::js_get_members>);
@@ -139,7 +139,7 @@ namespace Osmium {
 
             class Multipolygon : public Object {
 
-              public:
+            public:
 
                 Multipolygon() : Object() {
                     js_template->SetAccessor(v8::String::New("from"), accessor_getter<Osmium::OSM::Multipolygon, &Osmium::OSM::Multipolygon::js_get_from>);
@@ -149,7 +149,7 @@ namespace Osmium {
 
             class OutputCSV : public Base {
 
-              public:
+            public:
 
                 OutputCSV() : Base(1) {
                     js_template->Set("print", v8::FunctionTemplate::New(function_template<Osmium::Output::CSV, &Osmium::Output::CSV::js_print>));
@@ -160,7 +160,7 @@ namespace Osmium {
 
             class OutputShapefile : public Base {
 
-              public:
+            public:
 
                 OutputShapefile() : Base(1) {
                     js_template->Set("add_field", v8::FunctionTemplate::New(function_template<Osmium::Output::Shapefile, &Osmium::Output::Shapefile::js_add_field>));

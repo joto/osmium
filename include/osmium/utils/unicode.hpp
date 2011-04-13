@@ -11,8 +11,8 @@
 /// Parent exception class for Unicode conversion errors.
 class Unicode_Conversion_Error {
 
-  public:
-        
+public:
+
     UErrorCode error_code;
     Unicode_Conversion_Error(UErrorCode ec) : error_code(ec) { }
 
@@ -26,7 +26,7 @@ class Unicode_Conversion_Error {
 /// Exception thrown when a UTF-8 to UTF-16 conversion failed.
 class UTF8_to_UTF16_Conversion_Error : public Unicode_Conversion_Error {
 
-  public:
+public:
 
     UTF8_to_UTF16_Conversion_Error(UErrorCode ec) : Unicode_Conversion_Error(ec) { }
 
@@ -35,7 +35,7 @@ class UTF8_to_UTF16_Conversion_Error : public Unicode_Conversion_Error {
 /// Exception thrown when a UTF-16 to UTF-8 conversion failed.
 class UTF16_to_UTF8_Conversion_Error : public Unicode_Conversion_Error {
 
-  public:
+public:
 
     UTF16_to_UTF8_Conversion_Error(UErrorCode ec) : Unicode_Conversion_Error(ec) { }
 

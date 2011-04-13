@@ -12,7 +12,7 @@ class MyTagStatsHandler : public Osmium::Handler::Base {
     TagStatsHandler                  osmium_handler_tagstats;
     //Osmium::Handler::NLS_Sparsetable osmium_handler_node_location_store;
 
-  public:
+public:
 
     void callback_init() {
         osmium_handler_tagstats.callback_init();
@@ -30,7 +30,7 @@ class MyTagStatsHandler : public Osmium::Handler::Base {
 
     void callback_node(Osmium::OSM::Node *node) {
         osmium_handler_stats.callback_node(node);
-    //    osmium_handler_node_location_store.callback_node(node);
+        //    osmium_handler_node_location_store.callback_node(node);
     }
 
     void callback_after_nodes() {
@@ -43,7 +43,7 @@ class MyTagStatsHandler : public Osmium::Handler::Base {
 
     void callback_way(Osmium::OSM::Way *way) {
         osmium_handler_stats.callback_way(way);
-    //    osmium_handler_node_location_store.callback_way(way);
+        //    osmium_handler_node_location_store.callback_way(way);
     }
 
     void callback_after_ways() {

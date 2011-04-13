@@ -7,7 +7,7 @@ namespace Osmium {
 
         class Debug : public Base {
 
-          public:
+        public:
 
             Debug() : Base() {
             }

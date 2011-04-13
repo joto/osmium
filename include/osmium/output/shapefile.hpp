@@ -11,7 +11,7 @@ namespace Osmium {
 
         class Shapefile {
 
-          public:
+        public:
 
             static const unsigned int MAX_DBF_FIELDS = 16;
             static const unsigned int MAX_FIELD_NAME_LENGTH = 11;
@@ -79,7 +79,7 @@ namespace Osmium {
                            const char *f_type, ///< The type of the field ("string", "integer", "double", or "bool")
                            int f_width,        ///< The width of the field (number of digits for ints and doubles)
                            int f_decimals      ///< The precision of double fields (otherwise ignored)
-                           ) {
+                          ) {
 
                 if (f_name[0] == '\0' || strlen(f_name) > MAX_FIELD_NAME_LENGTH) {
                     throw std::runtime_error("field name must be between 1 and 11 characters long");
@@ -120,14 +120,14 @@ namespace Osmium {
             */
             void add(Osmium::OSM::Object *object,     ///< the %OSM object (Node, Way, or Relation)
                      v8::Local<v8::Object> attributes ///< a %Javascript object (hash) with the attributes
-                     ) {
+                    ) {
 
                 SHPObject *shp_object = 0;
                 int ishape;
 
                 try {
                     shp_object = object->create_shpobject(shp_type);
-                } catch(std::exception& e) { // XXX ignore errors when creating geometry
+                } catch (std::exception& e) { // XXX ignore errors when creating geometry
                     std::cerr << "ignoring error: " << e.what() << "\n";
                     return;
                 }
@@ -137,7 +137,7 @@ namespace Osmium {
 
                 int ok = 0;
                 for (int n=0; n < num_fields; n++) {
-                    v8::Local<v8::String> key = v8::String::New(field_name[n]); 
+                    v8::Local<v8::String> key = v8::String::New(field_name[n]);
                     if (attributes->HasRealNamedProperty(key)) {
                         v8::Local<v8::Value> value = attributes->GetRealNamedProperty(key);
                         if (value->IsUndefined() || value->IsNull()) {

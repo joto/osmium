@@ -109,14 +109,12 @@ namespace Osmium {
                             this->way->add_node(atoll(attrs[count+1]));
                         }
                     }
-                }
-                else if (!strcmp(element, "node")) {
+                } else if (!strcmp(element, "node")) {
                     if (last_object_type != NODE) {
                         throw std::runtime_error("OSM files must be ordered: first nodes, then ways, then relations. You can use Osmosis with the --sort option to do this.");
                     }
                     init_object(this->node, attrs);
-                }
-                else if (!strcmp(element, "tag")) {
+                } else if (!strcmp(element, "tag")) {
                     const char *key = "", *value = "";
                     for (int count = 0; attrs[count]; count += 2) {
                         if (attrs[count][0] == 'k' && attrs[count][1] == 0) {
@@ -130,8 +128,7 @@ namespace Osmium {
                     if (current_object) {
                         current_object->add_tag(key, value);
                     }
-                }
-                else if (!strcmp(element, "way")) {
+                } else if (!strcmp(element, "way")) {
                     if (last_object_type == NODE) {
                         this->handler->callback_after_nodes();
                         last_object_type = WAY;
@@ -141,26 +138,22 @@ namespace Osmium {
                         throw std::runtime_error("OSM files must be ordered: first nodes, then ways, then relations. You can use Osmosis with the --sort option to do this.");
                     }
                     init_object(this->way, attrs);
-                }
-                else if (!strcmp(element, "member")) {
+                } else if (!strcmp(element, "member")) {
                     char        type = 'x';
                     uint64_t    ref  = 0;
                     const char *role = "";
                     for (int count = 0; attrs[count]; count += 2) {
                         if (!strcmp(attrs[count], "type")) {
                             type = (char)attrs[count+1][0];
-                        }
-                        else if (!strcmp(attrs[count], "ref")) {
+                        } else if (!strcmp(attrs[count], "ref")) {
                             ref = atoll(attrs[count+1]);
-                        }
-                        else if (!strcmp(attrs[count], "role")) {
+                        } else if (!strcmp(attrs[count], "role")) {
                             role = (char *)attrs[count+1];
                         }
                     }
                     // XXX assert type, ref, role are set
                     this->relation->add_member(type, ref, role);
-                }
-                else if (!strcmp(element, "relation")) {
+                } else if (!strcmp(element, "relation")) {
                     if (last_object_type == WAY) {
                         this->handler->callback_after_ways();
                         last_object_type = RELATION;

@@ -163,10 +163,10 @@ namespace Osmium {
 
                 sqlite3 *sqlite_db = db->get_sqlite3();
                 if (SQLITE_OK != sqlite3_exec(sqlite_db, \
-                    "CREATE TABLE stats (" \
-                    "  key    TEXT, " \
-                    "  value  INT64 " \
-                    ");", 0, 0, 0)) {
+                                              "CREATE TABLE stats (" \
+                                              "  key    TEXT, " \
+                                              "  value  INT64 " \
+                                              ");", 0, 0, 0)) {
                     std::cerr << "Database error: " << sqlite3_errmsg(sqlite_db) << "\n";
                     sqlite3_close(sqlite_db);
                     exit(1);
@@ -179,15 +179,15 @@ namespace Osmium {
                 for (int i=0; stat_names[i]; i++) {
 //                    out_stats << stat_names[i] << '\t' << ((uint64_t *) &stats)[i] << '\n';
                     statement_insert_into_main_stats
-                        ->bind_text(stat_names[i])
-                        ->bind_int64( ((uint64_t *) &stats)[i] )
-                        ->execute();
+                    ->bind_text(stat_names[i])
+                    ->bind_int64( ((uint64_t *) &stats)[i] )
+                    ->execute();
                 }
                 statement_insert_into_main_stats
-                        ->bind_text("nodes_with_tags")
-                        ->bind_int64( ((uint64_t *) &stats)[0] - ((uint64_t *) &stats)[1] )
-                        ->execute();
-                        
+                ->bind_text("nodes_with_tags")
+                ->bind_int64( ((uint64_t *) &stats)[0] - ((uint64_t *) &stats)[1] )
+                ->execute();
+
 //                out_stats.close();
 
                 db->commit();

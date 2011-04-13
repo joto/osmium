@@ -19,7 +19,7 @@ namespace Osmium {
 
             std::vector<RelationMember> members;
 
-          public:
+        public:
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
             v8::Local<v8::Object> js_members_instance;

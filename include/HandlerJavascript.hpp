@@ -73,7 +73,7 @@ namespace Osmium {
                 v8::Handle<v8::Function> end;
             } cb;
 
-          public:
+        public:
 
             static v8::Handle<v8::Value> Print(const v8::Arguments& args) {
                 v8::HandleScope handle_scope;
@@ -138,9 +138,7 @@ namespace Osmium {
 
             Javascript(std::vector<std::string> include_files, const char *filename) : Base() {
 //                v8::HandleScope handle_scope;
-                v8::Handle<v8::String> init_source = v8::String::New(
-                    "Osmium = { Callbacks: {}, Output: { } };"
-                );
+                v8::Handle<v8::String> init_source = v8::String::New("Osmium = { Callbacks: {}, Output: { } };");
                 v8::Handle<v8::Script> init_script = v8::Script::Compile(init_source);
                 osmium_object = v8::Persistent<v8::Object>::New(init_script->Run()->ToObject());
                 v8::Handle<v8::Object> output_object = osmium_object->Get(v8::String::New("Output"))->ToObject();

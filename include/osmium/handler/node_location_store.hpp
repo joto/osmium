@@ -25,7 +25,7 @@ namespace Osmium {
                 int32_t y;
             };
 
-          protected:
+        protected:
 
             /**
             * the node location store will add this number to all ids,
@@ -41,7 +41,7 @@ namespace Osmium {
                 return ((double)c) / 10000000;
             }
 
-          public:
+        public:
 
             NodeLocationStore() : Base() {
             }
@@ -70,7 +70,7 @@ namespace Osmium {
             int max_nodes;
             struct coordinates *coordinates;
 
-          public:
+        public:
 
             NLS_Array() : NodeLocationStore() {
                 max_nodes = 1.2 * 1024 * 1024 * 1024; // XXX make configurable, or autosizing?
@@ -89,13 +89,13 @@ namespace Osmium {
                 coordinates[id].x = double_to_fix(object->get_lon());
                 coordinates[id].y = double_to_fix(object->get_lat());
             }
-            
+
             void callback_after_nodes() {
                 if (Osmium::global.debug) {
                     std::cerr << "NodeLocationStore (Array) needs " << max_nodes << " * " << sizeof(struct coordinates) << "Bytes = " << max_nodes * sizeof(struct coordinates) / (1024 * 1204) << "MBytes" << std::endl;
                 }
             }
-            
+
             void callback_way(OSM::Way *object) {
                 const osm_sequence_id_t num_nodes = object->node_count();
                 for (osm_sequence_id_t i=0; i < num_nodes; i++) {
@@ -139,13 +139,13 @@ namespace Osmium {
                 };
                 nodes_table[id] = c;
             }
-            
+
             void callback_after_nodes() {
                 if (Osmium::global.debug) {
                     std::cerr << "NodeLocationStore (Sparsetable) has size=" << nodes_table.size() << " * " << sizeof(struct coordinates) << " B (sizeof struct coordinates) = " << nodes_table.size() * sizeof(struct coordinates) / (1024 * 1204) << "MBytes" << std::endl;
                 }
             }
-            
+
             void callback_way(OSM::Way *object) {
                 osm_sequence_id_t num_nodes = object->node_count();
                 for (osm_sequence_id_t i=0; i < num_nodes; i++) {
@@ -158,7 +158,7 @@ namespace Osmium {
 
         /**
         * The NLS_Disk node location store handler stores location
-        * in a memory-mapped file on disk. The size of the file is 8 times 
+        * in a memory-mapped file on disk. The size of the file is 8 times
         * the largest node ID.
         *
         * Use this node location store if the other types of storage lead
@@ -183,8 +183,8 @@ namespace Osmium {
                     throw std::bad_alloc();
                 }
                 write(fd, "", 1);
-                coordinates = (struct coordinates *) mmap(NULL, sizeof(struct coordinates) * max_nodes, 
-                    PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+                coordinates = (struct coordinates *) mmap(NULL, sizeof(struct coordinates) * max_nodes,
+                              PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
                 std::cout << "mmap " << max_nodes << std::endl;
                 if (coordinates == MAP_FAILED) {
                     throw std::bad_alloc();
@@ -200,13 +200,13 @@ namespace Osmium {
                 coordinates[id].x = double_to_fix(object->get_lon());
                 coordinates[id].y = double_to_fix(object->get_lat());
             }
-            
+
             void callback_after_nodes() {
                 if (Osmium::global.debug) {
                     std::cerr << "NodeLocationStore (Disk) needs " << max_nodes << " * " << sizeof(struct coordinates) << "Bytes = " << max_nodes * sizeof(struct coordinates) / (1024 * 1204) << "MBytes" << std::endl;
                 }
             }
-            
+
             void callback_way(OSM::Way *object) {
                 const osm_sequence_id_t num_nodes = object->node_count();
                 for (osm_sequence_id_t i=0; i < num_nodes; i++) {

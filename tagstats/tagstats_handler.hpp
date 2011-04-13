@@ -49,10 +49,18 @@ struct Counter {
         count[RELATION] = 0; // relations
     }
 
-    uint32_t nodes()     const { return count[NODE]; }
-    uint32_t ways()      const { return count[WAY]; }
-    uint32_t relations() const { return count[RELATION]; }
-    uint32_t all()       const { return count[NODE] + count[WAY] + count[RELATION]; }
+    uint32_t nodes() const {
+        return count[NODE];
+    }
+    uint32_t ways() const {
+        return count[WAY];
+    }
+    uint32_t relations() const {
+        return count[RELATION];
+    }
+    uint32_t all() const {
+        return count[NODE] + count[WAY] + count[RELATION];
+    }
 };
 
 typedef google::sparse_hash_map<const char *, Counter, djb2_hash, eqstr> value_hash_map_t;
@@ -67,7 +75,7 @@ typedef google::sparse_hash_map<const char *, Counter, djb2_hash, eqstr> key_com
 
 class KeyStats {
 
-  public:
+public:
 
     Counter key;
     Counter values;
@@ -203,9 +211,9 @@ class TagStatsHandler : public Osmium::Handler::Base {
             void *ptr = gdImagePngPtr(im, &size);
             sum_size += size;
             statement_insert_into_key_distributions
-                ->bind_text(key)
-                ->bind_blob(ptr, size)
-                ->execute();
+            ->bind_text(key)
+            ->bind_blob(ptr, size)
+            ->execute();
             gdFree(ptr);
 
             gdImageDestroy(im);
@@ -229,9 +237,9 @@ class TagStatsHandler : public Osmium::Handler::Base {
         int size;
         void *ptr = gdImagePngPtr(im_all, &size);
         statement_insert_into_key_distributions
-            ->bind_null()
-            ->bind_blob(ptr, size)
-            ->execute();
+        ->bind_null()
+        ->bind_blob(ptr, size)
+        ->execute();
         gdFree(ptr);
 
         gdImageDestroy(im_all);
@@ -266,7 +274,7 @@ class TagStatsHandler : public Osmium::Handler::Base {
 
     }
 
-  public:
+public:
 
     TagStatsHandler() : Base() {
         string_store = new StringStore(string_store_size);
@@ -359,19 +367,19 @@ class TagStatsHandler : public Osmium::Handler::Base {
         timer = time(0);
 
         Sqlite::Statement *statement_insert_into_keys = db->prepare("INSERT INTO keys (key, " \
-            " count_all,  count_nodes,  count_ways,  count_relations, " \
-            "values_all, values_nodes, values_ways, values_relations, " \
-            " users_all, " \
-            "grids) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+                " count_all,  count_nodes,  count_ways,  count_relations, " \
+                "values_all, values_nodes, values_ways, values_relations, " \
+                " users_all, " \
+                "grids) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
 
         Sqlite::Statement *statement_insert_into_tags = db->prepare("INSERT INTO tags (key, value, " \
-            "count_all, count_nodes, count_ways, count_relations) " \
-            "VALUES (?, ?, ?, ?, ?, ?);");
+                "count_all, count_nodes, count_ways, count_relations) " \
+                "VALUES (?, ?, ?, ?, ?, ?);");
 
 #ifdef TAGSTATS_COUNT_KEY_COMBINATIONS
         Sqlite::Statement *statement_insert_into_key_combinations = db->prepare("INSERT INTO keypairs (key1, key2, " \
-            "count_all, count_nodes, count_ways, count_relations) " \
-            "VALUES (?, ?, ?, ?, ?, ?);");
+                "count_all, count_nodes, count_ways, count_relations) " \
+                "VALUES (?, ?, ?, ?, ?, ?);");
 #endif // TAGSTATS_COUNT_KEY_COMBINATIONS
 
         Sqlite::Statement *statement_update_meta = db->prepare("UPDATE source SET data_until=?");
@@ -408,13 +416,13 @@ class TagStatsHandler : public Osmium::Handler::Base {
 
             for (values_iterator = stat->values_hash.begin(); values_iterator != stat->values_hash.end(); values_iterator++) {
                 statement_insert_into_tags
-                    ->bind_text(tags_iterator->first)
-                    ->bind_text(values_iterator->first)
-                    ->bind_int64(values_iterator->second.all())
-                    ->bind_int64(values_iterator->second.nodes())
-                    ->bind_int64(values_iterator->second.ways())
-                    ->bind_int64(values_iterator->second.relations())
-                    ->execute();
+                ->bind_text(tags_iterator->first)
+                ->bind_text(values_iterator->first)
+                ->bind_int64(values_iterator->second.all())
+                ->bind_int64(values_iterator->second.nodes())
+                ->bind_int64(values_iterator->second.ways())
+                ->bind_int64(values_iterator->second.relations())
+                ->execute();
             }
 
 #ifdef TAGSTATS_COUNT_USERS
@@ -423,22 +431,22 @@ class TagStatsHandler : public Osmium::Handler::Base {
 #endif // TAGSTATS_COUNT_USERS
 
             statement_insert_into_keys
-                ->bind_text(tags_iterator->first)
-                ->bind_int64(stat->key.all())
-                ->bind_int64(stat->key.nodes())
-                ->bind_int64(stat->key.ways())
-                ->bind_int64(stat->key.relations())
-                ->bind_int64(stat->values_hash.size())
-                ->bind_int64(stat->values.nodes())
-                ->bind_int64(stat->values.ways())
-                ->bind_int64(stat->values.relations())
+            ->bind_text(tags_iterator->first)
+            ->bind_int64(stat->key.all())
+            ->bind_int64(stat->key.nodes())
+            ->bind_int64(stat->key.ways())
+            ->bind_int64(stat->key.relations())
+            ->bind_int64(stat->values_hash.size())
+            ->bind_int64(stat->values.nodes())
+            ->bind_int64(stat->values.ways())
+            ->bind_int64(stat->values.relations())
 #ifdef TAGSTATS_COUNT_USERS
-                ->bind_int64(stat->user_hash.size())
+            ->bind_int64(stat->user_hash.size())
 #else
-                ->bind_int64(0)
+            ->bind_int64(0)
 #endif // TAGSTATS_COUNT_USERS
-                ->bind_int64(stat->grids)
-                ->execute();
+            ->bind_int64(stat->grids)
+            ->execute();
 
 #ifdef TAGSTATS_COUNT_KEY_COMBINATIONS
             key_combination_hash_size    += stat->key_combination_hash.size();
@@ -447,16 +455,16 @@ class TagStatsHandler : public Osmium::Handler::Base {
             for (key_combination_hash_map_t::iterator it = stat->key_combination_hash.begin(); it != stat->key_combination_hash.end(); it++) {
                 Counter *s = &(it->second);
                 statement_insert_into_key_combinations
-                    ->bind_text(tags_iterator->first)
-                    ->bind_text(it->first)
-                    ->bind_int64(s->all())
-                    ->bind_int64(s->nodes())
-                    ->bind_int64(s->ways())
-                    ->bind_int64(s->relations())
-                    ->execute();
+                ->bind_text(tags_iterator->first)
+                ->bind_text(it->first)
+                ->bind_int64(s->all())
+                ->bind_int64(s->nodes())
+                ->bind_int64(s->ways())
+                ->bind_int64(s->relations())
+                ->execute();
             }
 #endif // TAGSTATS_COUNT_KEY_COMBINATIONS
-            
+
             delete stat; // lets make valgrind happy
         }
 
@@ -484,15 +492,15 @@ class TagStatsHandler : public Osmium::Handler::Base {
 #endif // TAGSTATS_COUNT_USERS
 
         std::cerr << "  sum: " <<
-              tags_hash_size * sizeof(KeyStats)
-            + values_hash_size * sizeof(Counter)
+                  tags_hash_size * sizeof(KeyStats)
+                  + values_hash_size * sizeof(Counter)
 #ifdef TAGSTATS_COUNT_KEY_COMBINATIONS
-            + key_combination_hash_size * sizeof(Counter)
+                  + key_combination_hash_size * sizeof(Counter)
 #endif // TAGSTATS_COUNT_KEY_COMBINATIONS
 #ifdef TAGSTATS_COUNT_USERS
-            + user_hash_size * sizeof(uint32_t)
+                  + user_hash_size * sizeof(uint32_t)
 #endif // TAGSTATS_COUNT_USERS
-            << std::endl;
+                  << std::endl;
 
         std::cerr << std::endl << "total memory for hashes:" << std::endl;
         std::cerr << "  (sizeof(hash key) + sizeof(hash value *) + 2.5 bit overhead) * bucket_count + sizeof(hash value) * size" << std::endl;

@@ -17,7 +17,7 @@ class MyTimerHandler : public Osmium::Handler::Base {
     uint64_t ways;
     uint64_t relations;
 
-  public:
+public:
 
     MyTimerHandler() : nodes(0), ways(0), relations(0) {
     }

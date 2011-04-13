@@ -11,7 +11,7 @@ namespace Osmium {
         */
         class Tag {
 
-          public:
+        public:
 
             static const int max_characters_key   = 255;
             static const int max_characters_value = 255;
@@ -24,7 +24,7 @@ namespace Osmium {
 
             char key[max_length_key];     ///< Tag key
             char value[max_length_value]; ///< Tag value
-          
+
         };
 
     } // namespace OSM

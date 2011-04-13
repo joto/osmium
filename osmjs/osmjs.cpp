@@ -32,13 +32,13 @@ class SinglePass : public Osmium::Handler::Base {
     Osmium::Handler::NodeLocationStore *handler_node_location_store;
     Osmium::Handler::Javascript        *handler_javascript;
 
-  public:
+public:
 
     SinglePass(Osmium::Handler::NodeLocationStore *nls = NULL,
                Osmium::Handler::Javascript        *js  = NULL)
-             : Base(),
-               handler_node_location_store(nls),
-               handler_javascript(js) {
+        : Base(),
+          handler_node_location_store(nls),
+          handler_javascript(js) {
     }
 
     void callback_init() {
@@ -75,15 +75,15 @@ class DualPass1 : public Osmium::Handler::Base {
     Osmium::Handler::Multipolygon      *handler_multipolygon;
     Osmium::Handler::Javascript        *handler_javascript;
 
-  public:
+public:
 
     DualPass1(Osmium::Handler::NodeLocationStore *nls = NULL,
               Osmium::Handler::Multipolygon      *mp  = NULL,
               Osmium::Handler::Javascript        *js  = NULL)
-            : Base(),
-              handler_node_location_store(nls),
-              handler_multipolygon(mp),
-              handler_javascript(js) {
+        : Base(),
+          handler_node_location_store(nls),
+          handler_multipolygon(mp),
+          handler_javascript(js) {
     }
 
     void callback_init() {
@@ -119,15 +119,15 @@ class DualPass2 : public Osmium::Handler::Base {
     Osmium::Handler::Multipolygon      *handler_multipolygon;
     Osmium::Handler::Javascript        *handler_javascript;
 
-  public:
+public:
 
     DualPass2(Osmium::Handler::NodeLocationStore *nls = NULL,
               Osmium::Handler::Multipolygon      *mp  = NULL,
               Osmium::Handler::Javascript        *js  = NULL)
-            : Base(),
-              handler_node_location_store(nls),
-              handler_multipolygon(mp),
-              handler_javascript(js) {
+        : Base(),
+          handler_node_location_store(nls),
+          handler_multipolygon(mp),
+          handler_javascript(js) {
     }
 
     void callback_node(Osmium::OSM::Node *node) {
@@ -327,7 +327,7 @@ int main(int argc, char *argv[]) {
         handler_node_location_store = NULL;
     }
     handler_javascript = new Osmium::Handler::Javascript(include_files, javascript_filename.c_str());
-    
+
     if (two_passes) {
         Osmium::Handler::Multipolygon *handler_multipolygon = new Osmium::Handler::Multipolygon(attempt_repair, cbmp);
         osmium.parse_osmfile<DualPass1>(osm_filename, new DualPass1(handler_node_location_store, handler_multipolygon, handler_javascript));

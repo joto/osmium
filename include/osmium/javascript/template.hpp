@@ -12,7 +12,7 @@ namespace Osmium {
             */
             class Base {
 
-              protected:
+            protected:
 
                 v8::Persistent<v8::ObjectTemplate> js_template;
 
@@ -25,7 +25,7 @@ namespace Osmium {
                     js_template.Dispose();
                 }
 
-              public:
+            public:
 
                 v8::Local<v8::Object> create_instance(void *wrapper) {
                     v8::Local<v8::Object> instance = js_template->NewInstance();

@@ -22,7 +22,7 @@ namespace Osmium {
 
             uint64_t count_ways_in_all_multipolygons;
 
-          public:
+        public:
 
             Multipolygon(bool attempt_repair, void (*cb)(Osmium::OSM::Multipolygon *)) : Base(), attempt_repair(attempt_repair), callback_multipolygon_parent(cb) {
                 count_ways_in_all_multipolygons = 0;
@@ -31,7 +31,9 @@ namespace Osmium {
             // in pass 1
             void callback_relation(OSM::Relation *relation) {
                 const char *type = relation->get_tag_by_key("type");
-                if (!type) { return; }
+                if (!type) {
+                    return;
+                }
 
                 bool is_boundary;
                 if (strcmp(type, "multipolygon") == 0) {
@@ -86,7 +88,7 @@ namespace Osmium {
                     }
                     return;
                 }
-                
+
                 // is in at least one multipolygon relation
 
                 std::vector<osm_object_id_t> v = way2mpidx_iterator->second;

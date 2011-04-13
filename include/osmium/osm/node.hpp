@@ -24,7 +24,7 @@ namespace Osmium {
 
             WKBPoint geom;
 
-          public:
+        public:
 
             Node() : Object() {
                 reset();
@@ -120,8 +120,8 @@ namespace Osmium {
                     oss << "SRID=4326;POINT(" << get_lon_str() << " " << get_lat_str() << ")";
                 } else if (!strcmp(*key, "as_hex_wkb")) {
                     oss << geom_as_hex_wkb();
-    //            } else if (!strcmp(*key, "as_hex_ewkb")) {
-    //                oss << geom.to_hex();             TODO TODO
+                    //            } else if (!strcmp(*key, "as_hex_ewkb")) {
+                    //                oss << geom.to_hex();             TODO TODO
                 }
 
                 return v8::String::New(oss.str().c_str());

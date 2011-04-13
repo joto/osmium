@@ -7,7 +7,7 @@ namespace Osmium {
 
         class RelationMember {
 
-          public:
+        public:
 
             static const int max_characters_role = 255;
 

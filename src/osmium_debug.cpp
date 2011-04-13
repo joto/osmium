@@ -14,7 +14,7 @@ class MyDebugHandler : public Osmium::Handler::Base {
 
     Osmium::Handler::Debug handler_debug;
 
-  public:
+public:
 
     void callback_init() {
         std::cout << "init" << std::endl;

@@ -12,7 +12,7 @@ namespace Osmium {
 
     class Framework {
 
-      public:
+    public:
 
         Framework(bool debug = false) {
             if (Osmium::global.framework) {

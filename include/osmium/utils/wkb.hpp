@@ -39,7 +39,7 @@ struct Point {
 class WKBPoint {
     uint8_t       padding[3];
 
-    public:
+public:
 
     uint8_t       byteOrder;
     uint32_t      wkbType; // wkbPoint = 1

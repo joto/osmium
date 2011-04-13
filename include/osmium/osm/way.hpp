@@ -27,7 +27,7 @@ namespace Osmium {
 
             osm_sequence_id_t num_nodes;
 
-          public:
+        public:
 
             static const int max_nodes_in_way = 2000; ///< There can only be 2000 nodes in a way as per OSM API 0.6 definition.
 
@@ -117,14 +117,14 @@ namespace Osmium {
                 return num_nodes;
             }
 
-            /** 
+            /**
              * Returns the id of the first node.
              */
             osm_object_id_t get_first_node_id() const {
                 return nodes[0];
             }
 
-            /** 
+            /**
              * Returns the id of the last node.
              */
             osm_object_id_t get_last_node_id() const {
@@ -132,7 +132,7 @@ namespace Osmium {
             }
 
 #ifdef OSMIUM_WITH_GEOS
-            /** 
+            /**
              * Returns the GEOS geometry of the first node.
              * Caller takes ownership of the pointer.
              */
@@ -143,7 +143,7 @@ namespace Osmium {
                 return Osmium::global.geos_geometry_factory->createPoint(c);
             }
 
-            /** 
+            /**
              * Returns the GEOS geometry of the last node.
              * Caller takes ownership of the pointer.
              */
@@ -173,7 +173,7 @@ namespace Osmium {
             }
 
 #ifdef OSMIUM_WITH_GEOS
-            /** 
+            /**
              * Returns the GEOS geometry of the way.
              * Caller takes ownership of the pointer.
              */

@@ -9,7 +9,7 @@ namespace Osmium {
 
             double minlon, maxlon, minlat, maxlat;
 
-          public:
+        public:
 
             FindBbox() : Base() {
                 minlon =  1000;
