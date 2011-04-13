@@ -44,8 +44,6 @@ namespace Osmium {
                     return;
                 }
 
-                Osmium::OSM::Relation *r = new Osmium::OSM::Relation(*relation);
-
                 int num_ways = 0;
                 for (int i=0; i < relation->member_count(); i++) {
                     const Osmium::OSM::RelationMember *member = relation->get_member(i);
@@ -59,7 +57,7 @@ namespace Osmium {
 
                 count_ways_in_all_multipolygons += num_ways;
 
-                Osmium::OSM::MultipolygonFromRelation *mp = new Osmium::OSM::MultipolygonFromRelation(r, is_boundary, num_ways, callback_multipolygon_parent, attempt_repair);
+                Osmium::OSM::MultipolygonFromRelation *mp = new Osmium::OSM::MultipolygonFromRelation(new Osmium::OSM::Relation(*relation), is_boundary, num_ways, callback_multipolygon_parent, attempt_repair);
                 multipolygons.push_back(mp);
             }
 
@@ -111,6 +109,11 @@ namespace Osmium {
                         delete mp;
                     }
                 }
+            }
+
+            // in pass 2
+            void callback_after_ways() {
+                way2mpidx.clear();
             }
 
             // in pass 2
