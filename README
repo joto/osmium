@@ -111,3 +111,24 @@ Call "make install" to install applications.
 To build the debugging applications "osmium_debug" and "osmium_sizeof" to to
 the "src" directory and type "make" there.
 
+
+LICENSE
+-------
+
+Osmium is available under the GNU LGPL version 3 or later, or - at your option -
+the GNU GPL version 3 or later.
+
+See http://eigen.tuxfamily.org/index.php?title=Licensing_FAQ for a good
+description of what that means.
+
+
+AUTHORS
+-------
+
+Osmium was mainly written and is maintained by Jochen Topf <jochen@topf.org>.
+
+Other authors:
+* Frederik Ramm <frederik@remote.org> (Multipolygon code, ...)
+* Christian Vetter <veaac.fdirct@gmail.com> (PBF parser)
+* Scott A. Crosby <scott@sacrosby.com> (PBF format)
+

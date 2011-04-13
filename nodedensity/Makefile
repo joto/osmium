@@ -14,28 +14,22 @@ CXXFLAGS += -std=c++0x -Wall -W -Wredundant-decls -Wdisabled-optimization -pedan
 
 CXXFLAGS += -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 
-CXXFLAGS += -I../include -I../pbf
+CXXFLAGS += -I../include
 
 LDFLAGS = -L/usr/local/lib -lexpat -lpthread
 
 LIB_GD       = -lgd -lz -lm
-LIB_PROTOBUF = -lz -lprotobuf
+LIB_PROTOBUF = -lz -lprotobuf -losmpbf
 
-OBJ_PBF = fileformat.pb.o osmformat.pb.o
+.PHONY: all clean install
 
-SRC_OBJ_PBF = $(patsubst %,../pbf/%,$(OBJ_PBF))
-
-.PHONY: all clean doc protobuf
-
-all: protobuf nodedensity
-
-protobuf:
-	$(MAKE) -C ../pbf CXX="$(CXX)" CXXFLAGS="$(CXXFLAGS)"
+all: nodedensity
 
 nodedensity: nodedensity.cpp handler_nodedensity.hpp
-	$(CXX) $(CXXFLAGS) -o $@ $< $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_GD)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_GD)
 
 install:
+	install -m 755 -g root -o root -d $(DESTDIR)/usr/bin
 	install -m 755 -g root -o root nodedensity $(DESTDIR)/usr/bin/nodedensity
     
 clean:

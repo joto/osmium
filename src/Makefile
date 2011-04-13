@@ -17,40 +17,33 @@ CXXFLAGS += -std=c++0x -Wall -W -Wredundant-decls -Wdisabled-optimization -pedan
 
 CXXFLAGS += -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 
-CXXFLAGS += -I../include -I../pbf
+CXXFLAGS += -I../include
 
 LDFLAGS = -L/usr/local/lib -lexpat -lpthread
 
 LIB_SQLITE   = -lsqlite3
 LIB_V8       = -lv8
 LIB_SHAPE    = -lshp
-LIB_PROTOBUF = -lz -lprotobuf
+LIB_PROTOBUF = -lz -lprotobuf-lite -losmpbf
 
-OBJ_PBF = fileformat.pb.o osmformat.pb.o
+.PHONY: all clean install
 
-SRC_OBJ_PBF = $(patsubst %,../pbf/%,$(OBJ_PBF))
-
-.PHONY: all clean doc protobuf install
-
-all: protobuf osmium_sizeof osmium_debug osmium_stats osmium_find_bbox osmium_time
-
-protobuf:
-	$(MAKE) -C ../pbf CXX="$(CXX)" CXXFLAGS="$(CXXFLAGS)"
+all: osmium_sizeof osmium_debug osmium_stats osmium_find_bbox osmium_time
 
 osmium_sizeof: osmium_sizeof.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $< $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_PROTOBUF)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
 
 osmium_debug: osmium_debug.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $< $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_PROTOBUF)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
 
 osmium_stats: osmium_stats.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $< $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_SQLITE)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_SQLITE)
 
 osmium_find_bbox: osmium_find_bbox.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $< $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_PROTOBUF)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
 
 osmium_time: osmium_time.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $< $(SRC_OBJ_PBF) $(LDFLAGS) $(LIB_PROTOBUF)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
 
 install:
     

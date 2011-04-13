@@ -3,33 +3,31 @@
 
 /*
 
-The code in this file is based on the MoNav code, although it
-has changed quite a bit since then.
+Copyright 2011 Jochen Topf <jochen@topf.org> and others (see README).
 
-For MoNav see http://wiki.openstreetmap.org/wiki/MoNav .
+This file is part of Osmium (https://github.com/joto/osmium).
 
-Copyright 2010  Christian Vetter veaac.fdirct@gmail.com
+Osmium is free software: you can redistribute it and/or modify it under the
+terms of the GNU Lesser General Public License or (at your option) the GNU
+General Public License as published by the Free Software Foundation, either
+version 3 of the Licenses, or (at your option) any later version.
 
-MoNav is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+Osmium is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Lesser General Public Licanse and the GNU
+General Public License for more details.
 
-MoNav is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+You should have received a copy of the Licenses along with Osmium. If not, see
+<http://www.gnu.org/licenses/>.
 
-You should have received a copy of the GNU General Public License
-along with MoNav. If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <string>
 #include <zlib.h>
 #include <typeinfo>
 
-#include <fileformat.pb.h>
-#include <osmformat.pb.h>
+#include <osmpbf/fileformat.pb.h>
+#include <osmpbf/osmformat.pb.h>
 
 namespace Osmium {
 
