@@ -400,17 +400,11 @@ namespace Osmium {
             }
 
             void handle_complete_multipolygon() {
-                // std::cerr << "MP multi multi=" << id << " done\n";
-
 #ifdef OSMIUM_WITH_GEOS
-                if (build_geometry()) {
-                    geos::io::WKTWriter wkt;
-                    //std::cerr << "  mp geometry: " << wkt.write(geometry) << std::endl;
-                } else {
+                if (! build_geometry()) {
                     std::cerr << "  geom build error: " << geometry_error_message << "\n";
                 }
 #endif // OSMIUM_WITH_GEOS
-
                 callback(this);
             }
 
@@ -802,7 +796,7 @@ namespace Osmium {
                 std::vector<WayInfo *> ways;
 
                 // the timestamp of the multipolygon will be the maximum of the timestamp from the relation and from all member ways
-                time_t timestamp = relation->get_timestamp();
+                timestamp = relation->get_timestamp();
 
                 // assemble all ways which are members of this relation into a
                 // vector of WayInfo elements. this holds room for the way pointer
