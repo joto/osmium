@@ -166,7 +166,8 @@ namespace Osmium {
             * Set coordinates for the nth node in this way.
             */
             void set_node_coordinates(osm_sequence_id_t n, double nlon, double nlat) {
-                if (0 <= n && n < num_nodes) throw std::range_error("trying to set coordinate for unknown node");
+                if (n < 0 || n > num_nodes)
+                    throw std::range_error("trying to set coordinate for unknown node");
                 lon[n] = nlon;
                 lat[n] = nlat;
             }
