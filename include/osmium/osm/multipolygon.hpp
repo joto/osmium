@@ -163,28 +163,16 @@ namespace Osmium {
 
 #ifdef OSMIUM_WITH_GEOS
             geos::geom::Geometry *geometry;
-#endif // OSMIUM_WITH_GEOS
 
+            Multipolygon(geos::geom::Geometry *geom = NULL) : geometry(geom) {
+#else
             Multipolygon() {
-#ifdef OSMIUM_WITH_GEOS
-                geometry = NULL;
 #endif // OSMIUM_WITH_GEOS
-
-#ifdef OSMIUM_WITH_JAVASCRIPT
-                js_tags_instance    = Osmium::Javascript::Template::create_tags_instance(this);
-                js_object_instance  = Osmium::Javascript::Template::create_multipolygon_instance(this);
-#endif // OSMIUM_WITH_JAVASCRIPT
-            }
-
-#ifdef OSMIUM_WITH_GEOS
-            Multipolygon(geos::geom::Geometry *geom) {
-                geometry = geom;
 # ifdef OSMIUM_WITH_JAVASCRIPT
                 js_tags_instance    = Osmium::Javascript::Template::create_tags_instance(this);
                 js_object_instance  = Osmium::Javascript::Template::create_multipolygon_instance(this);
 # endif // OSMIUM_WITH_JAVASCRIPT
             }
-#endif // OSMIUM_WITH_GEOS
 
             ~Multipolygon() {
 #ifdef OSMIUM_WITH_GEOS
