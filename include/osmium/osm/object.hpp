@@ -89,10 +89,6 @@ namespace Osmium {
             // how many tags are there on this object (XXX we could probably live without this and just use tags.size())
             int num_tags;
 
-        public:
-
-            std::vector<Tag> tags;
-
             Object() : tags() {
                 reset();
             }
@@ -112,6 +108,10 @@ namespace Osmium {
             ~Object() {
             }
 
+        public:
+
+            std::vector<Tag> tags;
+
             virtual osm_object_type_t get_type() const = 0;
 
             virtual void reset() {
@@ -126,7 +126,7 @@ namespace Osmium {
                 visible          = true;
             }
 
-            virtual void set_attribute(const char *attr, const char *value) {
+            void set_attribute(const char *attr, const char *value) {
                 if (!strcmp(attr, "id")) {
                     id = string_to_osm_object_id(value);
                 } else if (!strcmp(attr, "version")) {
@@ -153,7 +153,7 @@ namespace Osmium {
                 }
             }
 
-            virtual osm_object_id_t get_id() const {
+            osm_object_id_t get_id() const {
                 return id;
             }
 

@@ -66,14 +66,12 @@ namespace Osmium {
                 return NODE;
             }
 
-            void set_attribute(const char *attr, const char *value) {
-                if (!strcmp(attr, "lon")) {
-                    geom.point.x = atof(value);
-                } else if (!strcmp(attr, "lat")) {
-                    geom.point.y = atof(value);
-                } else {
-                    Object::set_attribute(attr, value);
-                }
+            void set_x(double x) {
+                geom.point.x = x;
+            }
+
+            void set_y(double y) {
+                geom.point.y = y;
             }
 
             void set_coordinates(double x, double y) {

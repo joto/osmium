@@ -118,7 +118,13 @@ namespace Osmium {
                 current_object = obj;
                 current_object->reset();
                 for (int count = 0; attrs[count]; count += 2) {
-                    current_object->set_attribute(attrs[count], attrs[count+1]);
+                    if (!strcmp(attrs[count], "lon")) {
+                        dynamic_cast<Osmium::OSM::Node *>(current_object)->set_x(atof(attrs[count+1]));
+                    } else if (!strcmp(attrs[count], "lat")) {
+                        dynamic_cast<Osmium::OSM::Node *>(current_object)->set_y(atof(attrs[count+1]));
+                    } else {
+                        current_object->set_attribute(attrs[count], attrs[count+1]);
+                    }
                 }
             }
 
