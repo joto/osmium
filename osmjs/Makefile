@@ -31,7 +31,7 @@ LDFLAGS += $(shell geos-config --libs)
 
 LIB_V8       = -lv8 -licuuc
 LIB_SHAPE    = -lshp
-LIB_PROTOBUF = -lz -lprotobuf -losmpbf
+LIB_PROTOBUF = -lz -lprotobuf-lite -losmpbf
 
 .PHONY: all clean install
 
