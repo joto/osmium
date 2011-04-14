@@ -47,7 +47,7 @@ namespace Osmium {
 #endif // OSMIUM_WITH_JAVASCRIPT
 
             Relation() : Object(), members() {
-                num_members = 0;
+                reset();
 #ifdef OSMIUM_WITH_JAVASCRIPT
                 js_tags_instance    = Osmium::Javascript::Template::create_tags_instance(this);
                 js_object_instance  = Osmium::Javascript::Template::create_relation_instance(this);
@@ -70,9 +70,9 @@ namespace Osmium {
             }
 
             void reset() {
+                Object::reset();
                 num_members = 0;
                 members.clear();
-                Object::reset();
             }
 
             void add_member(const char type, osm_object_id_t ref, const char *role) {
