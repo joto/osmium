@@ -56,13 +56,10 @@ namespace Osmium {
 
         public:
 
-            XML(int in_fd, THandler *h) : Base<THandler>(h), fd(in_fd) {
+            XML(int in_fd, THandler *h) __attribute__((noinline)) : Base<THandler>(h), fd(in_fd) {
             }
 
-            ~XML() {
-            }
-
-            void parse() {
+            void parse() __attribute__((noinline)) {
                 int done;
                 current_object = 0;
 

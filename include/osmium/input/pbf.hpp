@@ -71,20 +71,17 @@ namespace Osmium {
             *
             * @param in_fd File descripter to read data from.
             */
-            PBF(int in_fd, THandler *h) : Base<THandler>(h), fd(in_fd) {
+            PBF(int in_fd, THandler *h) __attribute__((noinline)) : Base<THandler>(h), fd(in_fd) {
                 GOOGLE_PROTOBUF_VERIFY_VERSION;
                 groups_with_nodes     = 0;
                 groups_with_ways      = 0;
                 groups_with_relations = 0;
             }
 
-            ~PBF () {
-            }
-
             /**
             * Parse PBF file.
             */
-            void parse() {
+            void parse() __attribute__((noinline)) {
                 try {
                     while (read_blob_header()) {
                         array_t a = read_blob(pbf_blob_header.datasize());
