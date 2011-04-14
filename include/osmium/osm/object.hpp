@@ -66,22 +66,40 @@ namespace Osmium {
 
             bool visible;
 
-        private:
-
-            static osm_object_id_t string_to_osm_object_id(const char *x) {
-                return atol(x);
+            void set_object_id(const char *value) {
+                id = atol(value);
             }
 
-            static osm_version_t string_to_osm_version(const char *x) {
-                return atoi(x);
+            void set_version(const char *value) {
+                version = atoi(value);
             }
 
-            static osm_changeset_id_t string_to_osm_changeset_id(const char *x) {
-                return atol(x);
+            void set_changeset(const char *value) {
+                changeset = atol(value);
             }
 
-            static osm_user_id_t string_to_osm_user_id(const char *x) {
-                return atol(x);
+            void set_uid(const char *value) {
+                uid = atol(value);
+            }
+
+            void set_timestamp(const char *value) {
+                struct tm tm = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+                if (strptime(value, "%Y-%m-%dT%H:%M:%SZ", &tm) == NULL) {
+                    throw std::length_error("can't parse timestamp");
+                }
+                timestamp = timegm(&tm);
+            }
+
+            void set_user(const char *value) {
+                if (! memccpy(user, value, 0, max_length_username)) {
+                    throw std::length_error("user name too long");
+                }
+            }
+
+            void set_visible(const char *value) {
+                if (!strcmp(value, "false")) {
+                    visible = false;
+                }
             }
 
         protected:
@@ -128,28 +146,19 @@ namespace Osmium {
 
             void set_attribute(const char *attr, const char *value) {
                 if (!strcmp(attr, "id")) {
-                    id = string_to_osm_object_id(value);
+                    set_object_id(value);
                 } else if (!strcmp(attr, "version")) {
-                    version = string_to_osm_version(value);
+                    set_version(value);
                 } else if (!strcmp(attr, "timestamp")) {
-                    struct tm tm = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-                    if (strptime(value, "%Y-%m-%dT%H:%M:%SZ", &tm) == NULL) {
-                        throw std::length_error("can't parse timestamp");
-                    } else {
-                        timestamp = timegm(&tm);
-                    }
+                    set_timestamp(value);
                 } else if (!strcmp(attr, "uid")) {
-                    uid = string_to_osm_user_id(value);
+                    set_uid(value);
                 } else if (!strcmp(attr, "user")) {
-                    if (! memccpy(user, value, 0, max_length_username)) {
-                        throw std::length_error("user name too long");
-                    }
+                    set_user(value);
                 } else if (!strcmp(attr, "changeset")) {
-                    changeset = string_to_osm_changeset_id(value);
+                    set_changeset(value);
                 } else if (!strcmp(attr, "visible")) {
-                    if (!strcmp(value, "false")) {
-                        visible = false;
-                    }
+                    set_visible(value);
                 }
             }
 
