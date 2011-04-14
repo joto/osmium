@@ -1,6 +1,6 @@
 #------------------------------------------------------------------------------
 #
-#  Osmium makefile
+#  Makefile for Osmium examples.
 #
 #------------------------------------------------------------------------------
 
@@ -21,14 +21,17 @@ CXXFLAGS += -I../include
 
 LDFLAGS = -L/usr/local/lib -lexpat -lpthread
 
+LIB_GD       = -lgd -lz -lm
 LIB_SQLITE   = -lsqlite3
 LIB_V8       = -lv8
 LIB_SHAPE    = -lshp
 LIB_PROTOBUF = -lz -lprotobuf-lite -losmpbf
 
-.PHONY: all clean install
+PROGRAMS = osmium_sizeof osmium_debug osmium_stats osmium_find_bbox osmium_time nodedensity
 
-all: osmium_sizeof osmium_debug osmium_stats osmium_find_bbox osmium_time
+.PHONY: all clean
+
+all: $(PROGRAMS)
 
 osmium_sizeof: osmium_sizeof.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
@@ -45,8 +48,11 @@ osmium_find_bbox: osmium_find_bbox.cpp
 osmium_time: osmium_time.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
 
+nodedensity: nodedensity.cpp handler_nodedensity.hpp
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_GD)
+
 install:
-    
+
 clean:
-	rm -f *.o core osmium_sizeof osmium_debug osmium_stats osmium_find_bbox osmium_time
+	rm -f *.o core $(PROGRAMS)
 

@@ -13,13 +13,15 @@ Available handlers include:
 * Multipolygon handler (assembles multipolygons from relations and ways)
 * NodeLocationStore handler (stores node locations and builds way geometries from them)
 * Statistics handler (does some general statistics)
-* TagStats handler (creates statistics about tags for Taginfo (see http://taginfo.openstreetmap.de/)
 
 Of course, you can also write your own handlers.
 
-Currently there are two applications build on top of and available with Osmium:
-* tagstats - creates statistics about tags for Taginfo (see http://taginfo.openstreetmap.de/)
+There are a few applications that use Osmium in the examples directory.
+
+Currently there are two major applications build on top of and available with Osmium:
 * osmjs - calls your Javascript code, it can optionally assemble multipolygons for you
+* tagstats - creates statistics about tags for Taginfo
+             (distributed separately, see http://taginfo.openstreetmap.de/)
 
 Note that OSM input files must contain objects in the right order for Osmium to
 work properly: first nodes, then ways, then relations. Normally OSM files are
@@ -32,19 +34,19 @@ PREREQUISITES
 Different parts of Osmium and the applications build on top of it need
 different libraries:
 
-zlib (for PBF-Support)
+zlib (for PBF support)
     http://www.zlib.net/
     Debian/Ubuntu: zlib1g zlib1g-dev
 
-shapelib (for Shapefile-Support in osmjs)
+shapelib (for shapefile support in osmjs)
     http://shapelib.maptools.org/
     Debian/Ubuntu: libshp1 libshp-dev
 
-libsqlite3 (for HandlerTagStats/tagstats only)
+libsqlite3 (for some applications only)
     http://sqlite.org/
     Debian/Ubuntu: libsqlite3-0 libsqlite3-dev
 
-libgd (for HandlerTagStats/tagstats and nodedensity only)
+libgd (for tagstats and nodedensity applications only)
     http://www.libgd.org/
     Debian/Ubuntu: libgd2-xpm libgd2-xpm-dev
 
@@ -52,7 +54,7 @@ Expat (for parsing XML files)
     http://expat.sourceforge.net/
     Debian/Ubuntu: libexpat1 libexpat1-dev
 
-GEOS (for HandlerMultipolygon)
+GEOS (for assembling multipolygons etc.)
     http://trac.osgeo.org/geos/
     Debian/Ubuntu: libgeos-3.2.0 (older versions might work) libgeos-dev
 
@@ -68,10 +70,14 @@ LibICU (for UTF-8/UTF-16 conversion, only for Javascript support)
     http://site.icu-project.org/
     Debian/Ubuntu: libicu42 libicu-dev
 
-Google protocol buffers for PBF support
+Google protocol buffers (for PBF support)
     http://code.google.com/p/protobuf/ (at least Version 2.3.0 needed)
     (Debian/Ubuntu: libprotobuf6, libprotobuf-dev, protobuf-compiler)
     Also see http://wiki.openstreetmap.org/wiki/PBF_Format
+
+OSMPBF (for PBF support)
+    https://github.com/joto/OSM-binary
+    You need to build this first.
 
 You need to either install the Debian/Ubuntu packages (or equivalent for other
 distributions) or install those libraries from source. Most libraries should be
@@ -83,33 +89,28 @@ FILES
 -----
 
 Doxyfile    - Needed for building the Osmium C++ docs, call "make doc" to build.
-include     - C/C++ include files. Most of Osmium is in those header files which
+include     - C/C++ include files. All of Osmium is in those header files which
               are needed for building Osmium applications.
 osmjs       - Osmium application "osmjs".
 osmjs/js    - Example Javascript handlers.
-pbf         - Protobuf stuff needed for parsing PBF files.
-src         - Osmium source code (C++-Files).
-tagstats    - Osmium application "tagstats".
-nodedensity - Osmium application "nodedensity" creates PNGs showing density
-              of nodes in OSM data.
+examples    - Osmium example applications.
 
 
 BUILDING
 --------
 
-To build everything just call "make" in the top-level directory. You can also
-build the PBF part for itself by calling "make" in the pbf directory. To build
-only the "osmjs" or "tagstats" application call "make" in those directories,
+First you need to (build and) install all the prerequisites.
+
+To build everything just call "make" in the top-level directory. To build
+only the osmjs or example application call "make" in those directories,
 respectively.
 
 Call "make clean" in any of those places to clean up.
 
 Call "make doc" in the top-level directory to build the Osmium C++ docs.
 
-Call "make install" to install applications.
-
-To build the debugging applications "osmium_debug" and "osmium_sizeof" to to
-the "src" directory and type "make" there.
+Call "make install" to install osmjs. There is no install target for the
+examplae applications.
 
 
 LICENSE
