@@ -5,17 +5,19 @@
 #------------------------------------------------------------------------------
 
 all:
-	$(MAKE) -C tagstats
+	$(MAKE) -C src
 	$(MAKE) -C osmjs
+	$(MAKE) -C nodedensity
 
 clean:
-	$(MAKE) -C pbf clean
-	$(MAKE) -C tagstats clean
+	$(MAKE) -C src clean
 	$(MAKE) -C osmjs clean
+	$(MAKE) -C nodedensity clean
 
 install:
-	$(MAKE) -C tagstats install
+	$(MAKE) -C src install
 	$(MAKE) -C osmjs install
+	$(MAKE) -C nodedensity install
 
 check:
 	cppcheck --enable=all -I include */*.cpp
@@ -25,7 +27,7 @@ indent:
 
 doc: doc/html/files.html
 
-doc/html/files.html: include/*.hpp src/*.cpp pbf/*.proto
+doc/html/files.html: include/*.hpp
 	doxygen
 
 deb:
