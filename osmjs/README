@@ -38,6 +38,14 @@ See osmjs --help for the options. You must at least give the --javascript/-j
 option with a javascript filename.
 
 
+Note for 32 bit systems
+-----------------------
+
+Osmjs has not been tested on 32 bit systems.
+The -l array and -l disk options will not work on 32bit systems, because
+the memory range they can address is just too small.
+
+
 Javascript Functions
 --------------------
 

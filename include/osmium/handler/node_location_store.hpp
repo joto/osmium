@@ -85,6 +85,9 @@ namespace Osmium {
         *
         * Caution: The node store is not initialized to some zero value.
         * You can not find out if a node coordinate was ever set!
+        *
+        * This handler will only work on 64bit systems. 32 bit systems
+        * just can't address that much memory!
         */
         class NLS_Array : public NodeLocationStore {
 
@@ -184,6 +187,9 @@ namespace Osmium {
         *
         * Use this node location store if the other types of storage lead
         * to memory problems.
+        *
+        * This handler will only work on 64bit systems. 32 bit systems
+        * just can't address that much memory!
         */
         class NLS_Disk : public NodeLocationStore {
 
