@@ -43,6 +43,7 @@ namespace Osmium {
 
             XML(const char *filename) {
                 w = xmlNewTextWriterFilename(filename, 0);
+                xmlTextWriterSetIndent(w, 1);
                 xmlTextWriterStartDocument(w, NULL, NULL, NULL); // <?xml .. ?>
                 
                 xmlTextWriterStartElement(w, BAD_CAST "osm");  // <osm>
