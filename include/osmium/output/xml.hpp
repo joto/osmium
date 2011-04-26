@@ -59,35 +59,12 @@ namespace Osmium {
             }
 
             void writeBounds(double minlat, double minlon, double maxlat, double maxlon) {
-                const int bufsize = 50;
-                char buf[bufsize];
-                xmlChar *xc;
-                
                 xmlTextWriterStartElement(w, BAD_CAST "bounds"); // <bounds>
                 
-                snprintf(buf, bufsize-1, "%f", minlat);
-                buf[bufsize-1] = '\0';
-                xc = xmlCharStrdup(buf);
-                xmlTextWriterWriteAttribute(w, BAD_CAST "minlat", xc);
-                free(xc);
-                
-                snprintf(buf, bufsize-1, "%f", minlon);
-                buf[bufsize-1] = '\0';
-                xc = xmlCharStrdup(buf);
-                xmlTextWriterWriteAttribute(w, BAD_CAST "minlon", xc);
-                free(xc);
-                
-                snprintf(buf, bufsize-1, "%f", maxlat);
-                buf[bufsize-1] = '\0';
-                xc = xmlCharStrdup(buf);
-                xmlTextWriterWriteAttribute(w, BAD_CAST "maxlat", xc);
-                free(xc);
-                
-                snprintf(buf, bufsize-1, "%f", maxlon);
-                buf[bufsize-1] = '\0';
-                xc = xmlCharStrdup(buf);
-                xmlTextWriterWriteAttribute(w, BAD_CAST "maxlon", xc);
-                free(xc);
+                xmlTextWriterWriteFormatAttribute(w, BAD_CAST "minlat", "%f", minlat);
+                xmlTextWriterWriteFormatAttribute(w, BAD_CAST "minlon", "%f", minlon);
+                xmlTextWriterWriteFormatAttribute(w, BAD_CAST "maxlat", "%f", maxlat);
+                xmlTextWriterWriteFormatAttribute(w, BAD_CAST "maxlon", "%f", maxlon);
                 
                 xmlTextWriterEndElement(w); // </bounds>
             }
