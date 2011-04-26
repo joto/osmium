@@ -23,6 +23,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 */
 
 #include <fstream>
+#include <libxml/xmlwriter.h>
 
 #include <osmium/osm/node.hpp>
 #include <osmium/osm/way.hpp>
@@ -36,18 +37,59 @@ namespace Osmium {
 
         public:
 
-            std::ofstream out;
+            xmlTextWriterPtr w;
 
             //v8::Persistent<v8::Object> js_object;
 
             XML(const char *filename) {
-                out.open(filename);
+                w = xmlNewTextWriterFilename(filename, 0);
+                xmlTextWriterStartDocument(w, NULL, NULL, NULL); // <?xml .. ?>
+                
+                xmlTextWriterStartElement(w, BAD_CAST "osm");  // <osm>
+                xmlTextWriterWriteAttribute(w, BAD_CAST "version", BAD_CAST "0.6");
+                xmlTextWriterWriteAttribute(w, BAD_CAST "generator", BAD_CAST "MaZderMind's History Splitter <https://github.com/MaZderMind/OpenStreetMap-History-API/tree/master/splitter>");
+                
                 //js_object = v8::Persistent<v8::Object>::New( Osmium::Javascript::Template::create_output_xml_instance(this) );
             }
 
             ~XML() {
-                out.flush();
-                out.close();
+                xmlTextWriterEndElement(w); // </osm>
+                xmlFreeTextWriter(w);
+                w = NULL;
+            }
+
+            void writeBounds(double minlat, double minlon, double maxlat, double maxlon) {
+                const int bufsize = 50;
+                char buf[bufsize];
+                xmlChar *xc;
+                
+                xmlTextWriterStartElement(w, BAD_CAST "bounds"); // <bounds>
+                
+                snprintf(buf, bufsize-1, "%f", minlat);
+                buf[bufsize-1] = '\0';
+                xc = xmlCharStrdup(buf);
+                xmlTextWriterWriteAttribute(w, BAD_CAST "minlat", xc);
+                free(xc);
+                
+                snprintf(buf, bufsize-1, "%f", minlon);
+                buf[bufsize-1] = '\0';
+                xc = xmlCharStrdup(buf);
+                xmlTextWriterWriteAttribute(w, BAD_CAST "minlon", xc);
+                free(xc);
+                
+                snprintf(buf, bufsize-1, "%f", maxlat);
+                buf[bufsize-1] = '\0';
+                xc = xmlCharStrdup(buf);
+                xmlTextWriterWriteAttribute(w, BAD_CAST "maxlat", xc);
+                free(xc);
+                
+                snprintf(buf, bufsize-1, "%f", maxlon);
+                buf[bufsize-1] = '\0';
+                xc = xmlCharStrdup(buf);
+                xmlTextWriterWriteAttribute(w, BAD_CAST "maxlon", xc);
+                free(xc);
+                
+                xmlTextWriterEndElement(w); // </bounds>
             }
 
             void write(Osmium::OSM::Node* e) {
