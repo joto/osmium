@@ -38,10 +38,13 @@ namespace Osmium {
         public:
 
             xmlTextWriterPtr w;
+            bool writeVisibleAttr;
 
             //v8::Persistent<v8::Object> js_object;
 
             XML(const char *filename) {
+                writeVisibleAttr = false;
+                
                 w = xmlNewTextWriterFilename(filename, 0);
                 xmlTextWriterSetIndent(w, 1);
                 xmlTextWriterStartDocument(w, NULL, NULL, NULL); // <?xml .. ?>
@@ -71,15 +74,40 @@ namespace Osmium {
             }
 
             void write(Osmium::OSM::Node* e) {
-                fprintf(stderr, "writing node %d to xml-file\n", e->id);
+                xmlTextWriterStartElement(w, BAD_CAST "node"); // <node>
+                
+                xmlTextWriterWriteFormatAttribute(w, BAD_CAST "id", "%d", e->id);
+                xmlTextWriterWriteFormatAttribute(w, BAD_CAST "version", "%d", e->version);
+                xmlTextWriterWriteFormatAttribute(w, BAD_CAST "changeset", "%d", e->changeset);
+                xmlTextWriterWriteFormatAttribute(w, BAD_CAST "timestamp", "%s", e->get_timestamp_str());
+                
+                // uid == 0 -> anonymous
+                if(e->uid > 0)
+                {
+                    xmlTextWriterWriteFormatAttribute(w, BAD_CAST "uid", "%d", e->uid);
+                    xmlTextWriterWriteFormatAttribute(w, BAD_CAST "user", "%s", e->user);
+                }
+                
+                xmlTextWriterWriteFormatAttribute(w, BAD_CAST "lat", "%f", e->get_lat());
+                xmlTextWriterWriteFormatAttribute(w, BAD_CAST "lon", "%f", e->get_lon());
+                
+                if(writeVisibleAttr)
+                {
+                    if(e->visible)
+                        xmlTextWriterWriteAttribute(w, BAD_CAST "visible", BAD_CAST "true");
+                    else
+                        xmlTextWriterWriteAttribute(w, BAD_CAST "visible", BAD_CAST "false");
+                }
+                
+                xmlTextWriterEndElement(w); // </node>
             }
             
             void write(Osmium::OSM::Way* e) {
-                fprintf(stderr, "writing way %d to xml-file\n", e->id);
+                //fprintf(stderr, "writing way %d to xml-file\n", e->id);
             }
             
             void write(Osmium::OSM::Relation* e) {
-                fprintf(stderr, "writing relation %u to xml-file\n", e->id);
+                //fprintf(stderr, "writing relation %u to xml-file\n", e->id);
             }
 
             //v8::Handle<v8::Object> get_js_object() const {
