@@ -95,6 +95,14 @@ namespace Osmium {
                         xmlTextWriterWriteAttribute(w, BAD_CAST "visible", BAD_CAST "true");
                     else
                         xmlTextWriterWriteAttribute(w, BAD_CAST "visible", BAD_CAST "false");
+                
+                }
+                
+                for(int i=0, l = e->tag_count(); i<l; i++) {
+                    xmlTextWriterStartElement(w, BAD_CAST "tag"); // <tag>
+                    xmlTextWriterWriteFormatAttribute(w, BAD_CAST "k", "%s", e->get_tag_key(i));
+                    xmlTextWriterWriteFormatAttribute(w, BAD_CAST "v", "%s", e->get_tag_value(i));
+                    xmlTextWriterEndElement(w); // </tag>
                 }
                 
                 xmlTextWriterEndElement(w); // </node>
