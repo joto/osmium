@@ -82,8 +82,7 @@ namespace Osmium {
                 xmlTextWriterWriteFormatAttribute(w, BAD_CAST "timestamp", "%s", e->get_timestamp_str());
                 
                 // uid == 0 -> anonymous
-                if(e->uid > 0)
-                {
+                if(e->uid > 0) {
                     xmlTextWriterWriteFormatAttribute(w, BAD_CAST "uid", "%d", e->uid);
                     xmlTextWriterWriteFormatAttribute(w, BAD_CAST "user", "%s", e->user);
                 }
@@ -91,8 +90,7 @@ namespace Osmium {
                 xmlTextWriterWriteFormatAttribute(w, BAD_CAST "lat", "%f", e->get_lat());
                 xmlTextWriterWriteFormatAttribute(w, BAD_CAST "lon", "%f", e->get_lon());
                 
-                if(writeVisibleAttr)
-                {
+                if(writeVisibleAttr) {
                     if(e->visible)
                         xmlTextWriterWriteAttribute(w, BAD_CAST "visible", BAD_CAST "true");
                     else
