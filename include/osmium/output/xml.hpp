@@ -35,9 +35,42 @@ namespace Osmium {
 
         class XML {
 
-        public:
+        protected:
 
             xmlTextWriterPtr w;
+
+            void writeMeta(Osmium::OSM::Object *e) {
+                xmlTextWriterWriteFormatAttribute(w, BAD_CAST "id", "%d", e->id);
+                xmlTextWriterWriteFormatAttribute(w, BAD_CAST "version", "%d", e->version);
+                xmlTextWriterWriteFormatAttribute(w, BAD_CAST "changeset", "%d", e->changeset);
+                xmlTextWriterWriteFormatAttribute(w, BAD_CAST "timestamp", "%s", e->get_timestamp_str());
+                
+                // uid == 0 -> anonymous
+                if(e->uid > 0) {
+                    xmlTextWriterWriteFormatAttribute(w, BAD_CAST "uid", "%d", e->uid);
+                    xmlTextWriterWriteFormatAttribute(w, BAD_CAST "user", "%s", e->user);
+                }
+                
+                if(writeVisibleAttr) {
+                    if(e->visible)
+                        xmlTextWriterWriteAttribute(w, BAD_CAST "visible", BAD_CAST "true");
+                    else
+                        xmlTextWriterWriteAttribute(w, BAD_CAST "visible", BAD_CAST "false");
+                
+                }
+            }
+
+            void writeTags(Osmium::OSM::Object *e) {
+                for(int i=0, l = e->tag_count(); i<l; i++) {
+                    xmlTextWriterStartElement(w, BAD_CAST "tag"); // <tag>
+                    xmlTextWriterWriteFormatAttribute(w, BAD_CAST "k", "%s", e->get_tag_key(i));
+                    xmlTextWriterWriteFormatAttribute(w, BAD_CAST "v", "%s", e->get_tag_value(i));
+                    xmlTextWriterEndElement(w); // </tag>
+                }
+            }
+
+        public:
+
             bool writeVisibleAttr;
 
             //v8::Persistent<v8::Object> js_object;
@@ -76,44 +109,64 @@ namespace Osmium {
             void write(Osmium::OSM::Node* e) {
                 xmlTextWriterStartElement(w, BAD_CAST "node"); // <node>
                 
-                xmlTextWriterWriteFormatAttribute(w, BAD_CAST "id", "%d", e->id);
-                xmlTextWriterWriteFormatAttribute(w, BAD_CAST "version", "%d", e->version);
-                xmlTextWriterWriteFormatAttribute(w, BAD_CAST "changeset", "%d", e->changeset);
-                xmlTextWriterWriteFormatAttribute(w, BAD_CAST "timestamp", "%s", e->get_timestamp_str());
-                
-                // uid == 0 -> anonymous
-                if(e->uid > 0) {
-                    xmlTextWriterWriteFormatAttribute(w, BAD_CAST "uid", "%d", e->uid);
-                    xmlTextWriterWriteFormatAttribute(w, BAD_CAST "user", "%s", e->user);
-                }
+                this->writeMeta(e);
                 
                 xmlTextWriterWriteFormatAttribute(w, BAD_CAST "lat", "%f", e->get_lat());
                 xmlTextWriterWriteFormatAttribute(w, BAD_CAST "lon", "%f", e->get_lon());
                 
-                if(writeVisibleAttr) {
-                    if(e->visible)
-                        xmlTextWriterWriteAttribute(w, BAD_CAST "visible", BAD_CAST "true");
-                    else
-                        xmlTextWriterWriteAttribute(w, BAD_CAST "visible", BAD_CAST "false");
-                
-                }
-                
-                for(int i=0, l = e->tag_count(); i<l; i++) {
-                    xmlTextWriterStartElement(w, BAD_CAST "tag"); // <tag>
-                    xmlTextWriterWriteFormatAttribute(w, BAD_CAST "k", "%s", e->get_tag_key(i));
-                    xmlTextWriterWriteFormatAttribute(w, BAD_CAST "v", "%s", e->get_tag_value(i));
-                    xmlTextWriterEndElement(w); // </tag>
-                }
+                this->writeTags(e);
                 
                 xmlTextWriterEndElement(w); // </node>
             }
             
             void write(Osmium::OSM::Way* e) {
-                //fprintf(stderr, "writing way %d to xml-file\n", e->id);
+                xmlTextWriterStartElement(w, BAD_CAST "way"); // <way>
+                
+                this->writeMeta(e);
+                
+                for(int i=0, l=e->node_count(); i<l; i++) {
+                    xmlTextWriterStartElement(w, BAD_CAST "nd"); // <nd>
+                    xmlTextWriterWriteFormatAttribute(w, BAD_CAST "ref", "%d", e->nodes[i]);
+                    xmlTextWriterEndElement(w); // </nd>
+                }
+                
+                this->writeTags(e);
+                
+                xmlTextWriterEndElement(w); // </way>
             }
             
             void write(Osmium::OSM::Relation* e) {
-                //fprintf(stderr, "writing relation %u to xml-file\n", e->id);
+                xmlTextWriterStartElement(w, BAD_CAST "relation"); // <relation>
+                
+                this->writeMeta(e);
+                
+                const Osmium::OSM::RelationMember *mem;
+                for(int i=0, l=e->member_count(); i<l; i++) {
+                    mem = e->get_member(i);
+                    
+                    xmlTextWriterStartElement(w, BAD_CAST "member"); // <member>
+                    
+                    switch(mem->get_type()) {
+                        case 'n':
+                            xmlTextWriterWriteAttribute(w, BAD_CAST "type", BAD_CAST "node");
+                            break;
+                        
+                        case 'w':
+                            xmlTextWriterWriteAttribute(w, BAD_CAST "type", BAD_CAST "way");
+                            break;
+                        
+                        case 'r':
+                            xmlTextWriterWriteAttribute(w, BAD_CAST "type", BAD_CAST "relation");
+                            break;
+                    }
+                    xmlTextWriterWriteFormatAttribute(w, BAD_CAST "ref", "%d", mem->get_ref());
+                    xmlTextWriterWriteFormatAttribute(w, BAD_CAST "role", "%s", mem->get_role());
+                    xmlTextWriterEndElement(w); // </member>
+                }
+                
+                this->writeTags(e);
+                
+                xmlTextWriterEndElement(w); // </relation>
             }
 
             //v8::Handle<v8::Object> get_js_object() const {
