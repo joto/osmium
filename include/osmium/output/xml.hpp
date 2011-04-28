@@ -23,6 +23,9 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 */
 
 #include <fstream>
+
+// this is required to allow using libxml's xmlwriter in paralell to expat xml parser under debian
+#undef XMLCALL
 #include <libxml/xmlwriter.h>
 
 #include <osmium/osm/node.hpp>
