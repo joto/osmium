@@ -83,7 +83,7 @@ namespace Osmium {
                 
                 w = xmlNewTextWriterFilename(filename, 0);
                 xmlTextWriterSetIndent(w, 1);
-                xmlTextWriterStartDocument(w, NULL, NULL, NULL); // <?xml .. ?>
+                xmlTextWriterStartDocument(w, NULL, "utf-8", NULL); // <?xml .. ?>
                 
                 xmlTextWriterStartElement(w, BAD_CAST "osm");  // <osm>
                 xmlTextWriterWriteAttribute(w, BAD_CAST "version", BAD_CAST "0.6");
