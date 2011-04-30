@@ -24,6 +24,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <cmath>
 #include <sstream>
+#include <ostream>
 
 #ifdef OSMIUM_WITH_SHPLIB
 # include <shapefil.h>
@@ -129,21 +130,40 @@ namespace Osmium {
                 return js_geom_instance;
             }
 
+            std::ostream& geom_as_wkt(std::ostream& s) const {
+                return s << "POINT(" << get_lon() << " " << get_lat() << ")";
+            }
+
             v8::Handle<v8::Value> js_get_geom_property(v8::Local<v8::String> property) const {
                 v8::String::Utf8Value key(property);
-                std::ostringstream oss;
 
                 if (!strcmp(*key, "as_wkt")) {
-                    oss << "POINT(" << get_lon_str() << " " << get_lat_str() << ")";
+                    std::ostringstream oss;
+                    geom_as_wkt(oss);
+                    return v8::String::New(oss.str().c_str());
                 } else if (!strcmp(*key, "as_ewkt")) {
-                    oss << "SRID=4326;POINT(" << get_lon_str() << " " << get_lat_str() << ")";
+                    std::ostringstream oss;
+                    oss << "SRID=4326;";
+                    geom_as_wkt(oss);
+                    return v8::String::New(oss.str().c_str());
                 } else if (!strcmp(*key, "as_hex_wkb")) {
+                    std::ostringstream oss;
                     oss << geom_as_hex_wkb();
                     //            } else if (!strcmp(*key, "as_hex_ewkb")) {
                     //                oss << geom.to_hex();             TODO TODO
+                    return v8::String::New(oss.str().c_str());
+                } else if (!strcmp(*key, "as_array")) {
+                    v8::Local<v8::Array> array = v8::Array::New(2);
+                    array->Set(v8::Integer::New(0), v8::Number::New(get_lon()));
+                    array->Set(v8::Integer::New(1), v8::Number::New(get_lat()));
+                    return array;
+                } else if (!strcmp(*key, "lon") || !strcmp(*key, "x")) {
+                    return v8::Number::New(get_lon());
+                } else if (!strcmp(*key, "lat") || !strcmp(*key, "y")) {
+                    return v8::Number::New(get_lat());
+                } else {
+                    return v8::Undefined();
                 }
-
-                return v8::String::New(oss.str().c_str());
             }
 #endif // OSMIUM_WITH_JAVASCRIPT
 

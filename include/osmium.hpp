@@ -89,18 +89,19 @@ namespace Osmium {
 
         namespace Template {
 
-            Tags            *js_template_tags;
-            NodeGeom        *js_template_nodegeom;
-            Node            *js_template_node;
-            Nodes           *js_template_nodes;
-            WayGeom         *js_template_waygeom;
-            Way             *js_template_way;
-            Member          *js_template_member;
-            Members         *js_template_members;
-            Relation        *js_template_relation;
-            Multipolygon    *js_template_multipolygon;
-            OutputCSV       *js_template_output_csv;
-            OutputShapefile *js_template_output_shapefile;
+            Tags             *js_template_tags;
+            NodeGeom         *js_template_nodegeom;
+            Node             *js_template_node;
+            Nodes            *js_template_nodes;
+            WayGeom          *js_template_waygeom;
+            Way              *js_template_way;
+            Member           *js_template_member;
+            Members          *js_template_members;
+            Relation         *js_template_relation;
+            Multipolygon     *js_template_multipolygon;
+            MultipolygonGeom *js_template_multipolygongeom;
+            OutputCSV        *js_template_output_csv;
+            OutputShapefile  *js_template_output_shapefile;
 
             v8::Local<v8::Object> create_tags_instance(void *wrapper) {
                 return js_template_tags->create_instance(wrapper);
@@ -142,6 +143,10 @@ namespace Osmium {
                 return js_template_multipolygon->create_instance(wrapper);
             }
 
+            v8::Local<v8::Object> create_multipolygon_geom_instance(void *wrapper) {
+                return js_template_multipolygongeom->create_instance(wrapper);
+            }
+
             v8::Local<v8::Object> create_output_csv_instance(void *wrapper) {
                 return js_template_output_csv->create_instance(wrapper);
             }
@@ -161,6 +166,7 @@ namespace Osmium {
                 js_template_members          = new Osmium::Javascript::Template::Members;
                 js_template_relation         = new Osmium::Javascript::Template::Relation;
                 js_template_multipolygon     = new Osmium::Javascript::Template::Multipolygon;
+                js_template_multipolygongeom = new Osmium::Javascript::Template::MultipolygonGeom;
                 js_template_output_csv       = new Osmium::Javascript::Template::OutputCSV;
                 js_template_output_shapefile = new Osmium::Javascript::Template::OutputShapefile;
             }
@@ -168,6 +174,7 @@ namespace Osmium {
             void cleanup() {
                 delete js_template_output_shapefile;
                 delete js_template_output_csv;
+                delete js_template_multipolygongeom;
                 delete js_template_multipolygon;
                 delete js_template_relation;
                 delete js_template_members;
