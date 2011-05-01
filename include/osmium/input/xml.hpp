@@ -106,12 +106,6 @@ namespace Osmium {
 
                 XML_ParserFree(parser);
 
-                if(last_object_type == NODE)
-                    this->handler->callback_after_nodes();
-
-                if(last_object_type == WAY)
-                    this->handler->callback_after_ways();
-
                 this->handler->callback_after_relations();
             }
 
