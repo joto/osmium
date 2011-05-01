@@ -98,6 +98,26 @@ namespace Osmium {
 #endif // OSMIUM_WITH_JAVASCRIPT
             }
 
+            static Way *clone_meta(const Way& o) {
+                Way *w = new Way();
+                w->id        = o.id;
+                w->version   = o.version;
+                w->uid       = o.uid;
+                w->changeset = o.changeset;
+                w->timestamp = o.timestamp;
+                w->num_tags  = o.num_tags;
+                w->tags      = o.tags;
+                w->visible   = o.visible;
+                strncpy(w->user, o.user, max_length_username);
+
+                w->nodes = (osm_object_id_t *) malloc(sizeof(osm_object_id_t) * max_nodes_in_way);
+                w->lon = (double *) malloc(sizeof(double) * max_nodes_in_way);
+                w->lat = (double *) malloc(sizeof(double) * max_nodes_in_way);
+                w->size_frozen = false;
+
+                return w;
+            }
+
             ~Way() {
                 free(nodes);
                 free(lon);
