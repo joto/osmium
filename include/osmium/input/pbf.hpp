@@ -36,7 +36,8 @@ namespace Osmium {
         /**
         * Class for parsing PBF files
         */
-        template <class THandler> class PBF : public Base<THandler> {
+        template <class THandler>
+        class PBF : public Base<THandler> {
 
             static const int NANO = 1000 * 1000 * 1000;
             static const int MAX_BLOB_HEADER_SIZE = 64 * 1024;

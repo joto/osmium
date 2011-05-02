@@ -25,6 +25,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <stdint.h>
 
 enum osm_object_type_t {
+    UNKNOWN                    = -1,
     NODE                       = 0,
     WAY                        = 1,
     RELATION                   = 2,

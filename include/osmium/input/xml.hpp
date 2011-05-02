@@ -36,13 +36,12 @@ namespace Osmium {
 
     namespace Input {
 
-        template <class THandler> class XML : public Base<THandler> {
+        template <class THandler>
+        class XML : public Base<THandler> {
 
             static const int buffer_size = 10240;
 
             int fd; ///< The file descriptor we are reading the data from.
-
-            osm_object_type_t last_object_type;
 
             Osmium::OSM::Object *current_object;
 
@@ -63,7 +62,7 @@ namespace Osmium {
                 int done;
                 current_object = 0;
 
-                last_object_type = NODE;
+                this->last_object_type = NODE;
 
                 XML_Parser parser = XML_ParserCreate(0);
                 if (!parser) {
@@ -134,7 +133,7 @@ namespace Osmium {
                         }
                     }
                 } else if (!strcmp(element, "node")) {
-                    if (last_object_type != NODE) {
+                    if (this->last_object_type != NODE) {
                         throw std::runtime_error("OSM files must be ordered: first nodes, then ways, then relations. You can use Osmosis with the --sort option to do this.");
                     }
                     init_object(this->node, attrs);
@@ -153,12 +152,12 @@ namespace Osmium {
                         current_object->add_tag(key, value);
                     }
                 } else if (!strcmp(element, "way")) {
-                    if (last_object_type == NODE) {
+                    if (this->last_object_type == NODE) {
                         this->handler->callback_after_nodes();
-                        last_object_type = WAY;
+                        this->last_object_type = WAY;
                         this->handler->callback_before_ways();
                     }
-                    if (last_object_type == RELATION) {
+                    if (this->last_object_type == RELATION) {
                         throw std::runtime_error("OSM files must be ordered: first nodes, then ways, then relations. You can use Osmosis with the --sort option to do this.");
                     }
                     init_object(this->way, attrs);
@@ -178,12 +177,12 @@ namespace Osmium {
                     // XXX assert type, ref, role are set
                     this->relation->add_member(type, ref, role);
                 } else if (!strcmp(element, "relation")) {
-                    if (last_object_type == WAY) {
+                    if (this->last_object_type == WAY) {
                         this->handler->callback_after_ways();
-                        last_object_type = RELATION;
+                        this->last_object_type = RELATION;
                         this->handler->callback_before_relations();
                     }
-                    if (last_object_type == NODE) {
+                    if (this->last_object_type == NODE) {
                         throw std::runtime_error("OSM files must be ordered: first nodes, then ways, then relations. You can use Osmosis with the --sort option to do this.");
                     }
                     init_object(this->relation, attrs);

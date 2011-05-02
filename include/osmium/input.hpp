@@ -47,16 +47,19 @@ namespace Osmium {
         template <class THandler>
         class Base {
 
-        public:
+            bool delete_handler_on_destruction;
+
+        protected:
 
             OSM::Node     *node;
             OSM::Way      *way;
             OSM::Relation *relation;
 
             THandler *handler;
-            bool delete_handler_on_destruction;
 
-            Base(THandler *h) __attribute__((noinline)) : handler(h) {
+            osm_object_type_t last_object_type;
+
+            Base(THandler *h) __attribute__((noinline)) : handler(h), last_object_type(UNKNOWN) {
                 node     = new Osmium::OSM::Node;
                 way      = new Osmium::OSM::Way;
                 relation = new Osmium::OSM::Relation;
@@ -70,6 +73,8 @@ namespace Osmium {
 
                 handler->callback_init();
             }
+
+        public:
 
             virtual ~Base() __attribute__((noinline)) {
                 handler->callback_final();
