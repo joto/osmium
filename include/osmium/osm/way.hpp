@@ -110,11 +110,6 @@ namespace Osmium {
                 w->visible   = o.visible;
                 strncpy(w->user, o.user, max_length_username);
 
-                w->nodes = (osm_object_id_t *) malloc(sizeof(osm_object_id_t) * max_nodes_in_way);
-                w->lon = (double *) malloc(sizeof(double) * max_nodes_in_way);
-                w->lat = (double *) malloc(sizeof(double) * max_nodes_in_way);
-                w->size_frozen = false;
-
                 return w;
             }
 
