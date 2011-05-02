@@ -27,7 +27,7 @@ LIB_V8       = -lv8
 LIB_SHAPE    = -lshp
 LIB_PROTOBUF = -lz -lprotobuf-lite -losmpbf
 
-PROGRAMS = osmium_sizeof osmium_debug osmium_stats osmium_find_bbox osmium_time nodedensity
+PROGRAMS = osmium_sizeof osmium_debug osmium_stats osmium_find_bbox osmium_time osmium_progress nodedensity
 
 .PHONY: all clean
 
@@ -46,6 +46,9 @@ osmium_find_bbox: osmium_find_bbox.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
 
 osmium_time: osmium_time.cpp
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
+
+osmium_progress: osmium_progress.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
 
 nodedensity: nodedensity.cpp handler_nodedensity.hpp

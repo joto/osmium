@@ -164,9 +164,20 @@ namespace Osmium {
 
                 Multipolygon() : Object() {
                     js_template->SetAccessor(v8::String::New("from"), accessor_getter<Osmium::OSM::Multipolygon, &Osmium::OSM::Multipolygon::js_get_from>);
+                    js_template->SetAccessor(v8::String::New("geom"), accessor_getter<Osmium::OSM::Multipolygon, &Osmium::OSM::Multipolygon::js_get_geom>);
                 }
 
             }; // class Multipolygon
+
+            class MultipolygonGeom : public Base {
+
+            public:
+
+                MultipolygonGeom() : Base(1) {
+                    js_template->SetNamedPropertyHandler(named_property_getter<Osmium::OSM::Multipolygon, &Osmium::OSM::Multipolygon::js_get_geom_property>);
+                }
+
+            }; // class MultipolygonGeom
 
             class OutputCSV : public Base {
 
