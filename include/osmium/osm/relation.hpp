@@ -65,6 +65,21 @@ namespace Osmium {
 #endif // OSMIUM_WITH_JAVASCRIPT
             }
 
+            static Relation *clone_meta(const Relation& o) {
+                Relation *r = new Relation();
+                r->id        = o.id;
+                r->version   = o.version;
+                r->uid       = o.uid;
+                r->changeset = o.changeset;
+                r->timestamp = o.timestamp;
+                r->num_tags  = o.num_tags;
+                r->tags      = o.tags;
+                r->visible   = o.visible;
+                strncpy(r->user, o.user, max_length_username);
+
+                return r;
+            }
+
             osm_object_type_t get_type() const {
                 return RELATION;
             }
