@@ -36,7 +36,8 @@ namespace Osmium {
         /**
         * Class for parsing PBF files
         */
-        template <class THandler> class PBF : public Base<THandler> {
+        template <class THandler>
+        class PBF : public Base<THandler> {
 
             static const int NANO = 1000 * 1000 * 1000;
             static const int MAX_BLOB_HEADER_SIZE = 64 * 1024;
@@ -52,10 +53,6 @@ namespace Osmium {
                 size_t size;
             } array_t;
 
-            int groups_with_nodes; ///< Number of groups containing nodes.
-            int groups_with_ways; ///< Number of groups containing ways.
-            int groups_with_relations; ///< Number of groups containing relations.
-
             OSMPBF::BlobHeader pbf_blob_header;
             OSMPBF::PrimitiveBlock pbf_primitive_block;
 
@@ -70,12 +67,10 @@ namespace Osmium {
             * Instantiate PBF Parser
             *
             * @param in_fd File descripter to read data from.
+            * @param h Instance of THandler or NULL.
             */
             PBF(int in_fd, THandler *h) __attribute__((noinline)) : Base<THandler>(h), fd(in_fd) {
                 GOOGLE_PROTOBUF_VERIFY_VERSION;
-                groups_with_nodes     = 0;
-                groups_with_ways      = 0;
-                groups_with_relations = 0;
             }
 
             /**
@@ -115,15 +110,7 @@ namespace Osmium {
                             }
                         }
                     }
-                    if (groups_with_nodes > 0 && groups_with_ways == 0 && groups_with_relations == 0) {
-                        this->handler->callback_after_nodes();
-                    }
-                    if (groups_with_ways > 0 && groups_with_relations == 0) {
-                        this->handler->callback_after_ways();
-                    }
-                    if (groups_with_relations > 0) {
-                        this->handler->callback_after_relations();
-                    }
+                    this->call_after_and_before_handlers(UNKNOWN);
                 } catch (Osmium::Input::StopReading) {
                     // if a handler says to stop reading, we do
                 }
@@ -142,10 +129,7 @@ namespace Osmium {
             */
             void parse_group(const OSMPBF::PrimitiveGroup& group, const OSMPBF::StringTable& stringtable) {
                 if (group.has_dense())  {
-                    if (groups_with_nodes == 0) {
-                        this->handler->callback_before_nodes();
-                    }
-                    groups_with_nodes++;
+                    this->call_after_and_before_handlers(NODE);
 
                     // MAGIC: This bit of magic checks whether the empty callback_node function in the
                     // handler base class was overwritten. If it was we parse the nodes from the input
@@ -154,39 +138,21 @@ namespace Osmium {
                         parse_dense_node_group(group, stringtable);
                     }
                 } else if (group.ways_size() != 0) {
-                    if (groups_with_ways == 0) {
-                        if (groups_with_nodes > 0) {
-                            this->handler->callback_after_nodes();
-                        }
-                        this->handler->callback_before_ways();
-                    }
-                    groups_with_ways++;
+                    this->call_after_and_before_handlers(WAY);
 
                     // MAGIC: see above
                     if (typeid(&THandler::callback_way) != typeid(&Osmium::Handler::Base::callback_way)) {
                         parse_way_group(group, stringtable);
                     }
                 } else if (group.relations_size() != 0) {
-                    if (groups_with_relations == 0) {
-                        if (groups_with_nodes > 0 && groups_with_ways == 0) {
-                            this->handler->callback_after_nodes();
-                        }
-                        if (groups_with_ways > 0) {
-                            this->handler->callback_after_ways();
-                        }
-                        this->handler->callback_before_relations();
-                    }
-                    groups_with_relations++;
+                    this->call_after_and_before_handlers(RELATION);
 
                     // MAGIC: see above
                     if (typeid(&THandler::callback_relation) != typeid(&Osmium::Handler::Base::callback_relation)) {
                         parse_relation_group(group, stringtable);
                     }
                 } else if (group.nodes_size() != 0) {
-                    if (groups_with_nodes == 0) {
-                        this->handler->callback_before_nodes();
-                    }
-                    groups_with_nodes++;
+                    this->call_after_and_before_handlers(NODE);
 
                     // MAGIC: see above
                     if (typeid(&THandler::callback_node) != typeid(&Osmium::Handler::Base::callback_node)) {

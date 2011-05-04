@@ -1,12 +1,14 @@
-Source: osmium
-Section: utils
+Source: libosmium-dev
+Section: libdevel
 Priority: optional
-Maintainer: Frederik Ramm <frederik@remote.org>
-Build-Depends: debhelper (>= 7), libgeos-dev, libv8-dev, libprotobuf-dev, protobuf-compiler, libshp-dev, libsparsehash-dev, libgd2-xpm-dev, libsqlite3-dev, libicu-dev, libosmpbf-dev
+Maintainer: Jochen Topf <jochen@topf.org>
+Build-Depends: debhelper (>= 7)
 Standards-Version: 3.9.1
+Homepage: http://wiki.openstreetmap.org/wiki/Osmium
 
-Package: osmium
+Package: libosmium-dev
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: A universal OpenStreetMap data processor.
- Includes tools to convert OSM data to shape files.
+Depends: ${shlibs:Depends}, ${misc:Depends}, libosmpbf-dev
+Recommends: libgeos-dev, libv8-dev, libshp-dev, libsparsehash-dev, libgd2-xpm-dev, libsqlite3-dev, libicu-dev
+Description: A universal OpenStreetMap data processor framework.
+ C++ framework for working with OpenStreetMap data.

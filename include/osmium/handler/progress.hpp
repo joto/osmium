@@ -66,8 +66,8 @@ namespace Osmium {
 
             /**
              * Initialize handler.
-             * @params s Step, after how many nodes/ways/relations the display
-             *           should be updated. (default 1000).
+             * @param s Step, after how many nodes/ways/relations the display
+             *          should be updated. (default 1000).
              */
             Progress(int s=1000) : Base(), count_nodes(0), count_ways(0), count_relations(0), step(s), is_a_tty(false) {
                 if (isatty(1)) {

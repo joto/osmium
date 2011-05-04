@@ -5,16 +5,17 @@
 #------------------------------------------------------------------------------
 
 all:
-	$(MAKE) -C osmjs
-	$(MAKE) -C examples
 
 clean:
-	$(MAKE) -C osmjs clean
-	$(MAKE) -C examples clean
+	rm -fr doc/html
 
 install:
-	$(MAKE) -C osmjs install
-	$(MAKE) -C examples install
+	install -m 755 -g root -o root -d $(DESTDIR)/usr/include
+	install -m 755 -g root -o root -d $(DESTDIR)/usr/share/doc/libosmium-dev
+	install -m 644 -g root -o root README $(DESTDIR)/usr/share/doc/libosmium-dev/README
+	install -m 644 -g root -o root include/osmium.hpp $(DESTDIR)/usr/include
+	cp --recursive include/osmium $(DESTDIR)/usr/include
+	cp --recursive doc/html $(DESTDIR)/usr/share/doc/libosmium-dev
 
 check:
 	cppcheck --enable=all -I include */*.cpp
@@ -24,8 +25,8 @@ indent:
 
 doc: doc/html/files.html
 
-doc/html/files.html: include/*.hpp
-	doxygen
+doc/html/files.html: include/*.hpp include/*/*.hpp include/*/*/*.hpp
+	doxygen >/dev/null
 
 deb:
 	debuild -I -us -uc

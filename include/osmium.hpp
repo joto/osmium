@@ -81,7 +81,7 @@ struct Osmium::global Osmium::global;
 #ifdef OSMIUM_WITH_JAVASCRIPT
 # include <osmium/output.hpp>
 # include <osmium/javascript/object_templates.hpp>
-# include <HandlerJavascript.hpp>
+# include <osmium/HandlerJavascript.hpp>
 # ifdef OSMIUM_MAIN
 namespace Osmium {
 

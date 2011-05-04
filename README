@@ -13,15 +13,15 @@ Available handlers include:
 * Multipolygon handler (assembles multipolygons from relations and ways)
 * NodeLocationStore handler (stores node locations and builds way geometries from them)
 * Statistics handler (does some general statistics)
+* (others...)
 
 Of course, you can also write your own handlers.
 
 There are a few applications that use Osmium in the examples directory.
 
-Currently there are two major applications build on top of and available with Osmium:
-* osmjs - calls your Javascript code, it can optionally assemble multipolygons for you
-* tagstats - creates statistics about tags for Taginfo
-             (distributed separately, see http://taginfo.openstreetmap.de/)
+The osmjs directory contains the osmjs application that calls your Javascript code
+which can then work with the OSM data. It can, for instance, be used to convert
+OSM data into Shapefiles.
 
 Note that OSM input files must contain objects in the right order for Osmium to
 work properly: first nodes, then ways, then relations. Normally OSM files are
@@ -101,16 +101,19 @@ BUILDING
 
 First you need to (build and) install all the prerequisites.
 
-To build everything just call "make" in the top-level directory. To build
-only the osmjs or example application call "make" in those directories,
-respectively.
-
-Call "make clean" in any of those places to clean up.
+Osmium is a header-only library, so there is nothing to build for the
+library itself.
 
 Call "make doc" in the top-level directory to build the Osmium C++ docs.
 
-Call "make install" to install osmjs. There is no install target for the
-examplae applications.
+Call "make install" to install the include files and documentation.
+
+To build the example applications go into the "examples" directory and
+call "make".
+
+See "osmjs/README" for build instructions of osmjs.
+
+Call "make clean" in any of those places to clean up.
 
 
 LICENSE

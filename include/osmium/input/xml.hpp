@@ -36,13 +36,12 @@ namespace Osmium {
 
     namespace Input {
 
-        template <class THandler> class XML : public Base<THandler> {
+        template <class THandler>
+        class XML : public Base<THandler> {
 
             static const int buffer_size = 10240;
 
             int fd; ///< The file descriptor we are reading the data from.
-
-            osm_object_type_t last_object_type;
 
             Osmium::OSM::Object *current_object;
 
@@ -56,14 +55,18 @@ namespace Osmium {
 
         public:
 
+            /**
+            * Instantiate XML Parser
+            *
+            * @param in_fd File descripter to read data from.
+            * @param h Instance of THandler or NULL.
+            */
             XML(int in_fd, THandler *h) __attribute__((noinline)) : Base<THandler>(h), fd(in_fd) {
             }
 
             void parse() __attribute__((noinline)) {
                 int done;
                 current_object = 0;
-
-                last_object_type = NODE;
 
                 XML_Parser parser = XML_ParserCreate(0);
                 if (!parser) {
@@ -73,8 +76,6 @@ namespace Osmium {
                 XML_SetUserData(parser, this);
 
                 XML_SetElementHandler(parser, Osmium::Input::XML<THandler>::start_element_wrapper, Osmium::Input::XML<THandler>::end_element_wrapper);
-
-                this->handler->callback_before_nodes();
 
                 try {
                     do {
@@ -106,13 +107,7 @@ namespace Osmium {
 
                 XML_ParserFree(parser);
 
-                if(last_object_type == NODE)
-                    this->handler->callback_after_nodes();
-
-                if(last_object_type == WAY)
-                    this->handler->callback_after_ways();
-
-                this->handler->callback_after_relations();
+                this->call_after_and_before_handlers(UNKNOWN);
             }
 
         private:
@@ -140,9 +135,7 @@ namespace Osmium {
                         }
                     }
                 } else if (!strcmp(element, "node")) {
-                    if (last_object_type != NODE) {
-                        throw std::runtime_error("OSM files must be ordered: first nodes, then ways, then relations. You can use Osmosis with the --sort option to do this.");
-                    }
+                    this->call_after_and_before_handlers(NODE);
                     init_object(this->node, attrs);
                 } else if (!strcmp(element, "tag")) {
                     const char *key = "", *value = "";
@@ -159,14 +152,7 @@ namespace Osmium {
                         current_object->add_tag(key, value);
                     }
                 } else if (!strcmp(element, "way")) {
-                    if (last_object_type == NODE) {
-                        this->handler->callback_after_nodes();
-                        last_object_type = WAY;
-                        this->handler->callback_before_ways();
-                    }
-                    if (last_object_type == RELATION) {
-                        throw std::runtime_error("OSM files must be ordered: first nodes, then ways, then relations. You can use Osmosis with the --sort option to do this.");
-                    }
+                    this->call_after_and_before_handlers(WAY);
                     init_object(this->way, attrs);
                 } else if (!strcmp(element, "member")) {
                     char        type = 'x';
@@ -184,14 +170,7 @@ namespace Osmium {
                     // XXX assert type, ref, role are set
                     this->relation->add_member(type, ref, role);
                 } else if (!strcmp(element, "relation")) {
-                    if (last_object_type == WAY) {
-                        this->handler->callback_after_ways();
-                        last_object_type = RELATION;
-                        this->handler->callback_before_relations();
-                    }
-                    if (last_object_type == NODE) {
-                        throw std::runtime_error("OSM files must be ordered: first nodes, then ways, then relations. You can use Osmosis with the --sort option to do this.");
-                    }
+                    this->call_after_and_before_handlers(RELATION);
                     init_object(this->relation, attrs);
                 }
             }

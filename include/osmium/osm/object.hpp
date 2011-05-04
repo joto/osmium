@@ -189,7 +189,7 @@ namespace Osmium {
 
             /**
              * Return timestamp as string.
-             * @returns Pointer to \0-terminated string in a static buffer.
+             * @returns Pointer to null-terminated string in a static buffer.
              */
             const char *get_timestamp_str() const {
                 static char timestamp_str[max_length_timestamp+1];

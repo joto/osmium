@@ -23,7 +23,7 @@ build-stamp: configure-stamp
 	dh_testdir
 
 	# Add here commands to compile the package.
-	$(MAKE) doc
+	$(MAKE)
 
 	touch $@
 
@@ -43,8 +43,8 @@ install: build
 	dh_prep
 	dh_installdirs
 
-	# Add here commands to install the package into debian/libosmium-dev.
-	$(MAKE) DESTDIR=$(CURDIR)/debian/libosmium-dev install
+	# Add here commands to install the package into debian/osmjs.
+	$(MAKE) DESTDIR=$(CURDIR)/debian/osmjs install
 
 
 # Build architecture-independent files here.
@@ -55,7 +55,7 @@ binary-indep: build install
 binary-arch: build install
 	dh_testdir
 	dh_testroot
-	dh_installchangelogs
+	dh_installchangelogs 
 	dh_installdocs
 	dh_installexamples
 	dh_install
