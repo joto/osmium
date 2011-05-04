@@ -48,13 +48,13 @@ namespace Osmium {
             void callback_init() const {
             }
 
-            void callback_object(OSM::Object *) const {
+            void callback_object(Osmium::OSM::Object *) const {
             }
 
             void callback_before_nodes() const {
             }
 
-            void callback_node(OSM::Node *) const {
+            void callback_node(Osmium::OSM::Node *) const {
             }
 
             void callback_after_nodes() const {
@@ -63,7 +63,7 @@ namespace Osmium {
             void callback_before_ways() const {
             }
 
-            void callback_way(OSM::Way *) const {
+            void callback_way(Osmium::OSM::Way *) const {
             }
 
             void callback_after_ways() const {
@@ -72,13 +72,13 @@ namespace Osmium {
             void callback_before_relations() const {
             }
 
-            void callback_relation(OSM::Relation *) const {
+            void callback_relation(Osmium::OSM::Relation *) const {
             }
 
             void callback_after_relations() const {
             }
 
-            void callback_multipolygon(OSM::Multipolygon *) const {
+            void callback_multipolygon(Osmium::OSM::Multipolygon *) const {
             }
 
             void callback_final() const {
