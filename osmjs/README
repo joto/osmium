@@ -39,11 +39,14 @@ Calling osmjs
 
 osmjs [OPTIONS] OSMFILE
 
-OSMFILE can be an OSM XML (suffix .osm) or PBF (suffix .osm.pbf) file.  In
+OSMFILE can be an OSM XML (suffix .osm) or PBF (suffix .osm.pbf) file. In
 single-pass mode it can also be '-' to read an XML file from stdin.
 
 See osmjs --help for the options. You must at least give the --javascript/-j
 option with a javascript filename.
+
+You need to use the --location-store/-l option if you want way geometries.
+This can take a lot of memory! See "osmjs --help" for more info.
 
 
 Note for 32 bit systems
