@@ -47,19 +47,19 @@ namespace Osmium {
                 xmlTextWriterWriteFormatAttribute(w, BAD_CAST "version", "%d", e->version);
                 xmlTextWriterWriteFormatAttribute(w, BAD_CAST "changeset", "%d", e->changeset);
                 xmlTextWriterWriteFormatAttribute(w, BAD_CAST "timestamp", "%s", e->get_timestamp_str());
-                
+
                 // uid == 0 -> anonymous
                 if(e->uid > 0) {
                     xmlTextWriterWriteFormatAttribute(w, BAD_CAST "uid", "%d", e->uid);
                     xmlTextWriterWriteFormatAttribute(w, BAD_CAST "user", "%s", e->user);
                 }
-                
+
                 if(writeVisibleAttr) {
                     if(e->visible)
                         xmlTextWriterWriteAttribute(w, BAD_CAST "visible", BAD_CAST "true");
                     else
                         xmlTextWriterWriteAttribute(w, BAD_CAST "visible", BAD_CAST "false");
-                
+
                 }
             }
 
@@ -80,15 +80,15 @@ namespace Osmium {
 
             XML(const char *filename) {
                 writeVisibleAttr = false;
-                
+
                 w = xmlNewTextWriterFilename(filename, 0);
                 xmlTextWriterSetIndent(w, 1);
                 xmlTextWriterStartDocument(w, NULL, "utf-8", NULL); // <?xml .. ?>
-                
+
                 xmlTextWriterStartElement(w, BAD_CAST "osm");  // <osm>
                 xmlTextWriterWriteAttribute(w, BAD_CAST "version", BAD_CAST "0.6");
                 xmlTextWriterWriteAttribute(w, BAD_CAST "generator", BAD_CAST "MaZderMind's History Splitter <https://github.com/MaZderMind/OpenStreetMap-History-API/tree/master/splitter>");
-                
+
                 //js_object = v8::Persistent<v8::Object>::New( Osmium::Javascript::Template::create_output_xml_instance(this) );
             }
 
@@ -100,64 +100,64 @@ namespace Osmium {
 
             void writeBounds(double minlat, double minlon, double maxlat, double maxlon) {
                 xmlTextWriterStartElement(w, BAD_CAST "bounds"); // <bounds>
-                
+
                 xmlTextWriterWriteFormatAttribute(w, BAD_CAST "minlat", "%f", minlat);
                 xmlTextWriterWriteFormatAttribute(w, BAD_CAST "minlon", "%f", minlon);
                 xmlTextWriterWriteFormatAttribute(w, BAD_CAST "maxlat", "%f", maxlat);
                 xmlTextWriterWriteFormatAttribute(w, BAD_CAST "maxlon", "%f", maxlon);
-                
+
                 xmlTextWriterEndElement(w); // </bounds>
             }
 
             void write(Osmium::OSM::Node* e) {
                 xmlTextWriterStartElement(w, BAD_CAST "node"); // <node>
-                
+
                 this->writeMeta(e);
-                
+
                 xmlTextWriterWriteFormatAttribute(w, BAD_CAST "lat", "%f", e->get_lat());
                 xmlTextWriterWriteFormatAttribute(w, BAD_CAST "lon", "%f", e->get_lon());
-                
+
                 this->writeTags(e);
-                
+
                 xmlTextWriterEndElement(w); // </node>
             }
-            
+
             void write(Osmium::OSM::Way* e) {
                 xmlTextWriterStartElement(w, BAD_CAST "way"); // <way>
-                
+
                 this->writeMeta(e);
-                
+
                 for(int i=0, l=e->node_count(); i<l; i++) {
                     xmlTextWriterStartElement(w, BAD_CAST "nd"); // <nd>
                     xmlTextWriterWriteFormatAttribute(w, BAD_CAST "ref", "%d", e->nodes[i]);
                     xmlTextWriterEndElement(w); // </nd>
                 }
-                
+
                 this->writeTags(e);
-                
+
                 xmlTextWriterEndElement(w); // </way>
             }
-            
+
             void write(Osmium::OSM::Relation* e) {
                 xmlTextWriterStartElement(w, BAD_CAST "relation"); // <relation>
-                
+
                 this->writeMeta(e);
-                
+
                 const Osmium::OSM::RelationMember *mem;
                 for(int i=0, l=e->member_count(); i<l; i++) {
                     mem = e->get_member(i);
-                    
+
                     xmlTextWriterStartElement(w, BAD_CAST "member"); // <member>
-                    
+
                     switch(mem->get_type()) {
                         case 'n':
                             xmlTextWriterWriteAttribute(w, BAD_CAST "type", BAD_CAST "node");
                             break;
-                        
+
                         case 'w':
                             xmlTextWriterWriteAttribute(w, BAD_CAST "type", BAD_CAST "way");
                             break;
-                        
+
                         case 'r':
                             xmlTextWriterWriteAttribute(w, BAD_CAST "type", BAD_CAST "relation");
                             break;
@@ -166,9 +166,9 @@ namespace Osmium {
                     xmlTextWriterWriteFormatAttribute(w, BAD_CAST "role", "%s", mem->get_role());
                     xmlTextWriterEndElement(w); // </member>
                 }
-                
+
                 this->writeTags(e);
-                
+
                 xmlTextWriterEndElement(w); // </relation>
             }
 
