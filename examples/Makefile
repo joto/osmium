@@ -54,8 +54,6 @@ osmium_progress: osmium_progress.cpp
 nodedensity: nodedensity.cpp handler_nodedensity.hpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_GD)
 
-install:
-
 clean:
 	rm -f *.o core $(PROGRAMS)
 

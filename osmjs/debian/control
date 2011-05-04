@@ -1,0 +1,12 @@
+Source: osmjs
+Section: utils
+Priority: optional
+Maintainer: Jochen Topf <jochen@topf.org>
+Build-Depends: debhelper (>= 7)
+Standards-Version: 3.9.1
+
+Package: osmjs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: A universal OpenStreetMap Javascript data processor.
+ Javascript framework for working with OpenStreetMap data.

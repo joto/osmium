@@ -1,4 +1,4 @@
-libosmium-dev (0.1) maverick; urgency=low
+osmjs (0.1) maverick; urgency=low
 
   * Initial standalone debian package
 

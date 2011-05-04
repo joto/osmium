@@ -26,6 +26,14 @@ multipolygons. It can sometimes close open rings and work around
 self-intersecting rings.
 
 
+Building osmjs
+---------------
+
+You must have the prerequisites for Osmium installed. See ../README.
+
+Call "make" in this directory to build osmjs.
+
+
 Calling osmjs
 -------------
 

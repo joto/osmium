@@ -45,7 +45,15 @@ install:
 	install -m 755 -g root -o root osmjs $(DESTDIR)/usr/bin/osmjs
 	install -m 755 -g root -o root -d $(DESTDIR)/usr/share/osmjs
 	install -m 644 -g root -o root js/osm2shape.js $(DESTDIR)/usr/share/osmjs/osm2shape.js
+	install -m 755 -g root -o root -d $(DESTDIR)/usr/share/doc/osmjs
+	install -m 644 -g root -o root README $(DESTDIR)/usr/share/doc/osmjs/README
     
 clean:
 	rm -f *.o core osmjs
+
+deb:
+	debuild -I -us -uc
+
+deb-clean:
+	debuild clean
 
