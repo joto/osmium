@@ -131,14 +131,7 @@ namespace Osmium {
                 if (!strcmp(element, "nd")) {
                     for (int count = 0; attrs[count]; count += 2) {
                         if (!strcmp(attrs[count], "ref")) {
-                            try
-                            {
-                                this->way->add_node(atoll(attrs[count+1]));
-                            }
-                            catch(std::range_error&)
-                            {
-                                fprintf(stderr, "error reading nodes of way %d v%d (std::range_error)\n", this->way->id, this->way->version);
-                            }
+                            this->way->add_node(atoll(attrs[count+1]));
                         }
                     }
                 } else if (!strcmp(element, "node")) {
@@ -175,14 +168,7 @@ namespace Osmium {
                         }
                     }
                     // XXX assert type, ref, role are set
-                    try
-                    {
-                        this->relation->add_member(type, ref, role);
-                    }
-                    catch(std::range_error&)
-                    {
-                        fprintf(stderr, "error reading members of relation %d v%d (std::range_error)\n", this->relation->id, this->relation->version);
-                    }
+                    this->relation->add_member(type, ref, role);
                 } else if (!strcmp(element, "relation")) {
                     this->call_after_and_before_handlers(RELATION);
                     init_object(this->relation, attrs);
