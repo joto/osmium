@@ -65,7 +65,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 # include <geos/geomgraph/index/SegmentIntersector.h>
 
 // this should come from /usr/include/geos/algorithm, but its missing there in some Ubuntu versions
-# include "../include/CGAlgorithms.h"
+# include "../CGAlgorithms.h"
 #endif // OSMIUM_WITH_GEOS
 
 #ifdef OSMIUM_WITH_SHPLIB
