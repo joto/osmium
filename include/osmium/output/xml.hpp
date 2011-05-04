@@ -27,6 +27,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 // this is required to allow using libxml's xmlwriter in paralell to expat xml parser under debian
 #undef XMLCALL
 #include <libxml/xmlwriter.h>
+#include <libxml/xmlIO.h>
 
 #include <osmium/osm/node.hpp>
 #include <osmium/osm/way.hpp>
@@ -36,11 +37,12 @@ namespace Osmium {
 
     namespace Output {
 
-        class XML {
+        class XML : public Osmfile {
 
         protected:
 
             xmlTextWriterPtr w;
+            FILE *fp;
 
             void writeMeta(Osmium::OSM::Object *e) {
                 xmlTextWriterWriteFormatAttribute(w, BAD_CAST "id", "%d", e->id);
@@ -72,16 +74,9 @@ namespace Osmium {
                 }
             }
 
-        public:
-
-            bool writeVisibleAttr;
-
-            //v8::Persistent<v8::Object> js_object;
-
-            XML(const char *filename) {
+            void init() {
                 writeVisibleAttr = false;
 
-                w = xmlNewTextWriterFilename(filename, 0);
                 xmlTextWriterSetIndent(w, 1);
                 xmlTextWriterStartDocument(w, NULL, "utf-8", NULL); // <?xml .. ?>
 
@@ -92,10 +87,32 @@ namespace Osmium {
                 //js_object = v8::Persistent<v8::Object>::New( Osmium::Javascript::Template::create_output_xml_instance(this) );
             }
 
+
+        public:
+
+            //v8::Persistent<v8::Object> js_object;
+
+            XML(FILE *file) {
+                fprintf(stderr, "writer from fp\n");
+                xmlOutputBufferPtr output = xmlOutputBufferCreateFile(file, NULL);
+                w = xmlNewTextWriter(output);
+                fp = file;
+                init();
+            }
+
+            XML(const char *filename) {
+                w = xmlNewTextWriterFilename(filename, 0);
+                fp = NULL;
+                init();
+            }
+
             ~XML() {
                 xmlTextWriterEndElement(w); // </osm>
                 xmlFreeTextWriter(w);
                 w = NULL;
+                if(fp) {
+                    fclose(fp);
+                }
             }
 
             void writeBounds(double minlat, double minlon, double maxlat, double maxlon) {

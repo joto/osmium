@@ -33,19 +33,22 @@ namespace Osmium {
         public:
 
             std::ofstream out;
-
+#ifdef OSMIUM_WITH_JAVASCRIPT
             v8::Persistent<v8::Object> js_object;
+#endif // OSMIUM_WITH_JAVASCRIPT
 
             CSV(const char *filename) {
                 out.open(filename);
+#ifdef OSMIUM_WITH_JAVASCRIPT
                 js_object = v8::Persistent<v8::Object>::New( Osmium::Javascript::Template::create_output_csv_instance(this) );
+#endif // OSMIUM_WITH_JAVASCRIPT
             }
 
             ~CSV() {
                 out.flush();
                 out.close();
             }
-
+#ifdef OSMIUM_WITH_JAVASCRIPT
             v8::Handle<v8::Object> get_js_object() const {
                 return js_object;
             }
@@ -66,7 +69,7 @@ namespace Osmium {
                 out.close();
                 return v8::Undefined();
             }
-
+#endif // OSMIUM_WITH_JAVASCRIPT
         }; // class CSV
 
     } // namespace Output

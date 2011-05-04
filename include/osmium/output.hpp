@@ -28,11 +28,30 @@ namespace Osmium {
      * @brief Namespace for classes implementing file output.
      */
     namespace Output {
+
+        /**
+         * @brief base class of all osmfile writers
+         */
+        class Osmfile {
+
+            public:
+
+                bool writeVisibleAttr;
+
+                virtual ~Osmfile() {}
+
+                virtual void writeBounds(double minlat, double minlon, double maxlat, double maxlon) = 0;
+                virtual void write(Osmium::OSM::Node* e) = 0;
+                virtual void write(Osmium::OSM::Way* e) = 0;
+                virtual void write(Osmium::OSM::Relation* e) = 0;
+        };
+
     } // namespace Output
 
 } // namespace Osmium
 
 #include <osmium/output/csv.hpp>
 #include <osmium/output/shapefile.hpp>
+#include <osmium/output/xml.hpp>
 
 #endif // OSMIUM_OUTPUT_HPP
