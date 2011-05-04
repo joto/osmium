@@ -93,7 +93,6 @@ namespace Osmium {
             //v8::Persistent<v8::Object> js_object;
 
             XML(FILE *file) {
-                fprintf(stderr, "writer from fp\n");
                 xmlOutputBufferPtr output = xmlOutputBufferCreateFile(file, NULL);
                 w = xmlNewTextWriter(output);
                 fp = file;
