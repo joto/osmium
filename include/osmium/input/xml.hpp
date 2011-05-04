@@ -55,6 +55,12 @@ namespace Osmium {
 
         public:
 
+            /**
+            * Instantiate XML Parser
+            *
+            * @param in_fd File descripter to read data from.
+            * @param h Instance of THandler or NULL.
+            */
             XML(int in_fd, THandler *h) __attribute__((noinline)) : Base<THandler>(h), fd(in_fd) {
             }
 

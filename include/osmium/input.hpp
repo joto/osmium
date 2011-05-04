@@ -51,13 +51,13 @@ namespace Osmium {
          * names a class on which callbacks will be called. The class should
          * implement one or more of the following functions:
          *
-         * callback_init(),
-         * callback_object(Osmium::OSM::Object *),
-         * callback_before_nodes/ways/relations(),
-         * callback_node/way/relation(Osmium::OSM::Node/Way/Relation *),
-         * callback_after_nodes/ways/relations(),
-         * callback_final(),
-         * callback_multipolygon(Osmium::OSM::Multipolygon *)
+         * - callback_init()
+         * - callback_object(Osmium::OSM::Object *)
+         * - callback_before_nodes/ways/relations()
+         * - callback_node/way/relation(Osmium::OSM::Node/Way/Relation *)
+         * - callback_after_nodes/ways/relations()
+         * - callback_final()
+         * - callback_multipolygon(Osmium::OSM::Multipolygon *)
          *
          * callback_init() will be called before all others, callback_final()
          * after all others.

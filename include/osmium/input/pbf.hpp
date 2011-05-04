@@ -67,6 +67,7 @@ namespace Osmium {
             * Instantiate PBF Parser
             *
             * @param in_fd File descripter to read data from.
+            * @param h Instance of THandler or NULL.
             */
             PBF(int in_fd, THandler *h) __attribute__((noinline)) : Base<THandler>(h), fd(in_fd) {
                 GOOGLE_PROTOBUF_VERIFY_VERSION;

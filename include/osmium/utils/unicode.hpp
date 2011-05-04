@@ -66,7 +66,7 @@ public:
  * Convert C string with UTF-8 codes into v8::String.
  *
  * @exception UTF8_to_UTF16_Conversion_Error Thrown if the conversion failed.
- * @param characters Maximum number of Unicode characters.
+ * @tparam characters Maximum number of Unicode characters.
  * @param cstring A NULL terminated C string.
  * @return A local handle to a v8 String.
  */
@@ -85,7 +85,7 @@ template<int characters> v8::Local<v8::String> utf8_to_v8_String(const char *cst
  * Convert v8::String into C string with UTF-8 codes.
  *
  * @exception UTF16_to_UTF8_Conversion_Error Thrown if the conversion failed.
- * @param characters Maximum number of Unicode characters.
+ * @tparam characters Maximum number of Unicode characters.
  * @param string A v8::String.
  * @return Returns a pointer to a static buffer with a NULL terminated C string.
  */
