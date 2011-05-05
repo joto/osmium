@@ -97,7 +97,7 @@ namespace Osmium {
             if (osmfilename[0] == '-' && osmfilename[1] == '\0') {
                 // fd is already STDOUT
                 if (!strcmp(suffix, ".bz2")) {
-                    char cmd[250] = "bzip2 -c";
+                    char cmd[250] = "bzip2 -c9";
 
                     fd = popen(cmd, "w");
                     int d = fileno(fd);
@@ -106,13 +106,13 @@ namespace Osmium {
                         std::cerr << "Can't open bzip2 process: " << strerror(errno) << std::endl;
                         exit(1);
                     }
+                    fcntl(d, F_SETFL, O_NONBLOCK);
                 } else {
-                    fprintf(stderr, "using stdout\n");
                     fd = stdout;
                 }
             } else {
                 if (!strcmp(suffix, ".bz2")) {
-                    char cmd[250] = "bzip2 -c >";
+                    char cmd[250] = "bzip2 -c9 >";
                     strncat(cmd, osmfilename, 200);
 
                     fd = popen(cmd, "w");
@@ -122,6 +122,7 @@ namespace Osmium {
                         std::cerr << "Can't open bzip2 process: " << strerror(errno) << std::endl;
                         exit(1);
                     }
+                    fcntl(d, F_SETFL, O_NONBLOCK);
                 } else {
                     fd = fopen(osmfilename, "w");
                     int d = fileno(fd);
@@ -130,14 +131,14 @@ namespace Osmium {
                         std::cerr << "Can't open osm file: " << strerror(errno) << std::endl;
                         exit(1);
                     }
+                    fcntl(d, F_SETFL, O_NONBLOCK);
                 }
             }
 
             Osmium::Output::Osmfile *output;
 
             if (suffix == NULL || !strcmp(suffix, ".osm") || !strcmp(suffix, ".bz2")) {
-                fprintf(stderr, "opening xml-output\n");
-                output = new Osmium::Output::XML(fd);
+                 output = new Osmium::Output::XML(fd);
             //} else if (!strcmp(suffix, ".pbf")) {
             //    output = new Osmium::Output::PBF(fd);
             } else {
