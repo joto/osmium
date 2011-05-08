@@ -771,7 +771,7 @@ namespace Osmium {
                 // collect the remaining debris (=unused ways) and find dangling nodes.
 
                 std::map<int,geos::geom::Point *> dangling_node_map;
-                for (std::vector<WayInfo *>::iterator i = ways->begin(); i != ways->end(); i++) {
+                for (std::vector<WayInfo *>::iterator i(ways->begin()); i != ways->end(); i++) {
                     if ((*i)->used < 0) {
                         (*i)->innerouter = UNSET;
                         (*i)->used = -1;
@@ -796,7 +796,7 @@ namespace Osmium {
 
                     // find one pair consisting of a random node from the list (node1)
                     // plus the node that lies closest to it.
-                    for (std::map<int,geos::geom::Point *>::iterator i = dangling_node_map.begin(); i!= dangling_node_map.end(); i++) {
+                    for (std::map<int,geos::geom::Point *>::iterator i(dangling_node_map.begin()); i!= dangling_node_map.end(); i++) {
                         if (!i->second) continue;
                         if (node1 == NULL) {
                             node1 = i->second;
@@ -858,7 +858,7 @@ namespace Osmium {
                 // and some extra flags.
 
                 START_TIMER(assemble_ways);
-                for (std::vector<Way>::iterator i = member_ways.begin(); i != member_ways.end(); i++) {
+                for (std::vector<Way>::iterator i(member_ways.begin()); i != member_ways.end(); i++) {
                     if (i->get_timestamp() > timestamp) timestamp = i->get_timestamp();
                     WayInfo *wi = new WayInfo(&(*i), UNSET);
                     if (wi->way_geom) {
@@ -877,9 +877,9 @@ namespace Osmium {
 
                 // convenience defines to aid in clearing up on error return.
 #define clear_ringlist() \
-                for (std::vector<RingInfo *>::const_iterator rli = ringlist.begin(); rli != ringlist.end(); rli++) delete *rli;
+                for (std::vector<RingInfo *>::const_iterator rli(ringlist.begin()); rli != ringlist.end(); rli++) delete *rli;
 #define clear_wayinfo() \
-                for (std::vector<WayInfo *>::const_iterator win = ways.begin(); win != ways.end(); win++) delete *win;
+                for (std::vector<WayInfo *>::const_iterator win(ways.begin()); win != ways.end(); win++) delete *win;
 
                 // try and create as many closed rings as possible from the assortment
                 // of ways. make_one_ring will automatically flag those that have been

@@ -180,7 +180,7 @@ namespace Osmium {
 
                 v8::TryCatch tryCatch;
 
-                for (std::vector<std::string>::iterator vi = include_files.begin(); vi != include_files.end(); vi++) {
+                for (std::vector<std::string>::const_iterator vi(include_files.begin()); vi != include_files.end(); vi++) {
                     if (Osmium::global.debug) {
                         std::cerr << "include javascript file: " << *vi << std::endl;
                     }

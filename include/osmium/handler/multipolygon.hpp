@@ -92,7 +92,7 @@ namespace Osmium {
 
             // in pass 2
             void callback_way(OSM::Way *way) {
-                way2mpidx_t::iterator way2mpidx_iterator = way2mpidx.find(way->get_id());
+                way2mpidx_t::const_iterator way2mpidx_iterator(way2mpidx.find(way->get_id()));
 
                 if (way2mpidx_iterator == way2mpidx.end()) { // not in any relation
                     if (way->is_closed()) { // way is closed, build simple multipolygon
