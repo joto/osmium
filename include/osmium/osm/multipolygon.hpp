@@ -1222,7 +1222,7 @@ namespace Osmium {
 /*                if (!strcmp(*key, "as_wkt")) {
                 } else if (!strcmp(*key, "as_ewkt")) {
                 } else*/ if (!strcmp(*key, "as_array")) {
-                    if (geometry->getGeometryTypeid() == geos::geom::GEOS_MULTIPOLYGON) {
+                    if (geometry->getGeometryTypeId() == geos::geom::GEOS_MULTIPOLYGON) {
                         v8::Local<v8::Array> multipolygon_array = v8::Array::New(geometry->getNumGeometries());
 
                         for (size_t i=0; i < geometry->getNumGeometries(); i++) {
