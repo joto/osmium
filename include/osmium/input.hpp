@@ -114,7 +114,7 @@ namespace Osmium {
 
             Base(THandler *h) __attribute__((noinline)) : handler(h), last_object_type(UNKNOWN) {
                 node     = new Osmium::OSM::Node;
-                way      = new Osmium::OSM::Way;
+                way      = new Osmium::OSM::Way(2000); // create way object with space for 2000 nodes
                 relation = new Osmium::OSM::Relation;
 
                 if (handler) {

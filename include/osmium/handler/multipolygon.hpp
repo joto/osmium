@@ -66,7 +66,7 @@ namespace Osmium {
                 }
 
                 int num_ways = 0;
-                for (int i=0; i < relation->member_count(); i++) {
+                for (osm_sequence_id_t i=0; i < relation->member_count(); i++) {
                     const Osmium::OSM::RelationMember *member = relation->get_member(i);
                     if (member->type == 'w') {
                         way2mpidx[member->ref].push_back(multipolygons.size());

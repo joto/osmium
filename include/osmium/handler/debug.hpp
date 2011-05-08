@@ -47,27 +47,27 @@ namespace Osmium {
                 }
             }
 
-            void callback_node(const OSM::Node *object) const {
+            void callback_node(const OSM::Node *node) const {
                 std::cout << "  node:" << std::endl;
-                std::cout << "    lon=" << object->get_lon() << std::endl;
-                std::cout << "    lat=" << object->get_lat() << std::endl;
+                std::cout << "    lon=" << node->get_lon() << std::endl;
+                std::cout << "    lat=" << node->get_lat() << std::endl;
             }
 
-            void callback_way(const OSM::Way *object) const {
+            void callback_way(const OSM::Way *way) const {
                 std::cout << "  way:" << std::endl;
-                std::cout << "    node_count=" << object->node_count() << std::endl;
+                std::cout << "    node_count=" << way->node_count() << std::endl;
                 std::cout << "    nodes:" << std::endl;
-                for (int i=0; i < object->node_count(); i++) {
-                    std::cout << "      ref=" << object->nodes[i] << std::endl;
+                for (osm_sequence_id_t i=0; i < way->node_count(); i++) {
+                    std::cout << "      ref=" << way->get_node_id(i) << std::endl;
                 }
             }
 
-            void callback_relation(OSM::Relation *object) const {
+            void callback_relation(OSM::Relation *relation) const {
                 std::cout << "  relation:" << std::endl;
-                std::cout << "    member_count=" << object->member_count() << std::endl;
+                std::cout << "    member_count=" << relation->member_count() << std::endl;
                 std::cout << "    members:" << std::endl;
-                for (int i=0; i < object->member_count(); i++) {
-                    const Osmium::OSM::RelationMember *m = object->get_member(i);
+                for (osm_sequence_id_t i=0; i < relation->member_count(); i++) {
+                    const Osmium::OSM::RelationMember *m = relation->get_member(i);
                     std::cout << "      type=" << m->type << " ref=" << m->ref << " role=|" << m->role << "|" << std::endl;
                 }
             }

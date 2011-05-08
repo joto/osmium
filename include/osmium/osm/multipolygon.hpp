@@ -232,8 +232,8 @@ namespace Osmium {
         class MultipolygonFromWay : public Multipolygon {
 
             osm_sequence_id_t num_nodes;
-            double            lon[Osmium::OSM::Way::max_nodes_in_way];
-            double            lat[Osmium::OSM::Way::max_nodes_in_way];
+            double           *lon; // XXX should this be a vector?
+            double           *lat;
 
         public:
 
@@ -252,10 +252,20 @@ namespace Osmium {
                 tags      = way->tags;
 
                 num_nodes = way->node_count();
-                for (int i=0; i < num_nodes; i++) {
-                    lon[i] = way->lon[i];
-                    lat[i] = way->lat[i];
+                lon = (double *) malloc(sizeof(double) * num_nodes);
+                lat = (double *) malloc(sizeof(double) * num_nodes);
+                if (!lon || !lat) {
+                    throw std::bad_alloc();
                 }
+                for (osm_sequence_id_t i=0; i < num_nodes; i++) {
+                    lon[i] = way->get_lon(i);
+                    lat[i] = way->get_lat(i);
+                }
+            }
+
+            ~MultipolygonFromWay() {
+                free(lat);
+                free(lon);
             }
 
             osm_object_type_t get_type() const {

@@ -94,7 +94,7 @@ namespace Osmium {
             }
 
             const RelationMember *get_member(osm_sequence_id_t index) const {
-                if (index >= 0 && index < num_members) {
+                if (index < num_members) {
                     return &members[index];
                 }
                 return NULL;

@@ -67,9 +67,9 @@ namespace Osmium {
             NodeLocationStore() : Base() {
             }
 
-            virtual void callback_node(const OSM::Node *object) = 0;
+            virtual void callback_node(const OSM::Node *node) = 0;
             virtual void callback_after_nodes() = 0;
-            virtual void callback_way(OSM::Way *object) = 0;
+            virtual void callback_way(OSM::Way *way) = 0;
 
         }; // class NodeLocationStore
 
@@ -108,10 +108,10 @@ namespace Osmium {
                 free(coordinates);
             }
 
-            void callback_node(const OSM::Node *object) {
-                const osm_object_id_t id = object->get_id() + NodeLocationStore::negative_id_offset;
-                coordinates[id].x = double_to_fix(object->get_lon());
-                coordinates[id].y = double_to_fix(object->get_lat());
+            void callback_node(const OSM::Node *node) {
+                const osm_object_id_t id = node->get_id() + NodeLocationStore::negative_id_offset;
+                coordinates[id].x = double_to_fix(node->get_lon());
+                coordinates[id].y = double_to_fix(node->get_lat());
             }
 
             void callback_after_nodes() {
@@ -120,11 +120,11 @@ namespace Osmium {
                 }
             }
 
-            void callback_way(OSM::Way *object) {
-                const osm_sequence_id_t num_nodes = object->node_count();
+            void callback_way(OSM::Way *way) {
+                const osm_sequence_id_t num_nodes = way->node_count();
                 for (osm_sequence_id_t i=0; i < num_nodes; i++) {
-                    osm_object_id_t node_id = object->nodes[i] + NodeLocationStore::negative_id_offset;
-                    object->set_node_coordinates(i, fix_to_double(coordinates[node_id].x), fix_to_double(coordinates[node_id].y));
+                    osm_object_id_t node_id = way->get_node_id(i) + NodeLocationStore::negative_id_offset;
+                    way->set_node_coordinates(i, fix_to_double(coordinates[node_id].x), fix_to_double(coordinates[node_id].y));
                 }
             }
 
@@ -151,15 +151,15 @@ namespace Osmium {
                 nodes_table.resize(max_id+1);
             }
 
-            void callback_node(const OSM::Node *object) {
-                osm_object_id_t id = object->get_id() + NodeLocationStore::negative_id_offset;
+            void callback_node(const OSM::Node *node) {
+                osm_object_id_t id = node->get_id() + NodeLocationStore::negative_id_offset;
                 if (id > max_id) {
                     max_id = id;
                     nodes_table.resize(max_id + 1000); // XXX
                 }
                 struct coordinates c = {
-                    double_to_fix(object->get_lon()),
-                    double_to_fix(object->get_lat())
+                    double_to_fix(node->get_lon()),
+                    double_to_fix(node->get_lat())
                 };
                 nodes_table[id] = c;
             }
@@ -170,11 +170,11 @@ namespace Osmium {
                 }
             }
 
-            void callback_way(OSM::Way *object) {
-                osm_sequence_id_t num_nodes = object->node_count();
+            void callback_way(OSM::Way *way) {
+                osm_sequence_id_t num_nodes = way->node_count();
                 for (osm_sequence_id_t i=0; i < num_nodes; i++) {
-                    struct coordinates c = nodes_table[object->nodes[i] + NodeLocationStore::negative_id_offset];
-                    object->set_node_coordinates(i, fix_to_double(c.x), fix_to_double(c.y));
+                    struct coordinates c = nodes_table[way->get_node_id(i) + NodeLocationStore::negative_id_offset];
+                    way->set_node_coordinates(i, fix_to_double(c.x), fix_to_double(c.y));
                 }
             }
 
@@ -222,10 +222,10 @@ namespace Osmium {
                 munmap(coordinates,  sizeof(struct coordinates) * max_nodes);
             }
 
-            void callback_node(const OSM::Node *object) {
-                const osm_object_id_t id = object->get_id() + NodeLocationStore::negative_id_offset;
-                coordinates[id].x = double_to_fix(object->get_lon());
-                coordinates[id].y = double_to_fix(object->get_lat());
+            void callback_node(const OSM::Node *node) {
+                const osm_object_id_t id = node->get_id() + NodeLocationStore::negative_id_offset;
+                coordinates[id].x = double_to_fix(node->get_lon());
+                coordinates[id].y = double_to_fix(node->get_lat());
             }
 
             void callback_after_nodes() {
@@ -234,11 +234,11 @@ namespace Osmium {
                 }
             }
 
-            void callback_way(OSM::Way *object) {
-                const osm_sequence_id_t num_nodes = object->node_count();
+            void callback_way(OSM::Way *way) {
+                const osm_sequence_id_t num_nodes = way->node_count();
                 for (osm_sequence_id_t i=0; i < num_nodes; i++) {
-                    osm_object_id_t node_id = object->nodes[i] + NodeLocationStore::negative_id_offset;
-                    object->set_node_coordinates(i, fix_to_double(coordinates[node_id].x), fix_to_double(coordinates[node_id].y));
+                    osm_object_id_t node_id = way->get_node_id(i) + NodeLocationStore::negative_id_offset;
+                    way->set_node_coordinates(i, fix_to_double(coordinates[node_id].x), fix_to_double(coordinates[node_id].y));
                 }
             }
 
