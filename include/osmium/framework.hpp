@@ -96,7 +96,7 @@ namespace Osmium {
 
             if (osmfilename[0] == '-' && osmfilename[1] == '\0') {
                 // fd is already STDOUT
-                if (!strcmp(suffix, ".bz2")) {
+                if (NULL != suffix && !strcmp(suffix, ".bz2")) {
                     char cmd[250] = "bzip2 -c";
 
                     fd = popen(cmd, "w");
@@ -111,7 +111,7 @@ namespace Osmium {
                     fd = stdout;
                 }
             } else {
-                if (!strcmp(suffix, ".bz2")) {
+                if (NULL != suffix && !strcmp(suffix, ".bz2")) {
                     char cmd[250] = "bzip2 -c >";
                     strncat(cmd, osmfilename, 200);
 
