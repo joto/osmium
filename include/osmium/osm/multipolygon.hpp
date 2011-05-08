@@ -1222,19 +1222,22 @@ namespace Osmium {
 /*                if (!strcmp(*key, "as_wkt")) {
                 } else if (!strcmp(*key, "as_ewkt")) {
                 } else*/ if (!strcmp(*key, "as_array")) {
-                    v8::Local<v8::Array> multipolygon_array = v8::Array::New(geometry->getNumGeometries());
+                    if (geometry->getGeometryTypeid() == geos::geom::GEOS_MULTIPOLYGON) {
+                        v8::Local<v8::Array> multipolygon_array = v8::Array::New(geometry->getNumGeometries());
 
-                    for (size_t i=0; i < geometry->getNumGeometries(); i++) {
-                        geos::geom::Polygon *polygon = (geos::geom::Polygon *) geometry->getGeometryN(i);
-                        v8::Local<v8::Array> polygon_array = v8::Array::New(polygon->getNumInteriorRing());
-                        multipolygon_array->Set(v8::Integer::New(i), polygon_array);
-                        polygon_array->Set(v8::Integer::New(0), js_ring_as_array(polygon->getExteriorRing()));
-                        for (size_t j=0; j < polygon->getNumInteriorRing(); j++) {
-                            polygon_array->Set(v8::Integer::New(j+1), js_ring_as_array(polygon->getInteriorRingN(j)));
+                        for (size_t i=0; i < geometry->getNumGeometries(); i++) {
+                            geos::geom::Polygon *polygon = (geos::geom::Polygon *) geometry->getGeometryN(i);
+                            v8::Local<v8::Array> polygon_array = v8::Array::New(polygon->getNumInteriorRing());
+                            multipolygon_array->Set(v8::Integer::New(i), polygon_array);
+                            polygon_array->Set(v8::Integer::New(0), js_ring_as_array(polygon->getExteriorRing()));
+                            for (size_t j=0; j < polygon->getNumInteriorRing(); j++) {
+                                polygon_array->Set(v8::Integer::New(j+1), js_ring_as_array(polygon->getInteriorRingN(j)));
+                            }
                         }
+                        return multipolygon_array;
+                    } else {
+                        return v8::Undefined();
                     }
-
-                    return multipolygon_array;
                 } else {
                     return v8::Undefined();
                 }
