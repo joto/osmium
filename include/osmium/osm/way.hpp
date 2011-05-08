@@ -264,6 +264,10 @@ namespace Osmium {
                 return js_geom_instance;
             }
 
+            v8::Handle<v8::Value> js_get_nodes_length() const {
+                return v8::Number::New(num_nodes);
+            }
+
             v8::Handle<v8::Value> js_get_node_id(uint32_t index) const {
                 if (sizeof(osm_object_id_t) <= 4)
                     return v8::Integer::New(nodes[index]);
