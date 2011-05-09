@@ -212,7 +212,9 @@ namespace Osmium {
                 write(fd, "", 1);
                 coordinates = (struct coordinates *) mmap(NULL, sizeof(struct coordinates) * max_nodes,
                               PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-                std::cout << "mmap " << max_nodes << std::endl;
+                if (Osmium::global.debug) {
+                    std::cerr << "mmap " << max_nodes << std::endl;
+                }
                 if (coordinates == MAP_FAILED) {
                     throw std::bad_alloc();
                 }
