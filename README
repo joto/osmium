@@ -72,7 +72,7 @@ LibICU (for UTF-8/UTF-16 conversion, only for Javascript support)
 
 Google protocol buffers (for PBF support)
     http://code.google.com/p/protobuf/ (at least Version 2.3.0 needed)
-    (Debian/Ubuntu: libprotobuf6, libprotobuf-dev, protobuf-compiler)
+    Debian/Ubuntu: libprotobuf6 libprotobuf-dev protobuf-compiler
     Also see http://wiki.openstreetmap.org/wiki/PBF_Format
 
 OSMPBF (for PBF support)
