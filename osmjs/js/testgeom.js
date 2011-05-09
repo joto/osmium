@@ -1,6 +1,6 @@
 /* test geom output */
 
-Osmium.Callbacks.xnode = function() {
+Osmium.Callbacks.node = function() {
     print("geom.lon:        " + this.geom.lon);
     print("geom.lat:        " + this.geom.lat);
     print("geom.x:          " + this.geom.x);
