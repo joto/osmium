@@ -1,6 +1,7 @@
 core
 doc
 examples/nodedensity
+examples/osmium_convert
 examples/osmium_debug
 examples/osmium_find_bbox
 examples/osmium_progress

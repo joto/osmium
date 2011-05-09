@@ -32,7 +32,11 @@ namespace Osmium {
 
 } // namespace Osmium
 
-#include <osmium/output/csv.hpp>
-#include <osmium/output/shapefile.hpp>
+#include <osmium/output/osm.hpp>
+
+#ifdef OSMIUM_WITH_JAVASCRIPT
+# include <osmium/output/csv.hpp>
+# include <osmium/output/shapefile.hpp>
+#endif
 
 #endif // OSMIUM_OUTPUT_HPP
