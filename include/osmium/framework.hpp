@@ -90,6 +90,64 @@ namespace Osmium {
             close(fd);
         }
 
+        Osmium::Output::Osmfile *open_osmfile_writer(char *osmfilename) const {
+            FILE *fd;
+            char *suffix = strrchr(osmfilename, '.');
+
+            if (osmfilename[0] == '-' && osmfilename[1] == '\0') {
+                // fd is already STDOUT
+                if (NULL != suffix && !strcmp(suffix, ".bz2")) {
+                    char cmd[250] = "bzip2 -c";
+
+                    fd = popen(cmd, "w");
+                    int d = fileno(fd);
+
+                    if (d < 0) {
+                        std::cerr << "Can't open bzip2 process: " << strerror(errno) << std::endl;
+                        exit(1);
+                    }
+                } else {
+                    fprintf(stderr, "using stdout\n");
+                    fd = stdout;
+                }
+            } else {
+                if (NULL != suffix && !strcmp(suffix, ".bz2")) {
+                    char cmd[250] = "bzip2 -c >";
+                    strncat(cmd, osmfilename, 200);
+
+                    fd = popen(cmd, "w");
+                    int d = fileno(fd);
+
+                    if (d < 0) {
+                        std::cerr << "Can't open bzip2 process: " << strerror(errno) << std::endl;
+                        exit(1);
+                    }
+                } else {
+                    fd = fopen(osmfilename, "w");
+                    int d = fileno(fd);
+
+                    if (d < 0) {
+                        std::cerr << "Can't open osm file: " << strerror(errno) << std::endl;
+                        exit(1);
+                    }
+                }
+            }
+
+            Osmium::Output::Osmfile *output;
+
+            if (suffix == NULL || !strcmp(suffix, ".osm") || !strcmp(suffix, ".bz2")) {
+                fprintf(stderr, "opening xml-output\n");
+                output = new Osmium::Output::XML(fd);
+            //} else if (!strcmp(suffix, ".pbf")) {
+            //    output = new Osmium::Output::PBF(fd);
+            } else {
+                std::cerr << "Unknown file suffix: " << suffix << std::endl;
+                exit(1);
+            }
+
+            return output;
+        }
+
     }; // class Framework
 
 } // namespace Osmium

@@ -76,10 +76,10 @@ struct Osmium::global Osmium::global;
 
 #include <osmium/osm.hpp>
 #include <osmium/input.hpp>
+#include <osmium/output.hpp>
 #include <osmium/framework.hpp>
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
-# include <osmium/output.hpp>
 # include <osmium/javascript/object_templates.hpp>
 # include <osmium/HandlerJavascript.hpp>
 # ifdef OSMIUM_MAIN
