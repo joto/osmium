@@ -1210,9 +1210,8 @@ namespace Osmium {
                 geometry = NULL;
                 return false;
             }
-#endif // OSMIUM_WITH_GEOS
 
-#ifdef OSMIUM_WITH_JAVASCRIPT
+# ifdef OSMIUM_WITH_JAVASCRIPT
             v8::Handle<v8::Array> js_ring_as_array(const geos::geom::LineString *ring) const {
                 const geos::geom::CoordinateSequence *cs = ring->getCoordinatesRO();
                 v8::Local<v8::Array> ring_array = v8::Array::New(cs->getSize());
@@ -1227,8 +1226,11 @@ namespace Osmium {
             }
 
             v8::Handle<v8::Value> js_get_geom_property(v8::Local<v8::String> property) const {
-                v8::String::Utf8Value key(property);
+                if (!geometry) {
+                    return v8::Undefined();
+                }
 
+                v8::String::Utf8Value key(property);
 /*                if (!strcmp(*key, "as_wkt")) {
                 } else if (!strcmp(*key, "as_ewkt")) {
                 } else*/ if (!strcmp(*key, "as_array")) {
@@ -1252,7 +1254,8 @@ namespace Osmium {
                     return v8::Undefined();
                 }
             }
-#endif // OSMIUM_WITH_JAVASCRIPT
+# endif // OSMIUM_WITH_JAVASCRIPT
+#endif // OSMIUM_WITH_GEOS
 
         }; // class MultipolygonFromRelation
 
