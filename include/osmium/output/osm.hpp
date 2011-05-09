@@ -69,6 +69,7 @@ namespace Osmium {
 #include <osmium/output/osm/pbf.hpp>
 #ifdef OSMIUM_WITH_OUTPUT_OSM_XML
 # include <osmium/output/osm/xml.hpp>
+# include <osmium/output/osm/historyxml.hpp>
 #endif
 
 Osmium::Output::OSM::Base *Osmium::Output::OSM::create(std::string &filename) {
@@ -82,6 +83,8 @@ Osmium::Output::OSM::Base *Osmium::Output::OSM::create(std::string &filename) {
 #ifdef OSMIUM_WITH_OUTPUT_OSM_XML
     } else if (suffix == "osm" || suffix == "osm.bz2") {
         return new Osmium::Output::OSM::XML(filename);
+    } else if (suffix == "osmh" || suffix == "osmh.bz2") {
+        return new Osmium::Output::OSM::HistoryXML(filename);
 #endif
     } else {
         throw std::runtime_error("Unknown suffix.");
