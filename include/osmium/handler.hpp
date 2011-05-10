@@ -48,9 +48,6 @@ namespace Osmium {
             void callback_init() const {
             }
 
-            void callback_object(Osmium::OSM::Object *) const {
-            }
-
             void callback_before_nodes() const {
             }
 
