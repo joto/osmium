@@ -58,11 +58,6 @@ namespace Osmium {
 
         public:
 
-            static void cleanup() {
-                // this is needed even if the protobuf lib was never used so that valgrind doesn't report any errors
-                google::protobuf::ShutdownProtobufLibrary();
-            }
-
             /**
             * Instantiate PBF Parser
             *

@@ -48,7 +48,8 @@ namespace Osmium {
         }
 
         ~Framework() {
-            Osmium::Input::PBF<Osmium::Handler::Base>::cleanup();
+            // this is needed even if the protobuf lib was never used so that valgrind doesn't report any errors
+            google::protobuf::ShutdownProtobufLibrary();
 #ifdef OSMIUM_WITH_GEOS
             delete Osmium::global.geos_geometry_factory;
 #endif // OSMIUM_WITH_GEOS
