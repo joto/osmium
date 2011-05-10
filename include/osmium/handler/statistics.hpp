@@ -54,7 +54,6 @@ namespace Osmium {
                 uint64_t max_relation_id;
                 uint64_t max_tags_on_relation;
                 uint64_t max_members_on_relation;
-                uint64_t users;
                 uint64_t max_user_id;
                 uint64_t anon_user_objects;
                 uint64_t max_node_version;
@@ -71,6 +70,22 @@ namespace Osmium {
             osm_object_id_t id;
             osm_version_t   version;
             int             tag_count;
+
+            void update_common_stats(const OSM::Object *object) {
+                id        = object->get_id();
+                version   = object->get_version();
+                tag_count = object->tag_count();
+
+                osm_user_id_t uid = object->get_uid();
+                if (uid == 0)
+                    stats.anon_user_objects++;
+                if (uid > (int64_t) stats.max_user_id)
+                    stats.max_user_id = uid;
+
+                osm_changeset_id_t changeset = object->get_changeset();
+                if (changeset > (int64_t) stats.max_changeset_id)
+                    stats.max_changeset_id = changeset;
+            }
 
         public:
 
@@ -95,7 +110,6 @@ namespace Osmium {
                     "max_relation_id",
                     "max_tags_on_relation",
                     "max_members_on_relation",
-                    "users",
                     "max_user_id",
                     "anon_user_objects",
                     "max_node_version",
@@ -115,23 +129,8 @@ namespace Osmium {
                 }
             }
 
-            void callback_object(const OSM::Object *object) {
-                id        = object->get_id();
-                version   = object->get_version();
-                tag_count = object->tag_count();
-
-                osm_user_id_t uid = object->get_uid();
-                if (uid == 0)
-                    stats.anon_user_objects++;
-                if (uid > (int64_t) stats.max_user_id)
-                    stats.max_user_id = uid;
-
-                osm_changeset_id_t changeset = object->get_changeset();
-                if (changeset > (int64_t) stats.max_changeset_id)
-                    stats.max_changeset_id = changeset;
-            }
-
-            void callback_node(const OSM::Node * /*object*/) {
+            void callback_node(const OSM::Node *node) {
+                update_common_stats(node);
                 stats.nodes++;
                 if (tag_count == 0)
                     stats.nodes_without_tags++;
@@ -145,29 +144,31 @@ namespace Osmium {
                 stats.sum_node_version += version;
             }
 
-            void callback_way(const OSM::Way *object) {
+            void callback_way(const OSM::Way *way) {
+                update_common_stats(way);
                 stats.ways++;
-                if (object->is_closed())
+                if (way->is_closed())
                     stats.closed_ways++;
                 if (id > (int64_t) stats.max_way_id)
                     stats.max_way_id = id;
                 stats.way_tags += tag_count;
-                stats.way_nodes += object->node_count();
+                stats.way_nodes += way->node_count();
                 if (tag_count > (int64_t) stats.max_tags_on_way)
                     stats.max_tags_on_way = tag_count;
-                if (object->node_count() > (int64_t) stats.max_nodes_on_way)
-                    stats.max_nodes_on_way = object->node_count();
+                if (way->node_count() > (int64_t) stats.max_nodes_on_way)
+                    stats.max_nodes_on_way = way->node_count();
                 if (version > (int64_t) stats.max_way_version)
                     stats.max_way_version = version;
                 stats.sum_way_version += version;
             }
 
-            void callback_relation(const OSM::Relation *object) {
+            void callback_relation(const OSM::Relation *relation) {
+                update_common_stats(relation);
                 stats.relations++;
                 if (id > (int64_t) stats.max_relation_id)
                     stats.max_relation_id = id;
                 stats.relation_tags += tag_count;
-                osm_sequence_id_t member_count = object->member_count();
+                osm_sequence_id_t member_count = relation->member_count();
                 stats.relation_members += member_count;
                 if (tag_count > (int64_t) stats.max_tags_on_relation)
                     stats.max_tags_on_relation = tag_count;

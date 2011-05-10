@@ -177,17 +177,14 @@ namespace Osmium {
 
             void end_element(const XML_Char* element) {
                 if (!strcmp(element, "node")) {
-                    this->handler->callback_object(this->node);
                     this->handler->callback_node(this->node);
                     current_object = 0;
                 }
                 if (!strcmp(element, "way")) {
-                    this->handler->callback_object(this->way);
                     this->handler->callback_way(this->way);
                     current_object = 0;
                 }
                 if (!strcmp(element, "relation")) {
-                    this->handler->callback_object(this->relation);
                     this->handler->callback_relation(this->relation);
                     current_object = 0;
                 }

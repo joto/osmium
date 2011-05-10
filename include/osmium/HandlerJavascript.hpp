@@ -86,7 +86,6 @@ namespace Osmium {
 
             struct js_cb {
                 v8::Handle<v8::Function> init;
-                v8::Handle<v8::Function> object;
                 v8::Handle<v8::Function> node;
                 v8::Handle<v8::Function> way;
                 v8::Handle<v8::Function> relation;
@@ -226,10 +225,6 @@ namespace Osmium {
                 if (cc->IsFunction()) {
                     cb.init = v8::Handle<v8::Function>::Cast(cc);
                 }
-                cc = callbacks_object->Get(v8::String::New("object"));
-                if (cc->IsFunction()) {
-                    cb.object = v8::Handle<v8::Function>::Cast(cc);
-                }
                 cc = callbacks_object->Get(v8::String::New("node"));
                 if (cc->IsFunction()) {
                     cb.node = v8::Handle<v8::Function>::Cast(cc);
@@ -260,15 +255,6 @@ namespace Osmium {
                 if (!cb.init.IsEmpty()) {
                     (void) cb.init->Call(cb.init, 0, 0);
                 }
-            }
-
-            void callback_object(OSM::Object *object) {
-                if (!cb.object.IsEmpty()) {
-                    (void) cb.object->Call(object->get_instance(), 0, 0);
-                }
-#ifdef OSMIUM_V8_FORCE_GC
-                while (!v8::V8::IdleNotification()) { };
-#endif // OSMIUM_V8_FORCE_GC
             }
 
             void callback_node(OSM::Node *object) {

@@ -52,7 +52,6 @@ namespace Osmium {
          * implement one or more of the following functions:
          *
          * - callback_init()
-         * - callback_object(Osmium::OSM::Object *)
          * - callback_before_nodes/ways/relations()
          * - callback_node/way/relation(Osmium::OSM::Node/Way/Relation *)
          * - callback_after_nodes/ways/relations()
@@ -62,17 +61,16 @@ namespace Osmium {
          * callback_init() will be called before all others, callback_final()
          * after all others.
          *
-         * For every object in the input callback_object() will be called
-         * followed by callback_node(), callback_way(), or callback_relation(),
-         * respectively.
+         * For every object callback_node(), callback_way(), or
+         * callback_relation() will be called, respectively.
          *
          * When there are several objects of the same type in a row the
          * callback_before_*() function will be called before them and the
          * callback_after_*() function after them. If your input file is
          * sorted as OSM files normally are, i.e. all nodes, then all ways,
          * then all relations, this will call callback_before_nodes() once,
-         * then for all the nodes callback_object() and callback_node(), then
-         * callback_after_nodes(), then callback_before_ways(), and so on.
+         * then for all the nodes callback_node(), then callback_after_nodes(),
+         * then callback_before_ways(), and so on.
          * This will also work properly if the input file contains, say, first
          * all relations, than all ways and then all nodes.
          *

@@ -229,8 +229,15 @@ namespace Osmium {
                     if (Osmium::global.debug) std::cerr << "error building way geometry for way " << id << ": must at least contain two nodes" << std::endl;
                     return NULL;
                 }
-                std::vector<double> lon_checked; lon_checked.reserve(lon.size()); lon_checked.push_back(lon[0]);
-                std::vector<double> lat_checked; lat_checked.reserve(lat.size()); lat_checked.push_back(lat[0]);
+
+                std::vector<double> lon_checked;
+                lon_checked.reserve(lon.size());
+                lon_checked.push_back(lon[0]);
+
+                std::vector<double> lat_checked;
+                lat_checked.reserve(lat.size());
+                lat_checked.push_back(lat[0]);
+
                 for (osm_sequence_id_t i=1; i < lon.size(); i++) {
                     if (nodes[i] == nodes[i-1]) {
                         if (Osmium::global.debug) std::cerr << "warning building way geometry for way " << id << ": contains node " << nodes[i] << " twice" << std::endl;
