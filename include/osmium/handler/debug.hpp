@@ -28,13 +28,7 @@ namespace Osmium {
 
         class Debug : public Base {
 
-        public:
-
-            Debug() : Base() {
-            }
-
-            void callback_object(OSM::Object *object) const {
-                std::cout << "object:" << std::endl;
+            void print_meta(const OSM::Object *object) const {
                 std::cout << "  id="   << object->get_id() << std::endl;
                 std::cout << "  version="   << object->get_version() << std::endl;
                 std::cout << "  uid="       << object->get_uid() << std::endl;
@@ -47,28 +41,36 @@ namespace Osmium {
                 }
             }
 
+        public:
+
+            Debug() : Base() {
+            }
+
             void callback_node(const OSM::Node *node) const {
-                std::cout << "  node:" << std::endl;
-                std::cout << "    lon=" << node->get_lon() << std::endl;
-                std::cout << "    lat=" << node->get_lat() << std::endl;
+                std::cout << "node:" << std::endl;
+                print_meta(node);
+                std::cout << "  lon=" << node->get_lon() << std::endl;
+                std::cout << "  lat=" << node->get_lat() << std::endl;
             }
 
             void callback_way(const OSM::Way *way) const {
-                std::cout << "  way:" << std::endl;
-                std::cout << "    node_count=" << way->node_count() << std::endl;
-                std::cout << "    nodes:" << std::endl;
+                std::cout << "way:" << std::endl;
+                print_meta(way);
+                std::cout << "  node_count=" << way->node_count() << std::endl;
+                std::cout << "  nodes:" << std::endl;
                 for (osm_sequence_id_t i=0; i < way->node_count(); i++) {
-                    std::cout << "      ref=" << way->get_node_id(i) << std::endl;
+                    std::cout << "    ref=" << way->get_node_id(i) << std::endl;
                 }
             }
 
             void callback_relation(OSM::Relation *relation) const {
-                std::cout << "  relation:" << std::endl;
-                std::cout << "    member_count=" << relation->member_count() << std::endl;
-                std::cout << "    members:" << std::endl;
+                std::cout << "relation:" << std::endl;
+                print_meta(relation);
+                std::cout << "  member_count=" << relation->member_count() << std::endl;
+                std::cout << "  members:" << std::endl;
                 for (osm_sequence_id_t i=0; i < relation->member_count(); i++) {
                     const Osmium::OSM::RelationMember *m = relation->get_member(i);
-                    std::cout << "      type=" << m->type << " ref=" << m->ref << " role=|" << m->role << "|" << std::endl;
+                    std::cout << "    type=" << m->type << " ref=" << m->ref << " role=|" << m->role << "|" << std::endl;
                 }
             }
 

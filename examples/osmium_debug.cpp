@@ -41,10 +41,6 @@ public:
         std::cout << "init" << std::endl;
     }
 
-    void callback_object(Osmium::OSM::Object *object) {
-        handler_debug.callback_object(object);
-    }
-
     void callback_before_nodes() {
         std::cout << "before_nodes" << std::endl;
     }
