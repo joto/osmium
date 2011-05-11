@@ -56,6 +56,7 @@ namespace Osmium {
                 }
 
                 void write_final() {
+                    // sth. useful
                 }
 
             }; // class PBF
