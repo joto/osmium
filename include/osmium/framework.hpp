@@ -75,7 +75,7 @@ namespace Osmium {
             Osmium::Input::Base<T> *input;
 
             char *suffix = strrchr(osmfilename, '.');
-            if (suffix == NULL || !strcmp(suffix, ".osm")) {
+            if (suffix == NULL || !strcmp(suffix, ".osm") || !strcmp(suffix, ".osh")) {
                 input = new Osmium::Input::XML<T>(fd, handler);
             } else if (!strcmp(suffix, ".pbf")) {
                 input = new Osmium::Input::PBF<T>(fd, handler);
