@@ -32,6 +32,7 @@ namespace Osmium {
 
             class PBF : public Base {
 
+                static const int NANO = 1000 * 1000 * 1000;
                 FILE *fd;
 
             protected:
@@ -40,6 +41,9 @@ namespace Osmium {
                 OSMPBF::BlobHeader pbf_blob_header;
 
                 OSMPBF::HeaderBlock pbf_header_block;
+                OSMPBF::PrimitiveBlock pbf_primitive_block;
+
+                bool headerWritten;
 
                 void store_blob() {
                     std::string blob;
@@ -69,15 +73,18 @@ namespace Osmium {
                     pbf_blob.set_raw(header);
                     store_blob();
                     pbf_blob.Clear();
+
+                    headerWritten = true;
                 }
+
 
             public:
 
-                PBF() : Base(), fd(stdout) {
+                PBF() : Base(), fd(stdout), headerWritten(false) {
                     GOOGLE_PROTOBUF_VERIFY_VERSION;
                 }
 
-                PBF(std::string &filename) : Base() {
+                PBF(std::string &filename) : Base(), headerWritten(false) {
                     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
                     fd = fopen(filename.c_str(), "w");
@@ -96,21 +103,28 @@ namespace Osmium {
                     //pbf_header_block.add_required_features("HistoricalInformation");
 
                     pbf_header_block.set_writingprogram("Osmium (http://wiki.openstreetmap.org/wiki/Osmium)");
-
-                    store_header_block();
                 }
 
                 void write_bounds(double minlon, double minlat, double maxlon, double maxlat) {
-                    // TODO: change api to incorporate into pbf_header_block
+                    if(!headerWritten) {
+                        // TODO: calculate/convert to google::protobuf::int64
+                        //pbf_header_block.bbox().set_left(minlon);
+                        //pbf_header_block.bbox().set_top(minlat);
+                        //pbf_header_block.bbox().set_right(maxlon);
+                        //pbf_header_block.bbox().set_bottom(maxlat);
+                    }
                 }
 
                 void write(Osmium::OSM::Node *node) {
+                    if(!headerWritten) store_header_block();
                 }
 
                 void write(Osmium::OSM::Way *way) {
+                    if(!headerWritten) store_header_block();
                 }
 
                 void write(Osmium::OSM::Relation *relation) {
+                    if(!headerWritten) store_header_block();
                 }
 
                 void write_final() {
