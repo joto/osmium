@@ -32,40 +32,56 @@ namespace Osmium {
 
             class PBF : public Base {
 
-                int fd;
+                FILE *fd;
 
             protected:
 
                 OSMPBF::Blob pbf_blob;
+                OSMPBF::BlobHeader pbf_blob_header;
+
+                OSMPBF::HeaderBlock pbf_header_block;
 
                 void store_blob() {
                     std::string blob;
                     pbf_blob.SerializeToString(&blob);
+                    pbf_blob.Clear();
 
-                    OSMPBF::BlobHeader pbf_blob_header;
                     pbf_blob_header.set_datasize(blob.size());
                     pbf_blob_header.set_type("OSMHeader");
 
                     std::string blobhead;
                     pbf_blob_header.SerializeToString(&blobhead);
+                    pbf_blob_header.Clear();
 
                     long int sz = htonl(blobhead.size());
-                    ::write(fd, &sz, sizeof(sz));
-                    ::write(fd, blobhead.c_str(), blobhead.size());
-                    ::write(fd, blob.c_str(), blob.size());
+                    fwrite(&sz, sizeof(sz), 1, fd);
+                    fwrite(blobhead.c_str(), blobhead.size(), 1, fd);
+                    fwrite(blob.c_str(), blob.size(), 1, fd);
+                }
+
+                void store_header_block() {
+                    std::string header;
+                    pbf_header_block.SerializeToString(&header);
+                    pbf_header_block.Clear();
+
+                    // TODO: add compression
+                    pbf_blob_header.set_type("OSMHeader");
+                    pbf_blob.set_raw(header);
+                    store_blob();
+                    pbf_blob.Clear();
                 }
 
             public:
 
-                PBF() : Base(), fd(1) {
+                PBF() : Base(), fd(stdout) {
                     GOOGLE_PROTOBUF_VERIFY_VERSION;
                 }
 
                 PBF(std::string &filename) : Base() {
                     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-                    fd = open(filename.c_str(), O_WRONLY | O_TRUNC | O_CREAT);
-                    if(-1 == fd)
+                    fd = fopen(filename.c_str(), "w");
+                    if(!fd)
                         perror("unable to open outfile");
                 }
 
@@ -75,11 +91,17 @@ namespace Osmium {
                 }
 
                 void write_init() {
-                    pbf_blob.set_raw("foo raw data");
-                    store_blob();
+                    pbf_header_block.add_required_features("OsmSchema-V0.6");
+                    pbf_header_block.add_required_features("DenseNodes");
+                    //pbf_header_block.add_required_features("HistoricalInformation");
+
+                    pbf_header_block.set_writingprogram("Osmium (http://wiki.openstreetmap.org/wiki/Osmium)");
+
+                    store_header_block();
                 }
 
                 void write_bounds(double minlon, double minlat, double maxlon, double maxlat) {
+                    // TODO: change api to incorporate into pbf_header_block
                 }
 
                 void write(Osmium::OSM::Node *node) {
@@ -92,8 +114,8 @@ namespace Osmium {
                 }
 
                 void write_final() {
-                    if(fd > 0)
-                        close(fd);
+                    if(fd)
+                        fclose(fd);
                 }
 
             }; // class PBF
