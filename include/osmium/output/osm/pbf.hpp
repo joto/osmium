@@ -22,6 +22,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#include <netinet/in.h>
+
 namespace Osmium {
 
     namespace Output {
@@ -30,17 +32,51 @@ namespace Osmium {
 
             class PBF : public Base {
 
+                int fd;
+
+            protected:
+
+                OSMPBF::Blob pbf_blob;
+
+                void store_blob() {
+                    std::string blob;
+                    pbf_blob.SerializeToString(&blob);
+
+                    OSMPBF::BlobHeader pbf_blob_header;
+                    pbf_blob_header.set_datasize(blob.size());
+                    pbf_blob_header.set_type("OSMHeader");
+
+                    std::string blobhead;
+                    pbf_blob_header.SerializeToString(&blobhead);
+
+                    long int sz = htonl(blobhead.size());
+                    ::write(fd, &sz, sizeof(sz));
+                    ::write(fd, blobhead.c_str(), blobhead.size());
+                    ::write(fd, blob.c_str(), blob.size());
+                }
+
             public:
 
-                PBF() : Base() {
-                    throw std::runtime_error("pbf writer not implemented yet");
+                PBF() : Base(), fd(1) {
+                    GOOGLE_PROTOBUF_VERIFY_VERSION;
                 }
 
                 PBF(std::string &filename) : Base() {
-                    throw std::runtime_error("pbf writer not implemented yet");
+                    GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+                    fd = open(filename.c_str(), O_WRONLY | O_TRUNC | O_CREAT);
+                    if(-1 == fd)
+                        perror("unable to open outfile");
+                }
+
+                static void cleanup() {
+                    // this is needed even if the protobuf lib was never used so that valgrind doesn't report any errors
+                    google::protobuf::ShutdownProtobufLibrary();
                 }
 
                 void write_init() {
+                    pbf_blob.set_raw("foo raw data");
+                    store_blob();
                 }
 
                 void write_bounds(double minlon, double minlat, double maxlon, double maxlat) {
@@ -56,7 +92,8 @@ namespace Osmium {
                 }
 
                 void write_final() {
-                    // sth. useful
+                    if(fd > 0)
+                        close(fd);
                 }
 
             }; // class PBF
