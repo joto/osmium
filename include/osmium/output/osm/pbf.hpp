@@ -33,6 +33,7 @@ namespace Osmium {
             class PBF : public Base {
 
                 static const int NANO = 1000 * 1000 * 1000;
+                static const int max_block_contents = 8000;
                 FILE *fd;
 
             protected:
@@ -44,6 +45,11 @@ namespace Osmium {
                 OSMPBF::PrimitiveBlock pbf_primitive_block;
 
                 bool headerWritten;
+                int block_contents_counter;
+
+                const OSMPBF::PrimitiveGroup *pbf_primitive_group_nodes;
+                const OSMPBF::PrimitiveGroup *pbf_primitive_group_ways;
+                const OSMPBF::PrimitiveGroup *pbf_primitive_group_relations;
 
                 void store_blob() {
                     std::string blob;
@@ -51,7 +57,6 @@ namespace Osmium {
                     pbf_blob.Clear();
 
                     pbf_blob_header.set_datasize(blob.size());
-                    pbf_blob_header.set_type("OSMHeader");
 
                     std::string blobhead;
                     pbf_blob_header.SerializeToString(&blobhead);
@@ -72,19 +77,57 @@ namespace Osmium {
                     pbf_blob_header.set_type("OSMHeader");
                     pbf_blob.set_raw(header);
                     store_blob();
-                    pbf_blob.Clear();
 
                     headerWritten = true;
                 }
 
+                void store_primitive_block() {
+                    std::string block;
+                    pbf_primitive_block.SerializeToString(&block);
+                    pbf_primitive_block.Clear();
+                    block_contents_counter = 0;
+
+                    // TODO: add compression
+                    pbf_blob_header.set_type("OSMData");
+                    pbf_blob.set_raw(block);
+                    store_blob();
+                }
+
+                void check_block_contents_counter() {
+                    if(++block_contents_counter >= max_block_contents)
+                        store_primitive_block();
+                }
+
+                unsigned int str2pbf(const std::string str) {
+                    // TODO: use a std::vector, avoid duplicates and sort before writing
+                    //const OSMPBF::StringTable *st = &pbf_primitive_block.stringtable();
+                    //st->add_s(str);
+                    //return st->s_size();
+
+                    pbf_primitive_block.stringtable().add_s(str);
+                    return pbf_primitive_block.stringtable().s_size();
+                }
 
             public:
 
-                PBF() : Base(), fd(stdout), headerWritten(false) {
+                PBF() : Base(),
+                    fd(stdout),
+                    headerWritten(false),
+                    block_contents_counter(0),
+                    pbf_primitive_group_nodes(NULL),
+                    pbf_primitive_group_ways(NULL),
+                    pbf_primitive_group_relations(NULL) {
+
                     GOOGLE_PROTOBUF_VERIFY_VERSION;
                 }
 
-                PBF(std::string &filename) : Base(), headerWritten(false) {
+                PBF(std::string &filename) : Base(),
+                    headerWritten(false),
+                    block_contents_counter(0),
+                    pbf_primitive_group_nodes(NULL),
+                    pbf_primitive_group_ways(NULL),
+                    pbf_primitive_group_relations(NULL) {
+
                     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
                     fd = fopen(filename.c_str(), "w");
@@ -107,7 +150,7 @@ namespace Osmium {
 
                 void write_bounds(double minlon, double minlat, double maxlon, double maxlat) {
                     if(!headerWritten) {
-                        // TODO: calculate/convert to google::protobuf::int64
+                        // TODO: encode lat/lon
                         //pbf_header_block.bbox().set_left(minlon);
                         //pbf_header_block.bbox().set_top(minlat);
                         //pbf_header_block.bbox().set_right(maxlon);
@@ -115,8 +158,30 @@ namespace Osmium {
                     }
                 }
 
+                // TODO: use dense format if enabled
                 void write(Osmium::OSM::Node *node) {
-                    if(!headerWritten) store_header_block();
+                    if(!headerWritten)
+                        store_header_block();
+
+                    if(!pbf_primitive_group_nodes)
+                        pbf_primitive_group_nodes = pbf_primitive_block.add_primitivegroup();
+
+                    OSMPBF::Node *pbf_node = pbf_primitive_group_nodes->add_nodes();
+                    pbf_node->set_id(node->id);
+
+                    pbf_node->add_keys(str2pbf("foo"));
+                    pbf_node->add_vals(str2pbf("bar"));
+
+                    pbf_node->info().set_version((google::protobuf::int32) node->version);
+                    pbf_node->info().set_timestamp((google::protobuf::int64) 0); // TODO: encode node->timestamp
+                    pbf_node->info().set_changeset((google::protobuf::int64) node->changeset);
+                    pbf_node->info().set_uid((google::protobuf::int64) node->uid);
+                    pbf_node->info().set_user_sid(str2pbf(node->user));
+
+                    pbf_node->set_lat(0); // TODO: encode node->lat
+                    pbf_node->set_lon(0); // TODO: encode node->lon
+
+                    check_block_contents_counter();
                 }
 
                 void write(Osmium::OSM::Way *way) {
@@ -128,6 +193,7 @@ namespace Osmium {
                 }
 
                 void write_final() {
+                    store_primitive_block();
                     if(fd)
                         fclose(fd);
                 }
