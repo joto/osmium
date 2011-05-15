@@ -33,13 +33,12 @@ namespace Osmium {
             class PBF : public Base {
 
                 static const int NANO = 1000 * 1000 * 1000;
-                static const int max_block_contents = 8000;
+                static const unsigned int max_block_contents = 8000;
                 FILE *fd;
 
                 bool use_dense_format_;
 
                 bool headerWritten;
-                int block_contents_counter;
 
                 OSMPBF::Blob pbf_blob;
                 OSMPBF::BlobHeader pbf_blob_header;
@@ -47,9 +46,10 @@ namespace Osmium {
                 OSMPBF::HeaderBlock pbf_header_block;
                 OSMPBF::PrimitiveBlock pbf_primitive_block;
 
-                OSMPBF::PrimitiveGroup *pbf_primitive_group_nodes;
-                OSMPBF::PrimitiveGroup *pbf_primitive_group_ways;
-                OSMPBF::PrimitiveGroup *pbf_primitive_group_relations;
+                std::vector<Osmium::OSM::Node*> nodes;
+                std::vector<Osmium::OSM::Way*> ways;
+                std::vector<Osmium::OSM::Relation*> relations;
+                std::map<std::string, int> strings;
 
                 void store_blob() {
                     std::string blob;
@@ -60,15 +60,17 @@ namespace Osmium {
 
                     std::string blobhead;
                     pbf_blob_header.SerializeToString(&blobhead);
+                    fprintf(stderr, "storing blob type=%s (header=%ld bytes, raw=%ld bytes, compressed=...)\n", pbf_blob_header.type().c_str(), blobhead.size(), blob.size());
                     pbf_blob_header.Clear();
 
-                    long int sz = htonl(blobhead.size());
+                    int32_t sz = htonl(blobhead.size());
                     fwrite(&sz, sizeof(sz), 1, fd);
                     fwrite(blobhead.c_str(), blobhead.size(), 1, fd);
                     fwrite(blob.c_str(), blob.size(), 1, fd);
                 }
 
                 void store_header_block() {
+                    fprintf(stderr, "storing header block\n");
                     std::string header;
                     pbf_header_block.SerializeToString(&header);
                     pbf_header_block.Clear();
@@ -81,18 +83,85 @@ namespace Osmium {
                     headerWritten = true;
                 }
 
-                void store_primitive_block() {
-                    if(block_contents_counter == 0)
-                        return;
+                void record_string(const std::string& string) {
+                    if(strings.count(string) > 0)
+                        strings[string]++;
+                    else
+                        strings.insert( std::pair<std::string, int>(string, 0) );
+                }
 
+                unsigned int index_string(const std::string& str) {
+                    const OSMPBF::StringTable st = pbf_primitive_block.stringtable();
+
+                    for(int i = 0, l = st.s_size(); i<l; i++) {
+                        if(st.s(i) == str) {
+                            fprintf(stderr, "read stringtable: %s -> %d\n", str.c_str(), i);
+                            return i;
+                        }
+                    }
+
+                    throw std::runtime_error("Request for string not in stringable");
+                    return 0;
+                }
+
+
+                void sort_and_store_strings() {
+                    // TODO sort strings
+
+                    OSMPBF::StringTable *st = pbf_primitive_block.mutable_stringtable();
+                    for(std::map<std::string, int>::iterator it = strings.begin(); it != strings.end(); it++) {
+                        fprintf(stderr, "store stringtable: %s\n", (*it).first.c_str());
+                        st->add_s((*it).first);
+                    }
+                }
+
+                void store_nodes_block() {
+                    fprintf(stderr, "storing nodes block with %ld nodes\n", nodes.size());
+                    sort_and_store_strings();
+
+                    OSMPBF::PrimitiveGroup *pbf_primitive_group = pbf_primitive_block.add_primitivegroup();
+                    for(int i = 0, l = nodes.size(); i<l; i++) {
+                        Osmium::OSM::Node *node = nodes[i];
+                        OSMPBF::Node *pbf_node = pbf_primitive_group->add_nodes();
+
+                        pbf_node->set_id(node->id);
+
+                        pbf_node->set_lat(0); // TODO: encode node->lat
+                        pbf_node->set_lon(0); // TODO: encode node->lon
+
+                        for (int i=0, l = node->tag_count(); i < l; i++) {
+                            pbf_node->add_keys(index_string(node->get_tag_key(i)));
+                            pbf_node->add_vals(index_string(node->get_tag_value(i)));
+                        }
+
+                        OSMPBF::Info *pbf_node_info = pbf_node->mutable_info();
+                        pbf_node_info->set_version((google::protobuf::int32) node->version);
+                        pbf_node_info->set_timestamp((google::protobuf::int64) 0); // TODO: encode node->timestamp
+                        pbf_node_info->set_changeset((google::protobuf::int64) node->changeset);
+                        pbf_node_info->set_uid((google::protobuf::int64) node->uid);
+                        pbf_node_info->set_user_sid(index_string(node->user));
+                        delete node;
+                    }
+                    nodes.clear();
+                    store_primitive_block();
+                }
+
+                void store_ways_block() {
+                    fprintf(stderr, "storing ways block with %ld ways\n", ways.size());
+                }
+
+                void store_relations_block() {
+                    fprintf(stderr, "storing relations block with %ld relations\n", relations.size());
+                }
+
+                void store_primitive_block() {
+                    fprintf(stderr, "storing primitive block\n");
                     std::string block;
                     pbf_primitive_block.SerializeToString(&block);
                     pbf_primitive_block.Clear();
 
                     // add empty string-table entry at index 0
                     pbf_primitive_block.mutable_stringtable()->add_s("");
-
-                    block_contents_counter = 0;
 
                     // TODO: add compression
                     pbf_blob_header.set_type("OSMData");
@@ -101,22 +170,14 @@ namespace Osmium {
                 }
 
                 void check_block_contents_counter() {
-                    if(++block_contents_counter >= max_block_contents)
-                        store_primitive_block();
-                }
+                    if(nodes.size() > max_block_contents)
+                        store_nodes_block();
 
-                unsigned int str2pbf(const std::string &str) {
-                    // TODO: use a std::vector, avoid duplicates and sort before writing
-                    OSMPBF::StringTable *st = pbf_primitive_block.mutable_stringtable();
+                    if(ways.size() > max_block_contents)
+                        store_ways_block();
 
-                    // skip first slot
-                    int i, l;
-                    for(i = 1, l = st->s_size(); i<l; i++)
-                        if(st->s(i) == str)
-                            return i;
-
-                    st->add_s(str);
-                    return l;
+                    if(relations.size() > max_block_contents)
+                        store_relations_block();
                 }
 
             public:
@@ -124,22 +185,14 @@ namespace Osmium {
                 PBF() : Base(),
                     fd(stdout),
                     use_dense_format_(true),
-                    headerWritten(false),
-                    block_contents_counter(0),
-                    pbf_primitive_group_nodes(NULL),
-                    pbf_primitive_group_ways(NULL),
-                    pbf_primitive_group_relations(NULL) {
+                    headerWritten(false) {
 
                     GOOGLE_PROTOBUF_VERIFY_VERSION;
                 }
 
                 PBF(std::string &filename) : Base(),
                     use_dense_format_(true),
-                    headerWritten(false),
-                    block_contents_counter(0),
-                    pbf_primitive_group_nodes(NULL),
-                    pbf_primitive_group_ways(NULL),
-                    pbf_primitive_group_relations(NULL) {
+                    headerWritten(false) {
 
                     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -191,27 +244,13 @@ namespace Osmium {
                     if(!headerWritten)
                         store_header_block();
 
-                    if(!pbf_primitive_group_nodes)
-                        pbf_primitive_group_nodes = pbf_primitive_block.add_primitivegroup();
-
-                    OSMPBF::Node *pbf_node = pbf_primitive_group_nodes->add_nodes();
-                    pbf_node->set_id(node->id);
-
-                    pbf_node->set_lat(0); // TODO: encode node->lat
-                    pbf_node->set_lon(0); // TODO: encode node->lon
-
                     for (int i=0, l = node->tag_count(); i < l; i++) {
-                        pbf_node->add_keys(str2pbf(node->get_tag_key(i)));
-                        pbf_node->add_vals(str2pbf(node->get_tag_value(i)));
+                        record_string(node->get_tag_key(i));
+                        record_string(node->get_tag_value(i));
                     }
+                    record_string(node->user);
 
-                    OSMPBF::Info *pbf_node_info = pbf_node->mutable_info();
-                    pbf_node_info->set_version((google::protobuf::int32) node->version);
-                    pbf_node_info->set_timestamp((google::protobuf::int64) 0); // TODO: encode node->timestamp
-                    pbf_node_info->set_changeset((google::protobuf::int64) node->changeset);
-                    pbf_node_info->set_uid((google::protobuf::int64) node->uid);
-                    pbf_node_info->set_user_sid(str2pbf(node->user));
-
+                    nodes.push_back(new Osmium::OSM::Node(*node));
                     check_block_contents_counter();
                 }
 
@@ -224,7 +263,15 @@ namespace Osmium {
                 }
 
                 void write_final() {
-                    store_primitive_block();
+                    if(nodes.size() > 0)
+                        store_nodes_block();
+
+                    if(ways.size() > 0)
+                        store_ways_block();
+
+                    if(relations.size() > 0)
+                        store_relations_block();
+
                     if(fd)
                         fclose(fd);
                 }
