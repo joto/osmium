@@ -60,7 +60,7 @@ namespace Osmium {
 
                     std::string blobhead;
                     pbf_blob_header.SerializeToString(&blobhead);
-                    fprintf(stderr, "storing blob type=%s (header=%ld bytes, raw=%ld bytes, compressed=...)\n", pbf_blob_header.type().c_str(), blobhead.size(), blob.size());
+                    fprintf(stderr, "storing blob type=%s (header=%u bytes, raw=%u bytes, compressed=...)\n", pbf_blob_header.type().c_str(), blobhead.size(), blob.size());
                     pbf_blob_header.Clear();
 
                     int32_t sz = htonl(blobhead.size());
@@ -116,7 +116,7 @@ namespace Osmium {
                 }
 
                 void store_nodes_block() {
-                    fprintf(stderr, "storing nodes block with %ld nodes\n", nodes.size());
+                    fprintf(stderr, "storing nodes block with %u nodes\n", nodes.size());
                     sort_and_store_strings();
 
                     OSMPBF::PrimitiveGroup *pbf_primitive_group = pbf_primitive_block.add_primitivegroup();
@@ -147,11 +147,11 @@ namespace Osmium {
                 }
 
                 void store_ways_block() {
-                    fprintf(stderr, "storing ways block with %ld ways\n", ways.size());
+                    fprintf(stderr, "storing ways block with %u ways\n", ways.size());
                 }
 
                 void store_relations_block() {
-                    fprintf(stderr, "storing relations block with %ld relations\n", relations.size());
+                    fprintf(stderr, "storing relations block with %u relations\n", relations.size());
                 }
 
                 void store_primitive_block() {
