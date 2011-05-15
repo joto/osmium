@@ -47,9 +47,9 @@ namespace Osmium {
                 bool headerWritten;
                 int block_contents_counter;
 
-                const OSMPBF::PrimitiveGroup *pbf_primitive_group_nodes;
-                const OSMPBF::PrimitiveGroup *pbf_primitive_group_ways;
-                const OSMPBF::PrimitiveGroup *pbf_primitive_group_relations;
+                OSMPBF::PrimitiveGroup *pbf_primitive_group_nodes;
+                OSMPBF::PrimitiveGroup *pbf_primitive_group_ways;
+                OSMPBF::PrimitiveGroup *pbf_primitive_group_relations;
 
                 void store_blob() {
                     std::string blob;
@@ -85,6 +85,10 @@ namespace Osmium {
                     std::string block;
                     pbf_primitive_block.SerializeToString(&block);
                     pbf_primitive_block.Clear();
+
+                    // add empty string-table entry at index 0
+                    pbf_primitive_block.mutable_stringtable()->add_s("");
+
                     block_contents_counter = 0;
 
                     // TODO: add compression
@@ -98,14 +102,11 @@ namespace Osmium {
                         store_primitive_block();
                 }
 
-                unsigned int str2pbf(const std::string str) {
+                unsigned int str2pbf(const std::string &str) {
                     // TODO: use a std::vector, avoid duplicates and sort before writing
-                    //const OSMPBF::StringTable *st = &pbf_primitive_block.stringtable();
-                    //st->add_s(str);
-                    //return st->s_size();
-
-                    pbf_primitive_block.stringtable().add_s(str);
-                    return pbf_primitive_block.stringtable().s_size();
+                    OSMPBF::StringTable *st = pbf_primitive_block.mutable_stringtable();
+                    st->add_s(str);
+                    return st->s_size()-1;
                 }
 
             public:
@@ -146,6 +147,9 @@ namespace Osmium {
                     //pbf_header_block.add_required_features("HistoricalInformation");
 
                     pbf_header_block.set_writingprogram("Osmium (http://wiki.openstreetmap.org/wiki/Osmium)");
+
+                    // add empty string-table entry at index 0
+                    pbf_primitive_block.mutable_stringtable()->add_s("");
                 }
 
                 void write_bounds(double minlon, double minlat, double maxlon, double maxlat) {
@@ -169,17 +173,20 @@ namespace Osmium {
                     OSMPBF::Node *pbf_node = pbf_primitive_group_nodes->add_nodes();
                     pbf_node->set_id(node->id);
 
-                    pbf_node->add_keys(str2pbf("foo"));
-                    pbf_node->add_vals(str2pbf("bar"));
-
-                    pbf_node->info().set_version((google::protobuf::int32) node->version);
-                    pbf_node->info().set_timestamp((google::protobuf::int64) 0); // TODO: encode node->timestamp
-                    pbf_node->info().set_changeset((google::protobuf::int64) node->changeset);
-                    pbf_node->info().set_uid((google::protobuf::int64) node->uid);
-                    pbf_node->info().set_user_sid(str2pbf(node->user));
-
                     pbf_node->set_lat(0); // TODO: encode node->lat
                     pbf_node->set_lon(0); // TODO: encode node->lon
+
+                    for (int i=0, l = node->tag_count(); i < l; i++) {
+                        pbf_node->add_keys(str2pbf(node->get_tag_key(i)));
+                        pbf_node->add_vals(str2pbf(node->get_tag_value(i)));
+                    }
+
+                    OSMPBF::Info *pbf_node_info = pbf_node->mutable_info();
+                    pbf_node_info->set_version((google::protobuf::int32) node->version);
+                    pbf_node_info->set_timestamp((google::protobuf::int64) 0); // TODO: encode node->timestamp
+                    pbf_node_info->set_changeset((google::protobuf::int64) node->changeset);
+                    pbf_node_info->set_uid((google::protobuf::int64) node->uid);
+                    pbf_node_info->set_user_sid(str2pbf(node->user));
 
                     check_block_contents_counter();
                 }
