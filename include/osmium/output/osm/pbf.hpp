@@ -36,16 +36,16 @@ namespace Osmium {
                 static const int max_block_contents = 8000;
                 FILE *fd;
 
-            protected:
+                bool use_dense_format_;
+
+                bool headerWritten;
+                int block_contents_counter;
 
                 OSMPBF::Blob pbf_blob;
                 OSMPBF::BlobHeader pbf_blob_header;
 
                 OSMPBF::HeaderBlock pbf_header_block;
                 OSMPBF::PrimitiveBlock pbf_primitive_block;
-
-                bool headerWritten;
-                int block_contents_counter;
 
                 OSMPBF::PrimitiveGroup *pbf_primitive_group_nodes;
                 OSMPBF::PrimitiveGroup *pbf_primitive_group_ways;
@@ -116,6 +116,7 @@ namespace Osmium {
 
                 PBF() : Base(),
                     fd(stdout),
+                    use_dense_format_(true),
                     headerWritten(false),
                     block_contents_counter(0),
                     pbf_primitive_group_nodes(NULL),
@@ -126,6 +127,7 @@ namespace Osmium {
                 }
 
                 PBF(std::string &filename) : Base(),
+                    use_dense_format_(true),
                     headerWritten(false),
                     block_contents_counter(0),
                     pbf_primitive_group_nodes(NULL),
@@ -139,6 +141,15 @@ namespace Osmium {
                         perror("unable to open outfile");
                 }
 
+                bool use_dense_format() const {
+                    return use_dense_format_;
+                }
+
+                PBF& use_dense_format(bool d) {
+                    use_dense_format_ = d;
+                    return *this;
+                }
+
                 static void cleanup() {
                     // this is needed even if the protobuf lib was never used so that valgrind doesn't report any errors
                     google::protobuf::ShutdownProtobufLibrary();
@@ -146,13 +157,16 @@ namespace Osmium {
 
                 void write_init() {
                     pbf_header_block.add_required_features("OsmSchema-V0.6");
-                    pbf_header_block.add_required_features("DenseNodes");
-                    //pbf_header_block.add_required_features("HistoricalInformation");
 
-                    pbf_header_block.set_writingprogram("Osmium (http://wiki.openstreetmap.org/wiki/Osmium)");
+                    if(use_dense_format())
+                        pbf_header_block.add_required_features("DenseNodes");
+
+                    if(is_history_file())
+                        pbf_header_block.add_required_features("HistoricalInformation");
 
                     // add empty string-table entry at index 0
                     pbf_primitive_block.mutable_stringtable()->add_s("");
+                    pbf_header_block.set_writingprogram("Osmium (http://wiki.openstreetmap.org/wiki/Osmium)");
                 }
 
                 void write_bounds(double minlon, double minlat, double maxlon, double maxlat) {
