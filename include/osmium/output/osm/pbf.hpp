@@ -82,6 +82,9 @@ namespace Osmium {
                 }
 
                 void store_primitive_block() {
+                    if(block_contents_counter == 0)
+                        return;
+
                     std::string block;
                     pbf_primitive_block.SerializeToString(&block);
                     pbf_primitive_block.Clear();
