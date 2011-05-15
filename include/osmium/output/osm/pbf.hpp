@@ -108,8 +108,15 @@ namespace Osmium {
                 unsigned int str2pbf(const std::string &str) {
                     // TODO: use a std::vector, avoid duplicates and sort before writing
                     OSMPBF::StringTable *st = pbf_primitive_block.mutable_stringtable();
+
+                    // skip first slot
+                    int i, l;
+                    for(i = 1, l = st->s_size(); i<l; i++)
+                        if(st->s(i) == str)
+                            return i;
+
                     st->add_s(str);
-                    return st->s_size()-1;
+                    return l;
                 }
 
             public:
