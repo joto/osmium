@@ -25,6 +25,9 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <netinet/in.h>
 #include <algorithm>
 
+// uncomment to enable not-yet-working compression
+//#define PBF_OUTPUT_USE_COMPRESSION
+
 namespace Osmium {
 
     namespace Output {
@@ -52,11 +55,42 @@ namespace Osmium {
                 std::vector<Osmium::OSM::Relation*> relations;
                 std::map<std::string, int> strings;
 
-                void store_blob(const std::string &type, const std::string &data) {
-                    std::string blob;
+                static const int MAX_BLOB_SIZE = 32 * 1024 * 1024;
+                char pack_buffer[MAX_BLOB_SIZE];
 
-                    // TODO: add compression
+                void store_blob(const std::string &type, const std::string &data) {
+#ifdef PBF_OUTPUT_USE_COMPRESSION
+                    z_stream compressed_stream;
+
+                    compressed_stream.next_in   = (unsigned char*) data.c_str();
+                    compressed_stream.avail_in  = data.size();
+                    compressed_stream.next_out  = (unsigned char*) pack_buffer;
+                    compressed_stream.avail_out = MAX_BLOB_SIZE;
+                    compressed_stream.zalloc    = Z_NULL;
+                    compressed_stream.zfree     = Z_NULL;
+                    compressed_stream.opaque    = Z_NULL;
+
+                    if (deflateInit(&compressed_stream, Z_DEFAULT_COMPRESSION) != Z_OK) {
+                        throw std::runtime_error("failed to init zlib stream");
+                    }
+                    printf("msg: %s\n", compressed_stream.msg);
+                    if (deflate(&compressed_stream, Z_FINISH) != Z_STREAM_END) {
+                        throw std::runtime_error("failed to deflate zlib stream");
+                    }
+                    printf("msg: %s\n", compressed_stream.msg);
+                    if (deflateEnd(&compressed_stream) != Z_OK) {
+                        throw std::runtime_error("failed to deinit zlib stream");
+                    }
+                    printf("msg: %s\n", compressed_stream.msg);
+
+                    pbf_blob.set_zlib_data(pack_buffer);
+
+#else // PBF_OUTPUT_USE_COMPRESSION
+                    pack_buffer[0] = '\0';
                     pbf_blob.set_raw(data);
+#endif // PBF_OUTPUT_USE_COMPRESSION
+
+                    std::string blob;
 
                     pbf_blob.SerializeToString(&blob);
                     pbf_blob.Clear();
@@ -66,7 +100,7 @@ namespace Osmium {
 
                     std::string blobhead;
                     pbf_blob_header.SerializeToString(&blobhead);
-                    fprintf(stderr, "storing blob type=%s (header=%u bytes, raw=%u bytes, compressed=...)\n", pbf_blob_header.type().c_str(), blobhead.size(), blob.size());
+                    fprintf(stderr, "storing blob type=%s (header=%u bytes, raw=%u bytes, compressed=%d)\n", pbf_blob_header.type().c_str(), blobhead.size(), blob.size(), strlen(pack_buffer));
                     pbf_blob_header.Clear();
 
                     int32_t sz = htonl(blobhead.size());
