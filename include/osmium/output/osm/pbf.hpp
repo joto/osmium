@@ -127,6 +127,14 @@ namespace Osmium {
                     }
                 }
 
+                int latlon2int(double latlon) {
+                    return (latlon / pbf_primitive_block.granularity()) * (long int)1000000000;
+                }
+
+                int timestamp2int(time_t timestamp) {
+                    return timestamp * (1000 / pbf_primitive_block.date_granularity());
+                }
+
                 void store_nodes_block() {
                     fprintf(stderr, "storing nodes block with %u nodes\n", nodes.size());
                     sort_and_store_strings();
@@ -138,8 +146,8 @@ namespace Osmium {
 
                         pbf_node->set_id(node->id);
 
-                        pbf_node->set_lat(0); // TODO: encode node->lat
-                        pbf_node->set_lon(0); // TODO: encode node->lon
+                        pbf_node->set_lat(latlon2int(node->get_lat()));
+                        pbf_node->set_lon(latlon2int(node->get_lon()));
 
                         for (int i=0, l = node->tag_count(); i < l; i++) {
                             pbf_node->add_keys(index_string(node->get_tag_key(i)));
@@ -148,7 +156,7 @@ namespace Osmium {
 
                         OSMPBF::Info *pbf_node_info = pbf_node->mutable_info();
                         pbf_node_info->set_version((google::protobuf::int32) node->version);
-                        pbf_node_info->set_timestamp((google::protobuf::int64) 0); // TODO: encode node->timestamp
+                        pbf_node_info->set_timestamp((google::protobuf::int64) timestamp2int(node->timestamp));
                         pbf_node_info->set_changeset((google::protobuf::int64) node->changeset);
                         pbf_node_info->set_uid((google::protobuf::int64) node->uid);
                         pbf_node_info->set_user_sid(index_string(node->user));
