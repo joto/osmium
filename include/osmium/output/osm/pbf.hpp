@@ -38,6 +38,7 @@ namespace Osmium {
                 FILE *fd;
 
                 bool use_dense_format_;
+                bool use_compression_;
 
                 bool headerWritten;
 
@@ -56,30 +57,35 @@ namespace Osmium {
                 char pack_buffer[MAX_BLOB_SIZE];
 
                 void store_blob(const std::string &type, const std::string &data) {
-                    z_stream z;
+                    if(use_compression()) {
+                        z_stream z;
 
-                    z.next_in   = (unsigned char*)  data.c_str();
-                    z.avail_in  = data.size();
-                    z.next_out  = (unsigned char*)  pack_buffer;
-                    z.avail_out = MAX_BLOB_SIZE;
-                    z.zalloc    = Z_NULL;
-                    z.zfree     = Z_NULL;
-                    z.opaque    = Z_NULL;
+                        z.next_in   = (unsigned char*)  data.c_str();
+                        z.avail_in  = data.size();
+                        z.next_out  = (unsigned char*)  pack_buffer;
+                        z.avail_out = MAX_BLOB_SIZE;
+                        z.zalloc    = Z_NULL;
+                        z.zfree     = Z_NULL;
+                        z.opaque    = Z_NULL;
 
-                    if (deflateInit(&z, Z_DEFAULT_COMPRESSION) != Z_OK) {
-                        throw std::runtime_error("failed to init zlib stream");
+                        if (deflateInit(&z, Z_DEFAULT_COMPRESSION) != Z_OK) {
+                            throw std::runtime_error("failed to init zlib stream");
+                        }
+                        if (deflate(&z, Z_FINISH) != Z_STREAM_END) {
+                            throw std::runtime_error("failed to deflate zlib stream");
+                        }
+                        if (deflateEnd(&z) != Z_OK) {
+                            throw std::runtime_error("failed to deinit zlib stream");
+                        }
+
+                        //fprintf(stderr, "pack %d bytes to %ld bytes (1:%f))\n", data.size(), z.total_out, (double)data.size() / z.total_out);
+                        pbf_blob.set_zlib_data(pack_buffer, z.total_out);
                     }
-                    if (deflate(&z, Z_FINISH) != Z_STREAM_END) {
-                        throw std::runtime_error("failed to deflate zlib stream");
-                    }
-                    if (deflateEnd(&z) != Z_OK) {
-                        throw std::runtime_error("failed to deinit zlib stream");
+                    else { // use_compression
+                        pbf_blob.set_raw(data);
                     }
 
-                    //fprintf(stderr, "pack %d bytes to %d bytes\n", data.size(), z.total_out);
                     pbf_blob.set_raw_size(data.size());
-                    pbf_blob.set_zlib_data(pack_buffer, z.total_out);
-
                     std::string blob;
 
                     pbf_blob.SerializeToString(&blob);
@@ -90,7 +96,6 @@ namespace Osmium {
 
                     std::string blobhead;
                     pbf_blob_header.SerializeToString(&blobhead);
-                    //fprintf(stderr, "storing blob type=%s (header=%u bytes, raw=%u bytes, compressed=%lu)\n", pbf_blob_header.type().c_str(), blobhead.size(), blob.size(), z.total_out);
                     pbf_blob_header.Clear();
 
                     int32_t sz = htonl(blobhead.size());
@@ -228,6 +233,7 @@ namespace Osmium {
                 PBF() : Base(),
                     fd(stdout),
                     use_dense_format_(true),
+                    use_compression_(true),
                     headerWritten(false) {
 
                     GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -235,6 +241,7 @@ namespace Osmium {
 
                 PBF(std::string &filename) : Base(),
                     use_dense_format_(true),
+                    use_compression_(true),
                     headerWritten(false) {
 
                     GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -250,6 +257,15 @@ namespace Osmium {
 
                 PBF& use_dense_format(bool d) {
                     use_dense_format_ = d;
+                    return *this;
+                }
+
+                bool use_compression() const {
+                    return use_compression_;
+                }
+
+                PBF& use_compression(bool d) {
+                    use_compression_ = d;
                     return *this;
                 }
 
