@@ -223,13 +223,13 @@ namespace Osmium {
                 }
 
                 void check_block_contents_counter() {
-                    if(nodes.size() > max_block_contents)
+                    if(nodes.size() >= max_block_contents)
                         store_nodes_block();
 
-                    if(ways.size() > max_block_contents)
+                    if(ways.size() >= max_block_contents)
                         store_ways_block();
 
-                    if(relations.size() > max_block_contents)
+                    if(relations.size() >= max_block_contents)
                         store_relations_block();
                 }
 
