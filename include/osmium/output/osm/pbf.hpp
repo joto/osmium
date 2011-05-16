@@ -269,11 +269,6 @@ namespace Osmium {
                     return *this;
                 }
 
-                static void cleanup() {
-                    // this is needed even if the protobuf lib was never used so that valgrind doesn't report any errors
-                    google::protobuf::ShutdownProtobufLibrary();
-                }
-
                 void write_init() {
                     pbf_header_block.add_required_features("OsmSchema-V0.6");
 
