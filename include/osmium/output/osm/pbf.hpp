@@ -76,7 +76,7 @@ namespace Osmium {
                         throw std::runtime_error("failed to deinit zlib stream");
                     }
 
-                    fprintf(stderr, "pack %d bytes to %d bytes\n", data.size(), z.total_out);
+                    //fprintf(stderr, "pack %d bytes to %d bytes\n", data.size(), z.total_out);
                     pbf_blob.set_raw_size(data.size());
                     pbf_blob.set_zlib_data(pack_buffer, z.total_out);
 
@@ -90,7 +90,7 @@ namespace Osmium {
 
                     std::string blobhead;
                     pbf_blob_header.SerializeToString(&blobhead);
-                    fprintf(stderr, "storing blob type=%s (header=%u bytes, raw=%u bytes, compressed=%lu)\n", pbf_blob_header.type().c_str(), blobhead.size(), blob.size(), z.total_out);
+                    //fprintf(stderr, "storing blob type=%s (header=%u bytes, raw=%u bytes, compressed=%lu)\n", pbf_blob_header.type().c_str(), blobhead.size(), blob.size(), z.total_out);
                     pbf_blob_header.Clear();
 
                     int32_t sz = htonl(blobhead.size());
@@ -100,7 +100,7 @@ namespace Osmium {
                 }
 
                 void store_header_block() {
-                    fprintf(stderr, "storing header block\n");
+                    //fprintf(stderr, "storing header block\n");
                     std::string header;
                     pbf_header_block.SerializeToString(&header);
                     pbf_header_block.Clear();
@@ -121,7 +121,7 @@ namespace Osmium {
 
                     for(int i = 0, l = st.s_size(); i<l; i++) {
                         if(st.s(i) == str) {
-                            fprintf(stderr, "read stringtable: %s -> %d\n", str.c_str(), i);
+                            //fprintf(stderr, "read stringtable: %s -> %d\n", str.c_str(), i);
                             return i;
                         }
                     }
@@ -147,7 +147,7 @@ namespace Osmium {
 
                     OSMPBF::StringTable *st = pbf_primitive_block.mutable_stringtable();
                     for(int i = 0, l = strvec.size(); i<l; i++) {
-                        fprintf(stderr, "store stringtable: %s (cnt=%d)\n", strvec[i].first.c_str(), strvec[i].second+1);
+                        //fprintf(stderr, "store stringtable: %s (cnt=%d)\n", strvec[i].first.c_str(), strvec[i].second+1);
                         st->add_s(strvec[i].first);
                     }
                 }
@@ -161,7 +161,7 @@ namespace Osmium {
                 }
 
                 void store_nodes_block() {
-                    fprintf(stderr, "storing nodes block with %u nodes\n", nodes.size());
+                    //fprintf(stderr, "storing nodes block with %u nodes\n", nodes.size());
                     sort_and_store_strings();
 
                     OSMPBF::PrimitiveGroup *pbf_primitive_group = pbf_primitive_block.add_primitivegroup();
@@ -193,15 +193,15 @@ namespace Osmium {
                 }
 
                 void store_ways_block() {
-                    fprintf(stderr, "storing ways block with %u ways\n", ways.size());
+                    //fprintf(stderr, "storing ways block with %u ways\n", ways.size());
                 }
 
                 void store_relations_block() {
-                    fprintf(stderr, "storing relations block with %u relations\n", relations.size());
+                    //fprintf(stderr, "storing relations block with %u relations\n", relations.size());
                 }
 
                 void store_primitive_block() {
-                    fprintf(stderr, "storing primitive block\n");
+                    //fprintf(stderr, "storing primitive block\n");
                     std::string block;
                     pbf_primitive_block.SerializeToString(&block);
                     pbf_primitive_block.Clear();
