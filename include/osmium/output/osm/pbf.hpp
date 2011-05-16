@@ -52,11 +52,16 @@ namespace Osmium {
                 std::vector<Osmium::OSM::Relation*> relations;
                 std::map<std::string, int> strings;
 
-                void store_blob() {
+                void store_blob(const std::string &type, const std::string &data) {
                     std::string blob;
+
+                    // TODO: add compression
+                    pbf_blob.set_raw(data);
+
                     pbf_blob.SerializeToString(&blob);
                     pbf_blob.Clear();
 
+                    pbf_blob_header.set_type(type);
                     pbf_blob_header.set_datasize(blob.size());
 
                     std::string blobhead;
@@ -76,11 +81,7 @@ namespace Osmium {
                     pbf_header_block.SerializeToString(&header);
                     pbf_header_block.Clear();
 
-                    // TODO: add compression
-                    pbf_blob_header.set_type("OSMHeader");
-                    pbf_blob.set_raw(header);
-                    store_blob();
-
+                    store_blob("OSMHeader", header);
                     headerWritten = true;
                 }
 
@@ -183,10 +184,7 @@ namespace Osmium {
                     // add empty string-table entry at index 0
                     pbf_primitive_block.mutable_stringtable()->add_s("");
 
-                    // TODO: add compression
-                    pbf_blob_header.set_type("OSMData");
-                    pbf_blob.set_raw(block);
-                    store_blob();
+                    store_blob("OSMData", block);
                 }
 
                 void check_block_contents_counter() {
