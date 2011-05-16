@@ -198,6 +198,7 @@ namespace Osmium {
                         delete node;
                     }
                     nodes.clear();
+                    strings.clear();
                     store_primitive_block();
                 }
 
