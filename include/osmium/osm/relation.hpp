@@ -129,6 +129,10 @@ namespace Osmium {
                 return array;
             }
 
+            v8::Handle<v8::Value> js_get_members_length() const {
+                return v8::Number::New(member_count());
+            }
+
 #endif // OSMIUM_WITH_JAVASCRIPT
 
         }; // class Relation

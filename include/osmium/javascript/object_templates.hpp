@@ -138,6 +138,7 @@ namespace Osmium {
             public:
 
                 Members() : Base(1) {
+                    js_template->SetAccessor(v8::String::New("length"), accessor_getter<Osmium::OSM::Relation, &Osmium::OSM::Relation::js_get_members_length>);
                     js_template->SetIndexedPropertyHandler(
                         indexed_property_getter<Osmium::OSM::Relation, &Osmium::OSM::Relation::js_get_member>,
                         0,
