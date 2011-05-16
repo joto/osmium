@@ -23,6 +23,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 */
 
 #include <netinet/in.h>
+#include <algorithm>
 
 namespace Osmium {
 
@@ -104,14 +105,25 @@ namespace Osmium {
                     return 0;
                 }
 
+                static bool str_sorter(const std::pair<std::string, int> &a, const std::pair<std::string, int> b) {
+                    if(a.second > b.second)
+                        return true;
+                    else if(a.second < b.second)
+                        return false;
+                    else
+                        return a.first < b.first;
+                }
 
                 void sort_and_store_strings() {
-                    // TODO sort strings
+                    std::vector<std::pair<std::string, int>> strvec;
+
+                    std::copy(strings.begin(), strings.end(), back_inserter(strvec));
+                    std::sort(strvec.begin(), strvec.end(), str_sorter);
 
                     OSMPBF::StringTable *st = pbf_primitive_block.mutable_stringtable();
-                    for(std::map<std::string, int>::iterator it = strings.begin(); it != strings.end(); it++) {
-                        fprintf(stderr, "store stringtable: %s\n", (*it).first.c_str());
-                        st->add_s((*it).first);
+                    for(int i = 0, l = strvec.size(); i<l; i++) {
+                        fprintf(stderr, "store stringtable: %s (cnt=%d)\n", strvec[i].first.c_str(), strvec[i].second+1);
+                        st->add_s(strvec[i].first);
                     }
                 }
 
