@@ -104,7 +104,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if (optind > argc-2) {
+    if (optind != argc-2) {
         std::cerr << "Usage: " << argv[0] << " [OPTIONS] INFILE OUTFILE" << std::endl;
         exit(1);
     }
