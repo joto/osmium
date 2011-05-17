@@ -80,7 +80,7 @@ namespace Osmium {
                             throw std::runtime_error("failed to deinit zlib stream");
                         }
 
-                        //fprintf(stderr, "pack %d bytes to %ld bytes (1:%f))\n", data.size(), z.total_out, (double)data.size() / z.total_out);
+                        if(Osmium::global.debug) fprintf(stderr, "pack %d bytes to %ld bytes (1:%f))\n", data.size(), z.total_out, (double)data.size() / z.total_out);
                         pbf_blob.set_zlib_data(pack_buffer, z.total_out);
                     }
                     else { // use_compression
@@ -107,7 +107,7 @@ namespace Osmium {
                 }
 
                 void store_header_block() {
-                    //fprintf(stderr, "storing header block\n");
+                    if(Osmium::global.debug) fprintf(stderr, "storing header block\n");
                     std::string header;
                     pbf_header_block.SerializeToString(&header);
                     pbf_header_block.Clear();
@@ -127,10 +127,8 @@ namespace Osmium {
                     const OSMPBF::StringTable st = pbf_primitive_block.stringtable();
 
                     for(int i = 0, l = st.s_size(); i<l; i++) {
-                        if(st.s(i) == str) {
-                            //fprintf(stderr, "read stringtable: %s -> %d\n", str.c_str(), i);
+                        if(st.s(i) == str)
                             return i;
-                        }
                     }
 
                     throw std::runtime_error("Request for string not in stringable");
@@ -154,7 +152,7 @@ namespace Osmium {
 
                     OSMPBF::StringTable *st = pbf_primitive_block.mutable_stringtable();
                     for(int i = 0, l = strvec.size(); i<l; i++) {
-                        //fprintf(stderr, "store stringtable: %s (cnt=%d)\n", strvec[i].first.c_str(), strvec[i].second+1);
+                        if(Osmium::global.debug) fprintf(stderr, "store stringtable: %s (cnt=%d)\n", strvec[i].first.c_str(), strvec[i].second+1);
                         st->add_s(strvec[i].first);
                     }
                 }
@@ -168,7 +166,7 @@ namespace Osmium {
                 }
 
                 void store_nodes_block() {
-                    //fprintf(stderr, "storing nodes block with %u nodes\n", nodes.size());
+                    if(Osmium::global.debug) fprintf(stderr, "storing nodes block with %u nodes\n", nodes.size());
                     sort_and_store_strings();
 
                     OSMPBF::PrimitiveGroup *pbf_primitive_group = pbf_primitive_block.add_primitivegroup();
@@ -199,7 +197,7 @@ namespace Osmium {
                 }
 
                 void store_ways_block() {
-                    //fprintf(stderr, "storing ways block with %u ways\n", ways.size());
+                    if(Osmium::global.debug) fprintf(stderr, "storing ways block with %u ways\n", ways.size());
                     sort_and_store_strings();
 
                     OSMPBF::PrimitiveGroup *pbf_primitive_group = pbf_primitive_block.add_primitivegroup();
@@ -233,11 +231,11 @@ namespace Osmium {
                 }
 
                 void store_relations_block() {
-                    //fprintf(stderr, "storing relations block with %u relations\n", relations.size());
+                    if(Osmium::global.debug) fprintf(stderr, "storing relations block with %u relations\n", relations.size());
                 }
 
                 void store_primitive_block() {
-                    //fprintf(stderr, "storing primitive block\n");
+                    if(Osmium::global.debug) fprintf(stderr, "storing primitive block\n");
                     std::string block;
                     pbf_primitive_block.SerializeToString(&block);
                     pbf_primitive_block.Clear();
@@ -334,7 +332,7 @@ namespace Osmium {
                 // TODO: use dense format if enabled
                 void write(Osmium::OSM::Node *node) {
                     check_block_contents_counter('n');
-                    //fprintf(stderr, "node %d v%d\n", node->id, node->version);
+                    if(Osmium::global.debug) fprintf(stderr, "node %d v%d\n", node->id, node->version);
                     if(!headerWritten)
                         store_header_block();
 
@@ -349,7 +347,7 @@ namespace Osmium {
 
                 void write(Osmium::OSM::Way *way) {
                     check_block_contents_counter('w');
-                    //fprintf(stderr, "way %d v%d\n", way->id, way->version);
+                    if(Osmium::global.debug) fprintf(stderr, "way %d v%d\n", way->id, way->version);
                     if(!headerWritten)
                         store_header_block();
 
@@ -363,13 +361,13 @@ namespace Osmium {
                 }
 
                 void write(Osmium::OSM::Relation *relation) {
-                    //fprintf(stderr, "relation %d v%d\n", relation->id, relation->version);
+                    if(Osmium::global.debug) fprintf(stderr, "relation %d v%d\n", relation->id, relation->version);
                     //if(!headerWritten) store_header_block();
                     //check_block_contents_counter('r');
                 }
 
                 void write_final() {
-                    //fprintf(stderr, "finishing\n");
+                    if(Osmium::global.debug) fprintf(stderr, "finishing\n");
                     if(nodes.size() > 0)
                         store_nodes_block();
 
