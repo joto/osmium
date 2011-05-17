@@ -34,7 +34,7 @@ namespace Osmium {
             class PBF : public Base {
 
                 static const int NANO = 1000 * 1000 * 1000;
-                static const unsigned int max_block_contents = 8000;
+                static const unsigned int max_block_contents = 100;
                 FILE *fd;
 
                 bool use_dense_format_;
@@ -255,10 +255,20 @@ namespace Osmium {
                         else if(lasttype == 'w' && ways.size())
                             store_ways_block();
 
-                        else if(lasttype == 'r' && ways.size())
+                        else if(lasttype == 'r' && relations.size())
                             store_relations_block();
 
                     }
+                    else if(nodes.size() >= max_block_contents) {
+                        store_nodes_block();
+                    }
+                    else if(ways.size() >= max_block_contents) {
+                        store_ways_block();
+                    }
+                    else if(relations.size() >= max_block_contents) {
+                        store_relations_block();
+                    }
+
                     lasttype = type;
                 }
 
