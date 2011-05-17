@@ -34,7 +34,7 @@ namespace Osmium {
             class PBF : public Base {
 
                 static const int NANO = 1000 * 1000 * 1000;
-                static const unsigned int max_block_contents = 100;
+                static const unsigned int max_block_contents = 8000;
                 FILE *fd;
 
                 bool use_dense_format_;
