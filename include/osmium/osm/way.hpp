@@ -192,6 +192,16 @@ namespace Osmium {
                 lat[n] = nlat;
             }
 
+            /**
+             * Are the node coordinates set for this way?
+             * This will return true after the first call to set_node_coordinates(),
+             * which strictly speaking only means that one coordinate has been set.
+             * XXX should probably be done in some other way.
+             */
+            bool node_coordinates_set() const {
+                return lon.size() == nodes.size();
+            }
+
 #ifdef OSMIUM_WITH_GEOS
             /**
              * Returns the GEOS geometry of the way.
@@ -226,7 +236,7 @@ namespace Osmium {
                 }
 #ifdef OSMIUM_CHECK_WAY_GEOMETRY
                 if (nodes.size() == 0 || nodes.size() == 1) {
-                    if (Osmium::global.debug) std::cerr << "error building way geometry for way " << id << ": must at least contain two nodes" << std::endl;
+                    if (Osmium::global.debug) std::cerr << "error building way geometry for way " << get_id() << ": must at least contain two nodes" << std::endl;
                     return NULL;
                 }
 
@@ -240,16 +250,16 @@ namespace Osmium {
 
                 for (osm_sequence_id_t i=1; i < lon.size(); i++) {
                     if (nodes[i] == nodes[i-1]) {
-                        if (Osmium::global.debug) std::cerr << "warning building way geometry for way " << id << ": contains node " << nodes[i] << " twice" << std::endl;
+                        if (Osmium::global.debug) std::cerr << "warning building way geometry for way " << get_id() << ": contains node " << nodes[i] << " twice" << std::endl;
                     } else if (lon[i] == lon[i-1] && lat[i] == lat[i-1]) {
-                        if (Osmium::global.debug) std::cerr << "warning building way geometry for way " << id << ": contains location " << lon[i] << ", " << lat[i] << " twice" << std::endl;
+                        if (Osmium::global.debug) std::cerr << "warning building way geometry for way " << get_id() << ": contains location " << lon[i] << ", " << lat[i] << " twice" << std::endl;
                     } else {
                         lon_checked.push_back(lon[i]);
                         lat_checked.push_back(lat[i]);
                     }
                 }
                 if (lon_checked.size() == 1) {
-                    if (Osmium::global.debug) std::cerr << "error building way geometry for way " << id << ": must at least contain two different points" << std::endl;
+                    if (Osmium::global.debug) std::cerr << "error building way geometry for way " << get_id() << ": must at least contain two different points" << std::endl;
                     return NULL;
                 }
                 return SHPCreateSimpleObject(shp_type, lon_checked.size(), &(lon_checked[0]), &(lat_checked[0]), NULL);
@@ -303,6 +313,10 @@ namespace Osmium {
 
             v8::Handle<v8::Value> js_get_geom_property(v8::Local<v8::String> property) const {
                 v8::String::Utf8Value key(property);
+
+                if (!node_coordinates_set()) {
+                    return v8::Undefined();
+                }
 
                 if (!strcmp(*key, "as_wkt")) {
                     std::ostringstream oss;

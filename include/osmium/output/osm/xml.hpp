@@ -46,7 +46,7 @@ namespace Osmium {
                     xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "id",        "%d", object->get_id());
                     xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "version",   "%d", object->get_version());
                     xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "changeset", "%d", object->get_changeset());
-                    xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "timestamp", BAD_CAST object->get_timestamp_str());
+                    xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "timestamp", BAD_CAST object->get_timestamp_as_string().c_str());
 
                     // uid == 0 -> anonymous
                     if (object->get_uid() > 0) {

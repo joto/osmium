@@ -34,7 +34,7 @@ namespace Osmium {
                 std::cout << "  uid="       << object->get_uid() << std::endl;
                 std::cout << "  user=|"      << object->get_user() << "|" << std::endl;
                 std::cout << "  changeset=" << object->get_changeset() << std::endl;
-                std::cout << "  timestamp=" << object->get_timestamp_str() << std::endl;
+                std::cout << "  timestamp=" << object->get_timestamp_as_string() << std::endl;
                 std::cout << "  tags:" << std::endl;
                 for (int i=0; i < object->tag_count(); i++) {
                     std::cout << "    k=|" << object->get_tag_key(i) << "| v=|" << object->get_tag_value(i) << "|" << std::endl;

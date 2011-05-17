@@ -164,14 +164,14 @@ namespace Osmium {
                     this->node->reset();
 
                     const OSMPBF::Node& inputNode = group.nodes(entity);
-                    this->node->id = inputNode.id();
-                    this->node->version = inputNode.info().version();
-                    this->node->uid = inputNode.info().uid();
-                    if (! memccpy(this->node->user, stringtable.s(inputNode.info().user_sid()).data(), 0, Osmium::OSM::Object::max_length_username)) {
-                        throw std::length_error("user name too long");
-                    }
-                    this->node->changeset = inputNode.info().changeset();
-                    this->node->timestamp = inputNode.info().timestamp();
+
+                    this->node->set_id(inputNode.id()).
+                                set_version(inputNode.info().version()).
+                                set_changeset(inputNode.info().changeset()).
+                                set_timestamp(inputNode.info().timestamp()).
+                                set_uid(inputNode.info().uid()).
+                                set_user(stringtable.s(inputNode.info().user_sid()).data());
+
                     for (int tag=0; tag < inputNode.keys_size(); tag++) {
                         this->node->add_tag(stringtable.s( inputNode.keys( tag ) ).data(),
                                             stringtable.s( inputNode.vals( tag ) ).data());
@@ -190,14 +190,14 @@ namespace Osmium {
                     this->way->reset();
 
                     const OSMPBF::Way& inputWay = group.ways(entity);
-                    this->way->id = inputWay.id();
-                    this->way->version = inputWay.info().version();
-                    this->way->uid = inputWay.info().uid();
-                    if (! memccpy(this->way->user, stringtable.s(inputWay.info().user_sid()).data(), 0, Osmium::OSM::Object::max_length_username)) {
-                        throw std::length_error("user name too long");
-                    }
-                    this->way->changeset = inputWay.info().changeset();
-                    this->way->timestamp = inputWay.info().timestamp();
+
+                    this->way->set_id(inputWay.id()).
+                               set_version(inputWay.info().version()).
+                               set_changeset(inputWay.info().changeset()).
+                               set_timestamp(inputWay.info().timestamp()).
+                               set_uid(inputWay.info().uid()).
+                               set_user(stringtable.s(inputWay.info().user_sid()).data());
+
                     for (int tag=0; tag < inputWay.keys_size(); tag++) {
                         this->way->add_tag(stringtable.s( inputWay.keys( tag ) ).data(),
                                            stringtable.s( inputWay.vals( tag ) ).data());
@@ -219,14 +219,14 @@ namespace Osmium {
                     this->relation->reset();
 
                     const OSMPBF::Relation& inputRelation = group.relations(entity);
-                    this->relation->id = inputRelation.id();
-                    this->relation->version = inputRelation.info().version();
-                    this->relation->uid = inputRelation.info().uid();
-                    if (! memccpy(this->relation->user, stringtable.s(inputRelation.info().user_sid()).data(), 0, Osmium::OSM::Object::max_length_username)) {
-                        throw std::length_error("user name too long");
-                    }
-                    this->relation->changeset = inputRelation.info().changeset();
-                    this->relation->timestamp = inputRelation.info().timestamp();
+
+                    this->relation->set_id(inputRelation.id()).
+                                    set_version(inputRelation.info().version()).
+                                    set_changeset(inputRelation.info().changeset()).
+                                    set_timestamp(inputRelation.info().timestamp()).
+                                    set_uid(inputRelation.info().uid()).
+                                    set_user(stringtable.s(inputRelation.info().user_sid()).data());
+
                     for (int tag=0; tag < inputRelation.keys_size(); tag++) {
                         this->relation->add_tag(stringtable.s( inputRelation.keys(tag) ).data(),
                                                 stringtable.s( inputRelation.vals(tag) ).data());
@@ -276,14 +276,14 @@ namespace Osmium {
                     last_dense_user_sid  += dense.denseinfo().user_sid(entity);
                     last_dense_changeset += dense.denseinfo().changeset(entity);
                     last_dense_timestamp += dense.denseinfo().timestamp(entity);
-                    this->node->id      = last_dense_id;
-                    this->node->uid     = last_dense_uid;
-                    this->node->version = dense.denseinfo().version(entity);
-                    if (! memccpy(this->node->user, stringtable.s(last_dense_user_sid).data(), 0, Osmium::OSM::Object::max_length_username)) {
-                        throw std::length_error("user name too long");
-                    }
-                    this->node->changeset = last_dense_changeset;
-                    this->node->timestamp = last_dense_timestamp;
+
+                    this->node->set_id(last_dense_id);
+                    this->node->set_version(dense.denseinfo().version(entity));
+                    this->node->set_changeset(last_dense_changeset);
+                    this->node->set_timestamp(last_dense_timestamp);
+                    this->node->set_uid(last_dense_uid);
+                    this->node->set_user(stringtable.s(last_dense_user_sid).data());
+
                     this->node->set_coordinates(( ( double ) last_dense_longitude * pbf_primitive_block.granularity() + pbf_primitive_block.lon_offset() ) / NANO,
                                                 ( ( double ) last_dense_latitude  * pbf_primitive_block.granularity() + pbf_primitive_block.lat_offset() ) / NANO);
 
