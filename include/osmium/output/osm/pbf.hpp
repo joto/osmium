@@ -361,9 +361,10 @@ namespace Osmium {
                 }
 
                 void write(Osmium::OSM::Relation *relation) {
+                    check_block_contents_counter('r');
                     if(Osmium::global.debug) fprintf(stderr, "relation %d v%d\n", relation->id, relation->version);
-                    //if(!headerWritten) store_header_block();
-                    //check_block_contents_counter('r');
+                    if(!headerWritten)
+                        store_header_block();
                 }
 
                 void write_final() {
