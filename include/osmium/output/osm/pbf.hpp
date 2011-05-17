@@ -51,7 +51,8 @@ namespace Osmium {
                 std::vector<Osmium::OSM::Node*> nodes;
                 std::vector<Osmium::OSM::Way*> ways;
                 std::vector<Osmium::OSM::Relation*> relations;
-                std::map<std::string, int> strings;
+                std::map<std::string, int> string_counts;
+                std::map<std::string, int> string_ids;
 
                 static const int MAX_BLOB_SIZE = 32 * 1024 * 1024;
                 char pack_buffer[MAX_BLOB_SIZE];
@@ -117,22 +118,21 @@ namespace Osmium {
                 }
 
                 void record_string(const std::string& string) {
-                    if(strings.count(string) > 0)
-                        strings[string]++;
+                    if(string_counts.count(string) > 0)
+                        string_counts[string]++;
                     else
-                        strings.insert( std::pair<std::string, int>(string, 0) );
+                        string_counts[string] = 0;
                 }
 
                 unsigned int index_string(const std::string& str) {
-                    const OSMPBF::StringTable st = pbf_primitive_block.stringtable();
-
-                    for(int i = 0, l = st.s_size(); i<l; i++) {
-                        if(st.s(i) == str)
-                            return i;
+                    std::map<std::string, int>::const_iterator it;
+                    it = string_ids.find(str);
+                    if(it != string_ids.end()) {
+                        //if(Osmium::global.debug) fprintf(stderr, "index %d for string %s\n", it->second, str.c_str());
+                        return it->second;
                     }
 
-                    throw std::runtime_error("Request for string not in stringable");
-                    return 0;
+                    throw std::runtime_error("Request for string not in stringable: " + str);
                 }
 
                 static bool str_sorter(const std::pair<std::string, int> &a, const std::pair<std::string, int> b) {
@@ -147,13 +147,14 @@ namespace Osmium {
                 void sort_and_store_strings() {
                     std::vector<std::pair<std::string, int>> strvec;
 
-                    std::copy(strings.begin(), strings.end(), back_inserter(strvec));
+                    std::copy(string_counts.begin(), string_counts.end(), back_inserter(strvec));
                     std::sort(strvec.begin(), strvec.end(), str_sorter);
 
                     OSMPBF::StringTable *st = pbf_primitive_block.mutable_stringtable();
                     for(int i = 0, l = strvec.size(); i<l; i++) {
-                        if(Osmium::global.debug) fprintf(stderr, "store stringtable: %s (cnt=%d)\n", strvec[i].first.c_str(), strvec[i].second+1);
+                        if(Osmium::global.debug) fprintf(stderr, "store stringtable %d of %d: %s (cnt=%d)\n", i+1, l, strvec[i].first.c_str(), strvec[i].second+1);
                         st->add_s(strvec[i].first);
+                        string_ids[strvec[i].first] = i+1;
                     }
                 }
 
@@ -169,6 +170,7 @@ namespace Osmium {
                     if(Osmium::global.debug) fprintf(stderr, "storing nodes block with %lu nodes\n", (long unsigned int)nodes.size());
                     sort_and_store_strings();
 
+                    if(Osmium::global.debug) fprintf(stderr, "storing %d nodes to protobuf\n", nodes.size());
                     OSMPBF::PrimitiveGroup *pbf_primitive_group = pbf_primitive_block.add_primitivegroup();
                     for(int i = 0, l = nodes.size(); i<l; i++) {
                         Osmium::OSM::Node *node = nodes[i];
@@ -200,6 +202,7 @@ namespace Osmium {
                     if(Osmium::global.debug) fprintf(stderr, "storing ways block with %lu ways\n", (long unsigned int)ways.size());
                     sort_and_store_strings();
 
+                    if(Osmium::global.debug) fprintf(stderr, "storing %d ways to protobuf\n", ways.size());
                     OSMPBF::PrimitiveGroup *pbf_primitive_group = pbf_primitive_block.add_primitivegroup();
                     for(int i = 0, l = ways.size(); i<l; i++) {
                         Osmium::OSM::Way *way = ways[i];
@@ -241,7 +244,8 @@ namespace Osmium {
                     pbf_primitive_block.Clear();
 
                     // add empty string-table entry at index 0
-                    strings.clear();
+                    string_counts.clear();
+                    string_ids.clear();
                     pbf_primitive_block.mutable_stringtable()->add_s("");
 
                     store_blob("OSMData", block);
