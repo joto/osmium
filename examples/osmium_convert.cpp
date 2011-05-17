@@ -79,8 +79,6 @@ void print_help() {
 }
 
 int main(int argc, char *argv[]) {
-    Osmium::Framework osmium(true);
-
     static struct option long_options[] = {
         {"debug",                no_argument, 0, 'd'},
         {"help",                 no_argument, 0, 'h'},
@@ -106,16 +104,18 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if (argc != 3) {
+    if (optind > argc-2) {
         std::cerr << "Usage: " << argv[0] << " [OPTIONS] INFILE OUTFILE" << std::endl;
         exit(1);
     }
 
-    std::string outfile(argv[2]);
+    Osmium::Framework osmium(debug);
+
+    std::string outfile(argv[optind+1]);
 
     ConvertHandler *handler_convert = new ConvertHandler(outfile);
 
-    osmium.parse_osmfile<ConvertHandler>(argv[1], handler_convert);
+    osmium.parse_osmfile<ConvertHandler>(argv[optind], handler_convert);
 
     delete handler_convert;
 }
