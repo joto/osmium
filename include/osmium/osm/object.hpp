@@ -47,9 +47,9 @@ namespace Osmium {
         */
         class Object {
 
-        public:
+            static const int timestamp_length = 20 + 1; // length of ISO timestamp string yyyy-mm-ddThh:mm:ssZ\0
 
-            static const int max_length_timestamp = 20 + 1; ///< maximum length of OSM object timestamp string (20 characters + null byte)
+        public:
 
             static const int max_characters_username = 255;
             static const int max_utf16_length_username = 2 * (max_characters_username + 1); ///< maximum number of UTF-16 units
@@ -181,15 +181,28 @@ namespace Osmium {
             }
 
             /**
-             * Get the timestamp when this object last changed.
-             * XXX not thread-safe (use string?)
-             * @return Pointer to null-terminated string in a static buffer.
+             * The timestamp format for OSM timestamps in strftime(3) format.
+             * This is the ISO-Format yyyy-mm-ddThh:mm:ssZ
              */
-            const char *get_timestamp_str() const {
-                static char timestamp_str[max_length_timestamp+1];
+            static const char *timestamp_format() {
+                static const char f[] = "%Y-%m-%dT%H:%M:%SZ";
+                return f;
+            };
+
+            /**
+             * Get the timestamp when this object last changed.
+             * @return Timestamp as a string in ISO format (yyyy-mm-ddThh:mm:ssZ).
+             */
+            std::string get_timestamp_as_string() const {
                 struct tm *tm = gmtime(&timestamp);
-                strftime(timestamp_str, sizeof(timestamp_str), "%Y-%m-%dT%H:%M:%SZ", tm);
-                return timestamp_str;
+                std::string s(timestamp_length, '\0');
+                /* This const_cast is ok, because we know we have enough space
+                   in the string for the format we are using (well at least until
+                   the year will have 5 digits). And by setting the size
+                   afterwards from the result of strftime we make sure thats set
+                   right, too. */
+                s.resize(strftime(const_cast<char *>(s.c_str()), timestamp_length, timestamp_format(), tm));
+                return s;
             }
 
             /**
@@ -210,7 +223,7 @@ namespace Osmium {
              */
             Object& set_timestamp(const char *value) {
                 struct tm tm = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-                if (strptime(value, "%Y-%m-%dT%H:%M:%SZ", &tm) == NULL) {
+                if (strptime(value, timestamp_format(), &tm) == NULL) {
                     throw std::invalid_argument("can't parse timestamp");
                 }
                 timestamp = timegm(&tm);
@@ -397,8 +410,8 @@ namespace Osmium {
                 return v8::Integer::New(get_version());
             }
 
-            v8::Handle<v8::Value> js_get_timestamp_str() const {
-                return v8::String::New(get_timestamp_str());
+            v8::Handle<v8::Value> js_get_timestamp_as_string() const {
+                return v8::String::New(get_timestamp_as_string().c_str());
             }
 
             v8::Handle<v8::Value> js_get_uid() const {
