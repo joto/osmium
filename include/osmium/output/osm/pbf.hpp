@@ -176,7 +176,7 @@ namespace Osmium {
                         Osmium::OSM::Node *node = nodes[i];
                         OSMPBF::Node *pbf_node = pbf_primitive_group->add_nodes();
 
-                        pbf_node->set_id(node->id);
+                        pbf_node->set_id(node->get_id());
 
                         pbf_node->set_lat(latlon2int(node->get_lat()));
                         pbf_node->set_lon(latlon2int(node->get_lon()));
@@ -187,11 +187,11 @@ namespace Osmium {
                         }
 
                         OSMPBF::Info *pbf_node_info = pbf_node->mutable_info();
-                        pbf_node_info->set_version((google::protobuf::int32) node->version);
-                        pbf_node_info->set_timestamp((google::protobuf::int64) timestamp2int(node->timestamp));
-                        pbf_node_info->set_changeset((google::protobuf::int64) node->changeset);
-                        pbf_node_info->set_uid((google::protobuf::int64) node->uid);
-                        pbf_node_info->set_user_sid(index_string(node->user));
+                        pbf_node_info->set_version((google::protobuf::int32) node->get_version());
+                        pbf_node_info->set_timestamp((google::protobuf::int64) timestamp2int(node->get_timestamp()));
+                        pbf_node_info->set_changeset((google::protobuf::int64) node->get_changeset());
+                        pbf_node_info->set_uid((google::protobuf::int64) node->get_uid());
+                        pbf_node_info->set_user_sid(index_string(node->get_user()));
                         delete node;
                     }
                     nodes.clear();
@@ -208,7 +208,7 @@ namespace Osmium {
                         Osmium::OSM::Way *way = ways[i];
                         OSMPBF::Way *pbf_way = pbf_primitive_group->add_ways();
 
-                        pbf_way->set_id(way->id);
+                        pbf_way->set_id(way->get_id());
 
                         for (int i=0, l = way->tag_count(); i < l; i++) {
                             pbf_way->add_keys(index_string(way->get_tag_key(i)));
@@ -222,11 +222,11 @@ namespace Osmium {
                         }
 
                         OSMPBF::Info *pbf_way_info = pbf_way->mutable_info();
-                        pbf_way_info->set_version((google::protobuf::int32) way->version);
-                        pbf_way_info->set_timestamp((google::protobuf::int64) timestamp2int(way->timestamp));
-                        pbf_way_info->set_changeset((google::protobuf::int64) way->changeset);
-                        pbf_way_info->set_uid((google::protobuf::int64) way->uid);
-                        pbf_way_info->set_user_sid(index_string(way->user));
+                        pbf_way_info->set_version((google::protobuf::int32) way->get_version());
+                        pbf_way_info->set_timestamp((google::protobuf::int64) timestamp2int(way->get_timestamp()));
+                        pbf_way_info->set_changeset((google::protobuf::int64) way->get_changeset());
+                        pbf_way_info->set_uid((google::protobuf::int64) way->get_uid());
+                        pbf_way_info->set_user_sid(index_string(way->get_user()));
                         delete way;
                     }
                     ways.clear();
@@ -349,13 +349,13 @@ namespace Osmium {
                         store_header_block();
 
                     check_block_contents_counter('n');
-                    if(Osmium::global.debug) fprintf(stderr, "node %d v%d\n", node->id, node->version);
+                    if(Osmium::global.debug) fprintf(stderr, "node %d v%d\n", node->get_id(), node->get_version());
 
                     for (int i=0, l = node->tag_count(); i < l; i++) {
                         record_string(node->get_tag_key(i));
                         record_string(node->get_tag_value(i));
                     }
-                    record_string(node->user);
+                    record_string(node->get_user());
 
                     nodes.push_back(new Osmium::OSM::Node(*node));
                 }
@@ -365,13 +365,13 @@ namespace Osmium {
                         store_header_block();
 
                     check_block_contents_counter('w');
-                    if(Osmium::global.debug) fprintf(stderr, "way %d v%d\n", way->id, way->version);
+                    if(Osmium::global.debug) fprintf(stderr, "way %d v%d\n", way->get_id(), way->get_version());
 
                     for (int i=0, l = way->tag_count(); i < l; i++) {
                         record_string(way->get_tag_key(i));
                         record_string(way->get_tag_value(i));
                     }
-                    record_string(way->user);
+                    record_string(way->get_user());
 
                     ways.push_back(new Osmium::OSM::Way(*way));
                 }
@@ -381,7 +381,7 @@ namespace Osmium {
                         store_header_block();
 
                     check_block_contents_counter('r');
-                    if(Osmium::global.debug) fprintf(stderr, "relation %d v%d\n", relation->id, relation->version);
+                    if(Osmium::global.debug) fprintf(stderr, "relation %d v%d\n", relation->get_id(), relation->get_version());
                 }
 
                 void write_final() {
