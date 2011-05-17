@@ -80,7 +80,7 @@ namespace Osmium {
                             throw std::runtime_error("failed to deinit zlib stream");
                         }
 
-                        if(Osmium::global.debug) fprintf(stderr, "pack %d bytes to %ld bytes (1:%f))\n", data.size(), z.total_out, (double)data.size() / z.total_out);
+                        if(Osmium::global.debug) fprintf(stderr, "pack %lu bytes to %ld bytes (1:%f))\n", (long unsigned int)data.size(), z.total_out, (double)data.size() / z.total_out);
                         pbf_blob.set_zlib_data(pack_buffer, z.total_out);
                     }
                     else { // use_compression
@@ -166,7 +166,7 @@ namespace Osmium {
                 }
 
                 void store_nodes_block() {
-                    if(Osmium::global.debug) fprintf(stderr, "storing nodes block with %u nodes\n", nodes.size());
+                    if(Osmium::global.debug) fprintf(stderr, "storing nodes block with %lu nodes\n", (long unsigned int)nodes.size());
                     sort_and_store_strings();
 
                     OSMPBF::PrimitiveGroup *pbf_primitive_group = pbf_primitive_block.add_primitivegroup();
@@ -197,7 +197,7 @@ namespace Osmium {
                 }
 
                 void store_ways_block() {
-                    if(Osmium::global.debug) fprintf(stderr, "storing ways block with %u ways\n", ways.size());
+                    if(Osmium::global.debug) fprintf(stderr, "storing ways block with %lu ways\n", (long unsigned int)ways.size());
                     sort_and_store_strings();
 
                     OSMPBF::PrimitiveGroup *pbf_primitive_group = pbf_primitive_block.add_primitivegroup();
@@ -231,7 +231,7 @@ namespace Osmium {
                 }
 
                 void store_relations_block() {
-                    if(Osmium::global.debug) fprintf(stderr, "storing relations block with %u relations\n", relations.size());
+                    if(Osmium::global.debug) fprintf(stderr, "storing relations block with %lu relations\n", (long unsigned int)relations.size());
                 }
 
                 void store_primitive_block() {
