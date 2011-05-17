@@ -56,50 +56,217 @@ namespace Osmium {
 
             static const int max_length_username = 255 * 4 + 1; ///< maximum length of OSM user name (255 UTF-8 characters + null byte)
 
-            osm_object_id_t    id;        ///< object id
-            osm_version_t      version;   ///< object version
-            osm_user_id_t      uid;       ///< user id of user who last changed this object
-            osm_changeset_id_t changeset; ///< id of last changeset that changed this object
+        private:
 
-            time_t timestamp;
+            osm_object_id_t    id;          ///< object id
+            osm_version_t      version;     ///< object version
+            osm_changeset_id_t changeset;   ///< id of last changeset that changed this object
+            time_t             timestamp;   ///< when this object changed last
+            osm_user_id_t      uid;         ///< user id of user who last changed this object
             char user[max_length_username]; ///< name of user who last changed this object
+            bool               visible;     ///< object visible (only when working with history data)
 
-            bool visible;
+        public:
 
-            void set_object_id(const char *value) {
+            /**
+             * Get the object id.
+             * @return Object id.
+             */
+            osm_object_id_t get_id() const {
+                return id;
+            }
+
+            /**
+             * Set the object id.
+             * @return Reference to object to make calls chainable.
+             */
+            Object& set_id(osm_object_id_t value) {
+                id = value;
+                return *this;
+            }
+
+            /**
+             * Set the object id.
+             * @return Reference to object to make calls chainable.
+             */
+            Object& set_id(const char *value) {
                 id = atol(value);
+                return *this;
             }
 
-            void set_version(const char *value) {
+            /**
+             * Get the object version.
+             * @return Object version.
+             */
+            osm_version_t get_version() const {
+                return version;
+            }
+
+            /**
+             * Set the object version.
+             * @return Reference to object to make calls chainable.
+             */
+            Object& set_version(osm_version_t value) {
+                version = value;
+                return *this;
+            }
+
+            /**
+             * Set the object version.
+             * @return Reference to object to make calls chainable.
+             */
+            Object& set_version(const char *value) {
                 version = atoi(value);
+                return *this;
             }
 
-            void set_changeset(const char *value) {
+            /**
+             * Get the id of the changeset that last changed this object.
+             * @return Changeset id.
+             */
+            osm_changeset_id_t get_changeset() const {
+                return changeset;
+            }
+
+            /**
+             * Set the id of the changeset that last changed this object.
+             * @return Reference to object to make calls chainable.
+             */
+            Object& set_changeset(osm_changeset_id_t value) {
+                changeset = value;
+                return *this;
+            }
+
+            /**
+             * Set the id of the changeset that last changed this object.
+             * @return Reference to object to make calls chainable.
+             */
+            Object& set_changeset(const char *value) {
                 changeset = atol(value);
+                return *this;
             }
 
-            void set_uid(const char *value) {
+            /**
+             * Get the id of the user who last changed this object.
+             * @return User id.
+             */
+            osm_user_id_t get_uid() const {
+                return uid;
+            }
+
+            /**
+             * Set the id of the user who last changed this object.
+             * @return Reference to object to make calls chainable.
+             */
+            Object& set_uid(osm_user_id_t value) {
+                uid = value;
+                return *this;
+            }
+
+            /**
+             * Set the id of the user who last changed this object.
+             * @return Reference to object to make calls chainable.
+             */
+            Object& set_uid(const char *value) {
                 uid = atol(value);
+                return *this;
             }
 
-            void set_timestamp(const char *value) {
+            /**
+             * Get the timestamp when this object last changed.
+             * @return Timestamp in seconds since epoch.
+             */
+            time_t get_timestamp() const {
+                return timestamp;
+            }
+
+            /**
+             * Get the timestamp when this object last changed.
+             * XXX not thread-safe (use string?)
+             * @return Pointer to null-terminated string in a static buffer.
+             */
+            const char *get_timestamp_str() const {
+                static char timestamp_str[max_length_timestamp+1];
+                struct tm *tm = gmtime(&timestamp);
+                strftime(timestamp_str, sizeof(timestamp_str), "%Y-%m-%dT%H:%M:%SZ", tm);
+                return timestamp_str;
+            }
+
+            /**
+             * Set the timestamp when this object last changed.
+             * @param value Time in seconds since epoch.
+             * @return Reference to object to make calls chainable.
+             */
+            Object& set_timestamp(time_t value) {
+                timestamp = value;
+                return *this;
+            }
+
+            /**
+             * Set the timestamp when this object last changed.
+             * @param value Timestamp in the format "yyyy-mm-ddThh:mm:ssZ".
+             * @return Reference to object to make calls chainable.
+             * @exception std::invalid_argument Thrown when the given string can't be parsed as a timestamp. The object timestamp will remain unchanged in this case.
+             */
+            Object& set_timestamp(const char *value) {
                 struct tm tm = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
                 if (strptime(value, "%Y-%m-%dT%H:%M:%SZ", &tm) == NULL) {
-                    throw std::length_error("can't parse timestamp");
+                    throw std::invalid_argument("can't parse timestamp");
                 }
                 timestamp = timegm(&tm);
+                return *this;
             }
 
-            void set_user(const char *value) {
+            /**
+             * Get the name of the user who last changed this object.
+             * @return Pointer to internal buffer with user name.
+             */
+            const char *get_user() const {
+                return user;
+            }
+
+            /**
+             * Set the name of the user who last changed this object.
+             * @return Reference to object to make calls chainable.
+             * @exception std::length_error Thrown when the username contains more than max_characters_username (255 UTF-8 characters). When the exception is thrown the username is set to "".
+             */
+            Object& set_user(const char *value) {
                 if (! memccpy(user, value, 0, max_length_username)) {
+                    user[0] = '\0';
                     throw std::length_error("user name too long");
                 }
+                return *this;
             }
 
-            void set_visible(const char *value) {
+            /**
+             * Get the visible flag of this object.
+             * (This is only used in OSM files with history.)
+             * @return Visible flag.
+             */
+            bool get_visible() const {
+                return visible;
+            }
+
+            /**
+             * Set the visible flag of this object.
+             * (This is only used in OSM files with history.)
+             * @return Reference to object to make calls chainable.
+             */
+            Object& set_visible(bool value) {
+                visible = value;
+                return *this;
+            }
+
+            /**
+             * Set the visible flag of this object.
+             * (This is only used in OSM files with history.)
+             * @return Reference to object to make calls chainable.
+             */
+            Object& set_visible(const char *value) {
                 if (!strcmp(value, "false")) {
                     visible = false;
                 }
+                return *this;
             }
 
         protected:
@@ -144,66 +311,27 @@ namespace Osmium {
                 visible          = true;
             }
 
+            /**
+             * Set named attribute.
+             * @param attr Name of the attribute (must be one of "id", "version", "changeset", "timestamp", "uid", "user", "visible")
+             * @param value Value of the attribute
+             */
             void set_attribute(const char *attr, const char *value) {
                 if (!strcmp(attr, "id")) {
-                    set_object_id(value);
+                    set_id(value);
                 } else if (!strcmp(attr, "version")) {
                     set_version(value);
+                } else if (!strcmp(attr, "changeset")) {
+                    set_changeset(value);
                 } else if (!strcmp(attr, "timestamp")) {
                     set_timestamp(value);
                 } else if (!strcmp(attr, "uid")) {
                     set_uid(value);
                 } else if (!strcmp(attr, "user")) {
                     set_user(value);
-                } else if (!strcmp(attr, "changeset")) {
-                    set_changeset(value);
                 } else if (!strcmp(attr, "visible")) {
                     set_visible(value);
                 }
-            }
-
-            osm_object_id_t get_id() const {
-                return id;
-            }
-
-            osm_version_t get_version() const {
-                return version;
-            }
-
-            // get numerical user id, 0 if unknown
-            osm_user_id_t get_uid() const {
-                return uid;
-            }
-
-            const char *get_user() const {
-                return user;
-            }
-
-            osm_changeset_id_t get_changeset() const {
-                return changeset;
-            }
-
-            time_t get_timestamp() const {
-                return timestamp;
-            }
-
-            /**
-             * Return timestamp as string.
-             * @returns Pointer to null-terminated string in a static buffer.
-             */
-            const char *get_timestamp_str() const {
-                static char timestamp_str[max_length_timestamp+1];
-                struct tm *tm = gmtime(&timestamp);
-                strftime(timestamp_str, sizeof(timestamp_str), "%Y-%m-%dT%H:%M:%SZ", tm);
-                return timestamp_str;
-            }
-
-            /**
-             * Return visible flag. This is only used in OSM files with history.
-             * @returns Visible flag.
-             */
-            bool get_visible() const {
-                return visible;
             }
 
             void add_tag(const char *key, const char *value) {

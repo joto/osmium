@@ -242,11 +242,12 @@ namespace Osmium {
 #else
             MultipolygonFromWay(Way *way) : Multipolygon() {
 #endif // OSMIUM_WITH_GEOS
-                id        = way->get_id();
-                version   = way->get_version();
-                uid       = way->get_uid();
-                changeset = way->get_changeset();
-                timestamp = way->get_timestamp();
+                set_id(way->get_id());
+                set_version(way->get_version());
+                set_changeset(way->get_changeset());
+                set_timestamp(way->get_timestamp());
+                set_uid(way->get_uid());
+                set_user(way->get_user());
 
                 num_tags  = way->tag_count();
                 tags      = way->tags;
@@ -400,7 +401,7 @@ namespace Osmium {
 #ifdef OSMIUM_WITH_GEOS
                 geometry = NULL;
 #endif // OSMIUM_WITH_GEOS
-                id = r->get_id();
+                set_id(r->get_id());
                 attempt_repair = repair;
             }
 
@@ -861,7 +862,7 @@ namespace Osmium {
                 std::vector<WayInfo *> ways;
 
                 // the timestamp of the multipolygon will be the maximum of the timestamp from the relation and from all member ways
-                timestamp = relation->get_timestamp();
+                set_timestamp(relation->get_timestamp());
 
                 // assemble all ways which are members of this relation into a
                 // vector of WayInfo elements. this holds room for the way pointer
@@ -869,7 +870,7 @@ namespace Osmium {
 
                 START_TIMER(assemble_ways);
                 for (std::vector<Way>::iterator i(member_ways.begin()); i != member_ways.end(); i++) {
-                    if (i->get_timestamp() > timestamp) timestamp = i->get_timestamp();
+                    if (i->get_timestamp() > get_timestamp()) set_timestamp(i->get_timestamp());
                     WayInfo *wi = new WayInfo(&(*i), UNSET);
                     if (wi->way_geom) {
                         geos::io::WKTWriter wkt;
@@ -1142,7 +1143,7 @@ namespace Osmium {
                     } catch (const geos::util::GEOSException& exc) {
                         // nop
                         if (Osmium::global.debug)
-                            std::cerr << "Exception during creation of polygon for relation #" << relation->id << ": " << exc.what() << " (treating as invalid polygon)" << std::endl;
+                            std::cerr << "Exception during creation of polygon for relation #" << relation->get_id() << ": " << exc.what() << " (treating as invalid polygon)" << std::endl;
                     }
                     if (!valid) {
                         // polygon is invalid.
