@@ -56,6 +56,8 @@ namespace Osmium {
                 static const int MAX_BLOB_SIZE = 32 * 1024 * 1024;
                 char pack_buffer[MAX_BLOB_SIZE];
 
+                char lasttype;
+
                 void store_blob(const std::string &type, const std::string &data) {
                     if(use_compression()) {
                         z_stream z;
@@ -193,12 +195,41 @@ namespace Osmium {
                         delete node;
                     }
                     nodes.clear();
-                    strings.clear();
                     store_primitive_block();
                 }
 
                 void store_ways_block() {
                     //fprintf(stderr, "storing ways block with %u ways\n", ways.size());
+                    sort_and_store_strings();
+
+                    OSMPBF::PrimitiveGroup *pbf_primitive_group = pbf_primitive_block.add_primitivegroup();
+                    for(int i = 0, l = ways.size(); i<l; i++) {
+                        Osmium::OSM::Way *way = ways[i];
+                        OSMPBF::Way *pbf_way = pbf_primitive_group->add_ways();
+
+                        pbf_way->set_id(way->id);
+
+                        for (int i=0, l = way->tag_count(); i < l; i++) {
+                            pbf_way->add_keys(index_string(way->get_tag_key(i)));
+                            pbf_way->add_vals(index_string(way->get_tag_value(i)));
+                        }
+
+                        long int delta = 0;
+                        for (int i=0, l = way->node_count(); i < l; i++) {
+                            pbf_way->add_refs(way->get_node_id(i) - delta);
+                            delta = way->get_node_id(i);
+                        }
+
+                        OSMPBF::Info *pbf_way_info = pbf_way->mutable_info();
+                        pbf_way_info->set_version((google::protobuf::int32) way->version);
+                        pbf_way_info->set_timestamp((google::protobuf::int64) timestamp2int(way->timestamp));
+                        pbf_way_info->set_changeset((google::protobuf::int64) way->changeset);
+                        pbf_way_info->set_uid((google::protobuf::int64) way->uid);
+                        pbf_way_info->set_user_sid(index_string(way->user));
+                        delete way;
+                    }
+                    ways.clear();
+                    store_primitive_block();
                 }
 
                 void store_relations_block() {
@@ -212,20 +243,25 @@ namespace Osmium {
                     pbf_primitive_block.Clear();
 
                     // add empty string-table entry at index 0
+                    strings.clear();
                     pbf_primitive_block.mutable_stringtable()->add_s("");
 
                     store_blob("OSMData", block);
                 }
 
-                void check_block_contents_counter() {
-                    if(nodes.size() >= max_block_contents)
-                        store_nodes_block();
+                void check_block_contents_counter(char type) {
+                    if(lasttype != '\0' && lasttype != type) {
+                        if(lasttype == 'n' && nodes.size() > 0)
+                            store_nodes_block();
 
-                    if(ways.size() >= max_block_contents)
-                        store_ways_block();
+                        else if(lasttype == 'w' && ways.size())
+                            store_ways_block();
 
-                    if(relations.size() >= max_block_contents)
-                        store_relations_block();
+                        else if(lasttype == 'r' && ways.size())
+                            store_relations_block();
+
+                    }
+                    lasttype = type;
                 }
 
             public:
@@ -234,7 +270,8 @@ namespace Osmium {
                     fd(stdout),
                     use_dense_format_(true),
                     use_compression_(true),
-                    headerWritten(false) {
+                    headerWritten(false),
+                    lasttype('\0') {
 
                     GOOGLE_PROTOBUF_VERIFY_VERSION;
                 }
@@ -242,7 +279,8 @@ namespace Osmium {
                 PBF(std::string &filename) : Base(),
                     use_dense_format_(true),
                     use_compression_(true),
-                    headerWritten(false) {
+                    headerWritten(false),
+                    lasttype('\0') {
 
                     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -295,6 +333,8 @@ namespace Osmium {
 
                 // TODO: use dense format if enabled
                 void write(Osmium::OSM::Node *node) {
+                    check_block_contents_counter('n');
+                    //fprintf(stderr, "node %d v%d\n", node->id, node->version);
                     if(!headerWritten)
                         store_header_block();
 
@@ -305,18 +345,31 @@ namespace Osmium {
                     record_string(node->user);
 
                     nodes.push_back(new Osmium::OSM::Node(*node));
-                    check_block_contents_counter();
                 }
 
                 void write(Osmium::OSM::Way *way) {
-                    if(!headerWritten) store_header_block();
+                    check_block_contents_counter('w');
+                    //fprintf(stderr, "way %d v%d\n", way->id, way->version);
+                    if(!headerWritten)
+                        store_header_block();
+
+                    for (int i=0, l = way->tag_count(); i < l; i++) {
+                        record_string(way->get_tag_key(i));
+                        record_string(way->get_tag_value(i));
+                    }
+                    record_string(way->user);
+
+                    ways.push_back(new Osmium::OSM::Way(*way));
                 }
 
                 void write(Osmium::OSM::Relation *relation) {
-                    if(!headerWritten) store_header_block();
+                    //fprintf(stderr, "relation %d v%d\n", relation->id, relation->version);
+                    //if(!headerWritten) store_header_block();
+                    //check_block_contents_counter('r');
                 }
 
                 void write_final() {
+                    //fprintf(stderr, "finishing\n");
                     if(nodes.size() > 0)
                         store_nodes_block();
 
