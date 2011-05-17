@@ -160,7 +160,7 @@ namespace Osmium {
                 }
 
                 int latlon2int(double latlon) {
-                    return (latlon / pbf_primitive_block.granularity()) * (long int)1000000000;
+                    return (latlon * (long int)1000000000 / pbf_primitive_block.granularity());
                 }
 
                 int timestamp2int(time_t timestamp) {
