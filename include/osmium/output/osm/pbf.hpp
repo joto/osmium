@@ -341,10 +341,11 @@ namespace Osmium {
 
                 // TODO: use dense format if enabled
                 void write(Osmium::OSM::Node *node) {
-                    check_block_contents_counter('n');
-                    if(Osmium::global.debug) fprintf(stderr, "node %d v%d\n", node->id, node->version);
                     if(!headerWritten)
                         store_header_block();
+
+                    check_block_contents_counter('n');
+                    if(Osmium::global.debug) fprintf(stderr, "node %d v%d\n", node->id, node->version);
 
                     for (int i=0, l = node->tag_count(); i < l; i++) {
                         record_string(node->get_tag_key(i));
@@ -356,10 +357,11 @@ namespace Osmium {
                 }
 
                 void write(Osmium::OSM::Way *way) {
-                    check_block_contents_counter('w');
-                    if(Osmium::global.debug) fprintf(stderr, "way %d v%d\n", way->id, way->version);
                     if(!headerWritten)
                         store_header_block();
+
+                    check_block_contents_counter('w');
+                    if(Osmium::global.debug) fprintf(stderr, "way %d v%d\n", way->id, way->version);
 
                     for (int i=0, l = way->tag_count(); i < l; i++) {
                         record_string(way->get_tag_key(i));
@@ -371,10 +373,11 @@ namespace Osmium {
                 }
 
                 void write(Osmium::OSM::Relation *relation) {
-                    check_block_contents_counter('r');
-                    if(Osmium::global.debug) fprintf(stderr, "relation %d v%d\n", relation->id, relation->version);
                     if(!headerWritten)
                         store_header_block();
+
+                    check_block_contents_counter('r');
+                    if(Osmium::global.debug) fprintf(stderr, "relation %d v%d\n", relation->id, relation->version);
                 }
 
                 void write_final() {
