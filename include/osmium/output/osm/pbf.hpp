@@ -166,11 +166,11 @@ namespace Osmium {
                     }
                 }
 
-                int latlon2int(double latlon) {
+                long int latlon2int(double latlon) {
                     return (latlon * (long int)1000000000 / pbf_primitive_block.granularity());
                 }
 
-                int timestamp2int(time_t timestamp) {
+                long int timestamp2int(time_t timestamp) {
                     return timestamp * (1000 / pbf_primitive_block.date_granularity());
                 }
 
@@ -192,10 +192,13 @@ namespace Osmium {
 
                 // TODO: use dense format if enabled
                 void store_nodes_block() {
+                    if(use_dense_format())
+                        return store_dense_nodes_block();
+
                     if(Osmium::global.debug) fprintf(stderr, "storing nodes block with %lu nodes\n", (long unsigned int)nodes.size());
                     sort_and_store_strings();
 
-                    if(Osmium::global.debug) fprintf(stderr, "storing %d nodes to protobuf\n", nodes.size());
+                    if(Osmium::global.debug) fprintf(stderr, "storing %lu nodes to protobuf\n", (long unsigned int)nodes.size());
                     OSMPBF::PrimitiveGroup *pbf_primitive_group = pbf_primitive_block.add_primitivegroup();
                     for(int i = 0, l = nodes.size(); i<l; i++) {
                         Osmium::OSM::Node *node = nodes[i];
@@ -204,6 +207,58 @@ namespace Osmium {
 
                         pbf_node->set_lat(latlon2int(node->get_lat()));
                         pbf_node->set_lon(latlon2int(node->get_lon()));
+
+                        delete node;
+                    }
+                    nodes.clear();
+                    store_primitive_block();
+                }
+
+                void store_dense_nodes_block() {
+                    if(Osmium::global.debug) fprintf(stderr, "storing dense nodes block with %lu nodes\n", (long unsigned int)nodes.size());
+                    sort_and_store_strings();
+
+                    if(Osmium::global.debug) fprintf(stderr, "storing %lu dense nodes to protobuf\n", (long unsigned int)nodes.size());
+                    OSMPBF::PrimitiveGroup *pbf_primitive_group = pbf_primitive_block.add_primitivegroup();
+                    OSMPBF::DenseNodes *dense = pbf_primitive_group->mutable_dense();
+                    OSMPBF::DenseInfo *denseinfo = dense->mutable_denseinfo();
+
+                    long int last_id = 0, last_lat = 0, last_lon = 0, last_timestamp = 0, last_changeset = 0, last_uid = 0, last_user_sid = 0;
+                    for(int i = 0, l = nodes.size(); i<l; i++) {
+                        Osmium::OSM::Node *node = nodes[i];
+
+                        dense->add_id(node->get_id() - last_id);
+                        last_id = node->get_id();
+
+                        long int lat = latlon2int(node->get_lat());
+                        dense->add_lat(lat - last_lat);
+                        last_lat = lat;
+
+                        long int lon = latlon2int(node->get_lon());
+                        dense->add_lon(lon - last_lon);
+                        last_lon = lon;
+
+                        for (int i=0, l = node->tag_count(); i < l; i++) {
+                            dense->add_keys_vals(index_string(node->get_tag_key(i)));
+                            dense->add_keys_vals(index_string(node->get_tag_value(i)));
+                        }
+                        dense->add_keys_vals(0);
+
+                        denseinfo->add_version(node->get_version());
+
+                        long int timestamp = timestamp2int(node->get_timestamp());
+                        denseinfo->add_timestamp(timestamp - last_timestamp);
+                        last_timestamp = timestamp;
+
+                        denseinfo->add_changeset(node->get_changeset() - last_changeset);
+                        last_changeset = node->get_changeset();
+
+                        denseinfo->add_uid(node->get_uid() - last_uid);
+                        last_uid = node->get_uid();
+
+                        unsigned int user_sid = index_string(node->get_user());
+                        denseinfo->add_user_sid(user_sid - last_user_sid);
+                        last_user_sid = user_sid;
 
                         delete node;
                     }
