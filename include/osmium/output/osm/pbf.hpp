@@ -124,6 +124,14 @@ namespace Osmium {
                         string_counts[string] = 0;
                 }
 
+                void record_default_strings(Osmium::OSM::Object *in) {
+                    for (int i=0, l = in->tag_count(); i < l; i++) {
+                        record_string(in->get_tag_key(i));
+                        record_string(in->get_tag_value(i));
+                    }
+                    record_string(in->get_user());
+                }
+
                 unsigned int index_string(const std::string& str) {
                     std::map<std::string, int>::const_iterator it;
                     it = string_ids.find(str);
@@ -166,6 +174,22 @@ namespace Osmium {
                     return timestamp * (1000 / pbf_primitive_block.date_granularity());
                 }
 
+                template <class pbf_object_t> void apply_info(Osmium::OSM::Object *in, pbf_object_t *out) {
+                    out->set_id(in->get_id());
+
+                    for (int i=0, l = in->tag_count(); i < l; i++) {
+                        out->add_keys(index_string(in->get_tag_key(i)));
+                        out->add_vals(index_string(in->get_tag_value(i)));
+                    }
+
+                    OSMPBF::Info *out_info = out->mutable_info();
+                    out_info->set_version((google::protobuf::int32) in->get_version());
+                    out_info->set_timestamp((google::protobuf::int64) timestamp2int(in->get_timestamp()));
+                    out_info->set_changeset((google::protobuf::int64) in->get_changeset());
+                    out_info->set_uid((google::protobuf::int64) in->get_uid());
+                    out_info->set_user_sid(index_string(in->get_user()));
+                }
+
                 void store_nodes_block() {
                     if(Osmium::global.debug) fprintf(stderr, "storing nodes block with %lu nodes\n", (long unsigned int)nodes.size());
                     sort_and_store_strings();
@@ -175,23 +199,11 @@ namespace Osmium {
                     for(int i = 0, l = nodes.size(); i<l; i++) {
                         Osmium::OSM::Node *node = nodes[i];
                         OSMPBF::Node *pbf_node = pbf_primitive_group->add_nodes();
-
-                        pbf_node->set_id(node->get_id());
+                        apply_info(node, pbf_node);
 
                         pbf_node->set_lat(latlon2int(node->get_lat()));
                         pbf_node->set_lon(latlon2int(node->get_lon()));
 
-                        for (int i=0, l = node->tag_count(); i < l; i++) {
-                            pbf_node->add_keys(index_string(node->get_tag_key(i)));
-                            pbf_node->add_vals(index_string(node->get_tag_value(i)));
-                        }
-
-                        OSMPBF::Info *pbf_node_info = pbf_node->mutable_info();
-                        pbf_node_info->set_version((google::protobuf::int32) node->get_version());
-                        pbf_node_info->set_timestamp((google::protobuf::int64) timestamp2int(node->get_timestamp()));
-                        pbf_node_info->set_changeset((google::protobuf::int64) node->get_changeset());
-                        pbf_node_info->set_uid((google::protobuf::int64) node->get_uid());
-                        pbf_node_info->set_user_sid(index_string(node->get_user()));
                         delete node;
                     }
                     nodes.clear();
@@ -207,13 +219,7 @@ namespace Osmium {
                     for(int i = 0, l = ways.size(); i<l; i++) {
                         Osmium::OSM::Way *way = ways[i];
                         OSMPBF::Way *pbf_way = pbf_primitive_group->add_ways();
-
-                        pbf_way->set_id(way->get_id());
-
-                        for (int i=0, l = way->tag_count(); i < l; i++) {
-                            pbf_way->add_keys(index_string(way->get_tag_key(i)));
-                            pbf_way->add_vals(index_string(way->get_tag_value(i)));
-                        }
+                        apply_info(way, pbf_way);
 
                         long int last_id = 0;
                         for (int i=0, l = way->node_count(); i < l; i++) {
@@ -221,12 +227,6 @@ namespace Osmium {
                             last_id = way->get_node_id(i);
                         }
 
-                        OSMPBF::Info *pbf_way_info = pbf_way->mutable_info();
-                        pbf_way_info->set_version((google::protobuf::int32) way->get_version());
-                        pbf_way_info->set_timestamp((google::protobuf::int64) timestamp2int(way->get_timestamp()));
-                        pbf_way_info->set_changeset((google::protobuf::int64) way->get_changeset());
-                        pbf_way_info->set_uid((google::protobuf::int64) way->get_uid());
-                        pbf_way_info->set_user_sid(index_string(way->get_user()));
                         delete way;
                     }
                     ways.clear();
@@ -242,13 +242,7 @@ namespace Osmium {
                     for(int i = 0, l = relations.size(); i<l; i++) {
                         Osmium::OSM::Relation *relation = relations[i];
                         OSMPBF::Relation *pbf_relation = pbf_primitive_group->add_relations();
-
-                        pbf_relation->set_id(relation->get_id());
-
-                        for (int i=0, l = relation->tag_count(); i < l; i++) {
-                            pbf_relation->add_keys(index_string(relation->get_tag_key(i)));
-                            pbf_relation->add_vals(index_string(relation->get_tag_value(i)));
-                        }
+                        apply_info(relation, pbf_relation);
 
                         long int last_id = 0;
                         for (int i=0, l = relation->member_count(); i < l; i++) {
@@ -266,12 +260,6 @@ namespace Osmium {
                             }
                         }
 
-                        OSMPBF::Info *pbf_relation_info = pbf_relation->mutable_info();
-                        pbf_relation_info->set_version((google::protobuf::int32) relation->get_version());
-                        pbf_relation_info->set_timestamp((google::protobuf::int64) timestamp2int(relation->get_timestamp()));
-                        pbf_relation_info->set_changeset((google::protobuf::int64) relation->get_changeset());
-                        pbf_relation_info->set_uid((google::protobuf::int64) relation->get_uid());
-                        pbf_relation_info->set_user_sid(index_string(relation->get_user()));
                         delete relation;
                     }
                     relations.clear();
@@ -392,12 +380,7 @@ namespace Osmium {
                     check_block_contents_counter('n');
                     if(Osmium::global.debug) fprintf(stderr, "node %d v%d\n", node->get_id(), node->get_version());
 
-                    for (int i=0, l = node->tag_count(); i < l; i++) {
-                        record_string(node->get_tag_key(i));
-                        record_string(node->get_tag_value(i));
-                    }
-                    record_string(node->get_user());
-
+                    record_default_strings(node);
                     nodes.push_back(new Osmium::OSM::Node(*node));
                 }
 
@@ -408,12 +391,7 @@ namespace Osmium {
                     check_block_contents_counter('w');
                     if(Osmium::global.debug) fprintf(stderr, "way %d v%d\n", way->get_id(), way->get_version());
 
-                    for (int i=0, l = way->tag_count(); i < l; i++) {
-                        record_string(way->get_tag_key(i));
-                        record_string(way->get_tag_value(i));
-                    }
-                    record_string(way->get_user());
-
+                    record_default_strings(way);
                     ways.push_back(new Osmium::OSM::Way(*way));
                 }
 
@@ -424,15 +402,11 @@ namespace Osmium {
                     check_block_contents_counter('r');
                     if(Osmium::global.debug) fprintf(stderr, "relation %d v%d\n", relation->get_id(), relation->get_version());
 
-                    for (int i=0, l = relation->tag_count(); i < l; i++) {
-                        record_string(relation->get_tag_key(i));
-                        record_string(relation->get_tag_value(i));
-                    }
                     for (int i=0, l = relation->member_count(); i < l; i++) {
                         record_string(relation->get_member(i)->get_role());
                     }
-                    record_string(relation->get_user());
 
+                    record_default_strings(relation);
                     relations.push_back(new Osmium::OSM::Relation(*relation));
                 }
 
