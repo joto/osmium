@@ -34,7 +34,7 @@ namespace Osmium {
             class PBF : public Base {
 
                 /**
-                 * Nanodegree divider
+                 * Nanodegree multiplier
                  *
                  * used in latlon2int while converting floating-point lat/lon to integers
                  */
@@ -81,20 +81,6 @@ namespace Osmium {
                  * writing speed a little but the outout will be 2x to 3x bigger.
                  */
                 bool use_compression_;
-
-                /**
-                 * Has the OSMHeader already been written?
-                 *
-                 * The OSMHeader needs to be stored only once at the beginning.
-                 * It contains meta.information about the following data-stream
-                 * (writing program, bounds, required features in the reader).
-                 *
-                 * the header is written once, when the first node is pushed to 
-                 * the writer (not in the write_init callback!), to enable programs
-                 * to add additional information to the header (currently only 
-                 * used by write_bounds);
-                 */
-                bool headerWritten;
 
                 OSMPBF::Blob pbf_blob;
                 OSMPBF::BlobHeader pbf_blob_header;
@@ -168,7 +154,6 @@ namespace Osmium {
                     pbf_header_block.Clear();
 
                     store_blob("OSMHeader", header);
-                    headerWritten = true;
                 }
 
                 void record_string(const std::string& string) {
@@ -244,7 +229,6 @@ namespace Osmium {
                     out_info->set_user_sid(index_string(in->get_user()));
                 }
 
-                // TODO: use dense format if enabled
                 void store_nodes_block() {
                     if(use_dense_format())
                         return store_dense_nodes_block();
@@ -421,7 +405,6 @@ namespace Osmium {
                     fd(stdout),
                     use_dense_format_(true),
                     use_compression_(true),
-                    headerWritten(false),
                     lasttype('\0') {
 
                     GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -430,7 +413,6 @@ namespace Osmium {
                 PBF(std::string &filename) : Base(),
                     use_dense_format_(true),
                     use_compression_(true),
-                    headerWritten(false),
                     lasttype('\0') {
 
                     GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -459,6 +441,7 @@ namespace Osmium {
                 }
 
                 void write_init() {
+                    if(Osmium::global.debug) fprintf(stderr, "pbf write init\n");
                     pbf_header_block.add_required_features("OsmSchema-V0.6");
 
                     if(use_dense_format())
@@ -470,23 +453,19 @@ namespace Osmium {
                     // add empty string-table entry at index 0
                     pbf_primitive_block.mutable_stringtable()->add_s("");
                     pbf_header_block.set_writingprogram("Osmium (http://wiki.openstreetmap.org/wiki/Osmium)");
+                    store_header_block();
                 }
 
                 void write_bounds(double minlon, double minlat, double maxlon, double maxlat) {
-                    if(!headerWritten) {
-                        // FIXME: untested
-                        OSMPBF::HeaderBBox *bbox = pbf_header_block.mutable_bbox();
-                        bbox->set_left(latlon2int(minlon));
-                        bbox->set_top(latlon2int(minlat));
-                        bbox->set_right(latlon2int(maxlon));
-                        bbox->set_bottom(latlon2int(maxlat));
-                    }
+                    // FIXME: untested
+                    OSMPBF::HeaderBBox *bbox = pbf_header_block.mutable_bbox();
+                    bbox->set_left(latlon2int(minlon));
+                    bbox->set_top(latlon2int(minlat));
+                    bbox->set_right(latlon2int(maxlon));
+                    bbox->set_bottom(latlon2int(maxlat));
                 }
 
                 void write(Osmium::OSM::Node *node) {
-                    if(!headerWritten)
-                        store_header_block();
-
                     check_block_contents_counter('n');
                     if(Osmium::global.debug) fprintf(stderr, "node %d v%d\n", node->get_id(), node->get_version());
 
@@ -495,9 +474,6 @@ namespace Osmium {
                 }
 
                 void write(Osmium::OSM::Way *way) {
-                    if(!headerWritten)
-                        store_header_block();
-
                     check_block_contents_counter('w');
                     if(Osmium::global.debug) fprintf(stderr, "way %d v%d\n", way->get_id(), way->get_version());
 
@@ -506,9 +482,6 @@ namespace Osmium {
                 }
 
                 void write(Osmium::OSM::Relation *relation) {
-                    if(!headerWritten)
-                        store_header_block();
-
                     check_block_contents_counter('r');
                     if(Osmium::global.debug) fprintf(stderr, "relation %d v%d\n", relation->get_id(), relation->get_version());
 
