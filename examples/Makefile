@@ -30,7 +30,7 @@ LIB_SHAPE    = -lshp
 LIB_PROTOBUF = -lz -lprotobuf-lite -losmpbf
 LIB_XML2     = `xml2-config --libs`
 
-PROGRAMS = osmium_sizeof osmium_debug osmium_stats osmium_find_bbox osmium_time osmium_progress osmium_convert nodedensity
+PROGRAMS = osmium_sizeof osmium_debug osmium_stats osmium_find_bbox osmium_time osmium_progress osmium_convert nodedensity osmium_mass_writer
 
 .PHONY: all clean
 
@@ -55,6 +55,9 @@ osmium_progress: osmium_progress.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
 
 osmium_convert: osmium_convert.cpp
+	$(CXX) $(CXXFLAGS) $(CXXFLAGS_LIBXML2) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_XML2)
+
+osmium_mass_writer: osmium_mass_writer.cpp
 	$(CXX) $(CXXFLAGS) $(CXXFLAGS_LIBXML2) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_XML2)
 
 nodedensity: nodedensity.cpp handler_nodedensity.hpp
