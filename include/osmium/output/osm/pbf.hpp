@@ -190,6 +190,7 @@ namespace Osmium {
                     out_info->set_user_sid(index_string(in->get_user()));
                 }
 
+                // TODO: use dense format if enabled
                 void store_nodes_block() {
                     if(Osmium::global.debug) fprintf(stderr, "storing nodes block with %lu nodes\n", (long unsigned int)nodes.size());
                     sort_and_store_strings();
@@ -364,15 +365,15 @@ namespace Osmium {
 
                 void write_bounds(double minlon, double minlat, double maxlon, double maxlat) {
                     if(!headerWritten) {
-                        // TODO: encode lat/lon
-                        //pbf_header_block.bbox().set_left(minlon);
-                        //pbf_header_block.bbox().set_top(minlat);
-                        //pbf_header_block.bbox().set_right(maxlon);
-                        //pbf_header_block.bbox().set_bottom(maxlat);
+                        // FIXME: untested
+                        OSMPBF::HeaderBBox *bbox = pbf_header_block.mutable_bbox();
+                        bbox->set_left(latlon2int(minlon));
+                        bbox->set_top(latlon2int(minlat));
+                        bbox->set_right(latlon2int(maxlon));
+                        bbox->set_bottom(latlon2int(maxlat));
                     }
                 }
 
-                // TODO: use dense format if enabled
                 void write(Osmium::OSM::Node *node) {
                     if(!headerWritten)
                         store_header_block();
