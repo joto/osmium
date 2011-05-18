@@ -33,13 +33,67 @@ namespace Osmium {
 
             class PBF : public Base {
 
-                static const int NANO = 1000 * 1000 * 1000;
+                /**
+                 * Nanodegree divider
+                 *
+                 * used in latlon2int while converting floating-point lat/lon to integers
+                 */
+                static const long int NANO = 1000 * 1000 * 1000;
+
+                /**
+                 * Maximum number of items in a primitive block.
+                 *
+                 * The uncompressed length of a Blob *should* be less
+                 * than 16 megabytes and *must* be less than 32 megabytes.
+                 *
+                 * A block may contain any number of entities, as long as
+                 * the size limits for the surrounding blob are obeyed.
+                 * However, for simplicity, the current osmosis (0.38)
+                 * as well as the osmium implement implementation always
+                 * uses at most 8k entities in a block.
+                 */
                 static const unsigned int max_block_contents = 8000;
+
+                /**
+                 * The file descriptor of the output file
+                 *
+                 * All PBF-Blobs get serialized into this descriptor.
+                 */
                 FILE *fd;
 
+                /**
+                 * Should nodes be serialized into the dense format?
+                 *
+                 * Nodes can be encoded one of two ways, as a Node
+                 * (use_dense_format_ = false) and a special dense format.
+                 * In the dense format, all information is stored 'columnwise',
+                 * as an array of ID's, array of latitudes, and array of
+                 * longitudes. Each column is delta-encoded. This reduces
+                 * header overheads and allows delta-coding to work very effectively.
+                 */
                 bool use_dense_format_;
+
+                /**
+                 * Should the PBF blobs contain zlib compressed data?
+                 *
+                 * The zlib compression is optional, it's possible to store the 
+                 * blobs in raw format. Disabling the compression can improve the 
+                 * writing speed a little but the outout will be 2x to 3x bigger.
+                 */
                 bool use_compression_;
 
+                /**
+                 * Has the OSMHeader already been written?
+                 *
+                 * The OSMHeader needs to be stored only once at the beginning.
+                 * It contains meta.information about the following data-stream
+                 * (writing program, bounds, required features in the reader).
+                 *
+                 * the header is written once, when the first node is pushed to 
+                 * the writer (not in the write_init callback!), to enable programs
+                 * to add additional information to the header (currently only 
+                 * used by write_bounds);
+                 */
                 bool headerWritten;
 
                 OSMPBF::Blob pbf_blob;
@@ -167,7 +221,7 @@ namespace Osmium {
                 }
 
                 long int latlon2int(double latlon) {
-                    return (latlon * (long int)1000000000 / pbf_primitive_block.granularity());
+                    return (latlon * NANO / pbf_primitive_block.granularity());
                 }
 
                 long int timestamp2int(time_t timestamp) {
