@@ -271,11 +271,11 @@ namespace Osmium {
                     std::string block;
                     pbf_primitive_block.SerializeToString(&block);
                     pbf_primitive_block.Clear();
+                    pbf_primitive_block.mutable_stringtable()->add_s("");
 
                     // add empty string-table entry at index 0
                     string_counts.clear();
                     string_ids.clear();
-                    pbf_primitive_block.mutable_stringtable()->add_s("");
 
                     store_blob("OSMData", block);
                 }
