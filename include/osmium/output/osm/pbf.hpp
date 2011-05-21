@@ -308,7 +308,7 @@ namespace Osmium {
                     if(Osmium::global.debug) fprintf(stderr, "storing ways block with %lu ways\n", (long unsigned int)ways.size());
                     sort_and_store_strings();
 
-                    if(Osmium::global.debug) fprintf(stderr, "storing %d ways to protobuf\n", ways.size());
+                    if(Osmium::global.debug) fprintf(stderr, "storing %lu ways to protobuf\n", (long unsigned int)ways.size());
                     OSMPBF::PrimitiveGroup *pbf_primitive_group = pbf_primitive_block.add_primitivegroup();
                     for(int i = 0, l = ways.size(); i<l; i++) {
                         Osmium::OSM::Way *way = ways[i];
@@ -331,7 +331,7 @@ namespace Osmium {
                     if(Osmium::global.debug) fprintf(stderr, "storing relations block with %lu relations\n", (long unsigned int)relations.size());
                     sort_and_store_strings();
 
-                    if(Osmium::global.debug) fprintf(stderr, "storing %d relations to protobuf\n", relations.size());
+                    if(Osmium::global.debug) fprintf(stderr, "storing %lu relations to protobuf\n", (long unsigned int)relations.size());
                     OSMPBF::PrimitiveGroup *pbf_primitive_group = pbf_primitive_block.add_primitivegroup();
                     for(int i = 0, l = relations.size(); i<l; i++) {
                         Osmium::OSM::Relation *relation = relations[i];
