@@ -103,6 +103,16 @@ namespace Osmium {
 
                 char lasttype;
 
+                struct last_dense {
+                    long int id;
+                    long int lat;
+                    long int lon;
+                    long int timestamp;
+                    long int changeset;
+                    long int uid;
+                    long int user_sid;
+                } last_dense_info;
+
                 void store_blob(const std::string &type, const std::string &data) {
                     if(use_compression()) {
                         z_stream z;
@@ -229,6 +239,22 @@ namespace Osmium {
                         for (int mi = 0, ml = relation->roles_sid_size(); mi < ml; mi++)
                             relation->set_roles_sid(mi, (google::protobuf::uint32) map_string_index((unsigned int) relation->roles_sid(mi)));
                     }
+
+                    if(pbf_primitive_group->has_dense()) {
+                        OSMPBF::DenseNodes *dense = pbf_primitive_group->mutable_dense();
+                        OSMPBF::DenseInfo *denseinfo = dense->mutable_denseinfo();
+                        for(int i = 0, l = dense->keys_vals_size(); i<l; i++) {
+                            int sid = dense->keys_vals(i);
+                            if(sid > 0)
+                                dense->set_keys_vals(i, (google::protobuf::uint32) map_string_index((unsigned int) sid));
+                        }
+
+                        for(int i = 0, l = denseinfo->user_sid_size(); i<l; i++) {
+                            unsigned int user_sid = map_string_index((unsigned int) denseinfo->user_sid(i));
+                            denseinfo->set_user_sid(i, (google::protobuf::uint32) user_sid - last_dense_info.user_sid);
+                            last_dense_info.user_sid = user_sid;
+                        }
+                    }
                 }
 
                 template <class pbf_object_t> void update_common_string_ids(pbf_object_t *in) {
@@ -265,60 +291,6 @@ namespace Osmium {
                     out_info->set_user_sid(record_string(in->get_user()));
                 }
 
-/*
-                void store_dense_nodes_block() {
-                    if(Osmium::global.debug) fprintf(stderr, "storing dense nodes block with %lu nodes\n", (long unsigned int)nodes.size());
-                    sort_and_store_strings();
-
-                    if(Osmium::global.debug) fprintf(stderr, "storing %lu dense nodes to protobuf\n", (long unsigned int)nodes.size());
-                    OSMPBF::PrimitiveGroup *pbf_primitive_group = pbf_primitive_block.add_primitivegroup();
-                    OSMPBF::DenseNodes *dense = pbf_primitive_group->mutable_dense();
-                    OSMPBF::DenseInfo *denseinfo = dense->mutable_denseinfo();
-
-                    long int last_id = 0, last_lat = 0, last_lon = 0, last_timestamp = 0, last_changeset = 0, last_uid = 0, last_user_sid = 0;
-                    for(int i = 0, l = nodes.size(); i<l; i++) {
-                        Osmium::OSM::Node *node = nodes[i];
-
-                        dense->add_id(node->get_id() - last_id);
-                        last_id = node->get_id();
-
-                        long int lat = latlon2int(node->get_lat());
-                        dense->add_lat(lat - last_lat);
-                        last_lat = lat;
-
-                        long int lon = latlon2int(node->get_lon());
-                        dense->add_lon(lon - last_lon);
-                        last_lon = lon;
-
-                        for (int i=0, l = node->tag_count(); i < l; i++) {
-                            dense->add_keys_vals(index_string(node->get_tag_key(i)));
-                            dense->add_keys_vals(index_string(node->get_tag_value(i)));
-                        }
-                        dense->add_keys_vals(0);
-
-                        denseinfo->add_version(node->get_version());
-
-                        long int timestamp = timestamp2int(node->get_timestamp());
-                        denseinfo->add_timestamp(timestamp - last_timestamp);
-                        last_timestamp = timestamp;
-
-                        denseinfo->add_changeset(node->get_changeset() - last_changeset);
-                        last_changeset = node->get_changeset();
-
-                        denseinfo->add_uid(node->get_uid() - last_uid);
-                        last_uid = node->get_uid();
-
-                        unsigned int user_sid = index_string(node->get_user());
-                        denseinfo->add_user_sid(user_sid - last_user_sid);
-                        last_user_sid = user_sid;
-
-                        delete node;
-                    }
-                    nodes.clear();
-                    store_primitive_block();
-                }
-*/
-
                 void store_primitive_block() {
                     if(Osmium::global.debug) fprintf(stderr, "storing primitive block with %u items (type %c)\n", primitive_block_contents, lasttype);
 
@@ -331,6 +303,9 @@ namespace Osmium {
                     
                     pbf_primitive_block.Clear();
                     strings.clear();
+                    string_ids_map.clear();
+                    last_dense_info = {0, 0, 0, 0, 0, 0, 0};
+                    primitive_block_contents = 0;
 
                     // add empty string-table entry at index 0
                     pbf_primitive_block.mutable_stringtable()->add_s("");
@@ -357,7 +332,8 @@ namespace Osmium {
                     use_dense_format_(true),
                     use_compression_(true),
                     primitive_block_contents(0),
-                    lasttype('\0') {
+                    lasttype('\0'),
+                    last_dense_info({0, 0, 0, 0, 0, 0, 0}) {
 
                     GOOGLE_PROTOBUF_VERIFY_VERSION;
                 }
@@ -366,7 +342,8 @@ namespace Osmium {
                     use_dense_format_(true),
                     use_compression_(true),
                     primitive_block_contents(0),
-                    lasttype('\0') {
+                    lasttype('\0'),
+                    last_dense_info({0, 0, 0, 0, 0, 0, 0}) {
 
                     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -422,13 +399,55 @@ namespace Osmium {
 
                 void write(Osmium::OSM::Node *node) {
                     check_block_contents_counter('n');
-                    if(Osmium::global.debug) fprintf(stderr, "node %d v%d\n", node->get_id(), node->get_version());
 
-                    OSMPBF::Node *pbf_node = pbf_primitive_group->add_nodes();
-                    apply_info(node, pbf_node);
+                    if(!use_dense_format()) {
+                        if(Osmium::global.debug) fprintf(stderr, "node %d v%d\n", node->get_id(), node->get_version());
+                        OSMPBF::Node *pbf_node = pbf_primitive_group->add_nodes();
+                        apply_info(node, pbf_node);
 
-                    pbf_node->set_lat(latlon2int(node->get_lat()));
-                    pbf_node->set_lon(latlon2int(node->get_lon()));
+                        pbf_node->set_lat(latlon2int(node->get_lat()));
+                        pbf_node->set_lon(latlon2int(node->get_lon()));
+                    }
+
+                    else { // use_dense_format
+                        if(Osmium::global.debug) fprintf(stderr, "densenode %d v%d\n", node->get_id(), node->get_version());
+                        OSMPBF::DenseNodes *dense = pbf_primitive_group->mutable_dense();
+                        OSMPBF::DenseInfo *denseinfo = dense->mutable_denseinfo();
+
+                        long int id = node->get_id();
+                        dense->add_id(id - last_dense_info.id);
+                        last_dense_info.id = id;
+
+                        long int lat = latlon2int(node->get_lat());
+                        dense->add_lat(lat - last_dense_info.lat);
+                        last_dense_info.lat = lat;
+
+                        long int lon = latlon2int(node->get_lon());
+                        dense->add_lon(lon - last_dense_info.lon);
+                        last_dense_info.lon = lon;
+
+                        for (int i=0, l = node->tag_count(); i < l; i++) {
+                            dense->add_keys_vals(record_string(node->get_tag_key(i)));
+                            dense->add_keys_vals(record_string(node->get_tag_value(i)));
+                        }
+                        dense->add_keys_vals(0);
+
+                        denseinfo->add_version(node->get_version());
+
+                        long int timestamp = timestamp2int(node->get_timestamp());
+                        denseinfo->add_timestamp(timestamp - last_dense_info.timestamp);
+                        last_dense_info.timestamp = timestamp;
+
+                        long int changeset = node->get_changeset();
+                        denseinfo->add_changeset(node->get_changeset() - last_dense_info.changeset);
+                        last_dense_info.changeset = changeset;
+
+                        long int uid = node->get_uid();
+                        denseinfo->add_uid(uid - last_dense_info.uid);
+                        last_dense_info.uid = uid;
+
+                        denseinfo->add_user_sid(record_string(node->get_user()));
+                    }
                 }
 
                 void write(Osmium::OSM::Way *way) {
