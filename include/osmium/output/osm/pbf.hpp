@@ -300,7 +300,7 @@ namespace Osmium {
                     std::string block;
                     pbf_primitive_block.SerializeToString(&block);
                     store_blob("OSMData", block);
-                    
+
                     pbf_primitive_block.Clear();
                     strings.clear();
                     string_ids_map.clear();
@@ -452,7 +452,7 @@ namespace Osmium {
 
                 void write(Osmium::OSM::Way *way) {
                     check_block_contents_counter('w');
-                    if(Osmium::global.debug) fprintf(stderr, "way %d v%d\n", way->get_id(), way->get_version());
+                    if(Osmium::global.debug) fprintf(stderr, "way %d v%d\n with %lu nodes", way->get_id(), way->get_version(), (long unsigned int)way->node_count());
 
                     OSMPBF::Way *pbf_way = pbf_primitive_group->add_ways();
                     apply_info(way, pbf_way);
@@ -467,7 +467,7 @@ namespace Osmium {
 
                 void write(Osmium::OSM::Relation *relation) {
                     check_block_contents_counter('r');
-                    if(Osmium::global.debug) fprintf(stderr, "relation %d v%d\n", relation->get_id(), relation->get_version());
+                    if(Osmium::global.debug) fprintf(stderr, "relation %d v%d with %lu members\n", relation->get_id(), relation->get_version(), (long unsigned int)relation->member_count());
 
                     OSMPBF::Relation *pbf_relation = pbf_primitive_group->add_relations();
                     apply_info(relation, pbf_relation);
