@@ -87,12 +87,16 @@ namespace Osmium {
 
                 OSMPBF::HeaderBlock pbf_header_block;
                 OSMPBF::PrimitiveBlock pbf_primitive_block;
+                OSMPBF::PrimitiveGroup *pbf_primitive_group;
+                unsigned int primitive_block_contents;
 
-                std::vector<Osmium::OSM::Node*> nodes;
-                std::vector<Osmium::OSM::Way*> ways;
-                std::vector<Osmium::OSM::Relation*> relations;
-                std::map<std::string, int> string_counts;
-                std::map<std::string, int> string_ids;
+                struct string_info {
+                    unsigned int count;
+                    unsigned int interim_id;
+                };
+
+                std::map<std::string, string_info> strings;
+                std::map<unsigned int, unsigned int> string_ids_map;
 
                 static const int MAX_BLOB_SIZE = 32 * 1024 * 1024;
                 char pack_buffer[MAX_BLOB_SIZE];
@@ -156,52 +160,71 @@ namespace Osmium {
                     store_blob("OSMHeader", header);
                 }
 
-                void record_string(const std::string& string) {
-                    if(string_counts.count(string) > 0)
-                        string_counts[string]++;
-                    else
-                        string_counts[string] = 0;
-                }
+                unsigned int record_string(const std::string& string) {
+                    if(strings.count(string) > 0) {
+                        string_info *info_p;
+                        info_p = &strings[string];
+                        info_p->count++;
 
-                void record_default_strings(Osmium::OSM::Object *in) {
-                    for (int i=0, l = in->tag_count(); i < l; i++) {
-                        record_string(in->get_tag_key(i));
-                        record_string(in->get_tag_value(i));
+                        //if(Osmium::global.debug) fprintf(stderr, "found string %s at interim-id %u\n", string.c_str(), info_p->interim_id);
+                        return info_p->interim_id;
+                    } else {
+                        string_info info;
+                        info.count = 0;
+                        info.interim_id = strings.size();
+                        strings[string] = info;
+
+                        if(Osmium::global.debug) fprintf(stderr, "record string %s at interim-id %u\n", string.c_str(), info.interim_id);
+                        return info.interim_id;
                     }
-                    record_string(in->get_user());
                 }
 
-                unsigned int index_string(const std::string& str) {
-                    std::map<std::string, int>::const_iterator it;
-                    it = string_ids.find(str);
-                    if(it != string_ids.end()) {
-                        //if(Osmium::global.debug) fprintf(stderr, "index %d for string %s\n", it->second, str.c_str());
+                unsigned int map_string_index(const unsigned int interim_id) {
+                    std::map<unsigned int, unsigned int>::const_iterator it;
+                    it = string_ids_map.find(interim_id);
+                    if(it != string_ids_map.end()) {
+                        //if(Osmium::global.debug) fprintf(stderr, "mapping interim-id %u to stringtable-id %u\n", interim_id, it->second);
                         return it->second;
                     }
 
-                    throw std::runtime_error("Request for string not in stringable: " + str);
+                    throw std::runtime_error("Request for string not in stringable\n");
+                    return 0;
                 }
 
-                static bool str_sorter(const std::pair<std::string, int> &a, const std::pair<std::string, int> b) {
-                    if(a.second > b.second)
+                static bool str_sorter(const std::pair<std::string, string_info> &a, const std::pair<std::string, string_info> &b) {
+                    if(a.second.count > b.second.count)
                         return true;
-                    else if(a.second < b.second)
+                    else if(a.second.count < b.second.count)
                         return false;
                     else
                         return a.first < b.first;
                 }
 
                 void sort_and_store_strings() {
-                    std::vector<std::pair<std::string, int>> strvec;
+                    std::vector<std::pair<std::string, string_info>> strvec;
 
-                    std::copy(string_counts.begin(), string_counts.end(), back_inserter(strvec));
+                    std::copy(strings.begin(), strings.end(), back_inserter(strvec));
                     std::sort(strvec.begin(), strvec.end(), str_sorter);
 
+                    string_ids_map.clear();
                     OSMPBF::StringTable *st = pbf_primitive_block.mutable_stringtable();
                     for(int i = 0, l = strvec.size(); i<l; i++) {
-                        if(Osmium::global.debug) fprintf(stderr, "store stringtable %d of %d: %s (cnt=%d)\n", i+1, l, strvec[i].first.c_str(), strvec[i].second+1);
+                        if(Osmium::global.debug) fprintf(stderr, "store stringtable: %s (cnt=%u) with interim-id %u at stringtable-id %u\n", strvec[i].first.c_str(), strvec[i].second.count+1, strvec[i].second.interim_id, i+1);
                         st->add_s(strvec[i].first);
-                        string_ids[strvec[i].first] = i+1;
+                        string_ids_map[strvec[i].second.interim_id] = i+1;
+                    }
+                }
+
+                void update_string_ids() {
+                    for(int i = 0, l = pbf_primitive_group->nodes_size(); i<l; i++) {
+                        OSMPBF::Node *node = pbf_primitive_group->mutable_nodes(i);
+                        OSMPBF::Info *info = node->mutable_info();
+                        
+                        info->set_user_sid((google::protobuf::uint32) map_string_index((unsigned int) info->user_sid()));
+                        for (int i=0, l = node->keys_size(); i < l; i++) {
+                            node->set_keys(i, (google::protobuf::uint32) map_string_index((unsigned int) node->keys(i)));
+                            node->set_vals(i, (google::protobuf::uint32) map_string_index((unsigned int) node->vals(i)));
+                        }
                     }
                 }
 
@@ -217,8 +240,8 @@ namespace Osmium {
                     out->set_id(in->get_id());
 
                     for (int i=0, l = in->tag_count(); i < l; i++) {
-                        out->add_keys(index_string(in->get_tag_key(i)));
-                        out->add_vals(index_string(in->get_tag_value(i)));
+                        out->add_keys(record_string(in->get_tag_key(i)));
+                        out->add_vals(record_string(in->get_tag_value(i)));
                     }
 
                     OSMPBF::Info *out_info = out->mutable_info();
@@ -226,9 +249,10 @@ namespace Osmium {
                     out_info->set_timestamp((google::protobuf::int64) timestamp2int(in->get_timestamp()));
                     out_info->set_changeset((google::protobuf::int64) in->get_changeset());
                     out_info->set_uid((google::protobuf::int64) in->get_uid());
-                    out_info->set_user_sid(index_string(in->get_user()));
+                    out_info->set_user_sid(record_string(in->get_user()));
                 }
 
+/*
                 void store_nodes_block() {
                     if(use_dense_format())
                         return store_dense_nodes_block();
@@ -359,44 +383,37 @@ namespace Osmium {
                     relations.clear();
                     store_primitive_block();
                 }
+*/
 
                 void store_primitive_block() {
-                    if(Osmium::global.debug) fprintf(stderr, "storing primitive block\n");
+                    if(Osmium::global.debug) fprintf(stderr, "storing primitive block with %u items (type %c)\n", primitive_block_contents, lasttype);
+
+                    sort_and_store_strings();
+                    update_string_ids();
+
                     std::string block;
                     pbf_primitive_block.SerializeToString(&block);
+                    store_blob("OSMData", block);
+                    
                     pbf_primitive_block.Clear();
-                    pbf_primitive_block.mutable_stringtable()->add_s("");
+                    strings.clear();
 
                     // add empty string-table entry at index 0
-                    string_counts.clear();
-                    string_ids.clear();
+                    pbf_primitive_block.mutable_stringtable()->add_s("");
 
-                    store_blob("OSMData", block);
+                    // add a primitive-group to the block
+                    pbf_primitive_group = pbf_primitive_block.add_primitivegroup();
                 }
 
                 void check_block_contents_counter(char type) {
-                    if(lasttype != '\0' && lasttype != type) {
-                        if(lasttype == 'n' && nodes.size() > 0)
-                            store_nodes_block();
+                    if(lasttype != '\0' && lasttype != type && primitive_block_contents > 0)
+                        store_primitive_block();
 
-                        else if(lasttype == 'w' && ways.size())
-                            store_ways_block();
-
-                        else if(lasttype == 'r' && relations.size())
-                            store_relations_block();
-
-                    }
-                    else if(nodes.size() >= max_block_contents) {
-                        store_nodes_block();
-                    }
-                    else if(ways.size() >= max_block_contents) {
-                        store_ways_block();
-                    }
-                    else if(relations.size() >= max_block_contents) {
-                        store_relations_block();
-                    }
+                    else if(primitive_block_contents >= max_block_contents)
+                        store_primitive_block();
 
                     lasttype = type;
+                    primitive_block_contents++;
                 }
 
             public:
@@ -405,6 +422,7 @@ namespace Osmium {
                     fd(stdout),
                     use_dense_format_(true),
                     use_compression_(true),
+                    primitive_block_contents(0),
                     lasttype('\0') {
 
                     GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -413,6 +431,7 @@ namespace Osmium {
                 PBF(std::string &filename) : Base(),
                     use_dense_format_(true),
                     use_compression_(true),
+                    primitive_block_contents(0),
                     lasttype('\0') {
 
                     GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -454,6 +473,8 @@ namespace Osmium {
                     pbf_primitive_block.mutable_stringtable()->add_s("");
                     pbf_header_block.set_writingprogram("Osmium (http://wiki.openstreetmap.org/wiki/Osmium)");
                     store_header_block();
+
+                    pbf_primitive_group = pbf_primitive_block.add_primitivegroup();
                 }
 
                 void write_bounds(double minlon, double minlat, double maxlon, double maxlat) {
@@ -469,20 +490,23 @@ namespace Osmium {
                     check_block_contents_counter('n');
                     if(Osmium::global.debug) fprintf(stderr, "node %d v%d\n", node->get_id(), node->get_version());
 
-                    record_default_strings(node);
-                    nodes.push_back(new Osmium::OSM::Node(*node));
+                    OSMPBF::Node *pbf_node = pbf_primitive_group->add_nodes();
+                    apply_info(node, pbf_node);
+
+                    pbf_node->set_lat(latlon2int(node->get_lat()));
+                    pbf_node->set_lon(latlon2int(node->get_lon()));
                 }
 
                 void write(Osmium::OSM::Way *way) {
-                    check_block_contents_counter('w');
+                    /*check_block_contents_counter('w');
                     if(Osmium::global.debug) fprintf(stderr, "way %d v%d\n", way->get_id(), way->get_version());
 
                     record_default_strings(way);
-                    ways.push_back(new Osmium::OSM::Way(*way));
+                    ways.push_back(new Osmium::OSM::Way(*way));*/
                 }
 
                 void write(Osmium::OSM::Relation *relation) {
-                    check_block_contents_counter('r');
+                    /*check_block_contents_counter('r');
                     if(Osmium::global.debug) fprintf(stderr, "relation %d v%d\n", relation->get_id(), relation->get_version());
 
                     for (int i=0, l = relation->member_count(); i < l; i++) {
@@ -490,19 +514,13 @@ namespace Osmium {
                     }
 
                     record_default_strings(relation);
-                    relations.push_back(new Osmium::OSM::Relation(*relation));
+                    relations.push_back(new Osmium::OSM::Relation(*relation));*/
                 }
 
                 void write_final() {
                     if(Osmium::global.debug) fprintf(stderr, "finishing\n");
-                    if(nodes.size() > 0)
-                        store_nodes_block();
-
-                    if(ways.size() > 0)
-                        store_ways_block();
-
-                    if(relations.size() > 0)
-                        store_relations_block();
+                    if(primitive_block_contents > 0)
+                        store_primitive_block();
 
                     if(fd)
                         fclose(fd);
