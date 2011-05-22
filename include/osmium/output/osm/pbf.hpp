@@ -87,7 +87,9 @@ namespace Osmium {
 
                 OSMPBF::HeaderBlock pbf_header_block;
                 OSMPBF::PrimitiveBlock pbf_primitive_block;
-                OSMPBF::PrimitiveGroup *pbf_primitive_group;
+                OSMPBF::PrimitiveGroup *pbf_nodes;
+                OSMPBF::PrimitiveGroup *pbf_ways;
+                OSMPBF::PrimitiveGroup *pbf_relations;
                 unsigned int primitive_block_contents;
 
                 struct string_info {
@@ -100,8 +102,6 @@ namespace Osmium {
 
                 static const int MAX_BLOB_SIZE = 32 * 1024 * 1024;
                 char pack_buffer[MAX_BLOB_SIZE];
-
-                char lasttype;
 
                 struct last_dense {
                     long int id;
@@ -181,7 +181,7 @@ namespace Osmium {
                     } else {
                         string_info info;
                         info.count = 0;
-                        info.interim_id = strings.size();
+                        info.interim_id = strings.size()+1;
                         strings[string] = info;
 
                         if(Osmium::global.debug) fprintf(stderr, "record string %s at interim-id %u\n", string.c_str(), info.interim_id);
@@ -226,33 +226,39 @@ namespace Osmium {
                 }
 
                 void update_string_ids() {
-                    for(int i = 0, l = pbf_primitive_group->nodes_size(); i<l; i++)
-                        update_common_string_ids(pbf_primitive_group->mutable_nodes(i));
+                    if(pbf_nodes) {
+                        for(int i = 0, l = pbf_nodes->nodes_size(); i<l; i++)
+                            update_common_string_ids(pbf_nodes->mutable_nodes(i));
 
-                    for(int i = 0, l = pbf_primitive_group->ways_size(); i<l; i++)
-                        update_common_string_ids(pbf_primitive_group->mutable_ways(i));
+                        if(pbf_nodes->has_dense()) {
+                            OSMPBF::DenseNodes *dense = pbf_nodes->mutable_dense();
+                            OSMPBF::DenseInfo *denseinfo = dense->mutable_denseinfo();
+                            for(int i = 0, l = dense->keys_vals_size(); i<l; i++) {
+                                int sid = dense->keys_vals(i);
+                                if(sid > 0)
+                                    dense->set_keys_vals(i, (google::protobuf::uint32) map_string_index((unsigned int) sid));
+                            }
 
-                    for(int i = 0, l = pbf_primitive_group->relations_size(); i<l; i++) {
-                        OSMPBF::Relation *relation = pbf_primitive_group->mutable_relations(i);
-                        update_common_string_ids(relation);
-
-                        for (int mi = 0, ml = relation->roles_sid_size(); mi < ml; mi++)
-                            relation->set_roles_sid(mi, (google::protobuf::uint32) map_string_index((unsigned int) relation->roles_sid(mi)));
+                            for(int i = 0, l = denseinfo->user_sid_size(); i<l; i++) {
+                                unsigned int user_sid = map_string_index((unsigned int) denseinfo->user_sid(i));
+                                denseinfo->set_user_sid(i, (google::protobuf::uint32) user_sid - last_dense_info.user_sid);
+                                last_dense_info.user_sid = user_sid;
+                            }
+                        }
                     }
 
-                    if(pbf_primitive_group->has_dense()) {
-                        OSMPBF::DenseNodes *dense = pbf_primitive_group->mutable_dense();
-                        OSMPBF::DenseInfo *denseinfo = dense->mutable_denseinfo();
-                        for(int i = 0, l = dense->keys_vals_size(); i<l; i++) {
-                            int sid = dense->keys_vals(i);
-                            if(sid > 0)
-                                dense->set_keys_vals(i, (google::protobuf::uint32) map_string_index((unsigned int) sid));
-                        }
+                    if(pbf_ways) {
+                        for(int i = 0, l = pbf_ways->ways_size(); i<l; i++)
+                            update_common_string_ids(pbf_ways->mutable_ways(i));
+                    }
 
-                        for(int i = 0, l = denseinfo->user_sid_size(); i<l; i++) {
-                            unsigned int user_sid = map_string_index((unsigned int) denseinfo->user_sid(i));
-                            denseinfo->set_user_sid(i, (google::protobuf::uint32) user_sid - last_dense_info.user_sid);
-                            last_dense_info.user_sid = user_sid;
+                    if(pbf_relations) {
+                        for(int i = 0, l = pbf_relations->relations_size(); i<l; i++) {
+                            OSMPBF::Relation *relation = pbf_relations->mutable_relations(i);
+                            update_common_string_ids(relation);
+
+                            for (int mi = 0, ml = relation->roles_sid_size(); mi < ml; mi++)
+                                relation->set_roles_sid(mi, (google::protobuf::uint32) map_string_index((unsigned int) relation->roles_sid(mi)));
                         }
                     }
                 }
@@ -292,7 +298,7 @@ namespace Osmium {
                 }
 
                 void store_primitive_block() {
-                    if(Osmium::global.debug) fprintf(stderr, "storing primitive block with %u items (type %c)\n", primitive_block_contents, lasttype);
+                    if(Osmium::global.debug) fprintf(stderr, "storing primitive block with %u items\n", primitive_block_contents);
 
                     sort_and_store_strings();
                     update_string_ids();
@@ -311,17 +317,15 @@ namespace Osmium {
                     pbf_primitive_block.mutable_stringtable()->add_s("");
 
                     // add a primitive-group to the block
-                    pbf_primitive_group = pbf_primitive_block.add_primitivegroup();
+                    pbf_nodes = NULL;
+                    pbf_ways = NULL;
+                    pbf_relations = NULL;
                 }
 
-                void check_block_contents_counter(char type) {
-                    if(lasttype != '\0' && lasttype != type && primitive_block_contents > 0)
+                void check_block_contents_counter() {
+                    if(primitive_block_contents >= max_block_contents)
                         store_primitive_block();
 
-                    else if(primitive_block_contents >= max_block_contents)
-                        store_primitive_block();
-
-                    lasttype = type;
                     primitive_block_contents++;
                 }
 
@@ -331,8 +335,10 @@ namespace Osmium {
                     fd(stdout),
                     use_dense_format_(true),
                     use_compression_(true),
+                    pbf_nodes(NULL),
+                    pbf_ways(NULL),
+                    pbf_relations(NULL),
                     primitive_block_contents(0),
-                    lasttype('\0'),
                     last_dense_info({0, 0, 0, 0, 0, 0, 0}) {
 
                     GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -341,8 +347,10 @@ namespace Osmium {
                 PBF(std::string &filename) : Base(),
                     use_dense_format_(true),
                     use_compression_(true),
+                    pbf_nodes(NULL),
+                    pbf_ways(NULL),
+                    pbf_relations(NULL),
                     primitive_block_contents(0),
-                    lasttype('\0'),
                     last_dense_info({0, 0, 0, 0, 0, 0, 0}) {
 
                     GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -380,12 +388,11 @@ namespace Osmium {
                     if(is_history_file())
                         pbf_header_block.add_required_features("HistoricalInformation");
 
-                    // add empty string-table entry at index 0
-                    pbf_primitive_block.mutable_stringtable()->add_s("");
                     pbf_header_block.set_writingprogram("Osmium (http://wiki.openstreetmap.org/wiki/Osmium)");
                     store_header_block();
 
-                    pbf_primitive_group = pbf_primitive_block.add_primitivegroup();
+                    // add empty string-table entry at index 0
+                    pbf_primitive_block.mutable_stringtable()->add_s("");
                 }
 
                 void write_bounds(double minlon, double minlat, double maxlon, double maxlat) {
@@ -398,11 +405,14 @@ namespace Osmium {
                 }
 
                 void write(Osmium::OSM::Node *node) {
-                    check_block_contents_counter('n');
+                    check_block_contents_counter();
+
+                    if(!pbf_nodes)
+                        pbf_nodes = pbf_primitive_block.add_primitivegroup();
 
                     if(!use_dense_format()) {
                         if(Osmium::global.debug) fprintf(stderr, "node %d v%d\n", node->get_id(), node->get_version());
-                        OSMPBF::Node *pbf_node = pbf_primitive_group->add_nodes();
+                        OSMPBF::Node *pbf_node = pbf_nodes->add_nodes();
                         apply_info(node, pbf_node);
 
                         pbf_node->set_lat(latlon2int(node->get_lat()));
@@ -411,7 +421,7 @@ namespace Osmium {
 
                     else { // use_dense_format
                         if(Osmium::global.debug) fprintf(stderr, "densenode %d v%d\n", node->get_id(), node->get_version());
-                        OSMPBF::DenseNodes *dense = pbf_primitive_group->mutable_dense();
+                        OSMPBF::DenseNodes *dense = pbf_nodes->mutable_dense();
                         OSMPBF::DenseInfo *denseinfo = dense->mutable_denseinfo();
 
                         long int id = node->get_id();
@@ -451,10 +461,13 @@ namespace Osmium {
                 }
 
                 void write(Osmium::OSM::Way *way) {
-                    check_block_contents_counter('w');
-                    if(Osmium::global.debug) fprintf(stderr, "way %d v%d\n with %lu nodes", way->get_id(), way->get_version(), (long unsigned int)way->node_count());
+                    check_block_contents_counter();
+                    if(Osmium::global.debug) fprintf(stderr, "way %d v%d with %lu nodes\n", way->get_id(), way->get_version(), (long unsigned int)way->node_count());
 
-                    OSMPBF::Way *pbf_way = pbf_primitive_group->add_ways();
+                    if(!pbf_ways)
+                        pbf_ways = pbf_primitive_block.add_primitivegroup();
+
+                    OSMPBF::Way *pbf_way = pbf_ways->add_ways();
                     apply_info(way, pbf_way);
 
                     long int last_id = 0;
@@ -466,10 +479,13 @@ namespace Osmium {
                 }
 
                 void write(Osmium::OSM::Relation *relation) {
-                    check_block_contents_counter('r');
+                    check_block_contents_counter();
                     if(Osmium::global.debug) fprintf(stderr, "relation %d v%d with %lu members\n", relation->get_id(), relation->get_version(), (long unsigned int)relation->member_count());
 
-                    OSMPBF::Relation *pbf_relation = pbf_primitive_group->add_relations();
+                    if(!pbf_relations)
+                        pbf_relations = pbf_primitive_block.add_primitivegroup();
+
+                    OSMPBF::Relation *pbf_relation = pbf_relations->add_relations();
                     apply_info(relation, pbf_relation);
 
                     long int last_id = 0;
