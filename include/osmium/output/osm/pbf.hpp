@@ -216,15 +216,28 @@ namespace Osmium {
                 }
 
                 void update_string_ids() {
-                    for(int i = 0, l = pbf_primitive_group->nodes_size(); i<l; i++) {
-                        OSMPBF::Node *node = pbf_primitive_group->mutable_nodes(i);
-                        OSMPBF::Info *info = node->mutable_info();
-                        
-                        info->set_user_sid((google::protobuf::uint32) map_string_index((unsigned int) info->user_sid()));
-                        for (int i=0, l = node->keys_size(); i < l; i++) {
-                            node->set_keys(i, (google::protobuf::uint32) map_string_index((unsigned int) node->keys(i)));
-                            node->set_vals(i, (google::protobuf::uint32) map_string_index((unsigned int) node->vals(i)));
-                        }
+                    for(int i = 0, l = pbf_primitive_group->nodes_size(); i<l; i++)
+                        update_common_string_ids(pbf_primitive_group->mutable_nodes(i));
+
+                    for(int i = 0, l = pbf_primitive_group->ways_size(); i<l; i++)
+                        update_common_string_ids(pbf_primitive_group->mutable_ways(i));
+
+                    for(int i = 0, l = pbf_primitive_group->relations_size(); i<l; i++) {
+                        OSMPBF::Relation *relation = pbf_primitive_group->mutable_relations(i);
+                        update_common_string_ids(relation);
+
+                        for (int mi = 0, ml = relation->roles_sid_size(); mi < ml; mi++)
+                            relation->set_roles_sid(mi, (google::protobuf::uint32) map_string_index((unsigned int) relation->roles_sid(mi)));
+                    }
+                }
+
+                template <class pbf_object_t> void update_common_string_ids(pbf_object_t *in) {
+                    OSMPBF::Info *info = in->mutable_info();
+
+                    info->set_user_sid((google::protobuf::uint32) map_string_index((unsigned int) info->user_sid()));
+                    for (int i=0, l = in->keys_size(); i < l; i++) {
+                        in->set_keys(i, (google::protobuf::uint32) map_string_index((unsigned int) in->keys(i)));
+                        in->set_vals(i, (google::protobuf::uint32) map_string_index((unsigned int) in->vals(i)));
                     }
                 }
 
@@ -253,29 +266,6 @@ namespace Osmium {
                 }
 
 /*
-                void store_nodes_block() {
-                    if(use_dense_format())
-                        return store_dense_nodes_block();
-
-                    if(Osmium::global.debug) fprintf(stderr, "storing nodes block with %lu nodes\n", (long unsigned int)nodes.size());
-                    sort_and_store_strings();
-
-                    if(Osmium::global.debug) fprintf(stderr, "storing %lu nodes to protobuf\n", (long unsigned int)nodes.size());
-                    OSMPBF::PrimitiveGroup *pbf_primitive_group = pbf_primitive_block.add_primitivegroup();
-                    for(int i = 0, l = nodes.size(); i<l; i++) {
-                        Osmium::OSM::Node *node = nodes[i];
-                        OSMPBF::Node *pbf_node = pbf_primitive_group->add_nodes();
-                        apply_info(node, pbf_node);
-
-                        pbf_node->set_lat(latlon2int(node->get_lat()));
-                        pbf_node->set_lon(latlon2int(node->get_lon()));
-
-                        delete node;
-                    }
-                    nodes.clear();
-                    store_primitive_block();
-                }
-
                 void store_dense_nodes_block() {
                     if(Osmium::global.debug) fprintf(stderr, "storing dense nodes block with %lu nodes\n", (long unsigned int)nodes.size());
                     sort_and_store_strings();
@@ -325,62 +315,6 @@ namespace Osmium {
                         delete node;
                     }
                     nodes.clear();
-                    store_primitive_block();
-                }
-
-                void store_ways_block() {
-                    if(Osmium::global.debug) fprintf(stderr, "storing ways block with %lu ways\n", (long unsigned int)ways.size());
-                    sort_and_store_strings();
-
-                    if(Osmium::global.debug) fprintf(stderr, "storing %lu ways to protobuf\n", (long unsigned int)ways.size());
-                    OSMPBF::PrimitiveGroup *pbf_primitive_group = pbf_primitive_block.add_primitivegroup();
-                    for(int i = 0, l = ways.size(); i<l; i++) {
-                        Osmium::OSM::Way *way = ways[i];
-                        OSMPBF::Way *pbf_way = pbf_primitive_group->add_ways();
-                        apply_info(way, pbf_way);
-
-                        long int last_id = 0;
-                        for (int i=0, l = way->node_count(); i < l; i++) {
-                            pbf_way->add_refs(way->get_node_id(i) - last_id);
-                            last_id = way->get_node_id(i);
-                        }
-
-                        delete way;
-                    }
-                    ways.clear();
-                    store_primitive_block();
-                }
-
-                void store_relations_block() {
-                    if(Osmium::global.debug) fprintf(stderr, "storing relations block with %lu relations\n", (long unsigned int)relations.size());
-                    sort_and_store_strings();
-
-                    if(Osmium::global.debug) fprintf(stderr, "storing %lu relations to protobuf\n", (long unsigned int)relations.size());
-                    OSMPBF::PrimitiveGroup *pbf_primitive_group = pbf_primitive_block.add_primitivegroup();
-                    for(int i = 0, l = relations.size(); i<l; i++) {
-                        Osmium::OSM::Relation *relation = relations[i];
-                        OSMPBF::Relation *pbf_relation = pbf_primitive_group->add_relations();
-                        apply_info(relation, pbf_relation);
-
-                        long int last_id = 0;
-                        for (int i=0, l = relation->member_count(); i < l; i++) {
-                            const Osmium::OSM::RelationMember *mem = relation->get_member(i);
-
-                            pbf_relation->add_roles_sid(index_string(mem->get_role()));
-                            pbf_relation->add_memids(mem->get_ref() - last_id);
-                            last_id = mem->get_ref();
-
-                            switch(mem->get_type()) {
-                                case 'n': pbf_relation->add_types(OSMPBF::Relation::NODE); break;
-                                case 'w': pbf_relation->add_types(OSMPBF::Relation::WAY); break;
-                                case 'r': pbf_relation->add_types(OSMPBF::Relation::RELATION); break;
-                                default: throw std::runtime_error("Unknown relation member type: " + mem->get_type());
-                            }
-                        }
-
-                        delete relation;
-                    }
-                    relations.clear();
                     store_primitive_block();
                 }
 */
@@ -498,23 +432,44 @@ namespace Osmium {
                 }
 
                 void write(Osmium::OSM::Way *way) {
-                    /*check_block_contents_counter('w');
+                    check_block_contents_counter('w');
                     if(Osmium::global.debug) fprintf(stderr, "way %d v%d\n", way->get_id(), way->get_version());
 
-                    record_default_strings(way);
-                    ways.push_back(new Osmium::OSM::Way(*way));*/
+                    OSMPBF::Way *pbf_way = pbf_primitive_group->add_ways();
+                    apply_info(way, pbf_way);
+
+                    long int last_id = 0;
+                    for (int i=0, l = way->node_count(); i < l; i++) {
+                        long int id = way->get_node_id(i);
+                        pbf_way->add_refs(id - last_id);
+                        last_id = id;
+                    }
                 }
 
                 void write(Osmium::OSM::Relation *relation) {
-                    /*check_block_contents_counter('r');
+                    check_block_contents_counter('r');
                     if(Osmium::global.debug) fprintf(stderr, "relation %d v%d\n", relation->get_id(), relation->get_version());
 
-                    for (int i=0, l = relation->member_count(); i < l; i++) {
-                        record_string(relation->get_member(i)->get_role());
-                    }
+                    OSMPBF::Relation *pbf_relation = pbf_primitive_group->add_relations();
+                    apply_info(relation, pbf_relation);
 
-                    record_default_strings(relation);
-                    relations.push_back(new Osmium::OSM::Relation(*relation));*/
+                    long int last_id = 0;
+                    for (int i=0, l = relation->member_count(); i < l; i++) {
+                        const Osmium::OSM::RelationMember *mem = relation->get_member(i);
+
+                        pbf_relation->add_roles_sid(record_string(mem->get_role()));
+
+                        long int id = mem->get_ref();
+                        pbf_relation->add_memids(id - last_id);
+                        last_id = id;
+
+                        switch(mem->get_type()) {
+                            case 'n': pbf_relation->add_types(OSMPBF::Relation::NODE); break;
+                            case 'w': pbf_relation->add_types(OSMPBF::Relation::WAY); break;
+                            case 'r': pbf_relation->add_types(OSMPBF::Relation::RELATION); break;
+                            default: throw std::runtime_error("Unknown relation member type: " + mem->get_type());
+                        }
+                    }
                 }
 
                 void write_final() {
