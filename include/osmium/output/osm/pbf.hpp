@@ -135,7 +135,7 @@ namespace Osmium {
                             throw std::runtime_error("failed to deinit zlib stream");
                         }
 
-                        if(Osmium::global.debug) fprintf(stderr, "pack %lu bytes to %ld bytes (1:%f))\n", (long unsigned int)data.size(), z.total_out, (double)data.size() / z.total_out);
+                        if(Osmium::global.debug) fprintf(stderr, "pack %lu bytes to %ld bytes (1:%f)\n", (long unsigned int)data.size(), z.total_out, (double)data.size() / z.total_out);
                         pbf_blob.set_zlib_data(pack_buffer, z.total_out);
                     }
                     else { // use_compression
