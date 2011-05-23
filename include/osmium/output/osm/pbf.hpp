@@ -398,10 +398,10 @@ namespace Osmium {
                 void write_bounds(double minlon, double minlat, double maxlon, double maxlat) {
                     // FIXME: untested
                     OSMPBF::HeaderBBox *bbox = pbf_header_block.mutable_bbox();
-                    bbox->set_left(latlon2int(minlon));
-                    bbox->set_top(latlon2int(minlat));
-                    bbox->set_right(latlon2int(maxlon));
-                    bbox->set_bottom(latlon2int(maxlat));
+                    bbox->set_left(minlon * NANO);
+                    bbox->set_top(minlat * NANO);
+                    bbox->set_right(maxlon * NANO);
+                    bbox->set_bottom(maxlat * NANO);
                 }
 
                 void write(Osmium::OSM::Node *node) {
