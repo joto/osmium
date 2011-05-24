@@ -22,7 +22,68 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+/*
+
+About the .osm.pbf file format
+This is an excerpt of <http://wiki.openstreetmap.org/wiki/PBF_Format>
+
+The .osm.pbf format and it's derived formats (.osh.pbf and .osc.pbf) are encoded
+using googles protobuffer library for the low-level storage. They are constructed
+by nesting data on two levels:
+
+On the lower level the file is contstructed using BlobHeaders and Blobs. A .osm.pbf
+file contains multiple sequences of
+ 1. a 4-byte header size, stored in network-byte-order
+ 2. a BlobHeader of exactly this size
+ 3. a Blob
+
+The BlobHeader tells the reader about the type and size of the following Blob. The
+Blob can contain data in raw or zlib-compressed form. After uncompressing the blob
+it is treated differently depending on the type specified inthe BlobHeader.
+
+The contents of the Blob belongs to the higher level. It contains either an HeaderBlock
+(type="OSMHeader") or an PrimitiveBlock (type="OSMData"). The file needs to have 
+at least one HeaderBlock before the first PrimitiveBlock.
+
+The HeaderBlock contains meta-information like the writingprogram or a bbox. It may 
+also contain multiple "required features" that describe what kinds of input a 
+reading program needs to handle in order to fully understand the files' contents.
+
+The PrimitiveBlock can store multiple types of objects (ie 5 nodes, 2 ways and 
+1 relation). It contains one or more PrimitiveGroup which in turn contain multiple 
+nodes, ways or relations. A PrimitiveGroup should only contain one kind of object.
+
+All Strings are stored as indexes to rows in a StringTable. The StringTable contains 
+one row for each used string, so strings that are used multiple times need to be 
+stored only once. The StringTable is sorted by usage-count, so the most often used 
+string is stored at index 1.
+
+A simple outline of a .osm.pbf file could look like this:
+
+  4-byts header size
+  BlobHeader
+  Blob
+    HeaderBlock
+  4-byts header size
+  BlobHeader
+  Blob
+    PrimitiveBlock
+      StringTable
+      PrimitiveGroup
+        5 nodes
+      PrimitiveGroup
+        2 ways
+      PrimitiveGroup
+        1 relation
+
+More complete outlines of real .osm.pbf files can be created using the osmpbf-outline Tool:
+ <https://github.com/MaZderMind/OSM-binary/tree/osmpbf-outline>
+*/
+
+// netinet provides the network-byte-order conversion function
 #include <netinet/in.h>
+
+// the algorithm-lib contains the sort functions
 #include <algorithm>
 
 namespace Osmium {
@@ -36,7 +97,8 @@ namespace Osmium {
                 /**
                  * Nanodegree multiplier
                  *
-                 * used in latlon2int while converting floating-point lat/lon to integers
+                 * used in latlon2int while converting floating-point 
+                 * lat/lon to integers
                  */
                 static const long int NANO = 1000 * 1000 * 1000;
 
@@ -53,6 +115,11 @@ namespace Osmium {
                  * uses at most 8k entities in a block.
                  */
                 static const unsigned int max_block_contents = 8000;
+
+                /** 
+                 * maximum number of bytes an uncompressed block may take
+                 */
+                static const int MAX_BLOB_SIZE = 32 * 1024 * 1024;
 
                 /**
                  * The file descriptor of the output file
@@ -82,27 +149,93 @@ namespace Osmium {
                  */
                 bool use_compression_;
 
+                /**
+                 * Protobuffer-Struct of a Blob
+                 */
                 OSMPBF::Blob pbf_blob;
+
+                /**
+                 * Protobuffer-Struct of a BlobHeader
+                 */
                 OSMPBF::BlobHeader pbf_blob_header;
 
+                /**
+                 * Protobuffer-Struct of a HeaderBlock
+                 */
                 OSMPBF::HeaderBlock pbf_header_block;
+
+                /**
+                 * Protobuffer-Struct of a PrimitiveBlock
+                 */
                 OSMPBF::PrimitiveBlock pbf_primitive_block;
+
+                /**
+                 * Pointer to PrimitiveGroups inside the current PrimitiveBlock, 
+                 * used for writing nodes, ways or relations
+                 */
                 OSMPBF::PrimitiveGroup *pbf_nodes;
                 OSMPBF::PrimitiveGroup *pbf_ways;
                 OSMPBF::PrimitiveGroup *pbf_relations;
+
+                /**
+                 * counter used to quickly check the number of objects stored inside
+                 * the current PrimitiveBlock. When the counter reaches max_block_contents
+                 * the PrimitiveBlock is serialized into a Blob and flushed to the file.
+                 *
+                 * This check is performed in check_block_contents_counter() which is
+                 * called once for each object.
+                 */
                 unsigned int primitive_block_contents;
 
+                /**
+                 * this is the struct used to build the StringTable. It is stored as 
+                 * the value-part in the strings-map.
+                 *
+                 * when a new string is added to the map, its count is set to 0 and 
+                 * the interim_id is set to the current size of the map. This interim_id
+                 * is then stored into the pbf-objects.
+                 *
+                 * Before the PrimitiveBlock is serialized, the map is sorted by count
+                 * and stored into the pbf-StringTable. Afterwards the interim-ids are 
+                 * mapped to the "real" id in the StringTable.
+                 *
+                 * This way often used strings get lower ids in the StringTable. As the
+                 * Protobuffer-Serializer stores numbers in variable bit-lengths, lower 
+                 * IDs means less used space in the resulting file.
+                 */
                 struct string_info {
+                    /**
+                     * number of occurrences of this string
+                     */
                     unsigned int count;
+
+                    /**
+                     * an intermediate-id
+                     */
                     unsigned int interim_id;
                 };
 
+                /**
+                 * a map storing all strings that should be written into the StringTable
+                 */
                 std::map<std::string, string_info> strings;
+
+                /**
+                 * a map used to map the interim-ids to real StringTable-IDs after writing 
+                 * all strings into the StringTable
+                 */
                 std::map<unsigned int, unsigned int> string_ids_map;
 
-                static const int MAX_BLOB_SIZE = 32 * 1024 * 1024;
+                /**
+                 * buffer used while compressing blobs
+                 */
                 char pack_buffer[MAX_BLOB_SIZE];
 
+                /**
+                 * this struct and its variable last_dense_info is used to calculate the
+                 * delta-encoding while storing dense-nodes. It holds the last seen values
+                 * from which the difference is stored into the protobuffer
+                 */
                 struct last_dense {
                     long int id;
                     long int lat;
