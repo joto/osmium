@@ -31,7 +31,7 @@ The .osm.pbf format and it's derived formats (.osh.pbf and .osc.pbf) are encoded
 using googles protobuf library for the low-level storage. They are constructed
 by nesting data on two levels:
 
-On the lower level the file is contstructed using BlobHeaders and Blobs. A .osm.pbf
+On the lower level the file is constructed using BlobHeaders and Blobs. A .osm.pbf
 file contains multiple sequences of
  1. a 4-byte header size, stored in network-byte-order
  2. a BlobHeader of exactly this size
@@ -39,17 +39,17 @@ file contains multiple sequences of
 
 The BlobHeader tells the reader about the type and size of the following Blob. The
 Blob can contain data in raw or zlib-compressed form. After uncompressing the blob
-it is treated differently depending on the type specified inthe BlobHeader.
+it is treated differently depending on the type specified in the BlobHeader.
 
 The contents of the Blob belongs to the higher level. It contains either an HeaderBlock
 (type="OSMHeader") or an PrimitiveBlock (type="OSMData"). The file needs to have
 at least one HeaderBlock before the first PrimitiveBlock.
 
-The HeaderBlock contains meta-information like the writingprogram or a bbox. It may
+The HeaderBlock contains meta-information like the writing program or a bbox. It may
 also contain multiple "required features" that describe what kinds of input a
 reading program needs to handle in order to fully understand the files' contents.
 
-The PrimitiveBlock can store multiple types of objects (ie 5 nodes, 2 ways and
+The PrimitiveBlock can store multiple types of objects (i.e. 5 nodes, 2 ways and
 1 relation). It contains one or more PrimitiveGroup which in turn contain multiple
 nodes, ways or relations. A PrimitiveGroup should only contain one kind of object.
 
@@ -60,11 +60,11 @@ string is stored at index 1.
 
 A simple outline of a .osm.pbf file could look like this:
 
-  4-byts header size
+  4-bytes header size
   BlobHeader
   Blob
     HeaderBlock
-  4-byts header size
+  4-bytes header size
   BlobHeader
   Blob
     PrimitiveBlock
@@ -133,7 +133,7 @@ namespace Osmium {
                  *
                  * Nodes can be encoded one of two ways, as a Node
                  * (use_dense_format_ = false) and a special dense format.
-                 * In the dense format, all information is stored 'columnwise',
+                 * In the dense format, all information is stored 'column wise',
                  * as an array of ID's, array of latitudes, and array of
                  * longitudes. Each column is delta-encoded. This reduces
                  * header overheads and allows delta-coding to work very effectively.
@@ -145,7 +145,7 @@ namespace Osmium {
                  *
                  * The zlib compression is optional, it's possible to store the
                  * blobs in raw format. Disabling the compression can improve the
-                 * writing speed a little but the outout will be 2x to 3x bigger.
+                 * writing speed a little but the output will be 2x to 3x bigger.
                  */
                 bool use_compression_;
 
@@ -200,7 +200,7 @@ namespace Osmium {
                  * mapped to the "real" id in the StringTable.
                  *
                  * This way often used strings get lower ids in the StringTable. As the
-                 * protobuf-Serializer stores numbers in variable bit-lengths, lower
+                 * protobuf-serializer stores numbers in variable bit-lengths, lower
                  * IDs means less used space in the resulting file.
                  */
                 struct string_info {
@@ -216,13 +216,14 @@ namespace Osmium {
                 };
 
                 /**
-                 * a map storing all strings that should be written into the StringTable
+                 * interim StringTable, storing all strings that should be written to 
+                 * the StringTable once the block is written to disk
                  */
                 std::map<std::string, string_info> strings;
 
                 /**
-                 * a map used to map the interim-ids to real StringTable-IDs after writing
-                 * all strings into the StringTable
+                 * this map is used to map the interim-ids to real StringTable-IDs after 
+                 * writing all strings to the StringTable
                  */
                 std::map<unsigned int, unsigned int> string_ids_map;
 
@@ -302,7 +303,8 @@ namespace Osmium {
                         }
 
                         // print debug info about the compression
-                        if(Osmium::global.debug) fprintf(stderr, "pack %lu bytes to %ld bytes (1:%f)\n", (long unsigned int)data.size(), z.total_out, (double)data.size() / z.total_out);
+                        if(Osmium::global.debug) fprintf(stderr, "pack %lu bytes to %ld bytes (1:%f)\n",
+                            (long unsigned int)data.size(), z.total_out, (double)data.size() / z.total_out);
 
                         // set the compressed data on the Blob
                         pbf_blob.set_zlib_data(pack_buffer, z.total_out);
@@ -354,6 +356,9 @@ namespace Osmium {
 
                 ///// StringTable management /////
 
+                /**
+                 * record a string in the interim StringTable if it's missing, increase its counter otherwise
+                 */
                 unsigned int record_string(const std::string& string) {
                     if(strings.count(string) > 0) {
                         string_info *info_p;
