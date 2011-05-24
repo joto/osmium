@@ -42,20 +42,20 @@ Blob can contain data in raw or zlib-compressed form. After uncompressing the bl
 it is treated differently depending on the type specified inthe BlobHeader.
 
 The contents of the Blob belongs to the higher level. It contains either an HeaderBlock
-(type="OSMHeader") or an PrimitiveBlock (type="OSMData"). The file needs to have 
+(type="OSMHeader") or an PrimitiveBlock (type="OSMData"). The file needs to have
 at least one HeaderBlock before the first PrimitiveBlock.
 
-The HeaderBlock contains meta-information like the writingprogram or a bbox. It may 
-also contain multiple "required features" that describe what kinds of input a 
+The HeaderBlock contains meta-information like the writingprogram or a bbox. It may
+also contain multiple "required features" that describe what kinds of input a
 reading program needs to handle in order to fully understand the files' contents.
 
-The PrimitiveBlock can store multiple types of objects (ie 5 nodes, 2 ways and 
-1 relation). It contains one or more PrimitiveGroup which in turn contain multiple 
+The PrimitiveBlock can store multiple types of objects (ie 5 nodes, 2 ways and
+1 relation). It contains one or more PrimitiveGroup which in turn contain multiple
 nodes, ways or relations. A PrimitiveGroup should only contain one kind of object.
 
-All Strings are stored as indexes to rows in a StringTable. The StringTable contains 
-one row for each used string, so strings that are used multiple times need to be 
-stored only once. The StringTable is sorted by usage-count, so the most often used 
+All Strings are stored as indexes to rows in a StringTable. The StringTable contains
+one row for each used string, so strings that are used multiple times need to be
+stored only once. The StringTable is sorted by usage-count, so the most often used
 string is stored at index 1.
 
 A simple outline of a .osm.pbf file could look like this:
@@ -97,7 +97,7 @@ namespace Osmium {
                 /**
                  * Nanodegree multiplier
                  *
-                 * used in latlon2int while converting floating-point 
+                 * used in latlon2int while converting floating-point
                  * lat/lon to integers
                  */
                 static const long int NANO = 1000 * 1000 * 1000;
@@ -116,7 +116,7 @@ namespace Osmium {
                  */
                 static const unsigned int max_block_contents = 8000;
 
-                /** 
+                /**
                  * maximum number of bytes an uncompressed block may take
                  */
                 static const int MAX_BLOB_SIZE = 32 * 1024 * 1024;
@@ -143,8 +143,8 @@ namespace Osmium {
                 /**
                  * Should the PBF blobs contain zlib compressed data?
                  *
-                 * The zlib compression is optional, it's possible to store the 
-                 * blobs in raw format. Disabling the compression can improve the 
+                 * The zlib compression is optional, it's possible to store the
+                 * blobs in raw format. Disabling the compression can improve the
                  * writing speed a little but the outout will be 2x to 3x bigger.
                  */
                 bool use_compression_;
@@ -170,7 +170,7 @@ namespace Osmium {
                 OSMPBF::PrimitiveBlock pbf_primitive_block;
 
                 /**
-                 * Pointer to PrimitiveGroups inside the current PrimitiveBlock, 
+                 * Pointer to PrimitiveGroups inside the current PrimitiveBlock,
                  * used for writing nodes, ways or relations
                  */
                 OSMPBF::PrimitiveGroup *pbf_nodes;
@@ -188,19 +188,19 @@ namespace Osmium {
                 unsigned int primitive_block_contents;
 
                 /**
-                 * this is the struct used to build the StringTable. It is stored as 
+                 * this is the struct used to build the StringTable. It is stored as
                  * the value-part in the strings-map.
                  *
-                 * when a new string is added to the map, its count is set to 0 and 
+                 * when a new string is added to the map, its count is set to 0 and
                  * the interim_id is set to the current size of the map. This interim_id
                  * is then stored into the pbf-objects.
                  *
                  * Before the PrimitiveBlock is serialized, the map is sorted by count
-                 * and stored into the pbf-StringTable. Afterwards the interim-ids are 
+                 * and stored into the pbf-StringTable. Afterwards the interim-ids are
                  * mapped to the "real" id in the StringTable.
                  *
                  * This way often used strings get lower ids in the StringTable. As the
-                 * Protobuffer-Serializer stores numbers in variable bit-lengths, lower 
+                 * Protobuffer-Serializer stores numbers in variable bit-lengths, lower
                  * IDs means less used space in the resulting file.
                  */
                 struct string_info {
@@ -221,7 +221,7 @@ namespace Osmium {
                 std::map<std::string, string_info> strings;
 
                 /**
-                 * a map used to map the interim-ids to real StringTable-IDs after writing 
+                 * a map used to map the interim-ids to real StringTable-IDs after writing
                  * all strings into the StringTable
                  */
                 std::map<unsigned int, unsigned int> string_ids_map;
