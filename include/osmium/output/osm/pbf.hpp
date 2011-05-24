@@ -28,7 +28,7 @@ About the .osm.pbf file format
 This is an excerpt of <http://wiki.openstreetmap.org/wiki/PBF_Format>
 
 The .osm.pbf format and it's derived formats (.osh.pbf and .osc.pbf) are encoded
-using googles protobuffer library for the low-level storage. They are constructed
+using googles protobuf library for the low-level storage. They are constructed
 by nesting data on two levels:
 
 On the lower level the file is contstructed using BlobHeaders and Blobs. A .osm.pbf
@@ -150,22 +150,22 @@ namespace Osmium {
                 bool use_compression_;
 
                 /**
-                 * Protobuffer-Struct of a Blob
+                 * protobuf-Struct of a Blob
                  */
                 OSMPBF::Blob pbf_blob;
 
                 /**
-                 * Protobuffer-Struct of a BlobHeader
+                 * protobuf-Struct of a BlobHeader
                  */
                 OSMPBF::BlobHeader pbf_blob_header;
 
                 /**
-                 * Protobuffer-Struct of a HeaderBlock
+                 * protobuf-Struct of a HeaderBlock
                  */
                 OSMPBF::HeaderBlock pbf_header_block;
 
                 /**
-                 * Protobuffer-Struct of a PrimitiveBlock
+                 * protobuf-Struct of a PrimitiveBlock
                  */
                 OSMPBF::PrimitiveBlock pbf_primitive_block;
 
@@ -200,7 +200,7 @@ namespace Osmium {
                  * mapped to the "real" id in the StringTable.
                  *
                  * This way often used strings get lower ids in the StringTable. As the
-                 * Protobuffer-Serializer stores numbers in variable bit-lengths, lower
+                 * protobuf-Serializer stores numbers in variable bit-lengths, lower
                  * IDs means less used space in the resulting file.
                  */
                 struct string_info {
@@ -234,7 +234,7 @@ namespace Osmium {
                 /**
                  * this struct and its variable last_dense_info is used to calculate the
                  * delta-encoding while storing dense-nodes. It holds the last seen values
-                 * from which the difference is stored into the protobuffer
+                 * from which the difference is stored into the protobuf
                  */
                 struct last_dense {
                     long int id;
@@ -246,62 +246,113 @@ namespace Osmium {
                     long int user_sid;
                 } last_dense_info;
 
-                void store_blob(const std::string &type, const std::string &data) {
+
+
+
+                ///// Blob writing /////
+
+                /**
+                 * serialize a protobuf-message together into a Blob, optionally apply compression
+                 * and write it together with a BlobHeader to the file.
+                 *
+                 * type specifies the type-string used in the BlobHeader and msg the protobuf-message.
+                 */
+                void store_blob(const std::string &type, const google::protobuf::MessageLite &msg) {
+                    // buffer to serialize the protobuf message to
+                    std::string data;
+
+                    // serialize the protobuf message to the string
+                    msg.SerializeToString(&data);
+
+                    // test if compression is enabled
                     if(use_compression()) {
+                        // zlib compression context
                         z_stream z;
 
+                        // next byte to compress
                         z.next_in   = (unsigned char*)  data.c_str();
+
+                        // number of bytes to compress
                         z.avail_in  = data.size();
+
+                        // place to store next compressed byte
                         z.next_out  = (unsigned char*)  pack_buffer;
+
+                        // space for compressed data
                         z.avail_out = MAX_BLOB_SIZE;
+
+                        // custom allocator functions - not used
                         z.zalloc    = Z_NULL;
                         z.zfree     = Z_NULL;
                         z.opaque    = Z_NULL;
 
+                        // initiate the compression
                         if (deflateInit(&z, Z_DEFAULT_COMPRESSION) != Z_OK) {
                             throw std::runtime_error("failed to init zlib stream");
                         }
+
+                        // compress
                         if (deflate(&z, Z_FINISH) != Z_STREAM_END) {
                             throw std::runtime_error("failed to deflate zlib stream");
                         }
+
+                        // finish compression
                         if (deflateEnd(&z) != Z_OK) {
                             throw std::runtime_error("failed to deinit zlib stream");
                         }
 
+                        // print debug info about the compression
                         if(Osmium::global.debug) fprintf(stderr, "pack %lu bytes to %ld bytes (1:%f)\n", (long unsigned int)data.size(), z.total_out, (double)data.size() / z.total_out);
+
+                        // set the compressed data on the Blob
                         pbf_blob.set_zlib_data(pack_buffer, z.total_out);
                     }
-                    else { // use_compression
+
+                    // no compression
+                    else {
+                        // print debug info about the raw data
+                        if(Osmium::global.debug) fprintf(stderr, "store uncompressed %lu bytes\n", (long unsigned int)data.size());
+
+                        // just set the raw data on the Blob
                         pbf_blob.set_raw(data);
                     }
 
+                    // set the size of the uncompressed data on the blob
                     pbf_blob.set_raw_size(data.size());
-                    std::string blob;
 
-                    pbf_blob.SerializeToString(&blob);
+                    // clear the blob string
+                    data.clear();
+
+                    // serialize and clear the Blob
+                    pbf_blob.SerializeToString(&data);
                     pbf_blob.Clear();
 
+                    // set the header-type to the supplied string on the BlobHeader
                     pbf_blob_header.set_type(type);
-                    pbf_blob_header.set_datasize(blob.size());
 
+                    // set the size of the serialized blob on the BlobHeader
+                    pbf_blob_header.set_datasize(data.size());
+
+                    // a place to serialize the BlobHeader to
                     std::string blobhead;
+
+                    // serialize and clear the BlobHeader
                     pbf_blob_header.SerializeToString(&blobhead);
                     pbf_blob_header.Clear();
 
+                    // the 4-byte size of the BlobHeader, transformed from Host- to Network-Byte-Order
                     int32_t sz = htonl(blobhead.size());
+
+                    // write to the file: the 4-byte BlobHeader-Size followed by the BlobHeader followed by the Blob
                     fwrite(&sz, sizeof(sz), 1, fd);
                     fwrite(blobhead.c_str(), blobhead.size(), 1, fd);
-                    fwrite(blob.c_str(), blob.size(), 1, fd);
+                    fwrite(data.c_str(), data.size(), 1, fd);
                 }
 
-                void store_header_block() {
-                    if(Osmium::global.debug) fprintf(stderr, "storing header block\n");
-                    std::string header;
-                    pbf_header_block.SerializeToString(&header);
-                    pbf_header_block.Clear();
 
-                    store_blob("OSMHeader", header);
-                }
+
+
+                ///// StringTable management /////
 
                 unsigned int record_string(const std::string& string) {
                     if(strings.count(string) > 0) {
@@ -406,6 +457,11 @@ namespace Osmium {
                     }
                 }
 
+
+
+
+                ///// MetaData helper /////
+
                 long int latlon2int(double latlon) {
                     return (latlon * NANO / pbf_primitive_block.granularity());
                 }
@@ -430,15 +486,25 @@ namespace Osmium {
                     out_info->set_user_sid(record_string(in->get_user()));
                 }
 
+
+
+
+                ///// High-Level Block writing /////
+
+
+                void store_header_block() {
+                    if(Osmium::global.debug) fprintf(stderr, "storing header block\n");
+                    store_blob("OSMHeader", pbf_header_block);
+                    pbf_header_block.Clear();
+                }
+
                 void store_primitive_block() {
                     if(Osmium::global.debug) fprintf(stderr, "storing primitive block with %u items\n", primitive_block_contents);
 
                     sort_and_store_strings();
                     update_string_ids();
 
-                    std::string block;
-                    pbf_primitive_block.SerializeToString(&block);
-                    store_blob("OSMData", block);
+                    store_blob("OSMData", pbf_primitive_block);
 
                     pbf_primitive_block.Clear();
                     strings.clear();
@@ -461,6 +527,11 @@ namespace Osmium {
 
                     primitive_block_contents++;
                 }
+
+
+
+
+            ///// Public interface /////
 
             public:
 
