@@ -430,7 +430,7 @@ namespace Osmium {
                     OSMPBF::StringTable *st = pbf_primitive_block.mutable_stringtable();
 
                     // iterate over the items of our vector
-                    for(int i = 0, l = strvec.size(); i<l; i++) {
+                    for(int i=0, l=strvec.size(); i<l; i++) {
                         // do some debug printing
                         if(Osmium::global.debug) fprintf(stderr, "store stringtable: %s (cnt=%u) with interim-id %u at stringtable-id %u\n", strvec[i].first.c_str(), strvec[i].second.count+1, strvec[i].second.interim_id, i+1);
 
@@ -475,7 +475,7 @@ namespace Osmium {
                     // test, if the node-block has been allocated
                     if(pbf_nodes) {
                         // iterate over all nodes, passing them to the map_common_string_ids function
-                        for(int i = 0, l = pbf_nodes->nodes_size(); i<l; i++)
+                        for(int i=0, l=pbf_nodes->nodes_size(); i<l; i++)
                             map_common_string_ids(pbf_nodes->mutable_nodes(i));
 
                         // test, if the node-block has a densenodes structure
@@ -486,7 +486,7 @@ namespace Osmium {
                             // in the densenodes structure keys and vals are encoded in an intermixed
                             // array, individual nodes are seperated by a value of 0 (0 in the StringTable
                             // is always unused). String-ids of 0 are thus kept alone.
-                            for(int i = 0, l = dense->keys_vals_size(); i<l; i++) {
+                            for(int i=0, l=dense->keys_vals_size(); i<l; i++) {
                                 // map interim string-ids > 0 to real string ids
                                 int sid = dense->keys_vals(i);
                                 if(sid > 0)
@@ -499,7 +499,7 @@ namespace Osmium {
                                 OSMPBF::DenseInfo *denseinfo = dense->mutable_denseinfo();
 
                                 // iterate over all username string-ids
-                                for(int i = 0, l = denseinfo->user_sid_size(); i<l; i++) {
+                                for(int i=0, l= denseinfo->user_sid_size(); i<l; i++) {
                                     // map interim string-ids > 0 to real string ids
                                     unsigned int user_sid = map_string_id((unsigned int) denseinfo->user_sid(i));
 
@@ -516,14 +516,14 @@ namespace Osmium {
                     // test, if the ways-block has been allocated
                     if(pbf_ways) {
                         // iterate over all ways, passing them to the map_common_string_ids function
-                        for(int i = 0, l = pbf_ways->ways_size(); i<l; i++)
+                        for(int i=0, l=pbf_ways->ways_size(); i<l; i++)
                             map_common_string_ids(pbf_ways->mutable_ways(i));
                     }
 
                     // test, if the relations-block has been allocated
                     if(pbf_relations) {
                         // iterate over all relations
-                        for(int i = 0, l = pbf_relations->relations_size(); i<l; i++) {
+                        for(int i=0, l=pbf_relations->relations_size(); i<l; i++) {
                             // get a pointer to the relation
                             OSMPBF::Relation *relation = pbf_relations->mutable_relations(i);
 
@@ -532,7 +532,7 @@ namespace Osmium {
 
                             // iterate over all relation members, mapping the interim string-ids
                             // of the role to real string ids
-                            for (int mi = 0, ml = relation->roles_sid_size(); mi < ml; mi++)
+                            for(int mi=0, ml=relation->roles_sid_size(); mi<ml; mi++)
                                 relation->set_roles_sid(mi, (google::protobuf::uint32) map_string_id((unsigned int) relation->roles_sid(mi)));
                         }
                     }
@@ -553,7 +553,7 @@ namespace Osmium {
                     }
 
                     // iterate over all tags and map the interim-ids of the key and the value to real ids
-                    for (int i=0, l = in->keys_size(); i < l; i++) {
+                    for(int i=0, l=in->keys_size(); i<l; i++) {
                         in->set_keys(i, (google::protobuf::uint32) map_string_id((unsigned int) in->keys(i)));
                         in->set_vals(i, (google::protobuf::uint32) map_string_id((unsigned int) in->vals(i)));
                     }
@@ -590,7 +590,7 @@ namespace Osmium {
 
                     // iterate over all tags and set the keys and vals, recording the strings in the
                     // interim StringTable and storing the interim ids
-                    for (int i=0, l = in->tag_count(); i < l; i++) {
+                    for(int i=0, l=in->tag_count(); i<l; i++) {
                         out->add_keys(record_string(in->get_tag_key(i)));
                         out->add_vals(record_string(in->get_tag_value(i)));
                     }
@@ -826,7 +826,7 @@ namespace Osmium {
                         // so for three nodes the keys_vals array may look like this: 3 5 2 1 0 0 8 5
                         // the first node has two tags (3=>5 and 2=>1), the second node has does not
                         // have any tags and the third node has a single tag (8=>5)
-                        for (int i=0, l = node->tag_count(); i < l; i++) {
+                        for(int i=0, l=node->tag_count(); i<l; i++) {
                             dense->add_keys_vals(record_string(node->get_tag_key(i)));
                             dense->add_keys_vals(record_string(node->get_tag_value(i)));
                         }
@@ -861,7 +861,7 @@ namespace Osmium {
                     apply_common_info(way, pbf_way);
 
                     long int last_id = 0;
-                    for (int i=0, l = way->node_count(); i < l; i++) {
+                    for(int i=0, l = way->node_count(); i<l; i++) {
                         long int id = way->get_node_id(i);
                         pbf_way->add_refs(id - last_id);
                         last_id = id;
@@ -879,7 +879,7 @@ namespace Osmium {
                     apply_common_info(relation, pbf_relation);
 
                     long int last_id = 0;
-                    for (int i=0, l = relation->member_count(); i < l; i++) {
+                    for(int i=0, l=relation->member_count(); i<l; i++) {
                         const Osmium::OSM::RelationMember *mem = relation->get_member(i);
 
                         pbf_relation->add_roles_sid(record_string(mem->get_role()));
