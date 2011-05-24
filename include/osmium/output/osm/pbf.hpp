@@ -567,14 +567,14 @@ namespace Osmium {
                 /**
                  * convert a double lat or lon value to an int, respecting the current blocks granularity
                  */
-                long int latlon2int(double latlon) {
+                inline long int latlon2int(double latlon) {
                     return (latlon * NANO / pbf_primitive_block.granularity());
                 }
 
                 /**
                  * convert a timestamp to an int, respecting the current blocks granularity
                  */
-                long int timestamp2int(time_t timestamp) {
+                inline long int timestamp2int(time_t timestamp) {
                     return timestamp * (1000 / pbf_primitive_block.date_granularity());
                 }
 
@@ -664,7 +664,7 @@ namespace Osmium {
                  * store_primitive_block to flush the block to the disk when it's reached. It's also responsible
                  * for increasing this counter.
                  */
-                void check_block_contents_counter() {
+                inline void check_block_contents_counter() {
                     if(primitive_block_contents >= max_block_contents)
                         store_primitive_block();
 
