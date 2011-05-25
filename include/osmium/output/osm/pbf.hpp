@@ -597,7 +597,7 @@ namespace Osmium {
                  * convert a timestamp to an int, respecting the current blocks granularity
                  */
                 inline long int timestamp2int(time_t timestamp) {
-                    return timestamp * (1000 / date_granularity());
+                    return timestamp * ((double)1000 / date_granularity());
                 }
 
                 /**
