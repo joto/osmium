@@ -16,7 +16,7 @@ Osmium.Callbacks.way = function() {
     for (key in this.tags) {
         print(' ' + key + '=' + this.tags[key]);
     }
-    for (i in this.nodes) {
+    for (var i=0; i < this.nodes.length; i++) {
         print(' ref ' + this.nodes[i]);
     }
 }
@@ -26,7 +26,7 @@ Osmium.Callbacks.relation = function() {
     for (key in this.tags) {
         print(' ' + key + '=' + this.tags[key]);
     }
-    for (i in this.members) {
+    for (var i=0; i < this.members.length; i++) {
         m = this.members[i];
         print(' member ' + m.type + ' ' + m.ref + ' ' + m.role);
     }

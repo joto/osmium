@@ -95,7 +95,7 @@ namespace Osmium {
                 way2mpidx_t::const_iterator way2mpidx_iterator(way2mpidx.find(way->get_id()));
 
                 if (way2mpidx_iterator == way2mpidx.end()) { // not in any relation
-                    if (way->is_closed()) { // way is closed, build simple multipolygon
+                    if (way->is_closed() && way->node_count() >= 4) { // way is closed and has enough nodes, build simple multipolygon
 #ifdef OSMIUM_WITH_GEOS
                         Osmium::OSM::MultipolygonFromWay *mp = new Osmium::OSM::MultipolygonFromWay(way, way->create_geos_geometry());
 #else

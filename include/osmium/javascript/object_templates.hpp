@@ -35,7 +35,7 @@ namespace Osmium {
                 Object() : Base(1) {
                     js_template->SetAccessor(v8::String::New("id"),        accessor_getter<Osmium::OSM::Object, &Osmium::OSM::Object::js_get_id>);
                     js_template->SetAccessor(v8::String::New("version"),   accessor_getter<Osmium::OSM::Object, &Osmium::OSM::Object::js_get_version>);
-                    js_template->SetAccessor(v8::String::New("timestamp"), accessor_getter<Osmium::OSM::Object, &Osmium::OSM::Object::js_get_timestamp_str>);
+                    js_template->SetAccessor(v8::String::New("timestamp"), accessor_getter<Osmium::OSM::Object, &Osmium::OSM::Object::js_get_timestamp_as_string>);
                     js_template->SetAccessor(v8::String::New("uid"),       accessor_getter<Osmium::OSM::Object, &Osmium::OSM::Object::js_get_uid>);
                     js_template->SetAccessor(v8::String::New("user"),      accessor_getter<Osmium::OSM::Object, &Osmium::OSM::Object::js_get_user>);
                     js_template->SetAccessor(v8::String::New("changeset"), accessor_getter<Osmium::OSM::Object, &Osmium::OSM::Object::js_get_changeset>);
@@ -138,6 +138,7 @@ namespace Osmium {
             public:
 
                 Members() : Base(1) {
+                    js_template->SetAccessor(v8::String::New("length"), accessor_getter<Osmium::OSM::Relation, &Osmium::OSM::Relation::js_get_members_length>);
                     js_template->SetIndexedPropertyHandler(
                         indexed_property_getter<Osmium::OSM::Relation, &Osmium::OSM::Relation::js_get_member>,
                         0,
