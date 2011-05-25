@@ -159,6 +159,28 @@ namespace Osmium {
                 bool use_compression_;
 
                 /**
+                 * to flexibly handle multiple resolutions, the granularity, or
+                 * resolution used for representing locations is adjustable in
+                 * multiples of 1 nanodegree. The default scaling factor is 100
+                 * nanodegrees, corresponding to about ~1cm at the equator.
+                 * These is the current resolution of the OSM database.
+                 */
+                int granularity_;
+
+                /**
+                 * the granularity used for representing timestamps is also adjustable in
+                 * multiples of 1 millisecond. The default scaling factor is 1000
+                 * milliseconds, which is the current resolution of the OSM database.
+                 */
+                int date_granularity_;
+
+                /**
+                 * while the .osm.pbf-format is able to carry all meta information, it is
+                 * also able to omit this information to reduce memory usage.
+                 */
+                bool omit_metadata_;
+
+                /**
                  * protobuf-struct of a Blob
                  */
                 OSMPBF::Blob pbf_blob;
@@ -568,14 +590,14 @@ namespace Osmium {
                  * convert a double lat or lon value to an int, respecting the current blocks granularity
                  */
                 inline long int latlon2int(double latlon) {
-                    return (latlon * NANO / pbf_primitive_block.granularity());
+                    return (latlon * NANO / granularity());
                 }
 
                 /**
                  * convert a timestamp to an int, respecting the current blocks granularity
                  */
                 inline long int timestamp2int(time_t timestamp) {
-                    return timestamp * (1000 / pbf_primitive_block.date_granularity());
+                    return timestamp * (1000 / date_granularity());
                 }
 
                 /**
@@ -595,13 +617,15 @@ namespace Osmium {
                         out->add_vals(record_string(in->get_tag_value(i)));
                     }
 
-                    // add an info-section to the pbf object and set the meta-info on it
-                    OSMPBF::Info *out_info = out->mutable_info();
-                    out_info->set_version((google::protobuf::int32) in->get_version());
-                    out_info->set_timestamp((google::protobuf::int64) timestamp2int(in->get_timestamp()));
-                    out_info->set_changeset((google::protobuf::int64) in->get_changeset());
-                    out_info->set_uid((google::protobuf::int64) in->get_uid());
-                    out_info->set_user_sid(record_string(in->get_user()));
+                    if(!omit_metadata()) {
+                        // add an info-section to the pbf object and set the meta-info on it
+                        OSMPBF::Info *out_info = out->mutable_info();
+                        out_info->set_version((google::protobuf::int32) in->get_version());
+                        out_info->set_timestamp((google::protobuf::int64) timestamp2int(in->get_timestamp()));
+                        out_info->set_changeset((google::protobuf::int64) in->get_changeset());
+                        out_info->set_uid((google::protobuf::int64) in->get_uid());
+                        out_info->set_user_sid(record_string(in->get_user()));
+                    }
                 }
 
 
@@ -642,6 +666,10 @@ namespace Osmium {
                     // StringTable index 0 is rserved as delimiter in the densenodes key/value list
                     // this line also ensures that there's always a valid StringTable
                     pbf_primitive_block.mutable_stringtable()->add_s("");
+
+                    // set the granularity
+                    pbf_primitive_block.set_granularity(granularity());
+                    pbf_primitive_block.set_date_granularity(date_granularity());
 
                     // clear the interim StringTable and its id map
                     strings.clear();
@@ -686,6 +714,7 @@ namespace Osmium {
                     fd_opened(false),
                     use_dense_format_(true),
                     use_compression_(true),
+                    omit_metadata_(false),
                     pbf_nodes(NULL),
                     pbf_ways(NULL),
                     pbf_relations(NULL),
@@ -693,6 +722,10 @@ namespace Osmium {
                     last_dense_info({0, 0, 0, 0, 0, 0, 0}) {
 
                     GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+                    // set defaults from proto-definiton
+                    granularity_ = pbf_primitive_block.granularity();
+                    date_granularity_ = pbf_primitive_block.date_granularity();
                 }
 
                 /**
@@ -702,6 +735,7 @@ namespace Osmium {
                     fd_opened(false),
                     use_dense_format_(true),
                     use_compression_(true),
+                    omit_metadata_(false),
                     pbf_nodes(NULL),
                     pbf_ways(NULL),
                     pbf_relations(NULL),
@@ -710,11 +744,16 @@ namespace Osmium {
 
                     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
+                    // set defaults from proto-definiton
+                    granularity_ = pbf_primitive_block.granularity();
+                    date_granularity_ = pbf_primitive_block.date_granularity();
+
                     // open the file for writing
                     fd = fopen(filename.c_str(), "w");
                     if(!fd)
                         perror("unable to open outfile");
                 }
+
 
                 /**
                  * getter to check whether the densenodes-feature is used
@@ -731,6 +770,7 @@ namespace Osmium {
                     return *this;
                 }
 
+
                 /**
                  * getter to check whether zlib-compression is used
                  */
@@ -746,9 +786,54 @@ namespace Osmium {
                     return *this;
                 }
 
-                // TODO: setter for granularity
-                // TODO: setter for date_granularity
-                // TODO: setter for omit_metadata
+
+                /**
+                 * getter to access the granularity
+                 */
+                int granularity() const {
+                    return granularity_;
+                }
+
+                /**
+                 * setter to set the granularity
+                 */
+                PBF& granularity(int g) {
+                    granularity_ = g;
+                    return *this;
+                }
+
+
+                /**
+                 * getter to access the date_granularity
+                 */
+                int date_granularity() const {
+                    return date_granularity_;
+                }
+
+                /**
+                 * setter to set whether zlib-compression is used
+                 */
+                PBF& date_granularity(int g) {
+                    date_granularity_ = g;
+                    return *this;
+                }
+
+
+                /**
+                 * getter to check whether metadata is omitted
+                 */
+                bool omit_metadata() const {
+                    return omit_metadata_;
+                }
+
+                /**
+                 * setter to set whether to omit metadata
+                 */
+                PBF& omit_metadata(bool o) {
+                    omit_metadata_ = o;
+                    return *this;
+                }
+
 
                 /**
                  * initialize the writing process
@@ -779,10 +864,14 @@ namespace Osmium {
                     // StringTable index 0 is rserved as delimiter in the densenodes key/value list
                     // this line also ensures that there's always a valid StringTable
                     pbf_primitive_block.mutable_stringtable()->add_s("");
+
+                    // set the granularity
+                    pbf_primitive_block.set_granularity(granularity());
+                    pbf_primitive_block.set_date_granularity(date_granularity());
                 }
 
                 /**
-                 * write bbox-informatin to the HeaderBlock
+                 * write bbox-information to the HeaderBlock
                  */
                 void write_bounds(double minlon, double minlat, double maxlon, double maxlat) {
                     // add a HeaderBBox section to the HeaderBlock
@@ -831,9 +920,8 @@ namespace Osmium {
                     else {
                         if(Osmium::global.debug) fprintf(stderr, "densenode %d v%d\n", node->get_id(), node->get_version());
 
-                        // add a DenseNodes- and a DenseInfo-Section to the PrimitiveGroup
+                        // add a DenseNodes-Section to the PrimitiveGroup
                         OSMPBF::DenseNodes *dense = pbf_nodes->mutable_dense();
-                        OSMPBF::DenseInfo *denseinfo = dense->mutable_denseinfo();
 
                         // copy the id, delta encoded against last_dense_info
                         long int id = node->get_id();
@@ -862,27 +950,32 @@ namespace Osmium {
                         }
                         dense->add_keys_vals(0);
 
-                        // copy the version
-                        denseinfo->add_version(node->get_version());
+                        if(!omit_metadata()) {
+                            // add a DenseInfo-Section to the PrimitiveGroup
+                            OSMPBF::DenseInfo *denseinfo = dense->mutable_denseinfo();
 
-                        // copy the timestamp, delta encoded against last_dense_info
-                        long int timestamp = timestamp2int(node->get_timestamp());
-                        denseinfo->add_timestamp(timestamp - last_dense_info.timestamp);
-                        last_dense_info.timestamp = timestamp;
+                            // copy the version
+                            denseinfo->add_version(node->get_version());
 
-                        // copy the changeset, delta encoded against last_dense_info
-                        long int changeset = node->get_changeset();
-                        denseinfo->add_changeset(node->get_changeset() - last_dense_info.changeset);
-                        last_dense_info.changeset = changeset;
+                            // copy the timestamp, delta encoded against last_dense_info
+                            long int timestamp = timestamp2int(node->get_timestamp());
+                            denseinfo->add_timestamp(timestamp - last_dense_info.timestamp);
+                            last_dense_info.timestamp = timestamp;
 
-                        // copy the user id, delta encoded against last_dense_info
-                        long int uid = node->get_uid();
-                        denseinfo->add_uid(uid - last_dense_info.uid);
-                        last_dense_info.uid = uid;
+                            // copy the changeset, delta encoded against last_dense_info
+                            long int changeset = node->get_changeset();
+                            denseinfo->add_changeset(node->get_changeset() - last_dense_info.changeset);
+                            last_dense_info.changeset = changeset;
 
-                        // record the user-name to the interim stringtable and copy the
-                        // interim string-id to the pbf-object
-                        denseinfo->add_user_sid(record_string(node->get_user()));
+                            // copy the user id, delta encoded against last_dense_info
+                            long int uid = node->get_uid();
+                            denseinfo->add_uid(uid - last_dense_info.uid);
+                            last_dense_info.uid = uid;
+
+                            // record the user-name to the interim stringtable and copy the
+                            // interim string-id to the pbf-object
+                            denseinfo->add_user_sid(record_string(node->get_user()));
+                        }
                     }
                 }
 
