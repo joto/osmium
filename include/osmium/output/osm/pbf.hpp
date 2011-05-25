@@ -746,8 +746,15 @@ namespace Osmium {
                     return *this;
                 }
 
+                // TODO: setter for granularity
+                // TODO: setter for date_granularity
+                // TODO: setter for omit_metadata
+
                 /**
-                 * initialize the writer
+                 * initialize the writing process
+                 *
+                 * this initializes the header-block, sets the required-features and
+                 * the writing-program and adds the obligatory StringTable-Index 0
                  */
                 void write_init() {
                     if(Osmium::global.debug) fprintf(stderr, "pbf write init\n");
@@ -788,34 +795,57 @@ namespace Osmium {
                     bbox->set_bottom(maxlat * NANO);
                 }
 
+                /**
+                 * add a node to the pbf.
+                 *
+                 * a call to this method won't write the node to the file directly but
+                 * cache it for later bulk-writing. Calling write_final ensures that everything
+                 * gets written and every file pointer is closed.
+                 */
                 void write(Osmium::OSM::Node *node) {
+                    // first of we check the contents-counter which may flush the cached nodes to
+                    // disk if the limit is reached. This call also increases the contents-counter
                     check_block_contents_counter();
 
+                    // if no PrimitiveGroup for nodes has been added, add one and save the pointer
                     if(!pbf_nodes)
                         pbf_nodes = pbf_primitive_block.add_primitivegroup();
 
+                    // if the dense-format is disabled, use the classic format
                     if(!use_dense_format()) {
                         if(Osmium::global.debug) fprintf(stderr, "node %d v%d\n", node->get_id(), node->get_version());
+
+                        // add a "classic" node to the group
                         OSMPBF::Node *pbf_node = pbf_nodes->add_nodes();
+
+                        // copy the common meta-info from the osmium-object to the pbf-object
                         apply_common_info(node, pbf_node);
 
+                        // modify lat & lon to integers, respecting the block's granularity and copy
+                        // the ints to the pbf-object
                         pbf_node->set_lat(latlon2int(node->get_lat()));
                         pbf_node->set_lon(latlon2int(node->get_lon()));
                     }
 
-                    else { // use_dense_format
+                    // use the dense-format
+                    else {
                         if(Osmium::global.debug) fprintf(stderr, "densenode %d v%d\n", node->get_id(), node->get_version());
+
+                        // add a DenseNodes- and a DenseInfo-Section to the PrimitiveGroup
                         OSMPBF::DenseNodes *dense = pbf_nodes->mutable_dense();
                         OSMPBF::DenseInfo *denseinfo = dense->mutable_denseinfo();
 
+                        // copy the id, delta encoded against last_dense_info
                         long int id = node->get_id();
                         dense->add_id(id - last_dense_info.id);
                         last_dense_info.id = id;
 
+                        // copy the latitude, delta encoded against last_dense_info
                         long int lat = latlon2int(node->get_lat());
                         dense->add_lat(lat - last_dense_info.lat);
                         last_dense_info.lat = lat;
 
+                        // copy the longitude, delta encoded against last_dense_info
                         long int lon = latlon2int(node->get_lon());
                         dense->add_lon(lon - last_dense_info.lon);
                         last_dense_info.lon = lon;
@@ -832,62 +862,108 @@ namespace Osmium {
                         }
                         dense->add_keys_vals(0);
 
+                        // copy the version
                         denseinfo->add_version(node->get_version());
 
+                        // copy the timestamp, delta encoded against last_dense_info
                         long int timestamp = timestamp2int(node->get_timestamp());
                         denseinfo->add_timestamp(timestamp - last_dense_info.timestamp);
                         last_dense_info.timestamp = timestamp;
 
+                        // copy the changeset, delta encoded against last_dense_info
                         long int changeset = node->get_changeset();
                         denseinfo->add_changeset(node->get_changeset() - last_dense_info.changeset);
                         last_dense_info.changeset = changeset;
 
+                        // copy the user id, delta encoded against last_dense_info
                         long int uid = node->get_uid();
                         denseinfo->add_uid(uid - last_dense_info.uid);
                         last_dense_info.uid = uid;
 
+                        // record the user-name to the interim stringtable and copy the
+                        // interim string-id to the pbf-object
                         denseinfo->add_user_sid(record_string(node->get_user()));
                     }
                 }
 
+                /**
+                 * add a way to the pbf.
+                 *
+                 * a call to this method won't write the way to the file directly but
+                 * cache it for later bulk-writing. Calling write_final ensures that everything
+                 * gets written and every file pointer is closed.
+                 */
                 void write(Osmium::OSM::Way *way) {
+                    // first of we check the contents-counter which may flush the cached nodes to
+                    // disk if the limit is reached. This call also increases the contents-counter
                     check_block_contents_counter();
+
                     if(Osmium::global.debug) fprintf(stderr, "way %d v%d with %lu nodes\n", way->get_id(), way->get_version(), (long unsigned int)way->node_count());
 
+                    // if no PrimitiveGroup for nodes has been added, add one and save the pointer
                     if(!pbf_ways)
                         pbf_ways = pbf_primitive_block.add_primitivegroup();
 
+                    // add a way to the group
                     OSMPBF::Way *pbf_way = pbf_ways->add_ways();
+
+                    // copy the common meta-info from the osmium-object to the pbf-object
                     apply_common_info(way, pbf_way);
 
+                    // last way-node-id used for delta-encoding
                     long int last_id = 0;
+
+                    // iterate over all way-nodes
                     for(int i=0, l = way->node_count(); i<l; i++) {
+                        // copy the way-node-id, delta encoded against last_id
                         long int id = way->get_node_id(i);
                         pbf_way->add_refs(id - last_id);
                         last_id = id;
                     }
                 }
 
+                /**
+                 * add a relation to the pbf.
+                 *
+                 * a call to this method won't write the way to the file directly but
+                 * cache it for later bulk-writing. Calling write_final ensures that everything
+                 * gets written and every file pointer is closed.
+                 */
                 void write(Osmium::OSM::Relation *relation) {
+                    // first of we check the contents-counter which may flush the cached nodes to
+                    // disk if the limit is reached. This call also increases the contents-counter
                     check_block_contents_counter();
+
                     if(Osmium::global.debug) fprintf(stderr, "relation %d v%d with %lu members\n", relation->get_id(), relation->get_version(), (long unsigned int)relation->member_count());
 
+                    // if no PrimitiveGroup for relations has been added, add one and save the pointer
                     if(!pbf_relations)
                         pbf_relations = pbf_primitive_block.add_primitivegroup();
 
+                    // add a relation to the group
                     OSMPBF::Relation *pbf_relation = pbf_relations->add_relations();
+
+                    // copy the common meta-info from the osmium-object to the pbf-object
                     apply_common_info(relation, pbf_relation);
 
+                    // last relation-member-id used for delta-encoding
                     long int last_id = 0;
+
+                    // iterate over all relation-members
                     for(int i=0, l=relation->member_count(); i<l; i++) {
+                        // save a pointer to the osmium-object representing the relation-member
                         const Osmium::OSM::RelationMember *mem = relation->get_member(i);
 
+                        // record the relation-member role to the interim stringtable and copy the
+                        // interim string-id to the pbf-object
                         pbf_relation->add_roles_sid(record_string(mem->get_role()));
 
+                        // copy the relation-member-id, delta encoded against last_id
                         long int id = mem->get_ref();
                         pbf_relation->add_memids(id - last_id);
                         last_id = id;
 
+                        // copy the relation-member-type, mapped to the OSMPBS enum
                         switch(mem->get_type()) {
                             case 'n': pbf_relation->add_types(OSMPBF::Relation::NODE); break;
                             case 'w': pbf_relation->add_types(OSMPBF::Relation::WAY); break;
@@ -897,11 +973,18 @@ namespace Osmium {
                     }
                 }
 
+                /**
+                 * finalize the writing process, flush any open primitive blocks to the file and
+                 * close the file descriptor that the constructor opened.
+                 */
                 void write_final() {
                     if(Osmium::global.debug) fprintf(stderr, "finishing\n");
+
+                    // if the current block contains any elementy, flush it to the protobuf
                     if(primitive_block_contents > 0)
                         store_primitive_block();
 
+                    // only close the fd if it has been opened by the constructor
                     if(fd_opened && fd)
                         fclose(fd);
                 }
