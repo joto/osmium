@@ -99,7 +99,7 @@ namespace Osmium {
             class PBF : public Base {
 
                 /**
-                 * Nanodegree multiplier
+                 * nanodegree multiplier
                  *
                  * used in latlon2int while converting floating-point
                  * lat/lon to integers
@@ -107,12 +107,12 @@ namespace Osmium {
                 static const long int NANO = 1000 * 1000 * 1000;
 
                 /**
-                 * Maximum number of items in a primitive block.
+                 * maximum number of items in a primitive block.
                  *
-                 * The uncompressed length of a Blob *should* be less
+                 * the uncompressed length of a Blob *should* be less
                  * than 16 megabytes and *must* be less than 32 megabytes.
                  *
-                 * A block may contain any number of entities, as long as
+                 * a block may contain any number of entities, as long as
                  * the size limits for the surrounding blob are obeyed.
                  * However, for simplicity, the current osmosis (0.38)
                  * as well as the osmium implement implementation always
@@ -126,21 +126,21 @@ namespace Osmium {
                 static const int MAX_BLOB_SIZE = 32 * 1024 * 1024;
 
                 /**
-                 * The file descriptor of the output file
+                 * the file descriptor of the output file
                  *
-                 * All PBF-Blobs get serialized into this descriptor.
+                 * all PBF-Blobs get serialized into this descriptor.
                  */
                 FILE *fd;
 
                 /**
-                 * A boolean indicating id fd has been fopen'ed and should be closed again
+                 * a boolean indicating id fd has been fopen'ed and should be closed again
                  */
                  bool fd_opened;
 
                 /**
-                 * Should nodes be serialized into the dense format?
+                 * should nodes be serialized into the dense format?
                  *
-                 * Nodes can be encoded one of two ways, as a Node
+                 * nodes can be encoded one of two ways, as a Node
                  * (use_dense_format_ = false) and a special dense format.
                  * In the dense format, all information is stored 'column wise',
                  * as an array of ID's, array of latitudes, and array of
@@ -150,36 +150,36 @@ namespace Osmium {
                 bool use_dense_format_;
 
                 /**
-                 * Should the PBF blobs contain zlib compressed data?
+                 * should the PBF blobs contain zlib compressed data?
                  *
-                 * The zlib compression is optional, it's possible to store the
+                 * the zlib compression is optional, it's possible to store the
                  * blobs in raw format. Disabling the compression can improve the
                  * writing speed a little but the output will be 2x to 3x bigger.
                  */
                 bool use_compression_;
 
                 /**
-                 * protobuf-Struct of a Blob
+                 * protobuf-struct of a Blob
                  */
                 OSMPBF::Blob pbf_blob;
 
                 /**
-                 * protobuf-Struct of a BlobHeader
+                 * protobuf-struct of a BlobHeader
                  */
                 OSMPBF::BlobHeader pbf_blob_header;
 
                 /**
-                 * protobuf-Struct of a HeaderBlock
+                 * protobuf-struct of a HeaderBlock
                  */
                 OSMPBF::HeaderBlock pbf_header_block;
 
                 /**
-                 * protobuf-Struct of a PrimitiveBlock
+                 * protobuf-struct of a PrimitiveBlock
                  */
                 OSMPBF::PrimitiveBlock pbf_primitive_block;
 
                 /**
-                 * Pointer to PrimitiveGroups inside the current PrimitiveBlock,
+                 * pointer to PrimitiveGroups inside the current PrimitiveBlock,
                  * used for writing nodes, ways or relations
                  */
                 OSMPBF::PrimitiveGroup *pbf_nodes;
@@ -191,7 +191,7 @@ namespace Osmium {
                  * the current PrimitiveBlock. When the counter reaches max_block_contents
                  * the PrimitiveBlock is serialized into a Blob and flushed to the file.
                  *
-                 * This check is performed in check_block_contents_counter() which is
+                 * this check is performed in check_block_contents_counter() which is
                  * called once for each object.
                  */
                 unsigned int primitive_block_contents;
@@ -204,11 +204,11 @@ namespace Osmium {
                  * the interim_id is set to the current size of the map. This interim_id
                  * is then stored into the pbf-objects.
                  *
-                 * Before the PrimitiveBlock is serialized, the map is sorted by count
+                 * before the PrimitiveBlock is serialized, the map is sorted by count
                  * and stored into the pbf-StringTable. Afterwards the interim-ids are
                  * mapped to the "real" id in the StringTable.
                  *
-                 * This way often used strings get lower ids in the StringTable. As the
+                 * this way often used strings get lower ids in the StringTable. As the
                  * protobuf-serializer stores numbers in variable bit-lengths, lower
                  * IDs means less used space in the resulting file.
                  */
@@ -465,11 +465,11 @@ namespace Osmium {
                 }
 
                 /**
-                 * Before a PrimitiveBlock gets serialized, all interim StringTable-ids needs to be
+                 * before a PrimitiveBlock gets serialized, all interim StringTable-ids needs to be
                  * mapped to the associated real StringTable ids. Th is is done in this function.
                  *
-                 * This function needs to know about the concrete structure of all item types to find
-                 * all occurences of string-ids.
+                 * this function needs to know about the concrete structure of all item types to find
+                 * all occurrences of string-ids.
                  */
                 void map_string_ids() {
                     // test, if the node-block has been allocated
