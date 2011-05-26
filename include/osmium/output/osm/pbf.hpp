@@ -625,6 +625,10 @@ namespace Osmium {
                         out_info->set_changeset((google::protobuf::int64) in->get_changeset());
                         out_info->set_uid((google::protobuf::int64) in->get_uid());
                         out_info->set_user_sid(record_string(in->get_user()));
+
+                        // record the visible-flag
+                        if(is_history_file())
+                            out_info->set_visible(in->get_visible());
                     }
                 }
 
@@ -975,6 +979,10 @@ namespace Osmium {
                             // record the user-name to the interim stringtable and copy the
                             // interim string-id to the pbf-object
                             denseinfo->add_user_sid(record_string(node->get_user()));
+
+                            // record the visible-flag
+                            if(is_history_file())
+                                denseinfo->add_visible(node->get_visible());
                         }
                     }
                 }

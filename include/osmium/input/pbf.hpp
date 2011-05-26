@@ -93,7 +93,7 @@ namespace Osmium {
                             for (int i=0; i < pbf_header_block.required_features_size(); i++) {
                                 const std::string& feature = pbf_header_block.required_features(i);
 
-                                if ((feature != "OsmSchema-V0.6") && (feature != "DenseNodes")) {
+                                if ((feature != "OsmSchema-V0.6") && (feature != "DenseNodes") && (feature != "HistoricalInformation")) {
                                     std::ostringstream errmsg;
                                     errmsg << "Required feature not supported: " << feature;
                                     throw std::runtime_error(errmsg.str());
@@ -172,6 +172,9 @@ namespace Osmium {
                                     set_timestamp(inputNode.info().timestamp() * pbf_primitive_block.date_granularity() / (double)1000).
                                     set_uid(inputNode.info().uid()).
                                     set_user(stringtable.s(inputNode.info().user_sid()).data());
+
+                        if(inputNode.info().has_visible())
+                            this->node->set_visible(inputNode.info().visible());
                     }
 
                     for (int tag=0; tag < inputNode.keys_size(); tag++) {
@@ -200,6 +203,9 @@ namespace Osmium {
                                    set_timestamp(inputWay.info().timestamp() * pbf_primitive_block.date_granularity() / (double)1000).
                                    set_uid(inputWay.info().uid()).
                                    set_user(stringtable.s(inputWay.info().user_sid()).data());
+
+                        if(inputWay.info().has_visible())
+                            this->way->set_visible(inputWay.info().visible());
                     }
 
                     for (int tag=0; tag < inputWay.keys_size(); tag++) {
@@ -231,6 +237,9 @@ namespace Osmium {
                                         set_timestamp(inputRelation.info().timestamp() * pbf_primitive_block.date_granularity() / (double)1000).
                                         set_uid(inputRelation.info().uid()).
                                         set_user(stringtable.s(inputRelation.info().user_sid()).data());
+
+                        if(inputRelation.info().has_visible())
+                            this->relation->set_visible(inputRelation.info().visible());
                     }
 
                     for (int tag=0; tag < inputRelation.keys_size(); tag++) {
@@ -289,6 +298,9 @@ namespace Osmium {
                         this->node->set_user(stringtable.s(last_dense_user_sid).data());
                         this->node->set_changeset(last_dense_changeset);
                         this->node->set_timestamp(last_dense_timestamp * pbf_primitive_block.date_granularity() / (double)1000);
+
+                        if(dense.denseinfo().visible_size() > 0)
+                            this->node->set_visible(dense.denseinfo().visible(entity));
                     }
 
                     this->node->set_id(last_dense_id);

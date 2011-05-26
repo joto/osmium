@@ -67,6 +67,7 @@ namespace Osmium {
 } // namespace Osmium
 
 #include <osmium/output/osm/pbf.hpp>
+#include <osmium/output/osm/historypbf.hpp>
 #ifdef OSMIUM_WITH_OUTPUT_OSM_XML
 # include <osmium/output/osm/xml.hpp>
 # include <osmium/output/osm/historyxml.hpp>
@@ -80,6 +81,8 @@ Osmium::Output::OSM::Base *Osmium::Output::OSM::create(std::string &filename) {
     std::string suffix(filename.substr(filename.find_first_of('.')+1));
     if (suffix == "pbf" || suffix == "osm.pbf") {
         return new Osmium::Output::OSM::PBF(filename);
+    } else if (suffix == "osh.pbf") {
+        return new Osmium::Output::OSM::HistoryPBF(filename);
 #ifdef OSMIUM_WITH_OUTPUT_OSM_XML
     } else if (suffix == "osm" || suffix == "osm.bz2") {
         return new Osmium::Output::OSM::XML(filename);
