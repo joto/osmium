@@ -55,6 +55,7 @@ namespace Osmium {
 
             OSMPBF::BlobHeader pbf_blob_header;
             OSMPBF::PrimitiveBlock pbf_primitive_block;
+            int64_t date_factor;
 
         public:
 
@@ -81,6 +82,7 @@ namespace Osmium {
                                 throw std::runtime_error("Failed to parse PrimitiveBlock.");
                             }
                             OSMPBF::StringTable stringtable = pbf_primitive_block.stringtable();
+                            date_factor = pbf_primitive_block.date_granularity() / 1000;
                             for (int i=0; i < pbf_primitive_block.primitivegroup_size(); i++) {
                                 parse_group(pbf_primitive_block.primitivegroup(i), stringtable);
                             }
@@ -169,7 +171,7 @@ namespace Osmium {
                     if (inputNode.has_info()) {
                         this->node->set_version(inputNode.info().version()).
                                     set_changeset(inputNode.info().changeset()).
-                                    set_timestamp(inputNode.info().timestamp()).
+                                    set_timestamp(inputNode.info().timestamp() * date_factor).
                                     set_uid(inputNode.info().uid()).
                                     set_user(stringtable.s(inputNode.info().user_sid()).data());
                     }
@@ -197,7 +199,7 @@ namespace Osmium {
                     if (inputWay.has_info()) {
                         this->way->set_version(inputWay.info().version()).
                                    set_changeset(inputWay.info().changeset()).
-                                   set_timestamp(inputWay.info().timestamp()).
+                                   set_timestamp(inputWay.info().timestamp() * date_factor).
                                    set_uid(inputWay.info().uid()).
                                    set_user(stringtable.s(inputWay.info().user_sid()).data());
                     }
@@ -228,7 +230,7 @@ namespace Osmium {
                     if (inputRelation.has_info()) {
                         this->relation->set_version(inputRelation.info().version()).
                                         set_changeset(inputRelation.info().changeset()).
-                                        set_timestamp(inputRelation.info().timestamp()).
+                                        set_timestamp(inputRelation.info().timestamp() * date_factor).
                                         set_uid(inputRelation.info().uid()).
                                         set_user(stringtable.s(inputRelation.info().user_sid()).data());
                     }
@@ -286,7 +288,7 @@ namespace Osmium {
 
                         this->node->set_version(dense.denseinfo().version(entity));
                         this->node->set_changeset(last_dense_changeset);
-                        this->node->set_timestamp(last_dense_timestamp);
+                        this->node->set_timestamp(last_dense_timestamp * date_factor);
                         this->node->set_uid(last_dense_uid);
                         this->node->set_user(stringtable.s(last_dense_user_sid).data());
                     }
