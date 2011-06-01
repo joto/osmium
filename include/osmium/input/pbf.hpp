@@ -165,12 +165,14 @@ namespace Osmium {
 
                     const OSMPBF::Node& inputNode = group.nodes(entity);
 
-                    this->node->set_id(inputNode.id()).
-                                set_version(inputNode.info().version()).
-                                set_changeset(inputNode.info().changeset()).
-                                set_timestamp(inputNode.info().timestamp()).
-                                set_uid(inputNode.info().uid()).
-                                set_user(stringtable.s(inputNode.info().user_sid()).data());
+                    this->node->set_id(inputNode.id());
+                    if (inputNode.has_info()) {
+                        this->node->set_version(inputNode.info().version()).
+                                    set_changeset(inputNode.info().changeset()).
+                                    set_timestamp(inputNode.info().timestamp()).
+                                    set_uid(inputNode.info().uid()).
+                                    set_user(stringtable.s(inputNode.info().user_sid()).data());
+                    }
 
                     for (int tag=0; tag < inputNode.keys_size(); tag++) {
                         this->node->add_tag(stringtable.s( inputNode.keys( tag ) ).data(),
@@ -191,12 +193,14 @@ namespace Osmium {
 
                     const OSMPBF::Way& inputWay = group.ways(entity);
 
-                    this->way->set_id(inputWay.id()).
-                               set_version(inputWay.info().version()).
-                               set_changeset(inputWay.info().changeset()).
-                               set_timestamp(inputWay.info().timestamp()).
-                               set_uid(inputWay.info().uid()).
-                               set_user(stringtable.s(inputWay.info().user_sid()).data());
+                    this->way->set_id(inputWay.id());
+                    if (inputWay.has_info()) {
+                        this->way->set_version(inputWay.info().version()).
+                                   set_changeset(inputWay.info().changeset()).
+                                   set_timestamp(inputWay.info().timestamp()).
+                                   set_uid(inputWay.info().uid()).
+                                   set_user(stringtable.s(inputWay.info().user_sid()).data());
+                    }
 
                     for (int tag=0; tag < inputWay.keys_size(); tag++) {
                         this->way->add_tag(stringtable.s( inputWay.keys( tag ) ).data(),
@@ -205,8 +209,8 @@ namespace Osmium {
 
                     uint64_t lastRef = 0;
                     for (int i=0; i < inputWay.refs_size(); i++) {
-                        lastRef += inputWay.refs( i );
-                        this->way->add_node( lastRef );
+                        lastRef += inputWay.refs(i);
+                        this->way->add_node(lastRef);
                     }
 
                     this->handler->callback_way(this->way);
@@ -220,12 +224,14 @@ namespace Osmium {
 
                     const OSMPBF::Relation& inputRelation = group.relations(entity);
 
-                    this->relation->set_id(inputRelation.id()).
-                                    set_version(inputRelation.info().version()).
-                                    set_changeset(inputRelation.info().changeset()).
-                                    set_timestamp(inputRelation.info().timestamp()).
-                                    set_uid(inputRelation.info().uid()).
-                                    set_user(stringtable.s(inputRelation.info().user_sid()).data());
+                    this->relation->set_id(inputRelation.id());
+                    if (inputRelation.has_info()) {
+                        this->relation->set_version(inputRelation.info().version()).
+                                        set_changeset(inputRelation.info().changeset()).
+                                        set_timestamp(inputRelation.info().timestamp()).
+                                        set_uid(inputRelation.info().uid()).
+                                        set_user(stringtable.s(inputRelation.info().user_sid()).data());
+                    }
 
                     for (int tag=0; tag < inputRelation.keys_size(); tag++) {
                         this->relation->add_tag(stringtable.s( inputRelation.keys(tag) ).data(),
@@ -269,21 +275,24 @@ namespace Osmium {
                     this->node->reset();
 
                     const OSMPBF::DenseNodes& dense = group.dense();
-                    last_dense_id        += dense.id(entity);
+                    last_dense_id += dense.id(entity);
+                    this->node->set_id(last_dense_id);
+
+                    if (dense.has_denseinfo()) {
+                        last_dense_changeset += dense.denseinfo().changeset(entity);
+                        last_dense_timestamp += dense.denseinfo().timestamp(entity);
+                        last_dense_uid       += dense.denseinfo().uid(entity);
+                        last_dense_user_sid  += dense.denseinfo().user_sid(entity);
+
+                        this->node->set_version(dense.denseinfo().version(entity));
+                        this->node->set_changeset(last_dense_changeset);
+                        this->node->set_timestamp(last_dense_timestamp);
+                        this->node->set_uid(last_dense_uid);
+                        this->node->set_user(stringtable.s(last_dense_user_sid).data());
+                    }
+
                     last_dense_latitude  += dense.lat(entity);
                     last_dense_longitude += dense.lon(entity);
-                    last_dense_uid       += dense.denseinfo().uid(entity);
-                    last_dense_user_sid  += dense.denseinfo().user_sid(entity);
-                    last_dense_changeset += dense.denseinfo().changeset(entity);
-                    last_dense_timestamp += dense.denseinfo().timestamp(entity);
-
-                    this->node->set_id(last_dense_id);
-                    this->node->set_version(dense.denseinfo().version(entity));
-                    this->node->set_changeset(last_dense_changeset);
-                    this->node->set_timestamp(last_dense_timestamp);
-                    this->node->set_uid(last_dense_uid);
-                    this->node->set_user(stringtable.s(last_dense_user_sid).data());
-
                     this->node->set_coordinates(( ( double ) last_dense_longitude * pbf_primitive_block.granularity() + pbf_primitive_block.lon_offset() ) / NANO,
                                                 ( ( double ) last_dense_latitude  * pbf_primitive_block.granularity() + pbf_primitive_block.lat_offset() ) / NANO);
 
