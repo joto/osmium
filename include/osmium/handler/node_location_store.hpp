@@ -97,7 +97,7 @@ namespace Osmium {
         public:
 
             NLS_Array() : NodeLocationStore() {
-                max_nodes = 1.2 * 1024 * 1024 * 1024; // XXX make configurable, or autosizing?
+                max_nodes = 1.4 * 1024 * 1024 * 1024; // XXX make configurable, or autosizing?
                 coordinates = (struct coordinates *) malloc(sizeof(struct coordinates) * max_nodes);
                 if (!coordinates) {
                     throw std::bad_alloc();
@@ -199,7 +199,7 @@ namespace Osmium {
         public:
 
             NLS_Disk() : NodeLocationStore() {
-                max_nodes = 1.2 * 1024 * 1024 * 1024; // XXX make configurable, or autosizing?
+                max_nodes = 1.4 * 1024 * 1024 * 1024; // XXX make configurable, or autosizing?
                 FILE *tf = tmpfile();
                 if (!tf) {
                     throw std::bad_alloc();
