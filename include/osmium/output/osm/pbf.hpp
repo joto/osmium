@@ -104,7 +104,7 @@ namespace Osmium {
                  * used in latlon2int while converting floating-point
                  * lat/lon to integers
                  */
-                static const long int NANO = 1000 * 1000 * 1000;
+                static const uint32_t NANO = 1000 * 1000 * 1000;
 
                 /**
                  * maximum number of items in a primitive block.
@@ -118,12 +118,12 @@ namespace Osmium {
                  * as well as the osmium implement implementation always
                  * uses at most 8k entities in a block.
                  */
-                static const unsigned int max_block_contents = 8000;
+                static const uint32_t max_block_contents = 8000;
 
                 /**
                  * maximum number of bytes an uncompressed block may take
                  */
-                static const int MAX_BLOB_SIZE = 32 * 1024 * 1024;
+                static const uint32_t MAX_BLOB_SIZE = 32 * 1024 * 1024;
 
                 /**
                  * the file descriptor of the output file
@@ -216,7 +216,7 @@ namespace Osmium {
                  * this check is performed in check_block_contents_counter() which is
                  * called once for each object.
                  */
-                unsigned int primitive_block_contents;
+                uint16_t primitive_block_contents;
 
                 /**
                  * this is the struct used to build the StringTable. It is stored as
@@ -238,12 +238,12 @@ namespace Osmium {
                     /**
                      * number of occurrences of this string
                      */
-                    unsigned int count;
+                    uint16_t count;
 
                     /**
                      * an intermediate-id
                      */
-                    unsigned int interim_id;
+                    uint16_t interim_id;
                 };
 
                 /**
@@ -256,7 +256,7 @@ namespace Osmium {
                  * this map is used to map the interim-ids to real StringTable-IDs after
                  * writing all strings to the StringTable.
                  */
-                std::map<unsigned int, unsigned int> string_ids_map;
+                std::map<uint16_t, uint16_t> string_ids_map;
 
                 /**
                  * buffer used while compressing blobs
@@ -269,13 +269,16 @@ namespace Osmium {
                  * from which the difference is stored into the protobuf.
                  */
                 struct last_dense {
-                    long int id;
-                    long int lat;
-                    long int lon;
-                    long int timestamp;
-                    long int changeset;
-                    long int uid;
-                    long int user_sid;
+                    int64_t id;
+
+                    int32_t lat;
+                    int32_t lon;
+
+                    int64_t timestamp;
+                    int64_t changeset;
+                    int64_t uid;
+
+                    uint32_t user_sid;
                 } last_dense_info;
 
 
@@ -290,13 +293,13 @@ namespace Osmium {
                     z_stream z;
 
                     // next byte to compress
-                    z.next_in   = (unsigned char*) in.c_str();
+                    z.next_in   = (uint8_t*) in.c_str();
 
                     // number of bytes to compress
                     z.avail_in  = in.size();
 
                     // place to store next compressed byte
-                    z.next_out  = (unsigned char*) pack_buffer;
+                    z.next_out  = (uint8_t*) pack_buffer;
 
                     // space for compressed data
                     z.avail_out = MAX_BLOB_SIZE;
@@ -399,7 +402,7 @@ namespace Osmium {
                  * record a string in the interim StringTable if it's missing, otherwise just increase its counter,
                  * return the interim-id assigned to the string.
                  */
-                unsigned int record_string(const std::string& string) {
+                uint16_t record_string(const std::string& string) {
                     // try to find the string in the interim StringTable
                     if (strings.count(string) > 0) {
                         // found, get a pointer to the associated string_info struct
@@ -414,7 +417,7 @@ namespace Osmium {
                     } else {
                         // not found, initialize a new string_info struct with the count set to 0 and the
                         // interim-id set to the current size +1
-                        string_info info = {0, (unsigned int)strings.size()+1};
+                        string_info info = {0, (uint16_t)(strings.size()+1)};
 
                         // store this string_info struct in the interim StringTable
                         strings[string] = info;
@@ -479,9 +482,9 @@ namespace Osmium {
                  * map from an interim-id to a real string-id, throwing an exception if an
                  * unknown mapping is requested.
                  */
-                unsigned int map_string_id(const unsigned int interim_id) {
+                uint16_t map_string_id(const uint16_t interim_id) {
                     // declare an iterator over the ids-map
-                    std::map<unsigned int, unsigned int>::const_iterator it;
+                    std::map<uint16_t, uint16_t>::const_iterator it;
 
                     // use the find method of the map to search for the mapping pair
                     it = string_ids_map.find(interim_id);
@@ -522,9 +525,9 @@ namespace Osmium {
                             // is always unused). String-ids of 0 are thus kept alone.
                             for (int i=0, l=dense->keys_vals_size(); i<l; i++) {
                                 // map interim string-ids > 0 to real string ids
-                                int sid = dense->keys_vals(i);
+                                uint16_t sid = dense->keys_vals(i);
                                 if (sid > 0) {
-                                    dense->set_keys_vals(i, (google::protobuf::uint32) map_string_id((unsigned int) sid));
+                                    dense->set_keys_vals(i, map_string_id(sid));
                                 }
                             }
 
@@ -536,10 +539,10 @@ namespace Osmium {
                                 // iterate over all username string-ids
                                 for (int i=0, l= denseinfo->user_sid_size(); i<l; i++) {
                                     // map interim string-ids > 0 to real string ids
-                                    unsigned int user_sid = map_string_id((unsigned int) denseinfo->user_sid(i));
+                                    uint16_t user_sid = map_string_id(denseinfo->user_sid(i));
 
                                     // delta encode the string-id
-                                    denseinfo->set_user_sid(i, (google::protobuf::uint32) user_sid - last_dense_info.user_sid);
+                                    denseinfo->set_user_sid(i, user_sid - last_dense_info.user_sid);
 
                                     // store the last string-id for the next delta-coding
                                     last_dense_info.user_sid = user_sid;
@@ -569,7 +572,7 @@ namespace Osmium {
                             // iterate over all relation members, mapping the interim string-ids
                             // of the role to real string ids
                             for (int mi=0, ml=relation->roles_sid_size(); mi<ml; mi++) {
-                                relation->set_roles_sid(mi, (google::protobuf::uint32) map_string_id((unsigned int) relation->roles_sid(mi)));
+                                relation->set_roles_sid(mi, map_string_id(relation->roles_sid(mi)));
                             }
                         }
                     }
@@ -586,13 +589,13 @@ namespace Osmium {
                     if (in->has_info()) {
                         // map the interim-id of the user name to a real id
                         OSMPBF::Info *info = in->mutable_info();
-                        info->set_user_sid((google::protobuf::uint32) map_string_id((unsigned int) info->user_sid()));
+                        info->set_user_sid(map_string_id(info->user_sid()));
                     }
 
                     // iterate over all tags and map the interim-ids of the key and the value to real ids
                     for (int i=0, l=in->keys_size(); i<l; i++) {
-                        in->set_keys(i, (google::protobuf::uint32) map_string_id((unsigned int) in->keys(i)));
-                        in->set_vals(i, (google::protobuf::uint32) map_string_id((unsigned int) in->vals(i)));
+                        in->set_keys(i, map_string_id(in->keys(i)));
+                        in->set_vals(i, map_string_id(in->vals(i)));
                     }
                 }
 
@@ -604,14 +607,14 @@ namespace Osmium {
                 /**
                  * convert a double lat or lon value to an int, respecting the current blocks granularity
                  */
-                long int latlon2int(double latlon) {
+                int64_t latlon2int(double latlon) {
                     return (latlon * NANO / granularity());
                 }
 
                 /**
                  * convert a timestamp to an int, respecting the current blocks granularity
                  */
-                long int timestamp2int(time_t timestamp) {
+                int64_t timestamp2int(time_t timestamp) {
                     return timestamp * ((double)1000 / date_granularity());
                 }
 
@@ -635,10 +638,10 @@ namespace Osmium {
                     if (!omit_metadata()) {
                         // add an info-section to the pbf object and set the meta-info on it
                         OSMPBF::Info *out_info = out->mutable_info();
-                        out_info->set_version((google::protobuf::int32) in->get_version());
-                        out_info->set_timestamp((google::protobuf::int64) timestamp2int(in->get_timestamp()));
-                        out_info->set_changeset((google::protobuf::int64) in->get_changeset());
-                        out_info->set_uid((google::protobuf::int64) in->get_uid());
+                        out_info->set_version(in->get_version());
+                        out_info->set_timestamp(timestamp2int(in->get_timestamp()));
+                        out_info->set_changeset(in->get_changeset());
+                        out_info->set_uid(in->get_uid());
                         out_info->set_user_sid(record_string(in->get_user()));
                     }
                 }
@@ -664,7 +667,7 @@ namespace Osmium {
                  */
                 void store_primitive_block() {
                     if (Osmium::global.debug) {
-                        std::cerr << "storing primitive block with " << primitive_block_contents << "items" << std::endl;
+                        std::cerr << "storing primitive block with " << primitive_block_contents << " items" << std::endl;
                     }
 
                     // store the interim StringTable into the protobuf object
@@ -946,17 +949,17 @@ namespace Osmium {
                         OSMPBF::DenseNodes *dense = pbf_nodes->mutable_dense();
 
                         // copy the id, delta encoded against last_dense_info
-                        long int id = node->get_id();
+                        int64_t id = node->get_id();
                         dense->add_id(id - last_dense_info.id);
                         last_dense_info.id = id;
 
                         // copy the latitude, delta encoded against last_dense_info
-                        long int lat = latlon2int(node->get_lat());
+                        int32_t lat = latlon2int(node->get_lat());
                         dense->add_lat(lat - last_dense_info.lat);
                         last_dense_info.lat = lat;
 
                         // copy the longitude, delta encoded against last_dense_info
-                        long int lon = latlon2int(node->get_lon());
+                        int32_t lon = latlon2int(node->get_lon());
                         dense->add_lon(lon - last_dense_info.lon);
                         last_dense_info.lon = lon;
 
@@ -980,17 +983,17 @@ namespace Osmium {
                             denseinfo->add_version(node->get_version());
 
                             // copy the timestamp, delta encoded against last_dense_info
-                            long int timestamp = timestamp2int(node->get_timestamp());
+                            int64_t timestamp = timestamp2int(node->get_timestamp());
                             denseinfo->add_timestamp(timestamp - last_dense_info.timestamp);
                             last_dense_info.timestamp = timestamp;
 
                             // copy the changeset, delta encoded against last_dense_info
-                            long int changeset = node->get_changeset();
+                            int64_t changeset = node->get_changeset();
                             denseinfo->add_changeset(node->get_changeset() - last_dense_info.changeset);
                             last_dense_info.changeset = changeset;
 
                             // copy the user id, delta encoded against last_dense_info
-                            long int uid = node->get_uid();
+                            int64_t uid = node->get_uid();
                             denseinfo->add_uid(uid - last_dense_info.uid);
                             last_dense_info.uid = uid;
 
@@ -1029,12 +1032,12 @@ namespace Osmium {
                     apply_common_info(way, pbf_way);
 
                     // last way-node-id used for delta-encoding
-                    long int last_id = 0;
+                    int64_t last_id = 0;
 
                     // iterate over all way-nodes
                     for (int i=0, l = way->node_count(); i<l; i++) {
                         // copy the way-node-id, delta encoded against last_id
-                        long int id = way->get_node_id(i);
+                        int64_t id = way->get_node_id(i);
                         pbf_way->add_refs(id - last_id);
                         last_id = id;
                     }
@@ -1068,7 +1071,7 @@ namespace Osmium {
                     apply_common_info(relation, pbf_relation);
 
                     // last relation-member-id used for delta-encoding
-                    long int last_id = 0;
+                    int64_t last_id = 0;
 
                     // iterate over all relation-members
                     for (int i=0, l=relation->member_count(); i<l; i++) {
@@ -1080,7 +1083,7 @@ namespace Osmium {
                         pbf_relation->add_roles_sid(record_string(mem->get_role()));
 
                         // copy the relation-member-id, delta encoded against last_id
-                        long int id = mem->get_ref();
+                        int64_t id = mem->get_ref();
                         pbf_relation->add_memids(id - last_id);
                         last_id = id;
 
