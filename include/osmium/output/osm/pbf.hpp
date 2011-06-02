@@ -556,8 +556,9 @@ namespace Osmium {
 
                             // iterate over all relation members, mapping the interim string-ids
                             // of the role to real string ids
-                            for (int mi=0, ml=relation->roles_sid_size(); mi<ml; mi++)
+                            for (int mi=0, ml=relation->roles_sid_size(); mi<ml; mi++) {
                                 relation->set_roles_sid(mi, (google::protobuf::uint32) map_string_id((unsigned int) relation->roles_sid(mi)));
+                            }
                         }
                     }
                 }
@@ -850,13 +851,15 @@ namespace Osmium {
                     pbf_header_block.add_required_features("OsmSchema-V0.6");
 
                     // when the densenodes-feature is used, add DenseNodes as required feature
-                    if (use_dense_format())
+                    if (use_dense_format()) {
                         pbf_header_block.add_required_features("DenseNodes");
+                    }
 
                     // when the resulting file will carry history information, add
                     // HistoricalInformation as required feature
-                    if (is_history_file())
+                    if (is_history_file()) {
                         pbf_header_block.add_required_features("HistoricalInformation");
+                    }
 
                     // set the writing program
                     pbf_header_block.set_writingprogram("Osmium (http://wiki.openstreetmap.org/wiki/Osmium)");
@@ -899,8 +902,9 @@ namespace Osmium {
                     check_block_contents_counter();
 
                     // if no PrimitiveGroup for nodes has been added, add one and save the pointer
-                    if (!pbf_nodes)
+                    if (!pbf_nodes) {
                         pbf_nodes = pbf_primitive_block.add_primitivegroup();
+                    }
 
                     // if the dense-format is disabled, use the classic format
                     if (!use_dense_format()) {
@@ -1002,8 +1006,9 @@ namespace Osmium {
                     }
 
                     // if no PrimitiveGroup for nodes has been added, add one and save the pointer
-                    if (!pbf_ways)
+                    if (!pbf_ways) {
                         pbf_ways = pbf_primitive_block.add_primitivegroup();
+                    }
 
                     // add a way to the group
                     OSMPBF::Way *pbf_way = pbf_ways->add_ways();
@@ -1040,8 +1045,9 @@ namespace Osmium {
                     }
 
                     // if no PrimitiveGroup for relations has been added, add one and save the pointer
-                    if (!pbf_relations)
+                    if (!pbf_relations) {
                         pbf_relations = pbf_primitive_block.add_primitivegroup();
+                    }
 
                     // add a relation to the group
                     OSMPBF::Relation *pbf_relation = pbf_relations->add_relations();
