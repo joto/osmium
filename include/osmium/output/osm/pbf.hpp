@@ -282,6 +282,55 @@ namespace Osmium {
                 ///// Blob writing /////
 
                 /**
+                 * take s string and pack it into the pack_buffer, returnung the number of
+                 * compressed bytes
+                 */
+                size_t zlib_compress(std::string &in) {
+                    // zlib compression context
+                    z_stream z;
+
+                    // next byte to compress
+                    z.next_in   = (unsigned char*) in.c_str();
+
+                    // number of bytes to compress
+                    z.avail_in  = in.size();
+
+                    // place to store next compressed byte
+                    z.next_out  = (unsigned char*) pack_buffer;
+
+                    // space for compressed data
+                    z.avail_out = MAX_BLOB_SIZE;
+
+                    // custom allocator functions - not used
+                    z.zalloc    = Z_NULL;
+                    z.zfree     = Z_NULL;
+                    z.opaque    = Z_NULL;
+
+                    // initiate the compression
+                    if (deflateInit(&z, Z_DEFAULT_COMPRESSION) != Z_OK) {
+                        throw std::runtime_error("failed to init zlib stream");
+                    }
+
+                    // compress
+                    if (deflate(&z, Z_FINISH) != Z_STREAM_END) {
+                        throw std::runtime_error("failed to deflate zlib stream");
+                    }
+
+                    // finish compression
+                    if (deflateEnd(&z) != Z_OK) {
+                        throw std::runtime_error("failed to deinit zlib stream");
+                    }
+
+                    // print debug info about the compression
+                    if (Osmium::global.debug) {
+                        std::cerr << "pack " << in.size() << " bytes to " << z.total_out << " bytes (1:" << (double)in.size() / z.total_out << ")" << std::endl;
+                    }
+
+                    // number of compressed bytes
+                    return z.total_out;
+                }
+
+                /**
                  * serialize a protobuf-message together into a Blob, optionally apply compression
                  * and write it together with a BlobHeader to the file.
                  *
@@ -296,48 +345,11 @@ namespace Osmium {
 
                     // test if compression is enabled
                     if (use_compression()) {
-                        // zlib compression context
-                        z_stream z;
-
-                        // next byte to compress
-                        z.next_in   = (unsigned char*)  data.c_str();
-
-                        // number of bytes to compress
-                        z.avail_in  = data.size();
-
-                        // place to store next compressed byte
-                        z.next_out  = (unsigned char*)  pack_buffer;
-
-                        // space for compressed data
-                        z.avail_out = MAX_BLOB_SIZE;
-
-                        // custom allocator functions - not used
-                        z.zalloc    = Z_NULL;
-                        z.zfree     = Z_NULL;
-                        z.opaque    = Z_NULL;
-
-                        // initiate the compression
-                        if (deflateInit(&z, Z_DEFAULT_COMPRESSION) != Z_OK) {
-                            throw std::runtime_error("failed to init zlib stream");
-                        }
-
-                        // compress
-                        if (deflate(&z, Z_FINISH) != Z_STREAM_END) {
-                            throw std::runtime_error("failed to deflate zlib stream");
-                        }
-
-                        // finish compression
-                        if (deflateEnd(&z) != Z_OK) {
-                            throw std::runtime_error("failed to deinit zlib stream");
-                        }
-
-                        // print debug info about the compression
-                        if (Osmium::global.debug) {
-                            std::cerr << "pack " << data.size() << " bytes to " << z.total_out << " bytes (1:" << (double)data.size() / z.total_out << ")" << std::endl;
-                        }
+                        // compress using zlib
+                        size_t out = zlib_compress(data);
 
                         // set the compressed data on the Blob
-                        pbf_blob.set_zlib_data(pack_buffer, z.total_out);
+                        pbf_blob.set_zlib_data(pack_buffer, out);
                     } else { // no compression
                         // print debug info about the raw data
                         if (Osmium::global.debug) {
