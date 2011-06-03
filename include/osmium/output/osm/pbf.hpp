@@ -720,7 +720,7 @@ namespace Osmium {
                 }
 
 
-                ///// High-Level Block writing /////
+                ///// Block content writing /////
 
                 /**
                  * add a node in classic mode to the block
