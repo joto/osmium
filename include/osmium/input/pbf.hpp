@@ -26,8 +26,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <zlib.h>
 #include <typeinfo>
 
-#include <osmpbf/fileformat.pb.h>
-#include <osmpbf/osmformat.pb.h>
+#include <osmpbf/osmpbf.h>
 
 namespace Osmium {
 
@@ -39,12 +38,8 @@ namespace Osmium {
         template <class THandler>
         class PBF : public Base<THandler> {
 
-            static const int NANO = 1000 * 1000 * 1000;
-            static const int MAX_BLOB_HEADER_SIZE = 64 * 1024;
-            static const int MAX_BLOB_SIZE = 32 * 1024 * 1024;
-
-            char buffer[MAX_BLOB_SIZE];
-            char unpack_buffer[MAX_BLOB_SIZE];
+            char buffer[OSMPBF::max_uncompressed_blob_size];
+            char unpack_buffer[OSMPBF::max_uncompressed_blob_size];
 
             int fd; ///< The file descriptor we are reading the data from.
 
@@ -174,6 +169,9 @@ namespace Osmium {
                                     set_timestamp(inputNode.info().timestamp() * date_factor).
                                     set_uid(inputNode.info().uid()).
                                     set_user(stringtable.s(inputNode.info().user_sid()).data());
+                        if (inputNode.info().has_visible()) {
+                            this->node->set_visible(inputNode.info().visible());
+                        }
                     }
 
                     for (int tag=0; tag < inputNode.keys_size(); tag++) {
@@ -181,8 +179,8 @@ namespace Osmium {
                                             stringtable.s( inputNode.vals( tag ) ).data());
                     }
 
-                    this->node->set_coordinates(( ( double ) inputNode.lon() * pbf_primitive_block.granularity() + pbf_primitive_block.lon_offset() ) / NANO,
-                                                ( ( double ) inputNode.lat() * pbf_primitive_block.granularity() + pbf_primitive_block.lat_offset() ) / NANO);
+                    this->node->set_coordinates(( ( double ) inputNode.lon() * pbf_primitive_block.granularity() + pbf_primitive_block.lon_offset() ) / OSMPBF::lonlat_resolution,
+                                                ( ( double ) inputNode.lat() * pbf_primitive_block.granularity() + pbf_primitive_block.lat_offset() ) / OSMPBF::lonlat_resolution);
 
                     this->handler->callback_node(this->node);
                 }
@@ -202,6 +200,9 @@ namespace Osmium {
                                    set_timestamp(inputWay.info().timestamp() * date_factor).
                                    set_uid(inputWay.info().uid()).
                                    set_user(stringtable.s(inputWay.info().user_sid()).data());
+                        if (inputWay.info().has_visible()) {
+                            this->node->set_visible(inputWay.info().visible());
+                        }
                     }
 
                     for (int tag=0; tag < inputWay.keys_size(); tag++) {
@@ -233,6 +234,9 @@ namespace Osmium {
                                         set_timestamp(inputRelation.info().timestamp() * date_factor).
                                         set_uid(inputRelation.info().uid()).
                                         set_user(stringtable.s(inputRelation.info().user_sid()).data());
+                        if (inputRelation.info().has_visible()) {
+                            this->node->set_visible(inputRelation.info().visible());
+                        }
                     }
 
                     for (int tag=0; tag < inputRelation.keys_size(); tag++) {
@@ -291,12 +295,16 @@ namespace Osmium {
                         this->node->set_timestamp(last_dense_timestamp * date_factor);
                         this->node->set_uid(last_dense_uid);
                         this->node->set_user(stringtable.s(last_dense_user_sid).data());
+
+                        if (dense.denseinfo().visible_size() > 0) {
+                            this->node->set_visible(dense.denseinfo().visible(entity));
+                        }
                     }
 
                     last_dense_latitude  += dense.lat(entity);
                     last_dense_longitude += dense.lon(entity);
-                    this->node->set_coordinates(( ( double ) last_dense_longitude * pbf_primitive_block.granularity() + pbf_primitive_block.lon_offset() ) / NANO,
-                                                ( ( double ) last_dense_latitude  * pbf_primitive_block.granularity() + pbf_primitive_block.lat_offset() ) / NANO);
+                    this->node->set_coordinates(( ( double ) last_dense_longitude * pbf_primitive_block.granularity() + pbf_primitive_block.lon_offset() ) / OSMPBF::lonlat_resolution,
+                                                ( ( double ) last_dense_latitude  * pbf_primitive_block.granularity() + pbf_primitive_block.lat_offset() ) / OSMPBF::lonlat_resolution);
 
                     while (last_dense_tag < dense.keys_vals_size()) {
                         int tagValue = dense.keys_vals(last_dense_tag);
@@ -339,7 +347,7 @@ namespace Osmium {
                 }
 
                 int size = convert_from_network_byte_order(size_in_network_byte_order);
-                if (size > MAX_BLOB_HEADER_SIZE || size < 0) {
+                if (size > OSMPBF::max_blob_header_size || size < 0) {
                     std::ostringstream errmsg;
                     errmsg << "BlobHeader size invalid:" << size;
                     throw std::runtime_error(errmsg.str());
@@ -360,7 +368,7 @@ namespace Osmium {
             */
             array_t read_blob(int size) {
                 static OSMPBF::Blob blob;
-                if (size < 0 || size > MAX_BLOB_SIZE) {
+                if (size < 0 || size > OSMPBF::max_uncompressed_blob_size) {
                     std::ostringstream errmsg;
                     errmsg << "invalid blob size: " << size;
                     throw std::runtime_error(errmsg.str());

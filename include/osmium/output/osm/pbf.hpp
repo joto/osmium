@@ -90,6 +90,8 @@ More complete outlines of real .osm.pbf files can be created using the osmpbf-ou
 // the algorithm-lib contains the sort functions
 #include <algorithm>
 
+#include <osmpbf/osmpbf.h>
+
 namespace Osmium {
 
     namespace Output {
@@ -97,14 +99,6 @@ namespace Osmium {
         namespace OSM {
 
             class PBF : public Base {
-
-                /**
-                 * nanodegree multiplier
-                 *
-                 * used in latlon2int while converting floating-point
-                 * lat/lon to integers
-                 */
-                static const uint32_t NANO = 1000 * 1000 * 1000;
 
                 /**
                  * maximum number of items in a primitive block.
@@ -119,11 +113,6 @@ namespace Osmium {
                  * uses at most 8k entities in a block.
                  */
                 static const uint32_t max_block_contents = 8000;
-
-                /**
-                 * maximum number of bytes an uncompressed block may take
-                 */
-                static const uint32_t MAX_BLOB_SIZE = 32 * 1024 * 1024;
 
                 /**
                  * the file descriptor of the output file
@@ -261,7 +250,7 @@ namespace Osmium {
                 /**
                  * buffer used while compressing blobs
                  */
-                char pack_buffer[MAX_BLOB_SIZE];
+                char pack_buffer[OSMPBF::max_uncompressed_blob_size];
 
                 /**
                  * this struct and its variable last_dense_info is used to calculate the
@@ -302,7 +291,7 @@ namespace Osmium {
                     z.next_out  = (uint8_t*) pack_buffer;
 
                     // space for compressed data
-                    z.avail_out = MAX_BLOB_SIZE;
+                    z.avail_out = OSMPBF::max_uncompressed_blob_size;
 
                     // custom allocator functions - not used
                     z.zalloc    = Z_NULL;
@@ -608,7 +597,7 @@ namespace Osmium {
                  * convert a double lat or lon value to an int, respecting the current blocks granularity
                  */
                 int64_t latlon2int(double latlon) {
-                    return (latlon * NANO / granularity());
+                    return (latlon * OSMPBF::lonlat_resolution / granularity());
                 }
 
                 /**
@@ -1038,10 +1027,10 @@ namespace Osmium {
                     OSMPBF::HeaderBBox *bbox = pbf_header_block.mutable_bbox();
 
                     // encode the bbox in nanodegrees
-                    bbox->set_left(minlon * NANO);
-                    bbox->set_top(minlat * NANO);
-                    bbox->set_right(maxlon * NANO);
-                    bbox->set_bottom(maxlat * NANO);
+                    bbox->set_left(  minlon * OSMPBF::lonlat_resolution);
+                    bbox->set_top(   minlat * OSMPBF::lonlat_resolution);
+                    bbox->set_right( maxlon * OSMPBF::lonlat_resolution);
+                    bbox->set_bottom(maxlat * OSMPBF::lonlat_resolution);
                 }
 
                 /**
