@@ -14,7 +14,7 @@ version 3 of the Licenses, or (at your option) any later version.
 
 Osmium is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE. See the GNU Lesser General Public Licanse and the GNU
+PARTICULAR PURPOSE. See the GNU Lesser General Public License and the GNU
 General Public License for more details.
 
 You should have received a copy of the Licenses along with Osmium. If not, see
@@ -55,6 +55,7 @@ namespace Osmium {
 
             OSMPBF::BlobHeader pbf_blob_header;
             OSMPBF::PrimitiveBlock pbf_primitive_block;
+            int64_t date_factor;
 
         public:
 
@@ -81,6 +82,7 @@ namespace Osmium {
                                 throw std::runtime_error("Failed to parse PrimitiveBlock.");
                             }
                             OSMPBF::StringTable stringtable = pbf_primitive_block.stringtable();
+                            date_factor = pbf_primitive_block.date_granularity() / 1000;
                             for (int i=0; i < pbf_primitive_block.primitivegroup_size(); i++) {
                                 parse_group(pbf_primitive_block.primitivegroup(i), stringtable);
                             }
@@ -93,7 +95,7 @@ namespace Osmium {
                             for (int i=0; i < pbf_header_block.required_features_size(); i++) {
                                 const std::string& feature = pbf_header_block.required_features(i);
 
-                                if ((feature != "OsmSchema-V0.6") && (feature != "DenseNodes") && (feature != "HistoricalInformation")) {
+                                if ((feature != "OsmSchema-V0.6") && (feature != "DenseNodes")) {
                                     std::ostringstream errmsg;
                                     errmsg << "Required feature not supported: " << feature;
                                     throw std::runtime_error(errmsg.str());
@@ -166,15 +168,12 @@ namespace Osmium {
                     const OSMPBF::Node& inputNode = group.nodes(entity);
 
                     this->node->set_id(inputNode.id());
-                    if(inputNode.has_info()) {
+                    if (inputNode.has_info()) {
                         this->node->set_version(inputNode.info().version()).
                                     set_changeset(inputNode.info().changeset()).
-                                    set_timestamp(inputNode.info().timestamp() * pbf_primitive_block.date_granularity() / (double)1000).
+                                    set_timestamp(inputNode.info().timestamp() * date_factor).
                                     set_uid(inputNode.info().uid()).
                                     set_user(stringtable.s(inputNode.info().user_sid()).data());
-
-                        if(inputNode.info().has_visible())
-                            this->node->set_visible(inputNode.info().visible());
                     }
 
                     for (int tag=0; tag < inputNode.keys_size(); tag++) {
@@ -197,15 +196,12 @@ namespace Osmium {
                     const OSMPBF::Way& inputWay = group.ways(entity);
 
                     this->way->set_id(inputWay.id());
-                    if(inputWay.has_info()) {
+                    if (inputWay.has_info()) {
                         this->way->set_version(inputWay.info().version()).
                                    set_changeset(inputWay.info().changeset()).
-                                   set_timestamp(inputWay.info().timestamp() * pbf_primitive_block.date_granularity() / (double)1000).
+                                   set_timestamp(inputWay.info().timestamp() * date_factor).
                                    set_uid(inputWay.info().uid()).
                                    set_user(stringtable.s(inputWay.info().user_sid()).data());
-
-                        if(inputWay.info().has_visible())
-                            this->way->set_visible(inputWay.info().visible());
                     }
 
                     for (int tag=0; tag < inputWay.keys_size(); tag++) {
@@ -215,8 +211,8 @@ namespace Osmium {
 
                     uint64_t lastRef = 0;
                     for (int i=0; i < inputWay.refs_size(); i++) {
-                        lastRef += inputWay.refs( i );
-                        this->way->add_node( lastRef );
+                        lastRef += inputWay.refs(i);
+                        this->way->add_node(lastRef);
                     }
 
                     this->handler->callback_way(this->way);
@@ -231,15 +227,12 @@ namespace Osmium {
                     const OSMPBF::Relation& inputRelation = group.relations(entity);
 
                     this->relation->set_id(inputRelation.id());
-                    if(inputRelation.has_info()) {
+                    if (inputRelation.has_info()) {
                         this->relation->set_version(inputRelation.info().version()).
                                         set_changeset(inputRelation.info().changeset()).
-                                        set_timestamp(inputRelation.info().timestamp() * pbf_primitive_block.date_granularity() / (double)1000).
+                                        set_timestamp(inputRelation.info().timestamp() * date_factor).
                                         set_uid(inputRelation.info().uid()).
                                         set_user(stringtable.s(inputRelation.info().user_sid()).data());
-
-                        if(inputRelation.info().has_visible())
-                            this->relation->set_visible(inputRelation.info().visible());
                     }
 
                     for (int tag=0; tag < inputRelation.keys_size(); tag++) {
@@ -284,27 +277,24 @@ namespace Osmium {
                     this->node->reset();
 
                     const OSMPBF::DenseNodes& dense = group.dense();
-                    last_dense_id        += dense.id(entity);
-                    last_dense_latitude  += dense.lat(entity);
-                    last_dense_longitude += dense.lon(entity);
-                    if(dense.has_denseinfo()) {
-                        last_dense_uid       += dense.denseinfo().uid(entity);
-                        last_dense_user_sid  += dense.denseinfo().user_sid(entity);
-                        last_dense_changeset += dense.denseinfo().changeset(entity);
-                        last_dense_timestamp += dense.denseinfo().timestamp(entity);
-
-                        this->node->set_version(dense.denseinfo().version(entity));
-                        this->node->set_uid(last_dense_uid);
-                        this->node->set_user(stringtable.s(last_dense_user_sid).data());
-                        this->node->set_changeset(last_dense_changeset);
-                        this->node->set_timestamp(last_dense_timestamp * pbf_primitive_block.date_granularity() / (double)1000);
-
-                        if(dense.denseinfo().visible_size() > 0)
-                            this->node->set_visible(dense.denseinfo().visible(entity));
-                    }
-
+                    last_dense_id += dense.id(entity);
                     this->node->set_id(last_dense_id);
 
+                    if (dense.has_denseinfo()) {
+                        last_dense_changeset += dense.denseinfo().changeset(entity);
+                        last_dense_timestamp += dense.denseinfo().timestamp(entity);
+                        last_dense_uid       += dense.denseinfo().uid(entity);
+                        last_dense_user_sid  += dense.denseinfo().user_sid(entity);
+
+                        this->node->set_version(dense.denseinfo().version(entity));
+                        this->node->set_changeset(last_dense_changeset);
+                        this->node->set_timestamp(last_dense_timestamp * date_factor);
+                        this->node->set_uid(last_dense_uid);
+                        this->node->set_user(stringtable.s(last_dense_user_sid).data());
+                    }
+
+                    last_dense_latitude  += dense.lat(entity);
+                    last_dense_longitude += dense.lon(entity);
                     this->node->set_coordinates(( ( double ) last_dense_longitude * pbf_primitive_block.granularity() + pbf_primitive_block.lon_offset() ) / NANO,
                                                 ( ( double ) last_dense_latitude  * pbf_primitive_block.granularity() + pbf_primitive_block.lat_offset() ) / NANO);
 

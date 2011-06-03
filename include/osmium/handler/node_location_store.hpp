@@ -14,7 +14,7 @@ version 3 of the Licenses, or (at your option) any later version.
 
 Osmium is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE. See the GNU Lesser General Public Licanse and the GNU
+PARTICULAR PURPOSE. See the GNU Lesser General Public License and the GNU
 General Public License for more details.
 
 You should have received a copy of the Licenses along with Osmium. If not, see
@@ -97,7 +97,7 @@ namespace Osmium {
         public:
 
             NLS_Array() : NodeLocationStore() {
-                max_nodes = 1.2 * 1024 * 1024 * 1024; // XXX make configurable, or autosizing?
+                max_nodes = 1.4 * 1024 * 1024 * 1024; // XXX make configurable, or autosizing?
                 coordinates = (struct coordinates *) malloc(sizeof(struct coordinates) * max_nodes);
                 if (!coordinates) {
                     throw std::bad_alloc();
@@ -199,7 +199,7 @@ namespace Osmium {
         public:
 
             NLS_Disk() : NodeLocationStore() {
-                max_nodes = 1.2 * 1024 * 1024 * 1024; // XXX make configurable, or autosizing?
+                max_nodes = 1.4 * 1024 * 1024 * 1024; // XXX make configurable, or autosizing?
                 FILE *tf = tmpfile();
                 if (!tf) {
                     throw std::bad_alloc();
