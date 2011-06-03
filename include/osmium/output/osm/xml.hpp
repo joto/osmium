@@ -79,7 +79,7 @@ namespace Osmium {
                     init();
                 }
 
-                XML(std::string &filename) : Base(), uses_popen(false) {
+                XML(const std::string &filename) : Base(), uses_popen(false) {
                     if (filename.rfind(".bz2") == filename.size() - 4) {
                         std::string bzip_command("bzip2 -c >");
                         bzip_command += filename;

@@ -736,7 +736,7 @@ namespace Osmium {
                 /**
                  * filename constructor, opening the specified file for writing
                  */
-                PBF(std::string &filename) : Base(),
+                PBF(const std::string &filename) : Base(),
                     fd_opened(false),
                     use_dense_format_(true),
                     use_compression_(true),
