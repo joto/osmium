@@ -38,6 +38,7 @@ int main(int argc, char *argv[]) {
     int max  = atoi(argv[4]);
 
     Osmium::Handler::NodeDensity *handler_node_density = new Osmium::Handler::NodeDensity(size, min, max);
-    osmium.parse_osmfile<Osmium::Handler::NodeDensity>(argv[1], handler_node_density);
+    Osmium::OSMFile infile(argv[1]);
+    infile.read<Osmium::Handler::NodeDensity>(handler_node_density);
 }
 

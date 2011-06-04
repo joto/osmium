@@ -41,8 +41,6 @@ namespace Osmium {
 
             static const int buffer_size = 10240;
 
-            int fd; ///< The file descriptor we are reading the data from.
-
             Osmium::OSM::Object *current_object;
 
             static void XMLCALL start_element_wrapper(void *data, const XML_Char* element, const XML_Char** attrs) {
@@ -56,12 +54,12 @@ namespace Osmium {
         public:
 
             /**
-            * Instantiate XML Parser
+            * Instantiate XML Parser.
             *
-            * @param in_fd File descripter to read data from.
+            * @param file OSMFile instance.
             * @param h Instance of THandler or NULL.
             */
-            XML(int in_fd, THandler *h) __attribute__((noinline)) : Base<THandler>(h), fd(in_fd) {
+            XML(OSMFile& file, THandler *h) __attribute__((noinline)) : Base<THandler>(file, h) {
             }
 
             void parse() __attribute__((noinline)) {
@@ -84,7 +82,7 @@ namespace Osmium {
                             throw std::runtime_error("out of memory");
                         }
 
-                        int result = read(fd, buffer, buffer_size);
+                        int result = read(this->get_fd(), buffer, buffer_size);
                         if (result < 0) {
                             exit(1);
                         }

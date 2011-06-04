@@ -33,20 +33,21 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 class ConvertHandler : public Osmium::Handler::Base {
 
-    Osmium::Output::OSM::Base *output;
+    Osmium::OSMFile *m_outfile;
 
-    std::string filename;
+    Osmium::Output::OSM::Base *output;
 
 public:
 
-    ConvertHandler() : filename("-") {
+    ConvertHandler(Osmium::OSMFile *osmfile = new Osmium::OSMFile("-")) : m_outfile(osmfile) {
     }
 
-    ConvertHandler(std::string &fn) : filename(fn) {
+    ~ConvertHandler() {
+        delete m_outfile;
     }
 
     void callback_init() {
-        output = Osmium::Output::OSM::create(filename);
+        output = m_outfile->create_output_file();
         output->write_init();
     }
 
@@ -111,11 +112,12 @@ int main(int argc, char *argv[]) {
 
     Osmium::Framework osmium(debug);
 
-    std::string outfile(argv[optind+1]);
+    Osmium::OSMFile infile(argv[optind]);
+    Osmium::OSMFile* outfile = new Osmium::OSMFile(argv[optind+1]);
 
     ConvertHandler *handler_convert = new ConvertHandler(outfile);
 
-    osmium.parse_osmfile<ConvertHandler>(argv[optind], handler_convert);
+    infile.read<ConvertHandler>(handler_convert);
 
     delete handler_convert;
 }

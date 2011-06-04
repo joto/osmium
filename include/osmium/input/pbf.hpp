@@ -41,8 +41,6 @@ namespace Osmium {
             char buffer[OSMPBF::max_uncompressed_blob_size];
             char unpack_buffer[OSMPBF::max_uncompressed_blob_size];
 
-            int fd; ///< The file descriptor we are reading the data from.
-
             typedef struct {
                 const void *data;
                 size_t size;
@@ -57,10 +55,10 @@ namespace Osmium {
             /**
             * Instantiate PBF Parser
             *
-            * @param in_fd File descripter to read data from.
+            * @param file OSMFile instance.
             * @param h Instance of THandler or NULL.
             */
-            PBF(int in_fd, THandler *h) __attribute__((noinline)) : Base<THandler>(h), fd(in_fd) {
+            PBF(OSMFile& file, THandler *h) __attribute__((noinline)) : Base<THandler>(file, h) {
                 GOOGLE_PROTOBUF_VERIFY_VERSION;
             }
 
@@ -338,7 +336,7 @@ namespace Osmium {
             */
             bool read_blob_header() {
                 unsigned char size_in_network_byte_order[4];
-                ssize_t bytes_read = read(fd, size_in_network_byte_order, sizeof(size_in_network_byte_order));
+                ssize_t bytes_read = read(this->get_fd(), size_in_network_byte_order, sizeof(size_in_network_byte_order));
                 if (bytes_read != sizeof(size_in_network_byte_order)) {
                     if (bytes_read == 0) {
                         return false; // EOF
@@ -353,7 +351,7 @@ namespace Osmium {
                     throw std::runtime_error(errmsg.str());
                 }
 
-                if (read(fd, buffer, size) != size) {
+                if (read(this->get_fd(), buffer, size) != size) {
                     throw std::runtime_error("failed to read BlobHeader");
                 }
 
@@ -373,7 +371,7 @@ namespace Osmium {
                     errmsg << "invalid blob size: " << size;
                     throw std::runtime_error(errmsg.str());
                 }
-                if (read(fd, buffer, size) != size) {
+                if (read(this->get_fd(), buffer, size) != size) {
                     throw std::runtime_error("failed to read blob");
                 }
                 if (!blob.ParseFromArray(buffer, size)) {

@@ -92,6 +92,7 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    osmium.parse_osmfile<MyDebugHandler>(argv[1]);
+    Osmium::OSMFile infile(argv[1]);
+    infile.read<MyDebugHandler>();
 }
 

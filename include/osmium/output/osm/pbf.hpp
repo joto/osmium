@@ -118,18 +118,6 @@ namespace Osmium {
                 static const uint32_t max_block_contents = 8000;
 
                 /**
-                 * the file descriptor of the output file
-                 *
-                 * all PBF-Blobs get serialized into this descriptor.
-                 */
-                FILE *fd;
-
-                /**
-                 * a boolean indicating id fd has been fopen'ed and should be closed again
-                 */
-                bool fd_opened;
-
-                /**
                  * should nodes be serialized into the dense format?
                  *
                  * nodes can be encoded one of two ways, as a Node
@@ -345,9 +333,15 @@ namespace Osmium {
                     int32_t sz = htonl(blobhead.size());
 
                     // write to the file: the 4-byte BlobHeader-Size followed by the BlobHeader followed by the Blob
-                    fwrite(&sz, sizeof(sz), 1, fd);
-                    fwrite(blobhead.c_str(), blobhead.size(), 1, fd);
-                    fwrite(data.c_str(), data.size(), 1, fd);
+                    if (::write(get_fd(), &sz, sizeof(sz)) < 0) {
+                        throw std::runtime_error("file error");
+                    }
+                    if (::write(get_fd(), blobhead.c_str(), blobhead.size()) < 0) {
+                        throw std::runtime_error("file error");
+                    }
+                    if (::write(get_fd(), data.c_str(), data.size()) < 0) {
+                        throw std::runtime_error("file error");
+                    }
                 }
 
                 /**
@@ -711,11 +705,9 @@ namespace Osmium {
             public:
 
                 /**
-                 * default constructor, initializing the file descriptor to stdout
+                 * constructor
                  */
-                PBF() : Base(),
-                    fd(stdout),
-                    fd_opened(false),
+                PBF(OSMFile& file) : Base(file),
                     use_dense_format_(true),
                     use_compression_(true),
                     omit_metadata_(false),
@@ -732,35 +724,6 @@ namespace Osmium {
                     granularity_ = pbf_primitive_block.granularity();
                     date_granularity_ = pbf_primitive_block.date_granularity();
                 }
-
-                /**
-                 * filename constructor, opening the specified file for writing
-                 */
-                PBF(const std::string &filename) : Base(),
-                    fd_opened(false),
-                    use_dense_format_(true),
-                    use_compression_(true),
-                    omit_metadata_(false),
-                    pbf_nodes(NULL),
-                    pbf_ways(NULL),
-                    pbf_relations(NULL),
-                    primitive_block_contents(0),
-                    string_table(),
-                    last_dense_info({0, 0, 0, 0, 0, 0, 0}) {
-
-                    GOOGLE_PROTOBUF_VERIFY_VERSION;
-
-                    // set defaults from proto-definition
-                    granularity_ = pbf_primitive_block.granularity();
-                    date_granularity_ = pbf_primitive_block.date_granularity();
-
-                    // open the file for writing
-                    fd = fopen(filename.c_str(), "w");
-                    if (!fd) {
-                        throw std::runtime_error("unable to open outfile");
-                    }
-                }
-
 
                 /**
                  * getter to check whether the densenodes-feature is used
@@ -863,7 +826,7 @@ namespace Osmium {
 
                     // when the resulting file will carry history information, add
                     // HistoricalInformation as required feature
-                    if (is_history_file()) {
+                    if (m_file.get_type() == OSMFile::FileType::History()) {
                         pbf_header_block.add_required_features("HistoricalInformation");
                     }
 
@@ -986,10 +949,7 @@ namespace Osmium {
                         store_primitive_block();
                     }
 
-                    // only close the fd if it has been opened by the constructor
-                    if (fd_opened && fd) {
-                        fclose(fd);
-                    }
+                    m_file.close();
                 }
 
             }; // class PBF
