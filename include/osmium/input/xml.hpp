@@ -59,7 +59,7 @@ namespace Osmium {
             * @param file OSMFile instance.
             * @param h Instance of THandler or NULL.
             */
-            XML(OSMFile& file, THandler *h) __attribute__((noinline)) : Base<THandler>(file, h) {
+            XML(OSMFile& file, THandler *handler) __attribute__((noinline)) : Base<THandler>(file, handler) {
             }
 
             void parse() __attribute__((noinline)) {
@@ -175,15 +175,15 @@ namespace Osmium {
 
             void end_element(const XML_Char* element) {
                 if (!strcmp(element, "node")) {
-                    this->handler->callback_node(this->node);
+                    this->callback_node();
                     current_object = 0;
                 }
                 if (!strcmp(element, "way")) {
-                    this->handler->callback_way(this->way);
+                    this->callback_way();
                     current_object = 0;
                 }
                 if (!strcmp(element, "relation")) {
-                    this->handler->callback_relation(this->relation);
+                    this->callback_relation();
                     current_object = 0;
                 }
             }

@@ -58,7 +58,7 @@ namespace Osmium {
             * @param file OSMFile instance.
             * @param h Instance of THandler or NULL.
             */
-            PBF(OSMFile& file, THandler *h) __attribute__((noinline)) : Base<THandler>(file, h) {
+            PBF(OSMFile& file, THandler *handler) __attribute__((noinline)) : Base<THandler>(file, handler) {
                 GOOGLE_PROTOBUF_VERIFY_VERSION;
             }
 
@@ -180,7 +180,7 @@ namespace Osmium {
                     this->node->set_coordinates(( ( double ) inputNode.lon() * pbf_primitive_block.granularity() + pbf_primitive_block.lon_offset() ) / OSMPBF::lonlat_resolution,
                                                 ( ( double ) inputNode.lat() * pbf_primitive_block.granularity() + pbf_primitive_block.lat_offset() ) / OSMPBF::lonlat_resolution);
 
-                    this->handler->callback_node(this->node);
+                    this->callback_node();
                 }
             }
 
@@ -214,7 +214,7 @@ namespace Osmium {
                         this->way->add_node(lastRef);
                     }
 
-                    this->handler->callback_way(this->way);
+                    this->callback_way();
                 }
             }
 
@@ -260,7 +260,7 @@ namespace Osmium {
                         this->relation->add_member(type, lastRef, stringtable.s( inputRelation.roles_sid( i ) ).data());
                     }
 
-                    this->handler->callback_relation(this->relation);
+                    this->callback_relation();
                 }
             }
 
@@ -318,7 +318,7 @@ namespace Osmium {
                         last_dense_tag += 2;
                     }
 
-                    this->handler->callback_node(this->node);
+                    this->callback_node();
                 }
             }
 
