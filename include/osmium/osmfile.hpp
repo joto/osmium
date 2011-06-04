@@ -29,6 +29,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 namespace Osmium {
 
+    // forward declaration
     namespace Output {
         namespace OSM {
             class Base;
@@ -42,6 +43,37 @@ namespace Osmium {
     class OSMFile {
 
     public:
+
+        struct SystemError {
+
+            std::string m_msg;
+            int m_errno;
+
+            SystemError(std::string msg, int e) : m_msg(msg), m_errno(e) {
+            }
+
+        };
+
+        struct IOError {
+
+            std::string m_msg;
+            std::string m_filename;
+            int m_errno;
+
+            IOError(std::string msg, std::string filename, int e) : m_msg(msg), m_filename(filename), m_errno(e) {
+            }
+
+        };
+
+        struct ArgumentError {
+
+            std::string m_msg;
+            std::string m_value;
+
+            ArgumentError(std::string msg, std::string value="") : m_msg(msg), m_value(value) {
+            }
+
+        };
 
         /**
          * Instances of this class describe different file types.
@@ -194,11 +226,11 @@ namespace Osmium {
         int execute(std::string command, int input) {
             int pipefd[2];
             if (pipe(pipefd) < 0) {
-                throw std::runtime_error("pipe failure");
+                throw SystemError("Can't create pipe", errno);
             }
             pid_t pid = fork();
             if (pid < 0) {
-                throw std::runtime_error("fork failure");
+                throw SystemError("Can't fork", errno);
             }
             if (pid == 0) { // child
                 // close all file descriptors except one end of the pipe
@@ -235,13 +267,13 @@ namespace Osmium {
 
         int open_input_file() const {
             if (m_filename == "") {
-                throw std::runtime_error("no filename");
+                throw ArgumentError("Missing filename");
             } else if (m_filename == "-") {
                 return 0; // stdin
             } else {
                 int fd = open(m_filename.c_str(), O_RDONLY);
                 if (fd < 0) {
-                    throw std::runtime_error("open error");
+                    throw IOError("Open failed", m_filename, errno);
                 }
                 return fd;
             }
@@ -249,13 +281,13 @@ namespace Osmium {
 
         int open_output_file() const {
             if (m_filename == "") {
-                throw std::runtime_error("no filename");
+                throw ArgumentError("Missing filename");
             } else if (m_filename == "-") {
                 return 1; // stdout
             } else {
                 int fd = open(m_filename.c_str(), O_WRONLY | O_CREAT, 0666);
                 if (fd < 0) {
-                    throw std::runtime_error("open error");
+                    throw IOError("Open failed", m_filename, errno);
                 }
                 return fd;
             }
@@ -336,7 +368,7 @@ namespace Osmium {
                 m_encoding = FileEncoding::XMLgz();
 #endif
             } else {
-                throw std::runtime_error("Unknown suffix.");
+                throw ArgumentError("Unknown suffix", suffix);
             }
         }
 
@@ -346,9 +378,6 @@ namespace Osmium {
          * copied.
          */
         OSMFile(const OSMFile& orig) {
-            if (orig.get_fd() > 0) {
-                throw std::runtime_error("can't copy open file");
-            }
             m_fd       = -1;
             m_childpid = 0;
             m_type     = orig.get_type();
@@ -362,23 +391,19 @@ namespace Osmium {
          * copied.
          */
         OSMFile& operator=(const OSMFile& orig) {
-            if (orig.get_fd() > 0) {
-                throw std::runtime_error("can't copy open file");
-            }
             m_fd       = -1;
             m_childpid = 0;
             m_type     = orig.get_type();
             m_encoding = orig.get_encoding();
             m_filename = orig.get_filename();
+            return *this;
         }
 
         ~OSMFile() {
-            if (m_fd > 0) {
-                ::close(m_fd);
-            }
-            if (m_childpid) {
-                int status;
-                waitpid(m_childpid, &status, 0);
+            try {
+                close();
+            } catch(...) {
+                // ignore exceptions
             }
         }
 
@@ -392,7 +417,7 @@ namespace Osmium {
                 int status;
                 pid_t pid = waitpid(m_childpid, &status, 0);
                 if (pid < 0 || !WIFEXITED(status) || WEXITSTATUS(status) != 0) {
-                    throw std::runtime_error("waitpid error");
+                    throw IOError("Subprocess returned error", "", errno);
                 }
                 m_childpid = 0;
             }
@@ -442,7 +467,7 @@ namespace Osmium {
                 m_type = FileType::Change();
 #endif
             } else {
-                throw std::invalid_argument(std::string("Unknown OSM file type: ") + type);
+                throw ArgumentError("Unknown OSM file type", type);
             }
             return *this;
         }
@@ -466,7 +491,7 @@ namespace Osmium {
             } else if (encoding == "xmlbz2" || encoding == "bz2") {
                 m_encoding = FileEncoding::XMLbz2();
             } else {
-                throw std::invalid_argument(std::string("Unknown OSM file encoding: ") + encoding);
+                throw ArgumentError("Unknown OSM file encoding", encoding);
             }
             return *this;
         }
