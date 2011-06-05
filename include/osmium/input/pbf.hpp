@@ -163,27 +163,27 @@ namespace Osmium {
                 for (int entity=0; entity < max_entity; entity++) {
                     this->node->reset();
 
-                    const OSMPBF::Node& inputNode = group.nodes(entity);
+                    const OSMPBF::Node& pbf_node = group.nodes(entity);
 
-                    this->node->set_id(inputNode.id());
-                    if (inputNode.has_info()) {
-                        this->node->set_version(inputNode.info().version())
-                        .set_changeset(inputNode.info().changeset())
-                        .set_timestamp(inputNode.info().timestamp() * date_factor)
-                        .set_uid(inputNode.info().uid())
-                        .set_user(stringtable.s(inputNode.info().user_sid()).data());
-                        if (inputNode.info().has_visible()) {
-                            this->node->set_visible(inputNode.info().visible());
+                    this->node->set_id(pbf_node.id());
+                    if (pbf_node.has_info()) {
+                        this->node->set_version(pbf_node.info().version())
+                        .set_changeset(pbf_node.info().changeset())
+                        .set_timestamp(pbf_node.info().timestamp() * date_factor)
+                        .set_uid(pbf_node.info().uid())
+                        .set_user(stringtable.s(pbf_node.info().user_sid()).data());
+                        if (pbf_node.info().has_visible()) {
+                            this->node->set_visible(pbf_node.info().visible());
                         }
                     }
 
-                    for (int tag=0; tag < inputNode.keys_size(); tag++) {
-                        this->node->add_tag(stringtable.s( inputNode.keys( tag ) ).data(),
-                                            stringtable.s( inputNode.vals( tag ) ).data());
+                    for (int tag=0; tag < pbf_node.keys_size(); tag++) {
+                        this->node->add_tag(stringtable.s( pbf_node.keys( tag ) ).data(),
+                                            stringtable.s( pbf_node.vals( tag ) ).data());
                     }
 
-                    this->node->set_coordinates(( ( double ) inputNode.lon() * pbf_primitive_block.granularity() + pbf_primitive_block.lon_offset() ) / OSMPBF::lonlat_resolution,
-                                                ( ( double ) inputNode.lat() * pbf_primitive_block.granularity() + pbf_primitive_block.lat_offset() ) / OSMPBF::lonlat_resolution);
+                    this->node->set_coordinates(( ( double ) pbf_node.lon() * pbf_primitive_block.granularity() + pbf_primitive_block.lon_offset() ) / OSMPBF::lonlat_resolution,
+                                                ( ( double ) pbf_node.lat() * pbf_primitive_block.granularity() + pbf_primitive_block.lat_offset() ) / OSMPBF::lonlat_resolution);
 
                     this->callback_node();
                 }
@@ -194,28 +194,28 @@ namespace Osmium {
                 for (int entity=0; entity < max_entity; entity++) {
                     this->way->reset();
 
-                    const OSMPBF::Way& inputWay = group.ways(entity);
+                    const OSMPBF::Way& pbf_way = group.ways(entity);
 
-                    this->way->set_id(inputWay.id());
-                    if (inputWay.has_info()) {
-                        this->way->set_version(inputWay.info().version())
-                        .set_changeset(inputWay.info().changeset())
-                        .set_timestamp(inputWay.info().timestamp() * date_factor)
-                        .set_uid(inputWay.info().uid())
-                        .set_user(stringtable.s(inputWay.info().user_sid()).data());
-                        if (inputWay.info().has_visible()) {
-                            this->node->set_visible(inputWay.info().visible());
+                    this->way->set_id(pbf_way.id());
+                    if (pbf_way.has_info()) {
+                        this->way->set_version(pbf_way.info().version())
+                        .set_changeset(pbf_way.info().changeset())
+                        .set_timestamp(pbf_way.info().timestamp() * date_factor)
+                        .set_uid(pbf_way.info().uid())
+                        .set_user(stringtable.s(pbf_way.info().user_sid()).data());
+                        if (pbf_way.info().has_visible()) {
+                            this->node->set_visible(pbf_way.info().visible());
                         }
                     }
 
-                    for (int tag=0; tag < inputWay.keys_size(); tag++) {
-                        this->way->add_tag(stringtable.s( inputWay.keys( tag ) ).data(),
-                                           stringtable.s( inputWay.vals( tag ) ).data());
+                    for (int tag=0; tag < pbf_way.keys_size(); tag++) {
+                        this->way->add_tag(stringtable.s( pbf_way.keys( tag ) ).data(),
+                                           stringtable.s( pbf_way.vals( tag ) ).data());
                     }
 
                     uint64_t lastRef = 0;
-                    for (int i=0; i < inputWay.refs_size(); i++) {
-                        lastRef += inputWay.refs(i);
+                    for (int i=0; i < pbf_way.refs_size(); i++) {
+                        lastRef += pbf_way.refs(i);
                         this->way->add_node(lastRef);
                     }
 
@@ -228,29 +228,29 @@ namespace Osmium {
                 for (int entity=0; entity < max_entity; entity++) {
                     this->relation->reset();
 
-                    const OSMPBF::Relation& inputRelation = group.relations(entity);
+                    const OSMPBF::Relation& pbf_relation = group.relations(entity);
 
-                    this->relation->set_id(inputRelation.id());
-                    if (inputRelation.has_info()) {
-                        this->relation->set_version(inputRelation.info().version())
-                        .set_changeset(inputRelation.info().changeset())
-                        .set_timestamp(inputRelation.info().timestamp() * date_factor)
-                        .set_uid(inputRelation.info().uid())
-                        .set_user(stringtable.s(inputRelation.info().user_sid()).data());
-                        if (inputRelation.info().has_visible()) {
-                            this->node->set_visible(inputRelation.info().visible());
+                    this->relation->set_id(pbf_relation.id());
+                    if (pbf_relation.has_info()) {
+                        this->relation->set_version(pbf_relation.info().version())
+                        .set_changeset(pbf_relation.info().changeset())
+                        .set_timestamp(pbf_relation.info().timestamp() * date_factor)
+                        .set_uid(pbf_relation.info().uid())
+                        .set_user(stringtable.s(pbf_relation.info().user_sid()).data());
+                        if (pbf_relation.info().has_visible()) {
+                            this->node->set_visible(pbf_relation.info().visible());
                         }
                     }
 
-                    for (int tag=0; tag < inputRelation.keys_size(); tag++) {
-                        this->relation->add_tag(stringtable.s( inputRelation.keys(tag) ).data(),
-                                                stringtable.s( inputRelation.vals(tag) ).data());
+                    for (int tag=0; tag < pbf_relation.keys_size(); tag++) {
+                        this->relation->add_tag(stringtable.s( pbf_relation.keys(tag) ).data(),
+                                                stringtable.s( pbf_relation.vals(tag) ).data());
                     }
 
                     uint64_t lastRef = 0;
-                    for (int i=0; i < inputRelation.types_size(); i++) {
+                    for (int i=0; i < pbf_relation.types_size(); i++) {
                         char type = 'x';
-                        switch (inputRelation.types(i)) {
+                        switch (pbf_relation.types(i)) {
                             case OSMPBF::Relation::NODE:
                                 type = 'n';
                                 break;
@@ -261,8 +261,8 @@ namespace Osmium {
                                 type = 'r';
                                 break;
                         }
-                        lastRef += inputRelation.memids(i);
-                        this->relation->add_member(type, lastRef, stringtable.s( inputRelation.roles_sid( i ) ).data());
+                        lastRef += pbf_relation.memids(i);
+                        this->relation->add_member(type, lastRef, stringtable.s( pbf_relation.roles_sid( i ) ).data());
                     }
 
                     this->callback_relation();
