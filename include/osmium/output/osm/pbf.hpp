@@ -121,13 +121,13 @@ namespace Osmium {
                  * should nodes be serialized into the dense format?
                  *
                  * nodes can be encoded one of two ways, as a Node
-                 * (use_dense_format_ = false) and a special dense format.
+                 * (m_use_dense_format = false) and a special dense format.
                  * In the dense format, all information is stored 'column wise',
                  * as an array of ID's, array of latitudes, and array of
                  * longitudes. Each column is delta-encoded. This reduces
                  * header overheads and allows delta-coding to work very effectively.
                  */
-                bool use_dense_format_;
+                bool m_use_dense_format;
 
                 /**
                  * should the PBF blobs contain zlib compressed data?
@@ -136,7 +136,7 @@ namespace Osmium {
                  * blobs in raw format. Disabling the compression can improve the
                  * writing speed a little but the output will be 2x to 3x bigger.
                  */
-                bool use_compression_;
+                bool m_use_compression;
 
                 /**
                  * to flexibly handle multiple resolutions, the granularity, or
@@ -155,10 +155,10 @@ namespace Osmium {
                 int date_granularity_;
 
                 /**
-                 * while the .osm.pbf-format is able to carry all meta information, it is
+                 * While the .osm.pbf-format is able to carry all meta information, it is
                  * also able to omit this information to reduce size.
                  */
-                bool omit_metadata_;
+                bool m_should_add_metadata;
 
                 /**
                  * protobuf-struct of a Blob
@@ -289,7 +289,6 @@ namespace Osmium {
                     // serialize the protobuf message to the string
                     msg.SerializeToString(&data);
 
-                    // test if compression is enabled
                     if (use_compression()) {
                         // compress using zlib
                         size_t out = zlib_compress(data);
@@ -479,7 +478,7 @@ namespace Osmium {
                         out->add_vals(string_table.record_string(in->get_tag_value(i)));
                     }
 
-                    if (!omit_metadata()) {
+                    if (should_add_metadata()) {
                         // add an info-section to the pbf object and set the meta-info on it
                         OSMPBF::Info *out_info = out->mutable_info();
                         out_info->set_version(in->get_version());
@@ -615,7 +614,7 @@ namespace Osmium {
                     }
                     dense->add_keys_vals(0);
 
-                    if (!omit_metadata()) {
+                    if (should_add_metadata()) {
                         // add a DenseInfo-Section to the PrimitiveGroup
                         OSMPBF::DenseInfo *denseinfo = dense->mutable_denseinfo();
 
@@ -715,9 +714,9 @@ namespace Osmium {
                  * constructor
                  */
                 PBF(OSMFile& file) : Base(file),
-                    use_dense_format_(true),
-                    use_compression_(true),
-                    omit_metadata_(false),
+                    m_use_dense_format(true),
+                    m_use_compression(true),
+                    m_should_add_metadata(true),
                     pbf_nodes(NULL),
                     pbf_ways(NULL),
                     pbf_relations(NULL),
@@ -736,14 +735,14 @@ namespace Osmium {
                  * getter to check whether the densenodes-feature is used
                  */
                 bool use_dense_format() const {
-                    return use_dense_format_;
+                    return m_use_dense_format;
                 }
 
                 /**
                  * setter to set whether the densenodes-feature is used
                  */
-                PBF& use_dense_format(bool d) {
-                    use_dense_format_ = d;
+                PBF& use_dense_format(bool flag) {
+                    m_use_dense_format = flag;
                     return *this;
                 }
 
@@ -752,14 +751,14 @@ namespace Osmium {
                  * getter to check whether zlib-compression is used
                  */
                 bool use_compression() const {
-                    return use_compression_;
+                    return m_use_compression;
                 }
 
                 /**
                  * setter to set whether zlib-compression is used
                  */
-                PBF& use_compression(bool d) {
-                    use_compression_ = d;
+                PBF& use_compression(bool flag) {
+                    m_use_compression = flag;
                     return *this;
                 }
 
@@ -788,7 +787,7 @@ namespace Osmium {
                 }
 
                 /**
-                 * setter to set whether zlib-compression is used
+                 * Set date granularity.
                  */
                 PBF& date_granularity(int g) {
                     date_granularity_ = g;
@@ -797,17 +796,17 @@ namespace Osmium {
 
 
                 /**
-                 * getter to check whether metadata is omitted
+                 * Getter to check whether metadata should be added.
                  */
-                bool omit_metadata() const {
-                    return omit_metadata_;
+                bool should_add_metadata() const {
+                    return m_should_add_metadata;
                 }
 
                 /**
-                 * setter to set whether to omit metadata
+                 * Setter to set whether to add metadata.
                  */
-                PBF& omit_metadata(bool o) {
-                    omit_metadata_ = o;
+                PBF& should_add_metadata(bool flag) {
+                    m_should_add_metadata = flag;
                     return *this;
                 }
 
