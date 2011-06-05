@@ -33,7 +33,12 @@ namespace Osmium {
     namespace Input {
 
         /**
-        * Class for parsing PBF files
+        * Class for parsing PBF files.
+        *
+        * Generally you are not supposed to instantiate this class yourself.
+        * Instead create an OSMFile object and call its read() method.
+        *
+        * @tparam THandler A handler class (subclass of Osmium::Handler::Base).
         */
         template <class THandler>
         class PBF : public Base<THandler> {
@@ -56,7 +61,7 @@ namespace Osmium {
             * Instantiate PBF Parser
             *
             * @param file OSMFile instance.
-            * @param h Instance of THandler or NULL.
+            * @param handler Instance of THandler. If NULL an instance of class THandler is created internally.
             */
             PBF(OSMFile& file, THandler *handler) __attribute__((noinline)) : Base<THandler>(file, handler) {
                 GOOGLE_PROTOBUF_VERIFY_VERSION;
