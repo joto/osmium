@@ -80,7 +80,7 @@ A simple outline of a .osm.pbf file could look like this:
       PrimitiveGroup
         1 relation
 
-More complete outlines of real .osm.pbf files can be created using the osmpbf-outline Tool:
+More complete outlines of real .osm.pbf files can be created using the osmpbf-outline tool:
  <https://github.com/MaZderMind/OSM-binary/tree/osmpbf-outline>
 */
 
@@ -280,10 +280,11 @@ namespace Osmium {
                 }
 
                 /**
-                 * serialize a protobuf-message together into a Blob, optionally apply compression
+                 * Serialize a protobuf-message together into a Blob, optionally apply compression
                  * and write it together with a BlobHeader to the file.
                  *
-                 * type specifies the type-string used in the BlobHeader and msg the protobuf-message.
+                 * @param type Type-string used in the BlobHeader.
+                 * @param msg Protobuf-message.
                  */
                 void store_blob(const std::string &type, const google::protobuf::MessageLite &msg) {
                     // buffer to serialize the protobuf message to
@@ -347,10 +348,10 @@ namespace Osmium {
                 }
 
                 /**
-                 * before a PrimitiveBlock gets serialized, all interim StringTable-ids needs to be
+                 * Before a PrimitiveBlock gets serialized, all interim StringTable-ids needs to be
                  * mapped to the associated real StringTable ids. Th is is done in this function.
                  *
-                 * this function needs to know about the concrete structure of all item types to find
+                 * This function needs to know about the concrete structure of all item types to find
                  * all occurrences of string-ids.
                  */
                 void map_string_ids() {
@@ -568,10 +569,11 @@ namespace Osmium {
                 ///// Block content writing /////
 
                 /**
-                 * add a node in classic mode to the block
+                 * Add a node to the block.
+                 *
+                 * @param node The node to add.
                  */
-                void write_classic(Osmium::OSM::Node *node) {
-                    // add a "classic" node to the group
+                void write_node(Osmium::OSM::Node *node) {
                     OSMPBF::Node *pbf_node = pbf_nodes->add_nodes();
 
                     // copy the common meta-info from the osmium-object to the pbf-object
@@ -584,9 +586,11 @@ namespace Osmium {
                 }
 
                 /**
-                 * add a node in dense mode to the block
+                 * Add a node to the block using DenseNodes.
+                 *
+                 * @param node The node to add.
                  */
-                void write_dense(Osmium::OSM::Node *node) {
+                void write_dense_node(Osmium::OSM::Node *node) {
                     // add a DenseNodes-Section to the PrimitiveGroup
                     OSMPBF::DenseNodes *dense = pbf_nodes->mutable_dense();
 
@@ -646,9 +650,11 @@ namespace Osmium {
                 }
 
                 /**
-                 * add a way in classic mode to the block
+                 * Add a way to the block.
+                 *
+                 * @param way The way to add.
                  */
-                void write_classic(Osmium::OSM::Way *way) {
+                void write_way(Osmium::OSM::Way *way) {
                     // add a way to the group
                     OSMPBF::Way *pbf_way = pbf_ways->add_ways();
 
@@ -668,9 +674,11 @@ namespace Osmium {
                 }
 
                 /**
-                 * add a relation in classic mode to the block
+                 * Add a relation to the block.
+                 *
+                 * @param relation The relation to add.
                  */
-                void write_classic(Osmium::OSM::Relation *relation) {
+                void write_relation(Osmium::OSM::Relation *relation) {
                     // add a relation to the group
                     OSMPBF::Relation *pbf_relation = pbf_relations->add_relations();
 
@@ -813,10 +821,10 @@ namespace Osmium {
 
 
                 /**
-                 * initialize the writing process
+                 * Initialize the writing process.
                  *
-                 * this initializes the header-block, sets the required-features and
-                 * the writing-program and adds the obligatory StringTable-Index 0
+                 * This initializes the header-block, sets the required-features and
+                 * the writing-program and adds the obligatory StringTable-Index 0.
                  */
                 void write_init() {
                     if (Osmium::global.debug) {
@@ -842,7 +850,7 @@ namespace Osmium {
                     store_header_block();
 
                     // add empty StringTable entry at index 0
-                    // StringTable index 0 is rserved as delimiter in the densenodes key/value list
+                    // StringTable index 0 is reserved as delimiter in the densenodes key/value list
                     // this line also ensures that there's always a valid StringTable
                     pbf_primitive_block.mutable_stringtable()->add_s("");
 
@@ -866,9 +874,9 @@ namespace Osmium {
                 }
 
                 /**
-                 * add a node to the pbf.
+                 * Add a node to the pbf.
                  *
-                 * a call to this method won't write the node to the file directly but
+                 * A call to this method won't write the node to the file directly but
                  * cache it for later bulk-writing. Calling write_final ensures that everything
                  * gets written and every file pointer is closed.
                  */
@@ -877,27 +885,26 @@ namespace Osmium {
                     // disk if the limit is reached. This call also increases the contents-counter
                     check_block_contents_counter();
 
+                    if (Osmium::global.debug) {
+                        std::cerr << "node " << node->get_id() << " v" << node->get_version() << std::endl;
+                    }
+
                     // if no PrimitiveGroup for nodes has been added, add one and save the pointer
                     if (!pbf_nodes) {
                         pbf_nodes = pbf_primitive_block.add_primitivegroup();
                     }
 
-                    if (Osmium::global.debug) {
-                        std::cerr << "node " << node->get_id() << " v" << node->get_version() << std::endl;
-                    }
-
-                    // if the dense-format is disabled, use the classic format
                     if (use_dense_format()) {
-                        write_dense(node);
+                        write_dense_node(node);
                     } else {
-                        write_classic(node);
+                        write_node(node);
                     }
                 }
 
                 /**
-                 * add a way to the pbf.
+                 * Add a way to the pbf.
                  *
-                 * a call to this method won't write the way to the file directly but
+                 * A call to this method won't write the way to the file directly but
                  * cache it for later bulk-writing. Calling write_final ensures that everything
                  * gets written and every file pointer is closed.
                  */
@@ -915,13 +922,13 @@ namespace Osmium {
                         pbf_ways = pbf_primitive_block.add_primitivegroup();
                     }
 
-                    write_classic(way);
+                    write_way(way);
                 }
 
                 /**
-                 * add a relation to the pbf.
+                 * Add a relation to the pbf.
                  *
-                 * a call to this method won't write the way to the file directly but
+                 * A call to this method won't write the way to the file directly but
                  * cache it for later bulk-writing. Calling write_final ensures that everything
                  * gets written and every file pointer is closed.
                  */
@@ -939,12 +946,12 @@ namespace Osmium {
                         pbf_relations = pbf_primitive_block.add_primitivegroup();
                     }
 
-                    write_classic(relation);
+                    write_relation(relation);
                 }
 
                 /**
-                 * finalize the writing process, flush any open primitive blocks to the file and
-                 * close the file descriptor that the constructor opened.
+                 * Finalize the writing process, flush any open primitive blocks to the file and
+                 * close the file.
                  */
                 void write_final() {
                     if (Osmium::global.debug) {
