@@ -1,0 +1,82 @@
+
+Notes for Developers
+====================
+
+(Read this if you want to contribute to Osmium.)
+
+
+Versioning
+==========
+
+Osmium is currently considered in beta and doesn't use versioning yet. Proper
+versions will be introduced as soon as it is somewhat stable.
+
+
+Namespace
+=========
+
+All Osmium code must be in the "Osmium" namespace or one of its sub-namespaces.
+There are currently some utility classes not in the Osmium namespace, but this
+should change.
+
+
+Include-Only
+============
+
+Osmium is a include-only library. You can't compile the library itself. There
+is no libosmium.
+
+One drawback ist that you can't have static data in classes, because there
+is no place to put this data.
+
+
+Coding Conventions
+==================
+
+These coding conventions have been changing over time and some code is still
+different.
+
+* Class names begin with uppercase chars and use CamelCase.
+* Macros (and only macros) are all uppercase.
+* Variables, attributes, and function names are lowercase with
+  underscores_between_words.
+* Class attribute names start with "m_" (member).
+* Template parameters start with uppercase "T" and use CamelCase.
+* Typedefs have names_like_this_t which end in "_t".
+* Macros should only be used for controlling which parts of the code should be
+  included when compiling.
+* Use descriptive_variable_names, exceptions are well-established conventions
+  like "i" for a loop variable.
+* Declare variables where they are first used (C++ style), not at the beginning
+  of a function (old C style).
+* Names from external namespaces (even "std") are always mentioned explicitly.
+  Do not use "using".
+
+Use "make indent" in the toplevel directory to fix indentation. It calls
+"astyle" with the right parameters. This program is in the "astyle" Debian
+package.
+
+
+Checking your code
+==================
+
+The Osmium makefiles use pretty draconian warning options for gcc.
+(-Wall -Wextra -Wredundant-decls -Wdisabled-optimization -pedantic).
+This is good. Code should never produce any warnings, even with those
+settings.
+
+Call "make check" in the toplevel directory to check your code. It uses
+cppcheck which finds some bugs that gcc doesn't. But take the result with
+a grain of salt, it also sometimes produces wrong warnings.
+
+
+Documenting the code
+====================
+
+All namespaces, classes, functions, attributes, etc. should be documented.
+
+Osmium uses the Doxygen (www.doxygen.org) source code documentation system.
+
+Call "make doc" in the toplevel directory to generate the documentation.
+
+
