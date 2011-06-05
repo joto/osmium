@@ -454,8 +454,8 @@ namespace Osmium {
                 /**
                  * convert a double lat or lon value to an int, respecting the current blocks granularity
                  */
-                int64_t latlon2int(double latlon) {
-                    return (latlon * OSMPBF::lonlat_resolution / location_granularity());
+                int64_t lonlat2int(double lonlat) {
+                    return (lonlat * OSMPBF::lonlat_resolution / location_granularity());
                 }
 
                 /**
@@ -581,8 +581,8 @@ namespace Osmium {
 
                     // modify lat & lon to integers, respecting the block's granularity and copy
                     // the ints to the pbf-object
-                    pbf_node->set_lat(latlon2int(node->get_lat()));
-                    pbf_node->set_lon(latlon2int(node->get_lon()));
+                    pbf_node->set_lon(lonlat2int(node->get_lon()));
+                    pbf_node->set_lat(lonlat2int(node->get_lat()));
                 }
 
                 /**
@@ -599,15 +599,15 @@ namespace Osmium {
                     dense->add_id(id - last_dense_info.id);
                     last_dense_info.id = id;
 
-                    // copy the latitude, delta encoded against last_dense_info
-                    int32_t lat = latlon2int(node->get_lat());
-                    dense->add_lat(lat - last_dense_info.lat);
-                    last_dense_info.lat = lat;
-
                     // copy the longitude, delta encoded against last_dense_info
-                    int32_t lon = latlon2int(node->get_lon());
+                    int32_t lon = lonlat2int(node->get_lon());
                     dense->add_lon(lon - last_dense_info.lon);
                     last_dense_info.lon = lon;
+
+                    // copy the latitude, delta encoded against last_dense_info
+                    int32_t lat = lonlat2int(node->get_lat());
+                    dense->add_lat(lat - last_dense_info.lat);
+                    last_dense_info.lat = lat;
 
                     // in the densenodes structure keys and vals are encoded in an intermixed
                     // array, individual nodes are seperated by a value of 0 (0 in the StringTable
