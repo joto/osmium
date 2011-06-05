@@ -455,7 +455,7 @@ namespace Osmium {
                  * convert a double lat or lon value to an int, respecting the current blocks granularity
                  */
                 int64_t latlon2int(double latlon) {
-                    return (latlon * OSMPBF::lonlat_resolution / granularity());
+                    return (latlon * OSMPBF::lonlat_resolution / location_granularity());
                 }
 
                 /**
@@ -535,7 +535,7 @@ namespace Osmium {
                     pbf_primitive_block.mutable_stringtable()->add_s("");
 
                     // set the granularity
-                    pbf_primitive_block.set_granularity(granularity());
+                    pbf_primitive_block.set_granularity(location_granularity());
                     pbf_primitive_block.set_date_granularity(date_granularity());
 
                     // clear the interim StringTable and its id map
@@ -775,14 +775,14 @@ namespace Osmium {
                 /**
                  * getter to access the granularity
                  */
-                int granularity() const {
+                int location_granularity() const {
                     return m_location_granularity;
                 }
 
                 /**
                  * setter to set the granularity
                  */
-                PBF& granularity(int g) {
+                PBF& location_granularity(int g) {
                     m_location_granularity = g;
                     return *this;
                 }
@@ -855,7 +855,7 @@ namespace Osmium {
                     pbf_primitive_block.mutable_stringtable()->add_s("");
 
                     // set the granularity
-                    pbf_primitive_block.set_granularity(granularity());
+                    pbf_primitive_block.set_granularity(location_granularity());
                     pbf_primitive_block.set_date_granularity(date_granularity());
                 }
 
