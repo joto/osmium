@@ -258,9 +258,6 @@ namespace Osmium {
                     }
 
                     // compress
-                    /* XXX instead of failing when the buffer is overflowing we could
-                           just use the uncompressed data!?
-                    */
                     if (deflate(&z, Z_FINISH) != Z_STREAM_END) {
                         throw std::runtime_error("failed to deflate zlib stream");
                     }
@@ -454,8 +451,8 @@ namespace Osmium {
                 /**
                  * convert a double lat or lon value to an int, respecting the current blocks granularity
                  */
-                int64_t latlon2int(double latlon) {
-                    return (latlon * OSMPBF::lonlat_resolution / granularity());
+                int64_t lonlat2int(double lonlat) {
+                    return (lonlat * OSMPBF::lonlat_resolution / location_granularity());
                 }
 
                 /**
@@ -535,7 +532,7 @@ namespace Osmium {
                     pbf_primitive_block.mutable_stringtable()->add_s("");
 
                     // set the granularity
-                    pbf_primitive_block.set_granularity(granularity());
+                    pbf_primitive_block.set_granularity(location_granularity());
                     pbf_primitive_block.set_date_granularity(date_granularity());
 
                     // clear the interim StringTable and its id map
@@ -581,8 +578,8 @@ namespace Osmium {
 
                     // modify lat & lon to integers, respecting the block's granularity and copy
                     // the ints to the pbf-object
-                    pbf_node->set_lat(latlon2int(node->get_lat()));
-                    pbf_node->set_lon(latlon2int(node->get_lon()));
+                    pbf_node->set_lon(lonlat2int(node->get_lon()));
+                    pbf_node->set_lat(lonlat2int(node->get_lat()));
                 }
 
                 /**
@@ -599,15 +596,15 @@ namespace Osmium {
                     dense->add_id(id - last_dense_info.id);
                     last_dense_info.id = id;
 
-                    // copy the latitude, delta encoded against last_dense_info
-                    int32_t lat = latlon2int(node->get_lat());
-                    dense->add_lat(lat - last_dense_info.lat);
-                    last_dense_info.lat = lat;
-
                     // copy the longitude, delta encoded against last_dense_info
-                    int32_t lon = latlon2int(node->get_lon());
+                    int32_t lon = lonlat2int(node->get_lon());
                     dense->add_lon(lon - last_dense_info.lon);
                     last_dense_info.lon = lon;
+
+                    // copy the latitude, delta encoded against last_dense_info
+                    int32_t lat = lonlat2int(node->get_lat());
+                    dense->add_lat(lat - last_dense_info.lat);
+                    last_dense_info.lat = lat;
 
                     // in the densenodes structure keys and vals are encoded in an intermixed
                     // array, individual nodes are seperated by a value of 0 (0 in the StringTable
@@ -775,14 +772,14 @@ namespace Osmium {
                 /**
                  * getter to access the granularity
                  */
-                int granularity() const {
+                int location_granularity() const {
                     return m_location_granularity;
                 }
 
                 /**
                  * setter to set the granularity
                  */
-                PBF& granularity(int g) {
+                PBF& location_granularity(int g) {
                     m_location_granularity = g;
                     return *this;
                 }
@@ -855,7 +852,7 @@ namespace Osmium {
                     pbf_primitive_block.mutable_stringtable()->add_s("");
 
                     // set the granularity
-                    pbf_primitive_block.set_granularity(granularity());
+                    pbf_primitive_block.set_granularity(location_granularity());
                     pbf_primitive_block.set_date_granularity(date_granularity());
                 }
 
