@@ -167,11 +167,11 @@ namespace Osmium {
 
                     this->node->set_id(inputNode.id());
                     if (inputNode.has_info()) {
-                        this->node->set_version(inputNode.info().version()).
-                                    set_changeset(inputNode.info().changeset()).
-                                    set_timestamp(inputNode.info().timestamp() * date_factor).
-                                    set_uid(inputNode.info().uid()).
-                                    set_user(stringtable.s(inputNode.info().user_sid()).data());
+                        this->node->set_version(inputNode.info().version())
+                        .set_changeset(inputNode.info().changeset())
+                        .set_timestamp(inputNode.info().timestamp() * date_factor)
+                        .set_uid(inputNode.info().uid())
+                        .set_user(stringtable.s(inputNode.info().user_sid()).data());
                         if (inputNode.info().has_visible()) {
                             this->node->set_visible(inputNode.info().visible());
                         }
@@ -198,11 +198,11 @@ namespace Osmium {
 
                     this->way->set_id(inputWay.id());
                     if (inputWay.has_info()) {
-                        this->way->set_version(inputWay.info().version()).
-                                   set_changeset(inputWay.info().changeset()).
-                                   set_timestamp(inputWay.info().timestamp() * date_factor).
-                                   set_uid(inputWay.info().uid()).
-                                   set_user(stringtable.s(inputWay.info().user_sid()).data());
+                        this->way->set_version(inputWay.info().version())
+                        .set_changeset(inputWay.info().changeset())
+                        .set_timestamp(inputWay.info().timestamp() * date_factor)
+                        .set_uid(inputWay.info().uid())
+                        .set_user(stringtable.s(inputWay.info().user_sid()).data());
                         if (inputWay.info().has_visible()) {
                             this->node->set_visible(inputWay.info().visible());
                         }
@@ -232,11 +232,11 @@ namespace Osmium {
 
                     this->relation->set_id(inputRelation.id());
                     if (inputRelation.has_info()) {
-                        this->relation->set_version(inputRelation.info().version()).
-                                        set_changeset(inputRelation.info().changeset()).
-                                        set_timestamp(inputRelation.info().timestamp() * date_factor).
-                                        set_uid(inputRelation.info().uid()).
-                                        set_user(stringtable.s(inputRelation.info().user_sid()).data());
+                        this->relation->set_version(inputRelation.info().version())
+                        .set_changeset(inputRelation.info().changeset())
+                        .set_timestamp(inputRelation.info().timestamp() * date_factor)
+                        .set_uid(inputRelation.info().uid())
+                        .set_user(stringtable.s(inputRelation.info().user_sid()).data());
                         if (inputRelation.info().has_visible()) {
                             this->node->set_visible(inputRelation.info().visible());
                         }
