@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
     const char *output_type = NULL;
 
     while (1) {
-        int c = getopt_long(argc, argv, "dhio", long_options, 0);
+        int c = getopt_long(argc, argv, "dhi:o:", long_options, 0);
         if (c == -1)
             break;
 
