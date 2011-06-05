@@ -145,6 +145,16 @@ int main(int argc, char *argv[]) {
         outfile->set_type_and_encoding(output_type);
     }
 
+    if(infile.get_type() == Osmium::OSMFile::FileType::OSM() && outfile->get_type() == Osmium::OSMFile::FileType::History()) {
+        std::cerr << "Warning! converting from FileType::OSM to FileType::History will fake history information" << std::endl;
+    }
+    else if(infile.get_type() == Osmium::OSMFile::FileType::History() && outfile->get_type() == Osmium::OSMFile::FileType::OSM()) {
+        std::cerr << "Warning! converting from FileType::History to FileType::OSM will drop history information" << std::endl;
+    }
+    else if(infile.get_type() != outfile->get_type()) {
+        std::cerr << "Warning! source and destination are not of the same type." << std::endl;
+    }
+
     ConvertHandler *handler_convert = new ConvertHandler(outfile);
 
     infile.read<ConvertHandler>(handler_convert);
