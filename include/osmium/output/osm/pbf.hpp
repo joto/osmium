@@ -118,49 +118,6 @@ namespace Osmium {
                 static const uint32_t max_block_contents = 8000;
 
                 /**
-                 * should nodes be serialized into the dense format?
-                 *
-                 * nodes can be encoded one of two ways, as a Node
-                 * (m_use_dense_format = false) and a special dense format.
-                 * In the dense format, all information is stored 'column wise',
-                 * as an array of ID's, array of latitudes, and array of
-                 * longitudes. Each column is delta-encoded. This reduces
-                 * header overheads and allows delta-coding to work very effectively.
-                 */
-                bool m_use_dense_format;
-
-                /**
-                 * should the PBF blobs contain zlib compressed data?
-                 *
-                 * the zlib compression is optional, it's possible to store the
-                 * blobs in raw format. Disabling the compression can improve the
-                 * writing speed a little but the output will be 2x to 3x bigger.
-                 */
-                bool m_use_compression;
-
-                /**
-                 * to flexibly handle multiple resolutions, the granularity, or
-                 * resolution used for representing locations is adjustable in
-                 * multiples of 1 nanodegree. The default scaling factor is 100
-                 * nanodegrees, corresponding to about ~1cm at the equator.
-                 * These is the current resolution of the OSM database.
-                 */
-                int granularity_;
-
-                /**
-                 * the granularity used for representing timestamps is also adjustable in
-                 * multiples of 1 millisecond. The default scaling factor is 1000
-                 * milliseconds, which is the current resolution of the OSM database.
-                 */
-                int date_granularity_;
-
-                /**
-                 * While the .osm.pbf-format is able to carry all meta information, it is
-                 * also able to omit this information to reduce size.
-                 */
-                bool m_should_add_metadata;
-
-                /**
                  * protobuf-struct of a Blob
                  */
                 OSMPBF::Blob pbf_blob;
@@ -187,6 +144,49 @@ namespace Osmium {
                 OSMPBF::PrimitiveGroup *pbf_nodes;
                 OSMPBF::PrimitiveGroup *pbf_ways;
                 OSMPBF::PrimitiveGroup *pbf_relations;
+
+                /**
+                 * to flexibly handle multiple resolutions, the granularity, or
+                 * resolution used for representing locations is adjustable in
+                 * multiples of 1 nanodegree. The default scaling factor is 100
+                 * nanodegrees, corresponding to about ~1cm at the equator.
+                 * These is the current resolution of the OSM database.
+                 */
+                int m_location_granularity;
+
+                /**
+                 * the granularity used for representing timestamps is also adjustable in
+                 * multiples of 1 millisecond. The default scaling factor is 1000
+                 * milliseconds, which is the current resolution of the OSM database.
+                 */
+                int m_date_granularity;
+
+                /**
+                 * should nodes be serialized into the dense format?
+                 *
+                 * nodes can be encoded one of two ways, as a Node
+                 * (m_use_dense_format = false) and a special dense format.
+                 * In the dense format, all information is stored 'column wise',
+                 * as an array of ID's, array of latitudes, and array of
+                 * longitudes. Each column is delta-encoded. This reduces
+                 * header overheads and allows delta-coding to work very effectively.
+                 */
+                bool m_use_dense_format;
+
+                /**
+                 * should the PBF blobs contain zlib compressed data?
+                 *
+                 * the zlib compression is optional, it's possible to store the
+                 * blobs in raw format. Disabling the compression can improve the
+                 * writing speed a little but the output will be 2x to 3x bigger.
+                 */
+                bool m_use_compression;
+
+                /**
+                 * While the .osm.pbf-format is able to carry all meta information, it is
+                 * also able to omit this information to reduce size.
+                 */
+                bool m_should_add_metadata;
 
                 /**
                  * counter used to quickly check the number of objects stored inside
@@ -711,24 +711,22 @@ namespace Osmium {
             public:
 
                 /**
-                 * constructor
+                 * Create PBF output object from OSMFile.
                  */
                 PBF(OSMFile& file) : Base(file),
-                    m_use_dense_format(true),
-                    m_use_compression(true),
-                    m_should_add_metadata(true),
                     pbf_nodes(NULL),
                     pbf_ways(NULL),
                     pbf_relations(NULL),
+                    m_location_granularity(pbf_primitive_block.granularity()),
+                    m_date_granularity(pbf_primitive_block.date_granularity()),
+                    m_use_dense_format(true),
+                    m_use_compression(true),
+                    m_should_add_metadata(true),
                     primitive_block_contents(0),
                     string_table(),
                     last_dense_info( {0, 0, 0, 0, 0, 0, 0} ) {
 
                     GOOGLE_PROTOBUF_VERIFY_VERSION;
-
-                    // set defaults from proto-definiton
-                    granularity_ = pbf_primitive_block.granularity();
-                    date_granularity_ = pbf_primitive_block.date_granularity();
                 }
 
                 /**
@@ -767,14 +765,14 @@ namespace Osmium {
                  * getter to access the granularity
                  */
                 int granularity() const {
-                    return granularity_;
+                    return m_location_granularity;
                 }
 
                 /**
                  * setter to set the granularity
                  */
                 PBF& granularity(int g) {
-                    granularity_ = g;
+                    m_location_granularity = g;
                     return *this;
                 }
 
@@ -783,14 +781,14 @@ namespace Osmium {
                  * getter to access the date_granularity
                  */
                 int date_granularity() const {
-                    return date_granularity_;
+                    return m_date_granularity;
                 }
 
                 /**
                  * Set date granularity.
                  */
                 PBF& date_granularity(int g) {
-                    date_granularity_ = g;
+                    m_date_granularity = g;
                     return *this;
                 }
 
