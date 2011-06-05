@@ -69,6 +69,9 @@ namespace Osmium {
 
             /**
             * Parse PBF file.
+            *
+            * Will throw a subclass of Osmium::OSMFile::FileTypeError when it
+            * turns out while parsing the file, that it is of the wrong type.
             */
             void parse() __attribute__((noinline)) {
                 try {
@@ -90,14 +93,28 @@ namespace Osmium {
                                 throw std::runtime_error("Failed to parse HeaderBlock.");
                             }
 
+                            bool has_historical_information_feature = false;
                             for (int i=0; i < pbf_header_block.required_features_size(); i++) {
                                 const std::string& feature = pbf_header_block.required_features(i);
 
-                                if ((feature != "OsmSchema-V0.6") && (feature != "DenseNodes")) {
-                                    std::ostringstream errmsg;
-                                    errmsg << "Required feature not supported: " << feature;
-                                    throw std::runtime_error(errmsg.str());
+                                if (feature == "OsmSchema-V0.6") continue;
+                                if (feature == "DenseNodes") continue;
+                                if (feature == "HistoricalInformation") {
+                                    has_historical_information_feature = true;
+                                    continue;
                                 }
+
+                                std::ostringstream errmsg;
+                                errmsg << "Required feature not supported: " << feature;
+                                throw std::runtime_error(errmsg.str());
+                            }
+
+                            Osmium::OSMFile::FileType* expected_file_type = this->get_file().get_type();
+                            if (expected_file_type == Osmium::OSMFile::FileType::OSM() && has_historical_information_feature) {
+                                throw Osmium::OSMFile::FileTypeOSMExpected();
+                            }
+                            if (expected_file_type == Osmium::OSMFile::FileType::History() && !has_historical_information_feature) {
+                                throw Osmium::OSMFile::FileTypeHistoryExpected();
                             }
                         } else {
                             if (Osmium::global.debug) {

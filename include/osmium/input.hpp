@@ -164,8 +164,12 @@ namespace Osmium {
                 }
             }
 
-            int get_fd() {
+            int get_fd() const {
                 return m_file.get_fd();
+            }
+
+            const OSMFile& get_file() const {
+                return m_file;
             }
 
             void callback_node() {

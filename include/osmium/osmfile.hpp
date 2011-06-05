@@ -76,6 +76,27 @@ namespace Osmium {
         };
 
         /**
+         * An exception of a subclass of this class is thrown when the type of
+         * a file is not what you expected.
+         */
+        struct FileTypeError {
+        };
+
+        /**
+         * This exception is thrown when you wanted to read a normal OSM file,
+         * but the file opened had a different type.
+         */
+        struct FileTypeOSMExpected : public FileTypeError {
+        };
+
+        /**
+         * This exception is thrown when you wanted to read an OSM file with
+         * historic information, but the file opened had a different type.
+         */
+        struct FileTypeHistoryExpected : public FileTypeError {
+        };
+
+        /**
          * Instances of this class describe different file types.
          *
          * You can not create instances of this class yourself, instead use
