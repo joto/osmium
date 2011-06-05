@@ -76,7 +76,7 @@ Google protocol buffers (for PBF support)
     Also see http://wiki.openstreetmap.org/wiki/PBF_Format
 
 OSMPBF (for PBF support)
-    https://github.com/MaZderMind/OSM-binary
+    https://github.com/joto/OSM-binary
     You need to build this first.
 
 You need to either install the Debian/Ubuntu packages (or equivalent for other
