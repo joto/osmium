@@ -111,7 +111,7 @@ namespace Osmium {
             }
 
 #if 0
-    // NOT YET IMPLEMENTED
+            // NOT YET IMPLEMENTED
             /**
              * OSM change file.
              */
@@ -353,7 +353,7 @@ namespace Osmium {
                 m_type     = FileType::History();
                 m_encoding = FileEncoding::XMLgz();
 #if 0
-    // NOT YET IMPLEMENTED
+                // NOT YET IMPLEMENTED
             } else if (suffix == "osc.pbf") {
                 m_type     = FileType::Change();
                 m_encoding = FileEncoding::PBF();
@@ -402,7 +402,7 @@ namespace Osmium {
         ~OSMFile() {
             try {
                 close();
-            } catch(...) {
+            } catch (...) {
                 // ignore exceptions
             }
         }
@@ -462,7 +462,7 @@ namespace Osmium {
             } else if (type == "history" || type == "osh") {
                 m_type = FileType::History();
 #if 0
-    // NOT YET IMPLEMENTED
+                // NOT YET IMPLEMENTED
             } else if (type == "change" || type == "osc") {
                 m_type = FileType::Change();
 #endif

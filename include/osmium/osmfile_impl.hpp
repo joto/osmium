@@ -26,8 +26,9 @@ namespace Osmium {
 
     template <class T>
     void OSMFile::read(T* handler = NULL) {
-        Osmium::Input::Base<T>* input = m_encoding->is_pbf() ? static_cast<Osmium::Input::Base<T>*>(new Osmium::Input::PBF<T>(*this, handler))
-                                                             : static_cast<Osmium::Input::Base<T>*>(new Osmium::Input::XML<T>(*this, handler));
+        Osmium::Input::Base<T>* input = m_encoding->is_pbf()
+                                        ? static_cast<Osmium::Input::Base<T>*>(new Osmium::Input::PBF<T>(*this, handler))
+                                        : static_cast<Osmium::Input::Base<T>*>(new Osmium::Input::XML<T>(*this, handler));
         input->parse();
         delete input;
     }

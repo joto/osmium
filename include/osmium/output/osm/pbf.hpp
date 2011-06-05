@@ -693,11 +693,18 @@ namespace Osmium {
                         last_id = id;
 
                         // copy the relation-member-type, mapped to the OSMPBF enum
-                        switch(mem->get_type()) {
-                            case 'n': pbf_relation->add_types(OSMPBF::Relation::NODE); break;
-                            case 'w': pbf_relation->add_types(OSMPBF::Relation::WAY); break;
-                            case 'r': pbf_relation->add_types(OSMPBF::Relation::RELATION); break;
-                            default: throw std::runtime_error("Unknown relation member type: " + mem->get_type());
+                        switch (mem->get_type()) {
+                            case 'n':
+                                pbf_relation->add_types(OSMPBF::Relation::NODE);
+                                break;
+                            case 'w':
+                                pbf_relation->add_types(OSMPBF::Relation::WAY);
+                                break;
+                            case 'r':
+                                pbf_relation->add_types(OSMPBF::Relation::RELATION);
+                                break;
+                            default:
+                                throw std::runtime_error("Unknown relation member type: " + mem->get_type());
                         }
                     }
                 }
@@ -716,7 +723,7 @@ namespace Osmium {
                     pbf_relations(NULL),
                     primitive_block_contents(0),
                     string_table(),
-                    last_dense_info({0, 0, 0, 0, 0, 0, 0}) {
+                    last_dense_info( {0, 0, 0, 0, 0, 0, 0} ) {
 
                     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
