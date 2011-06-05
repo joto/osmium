@@ -201,10 +201,8 @@ namespace Osmium {
                 // StringTable management
                 Osmium::StringTable string_table;
 
-                /**
-                 * buffer used while compressing blobs
-                 */
-                char pack_buffer[OSMPBF::max_uncompressed_blob_size];
+                /// Buffer used while compressing blobs.
+                char m_compression_buffer[OSMPBF::max_uncompressed_blob_size];
 
                 /**
                  * this struct and its variable last_dense_info is used to calculate the
@@ -228,8 +226,10 @@ namespace Osmium {
                 ///// Blob writing /////
 
                 /**
-                 * take s string and pack it into the pack_buffer, returnung the number of
-                 * compressed bytes
+                 * Take a string and pack its contents.
+                 *
+                 * @param in String input.
+                 * @return Number of bytes after compression.
                  */
                 size_t zlib_compress(std::string &in) {
                     // zlib compression context
@@ -241,8 +241,8 @@ namespace Osmium {
                     // number of bytes to compress
                     z.avail_in  = in.size();
 
-                    // place to store next compressed byte
-                    z.next_out  = (uint8_t*) pack_buffer;
+                    // place to store compressed bytes
+                    z.next_out  = (uint8_t*) m_compression_buffer;
 
                     // space for compressed data
                     z.avail_out = OSMPBF::max_uncompressed_blob_size;
@@ -258,6 +258,9 @@ namespace Osmium {
                     }
 
                     // compress
+                    /* XXX instead of failing when the buffer is overflowing we could
+                           just use the uncompressed data!?
+                    */
                     if (deflate(&z, Z_FINISH) != Z_STREAM_END) {
                         throw std::runtime_error("failed to deflate zlib stream");
                     }
@@ -294,7 +297,7 @@ namespace Osmium {
                         size_t out = zlib_compress(data);
 
                         // set the compressed data on the Blob
-                        pbf_blob.set_zlib_data(pack_buffer, out);
+                        pbf_blob.set_zlib_data(m_compression_buffer, out);
                     } else { // no compression
                         // print debug info about the raw data
                         if (Osmium::global.debug) {
