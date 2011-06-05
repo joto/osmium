@@ -220,7 +220,7 @@ int main(int argc, char *argv[]) {
     bool two_passes = false;
     bool attempt_repair = true;
     std::string javascript_filename;
-    char *osm_filename;
+    std::string osm_filename;
     std::vector<std::string> include_files;
     enum location_store_t {
         NONE,
@@ -299,12 +299,14 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    if (two_passes & !strcmp(osm_filename, "-")) {
+    if (two_passes && osm_filename == "-") {
         std::cerr << "Can't read from stdin when in dual-pass mode" << std::endl;
         exit(1);
     }
 
     Osmium::Framework osmium(debug);
+    Osmium::OSMFile infile(osm_filename);
+
     v8::HandleScope handle_scope;
 
     v8::Handle<v8::ObjectTemplate> global_template = v8::ObjectTemplate::New();
@@ -330,11 +332,11 @@ int main(int argc, char *argv[]) {
 
     if (two_passes) {
         Osmium::Handler::Multipolygon *handler_multipolygon = new Osmium::Handler::Multipolygon(attempt_repair, cbmp);
-        osmium.parse_osmfile<DualPass1>(osm_filename, new DualPass1(handler_node_location_store, handler_multipolygon, handler_javascript));
-        osmium.parse_osmfile<DualPass2>(osm_filename, new DualPass2(handler_node_location_store, handler_multipolygon, handler_javascript));
+        infile.read<DualPass1>(new DualPass1(handler_node_location_store, handler_multipolygon, handler_javascript));
+        infile.read<DualPass2>(new DualPass2(handler_node_location_store, handler_multipolygon, handler_javascript));
         delete handler_multipolygon;
     } else {
-        osmium.parse_osmfile<SinglePass>(osm_filename, new SinglePass(handler_node_location_store, handler_javascript));
+        infile.read<SinglePass>(new SinglePass(handler_node_location_store, handler_javascript));
     }
     delete handler_javascript;
     delete handler_node_location_store;

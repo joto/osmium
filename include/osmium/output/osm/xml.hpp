@@ -36,11 +36,7 @@ namespace Osmium {
 
             class XML : public Base {
 
-                bool uses_popen;
-                FILE *file;
                 xmlTextWriterPtr xml_writer;
-
-                //v8::Persistent<v8::Object> js_object;
 
                 void write_meta(Osmium::OSM::Object *object) {
                     xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "id",        "%d", object->get_id());
@@ -54,7 +50,7 @@ namespace Osmium {
                         xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "user", BAD_CAST object->get_user());
                     }
 
-                    if (is_history_file()) {
+                    if (m_file.get_type() == OSMFile::FileType::History()) {
                         xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "visible", object->get_visible() ? BAD_CAST "true" : BAD_CAST "false");
                     }
                 }
@@ -68,35 +64,10 @@ namespace Osmium {
                     }
                 }
 
-                void init() {
-                    xml_writer = xmlNewTextWriter(xmlOutputBufferCreateFile(file, NULL));
-                    //js_object = v8::Persistent<v8::Object>::New( Osmium::Javascript::Template::create_output_osm_xml_instance(this) );
-                }
-
             public:
 
-                XML() : Base(), uses_popen(false), file(stdout) {
-                    init();
-                }
-
-                XML(std::string &filename) : Base(), uses_popen(false) {
-                    if (filename.rfind(".bz2") == filename.size() - 4) {
-                        std::string bzip_command("bzip2 -c >");
-                        bzip_command += filename;
-                        file = popen(bzip_command.c_str(), "w");
-                        if (!file) {
-                            perror("Can't open output file");
-                            throw std::runtime_error("");
-                        }
-                        uses_popen = true;
-                    } else {
-                        file = fopen(filename.c_str(), "w");
-                        if (!file) {
-                            perror("Can't open output file");
-                            throw std::runtime_error("");
-                        }
-                    }
-                    init();
+                XML(OSMFile& file) : Base(file) {
+                    xml_writer = xmlNewTextWriter(xmlOutputBufferCreateFd(this->get_fd(), NULL));
                 }
 
                 ~XML() {
@@ -187,17 +158,8 @@ namespace Osmium {
                 void write_final() {
                     xmlTextWriterEndElement(xml_writer); // </osm>
                     xmlFreeTextWriter(xml_writer);
-                    if (uses_popen) {
-                        pclose(file);
-                    } else {
-                        fclose(file);
-                    }
-                    file = NULL;
+                    m_file.close();
                 }
-
-                //v8::Handle<v8::Object> get_js_object() const {
-                //    return js_object;
-                //}
 
             }; // class XML
 

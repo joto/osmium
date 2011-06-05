@@ -42,7 +42,8 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    osmium.parse_osmfile<Osmium::Handler::FindBbox>(argv[1], &handler);
+    Osmium::OSMFile infile(argv[1]);
+    infile.read<Osmium::Handler::FindBbox>(&handler);
 
     std::cout <<  "minlon=" << handler.get_minlon()
               << " minlat=" << handler.get_minlat()

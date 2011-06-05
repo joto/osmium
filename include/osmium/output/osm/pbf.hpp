@@ -80,7 +80,7 @@ A simple outline of a .osm.pbf file could look like this:
       PrimitiveGroup
         1 relation
 
-More complete outlines of real .osm.pbf files can be created using the osmpbf-outline Tool:
+More complete outlines of real .osm.pbf files can be created using the osmpbf-outline tool:
  <https://github.com/MaZderMind/OSM-binary/tree/osmpbf-outline>
 */
 
@@ -90,6 +90,11 @@ More complete outlines of real .osm.pbf files can be created using the osmpbf-ou
 // the algorithm-lib contains the sort functions
 #include <algorithm>
 
+#include <osmpbf/osmpbf.h>
+
+// StringTable management
+#include <osmium/utils/stringtable.hpp>
+
 namespace Osmium {
 
     namespace Output {
@@ -97,14 +102,6 @@ namespace Osmium {
         namespace OSM {
 
             class PBF : public Base {
-
-                /**
-                 * nanodegree multiplier
-                 *
-                 * used in latlon2int while converting floating-point
-                 * lat/lon to integers
-                 */
-                static const uint32_t NANO = 1000 * 1000 * 1000;
 
                 /**
                  * maximum number of items in a primitive block.
@@ -119,66 +116,6 @@ namespace Osmium {
                  * uses at most 8k entities in a block.
                  */
                 static const uint32_t max_block_contents = 8000;
-
-                /**
-                 * maximum number of bytes an uncompressed block may take
-                 */
-                static const uint32_t MAX_BLOB_SIZE = 32 * 1024 * 1024;
-
-                /**
-                 * the file descriptor of the output file
-                 *
-                 * all PBF-Blobs get serialized into this descriptor.
-                 */
-                FILE *fd;
-
-                /**
-                 * a boolean indicating id fd has been fopen'ed and should be closed again
-                 */
-                bool fd_opened;
-
-                /**
-                 * should nodes be serialized into the dense format?
-                 *
-                 * nodes can be encoded one of two ways, as a Node
-                 * (use_dense_format_ = false) and a special dense format.
-                 * In the dense format, all information is stored 'column wise',
-                 * as an array of ID's, array of latitudes, and array of
-                 * longitudes. Each column is delta-encoded. This reduces
-                 * header overheads and allows delta-coding to work very effectively.
-                 */
-                bool use_dense_format_;
-
-                /**
-                 * should the PBF blobs contain zlib compressed data?
-                 *
-                 * the zlib compression is optional, it's possible to store the
-                 * blobs in raw format. Disabling the compression can improve the
-                 * writing speed a little but the output will be 2x to 3x bigger.
-                 */
-                bool use_compression_;
-
-                /**
-                 * to flexibly handle multiple resolutions, the granularity, or
-                 * resolution used for representing locations is adjustable in
-                 * multiples of 1 nanodegree. The default scaling factor is 100
-                 * nanodegrees, corresponding to about ~1cm at the equator.
-                 * These is the current resolution of the OSM database.
-                 */
-                int granularity_;
-
-                /**
-                 * the granularity used for representing timestamps is also adjustable in
-                 * multiples of 1 millisecond. The default scaling factor is 1000
-                 * milliseconds, which is the current resolution of the OSM database.
-                 */
-                int date_granularity_;
-
-                /**
-                 * while the .osm.pbf-format is able to carry all meta information, it is
-                 * also able to omit this information to reduce size.
-                 */
-                bool omit_metadata_;
 
                 /**
                  * protobuf-struct of a Blob
@@ -209,6 +146,49 @@ namespace Osmium {
                 OSMPBF::PrimitiveGroup *pbf_relations;
 
                 /**
+                 * to flexibly handle multiple resolutions, the granularity, or
+                 * resolution used for representing locations is adjustable in
+                 * multiples of 1 nanodegree. The default scaling factor is 100
+                 * nanodegrees, corresponding to about ~1cm at the equator.
+                 * These is the current resolution of the OSM database.
+                 */
+                int m_location_granularity;
+
+                /**
+                 * the granularity used for representing timestamps is also adjustable in
+                 * multiples of 1 millisecond. The default scaling factor is 1000
+                 * milliseconds, which is the current resolution of the OSM database.
+                 */
+                int m_date_granularity;
+
+                /**
+                 * should nodes be serialized into the dense format?
+                 *
+                 * nodes can be encoded one of two ways, as a Node
+                 * (m_use_dense_format = false) and a special dense format.
+                 * In the dense format, all information is stored 'column wise',
+                 * as an array of ID's, array of latitudes, and array of
+                 * longitudes. Each column is delta-encoded. This reduces
+                 * header overheads and allows delta-coding to work very effectively.
+                 */
+                bool m_use_dense_format;
+
+                /**
+                 * should the PBF blobs contain zlib compressed data?
+                 *
+                 * the zlib compression is optional, it's possible to store the
+                 * blobs in raw format. Disabling the compression can improve the
+                 * writing speed a little but the output will be 2x to 3x bigger.
+                 */
+                bool m_use_compression;
+
+                /**
+                 * While the .osm.pbf-format is able to carry all meta information, it is
+                 * also able to omit this information to reduce size.
+                 */
+                bool m_should_add_metadata;
+
+                /**
                  * counter used to quickly check the number of objects stored inside
                  * the current PrimitiveBlock. When the counter reaches max_block_contents
                  * the PrimitiveBlock is serialized into a Blob and flushed to the file.
@@ -218,50 +198,11 @@ namespace Osmium {
                  */
                 uint16_t primitive_block_contents;
 
-                /**
-                 * this is the struct used to build the StringTable. It is stored as
-                 * the value-part in the strings-map.
-                 *
-                 * when a new string is added to the map, its count is set to 0 and
-                 * the interim_id is set to the current size of the map. This interim_id
-                 * is then stored into the pbf-objects.
-                 *
-                 * before the PrimitiveBlock is serialized, the map is sorted by count
-                 * and stored into the pbf-StringTable. Afterwards the interim-ids are
-                 * mapped to the "real" id in the StringTable.
-                 *
-                 * this way often used strings get lower ids in the StringTable. As the
-                 * protobuf-serializer stores numbers in variable bit-lengths, lower
-                 * IDs means less used space in the resulting file.
-                 */
-                struct string_info {
-                    /**
-                     * number of occurrences of this string
-                     */
-                    uint16_t count;
+                // StringTable management
+                Osmium::StringTable string_table;
 
-                    /**
-                     * an intermediate-id
-                     */
-                    uint16_t interim_id;
-                };
-
-                /**
-                 * interim StringTable, storing all strings that should be written to
-                 * the StringTable once the block is written to disk.
-                 */
-                std::map<std::string, string_info> strings;
-
-                /**
-                 * this map is used to map the interim-ids to real StringTable-IDs after
-                 * writing all strings to the StringTable.
-                 */
-                std::map<uint16_t, uint16_t> string_ids_map;
-
-                /**
-                 * buffer used while compressing blobs
-                 */
-                char pack_buffer[MAX_BLOB_SIZE];
+                /// Buffer used while compressing blobs.
+                char m_compression_buffer[OSMPBF::max_uncompressed_blob_size];
 
                 /**
                  * this struct and its variable last_dense_info is used to calculate the
@@ -285,8 +226,10 @@ namespace Osmium {
                 ///// Blob writing /////
 
                 /**
-                 * take s string and pack it into the pack_buffer, returnung the number of
-                 * compressed bytes
+                 * Take a string and pack its contents.
+                 *
+                 * @param in String input.
+                 * @return Number of bytes after compression.
                  */
                 size_t zlib_compress(std::string &in) {
                     // zlib compression context
@@ -298,11 +241,11 @@ namespace Osmium {
                     // number of bytes to compress
                     z.avail_in  = in.size();
 
-                    // place to store next compressed byte
-                    z.next_out  = (uint8_t*) pack_buffer;
+                    // place to store compressed bytes
+                    z.next_out  = (uint8_t*) m_compression_buffer;
 
                     // space for compressed data
-                    z.avail_out = MAX_BLOB_SIZE;
+                    z.avail_out = OSMPBF::max_uncompressed_blob_size;
 
                     // custom allocator functions - not used
                     z.zalloc    = Z_NULL;
@@ -315,6 +258,9 @@ namespace Osmium {
                     }
 
                     // compress
+                    /* XXX instead of failing when the buffer is overflowing we could
+                           just use the uncompressed data!?
+                    */
                     if (deflate(&z, Z_FINISH) != Z_STREAM_END) {
                         throw std::runtime_error("failed to deflate zlib stream");
                     }
@@ -334,10 +280,11 @@ namespace Osmium {
                 }
 
                 /**
-                 * serialize a protobuf-message together into a Blob, optionally apply compression
+                 * Serialize a protobuf-message together into a Blob, optionally apply compression
                  * and write it together with a BlobHeader to the file.
                  *
-                 * type specifies the type-string used in the BlobHeader and msg the protobuf-message.
+                 * @param type Type-string used in the BlobHeader.
+                 * @param msg Protobuf-message.
                  */
                 void store_blob(const std::string &type, const google::protobuf::MessageLite &msg) {
                     // buffer to serialize the protobuf message to
@@ -346,13 +293,12 @@ namespace Osmium {
                     // serialize the protobuf message to the string
                     msg.SerializeToString(&data);
 
-                    // test if compression is enabled
                     if (use_compression()) {
                         // compress using zlib
                         size_t out = zlib_compress(data);
 
                         // set the compressed data on the Blob
-                        pbf_blob.set_zlib_data(pack_buffer, out);
+                        pbf_blob.set_zlib_data(m_compression_buffer, out);
                     } else { // no compression
                         // print debug info about the raw data
                         if (Osmium::global.debug) {
@@ -390,121 +336,22 @@ namespace Osmium {
                     int32_t sz = htonl(blobhead.size());
 
                     // write to the file: the 4-byte BlobHeader-Size followed by the BlobHeader followed by the Blob
-                    fwrite(&sz, sizeof(sz), 1, fd);
-                    fwrite(blobhead.c_str(), blobhead.size(), 1, fd);
-                    fwrite(data.c_str(), data.size(), 1, fd);
-                }
-
-
-                ///// StringTable management /////
-
-                /**
-                 * record a string in the interim StringTable if it's missing, otherwise just increase its counter,
-                 * return the interim-id assigned to the string.
-                 */
-                uint16_t record_string(const std::string& string) {
-                    // try to find the string in the interim StringTable
-                    if (strings.count(string) > 0) {
-                        // found, get a pointer to the associated string_info struct
-                        string_info *info_p = &strings[string];
-
-                        // increase the counter by one
-                        info_p->count++;
-
-                        // return the associated interim-id
-                        //if (Osmium::global.debug) fprintf(stderr, "found string %s at interim-id %u\n", string.c_str(), info_p->interim_id);
-                        return info_p->interim_id;
-                    } else {
-                        // not found, initialize a new string_info struct with the count set to 0 and the
-                        // interim-id set to the current size +1
-                        string_info info = {0, (uint16_t)(strings.size()+1)};
-
-                        // store this string_info struct in the interim StringTable
-                        strings[string] = info;
-
-                        // debug-print and return the associated interim-id
-                        if (Osmium::global.debug) {
-                            std::cerr << "record string " << string << " at interim-id " << info.interim_id << std::endl;
-                        }
-                        return info.interim_id;
+                    if (::write(get_fd(), &sz, sizeof(sz)) < 0) {
+                        throw std::runtime_error("file error");
+                    }
+                    if (::write(get_fd(), blobhead.c_str(), blobhead.size()) < 0) {
+                        throw std::runtime_error("file error");
+                    }
+                    if (::write(get_fd(), data.c_str(), data.size()) < 0) {
+                        throw std::runtime_error("file error");
                     }
                 }
 
                 /**
-                 * this is the comparator used while sorting the interim StringTable.
-                 */
-                static bool stringtable_comparator(const std::pair<std::string, string_info> &a, const std::pair<std::string, string_info> &b) {
-                    // it first compares based on count
-                    if (a.second.count > b.second.count) {
-                        return true;
-                    } else if (a.second.count < b.second.count) {
-                        return false;
-                    } else {
-                        // if the count is equal, compare based on lexicography order so make
-                        // the sorting of the later zlib compression faster
-                        return a.first < b.first;
-                    }
-                }
-
-                /**
-                 * sort the interim StringTable and store it to the real protobuf StringTable.
-                 * while storing to the real table, this function fills the string_ids_map with
-                 * pairs, mapping the interim-ids to final and real StringTable ids.
-                 */
-                void store_stringtable() {
-                    // as a map can't be sorted, we need a vector holding our string/string_info pairs
-                    std::vector<std::pair<std::string, string_info>> strvec;
-
-                    // we now copy the contents from the map over to the vector
-                    std::copy(strings.begin(), strings.end(), back_inserter(strvec));
-
-                    // next the vector is sorted using our comparator
-                    std::sort(strvec.begin(), strvec.end(), stringtable_comparator);
-
-                    // add a stringtable to the PrimitiveBlock and save a pointer
-                    OSMPBF::StringTable *st = pbf_primitive_block.mutable_stringtable();
-
-                    // iterate over the items of our vector
-                    for (int i=0, l=strvec.size(); i<l; i++) {
-                        if (Osmium::global.debug) {
-                            std::cerr << "store stringtable: " << strvec[i].first << " (cnt=" << strvec[i].second.count+1 << ") with interim-id " << strvec[i].second.interim_id << " at stringtable-id " << i+1 << std::endl;
-                        }
-
-                        // add the string of the current item to the pbf StringTable
-                        st->add_s(strvec[i].first);
-
-                        // store the mapping from the interim-id to the real id
-                        string_ids_map[strvec[i].second.interim_id] = i+1;
-                    }
-                }
-
-                /**
-                 * map from an interim-id to a real string-id, throwing an exception if an
-                 * unknown mapping is requested.
-                 */
-                uint16_t map_string_id(const uint16_t interim_id) {
-                    // declare an iterator over the ids-map
-                    std::map<uint16_t, uint16_t>::const_iterator it;
-
-                    // use the find method of the map to search for the mapping pair
-                    it = string_ids_map.find(interim_id);
-
-                    // if there was a hit
-                    if (it != string_ids_map.end()) {
-                        // return the real-id stored in the second part of the pair
-                        //if (Osmium::global.debug) fprintf(stderr, "mapping interim-id %u to stringtable-id %u\n", interim_id, it->second);
-                        return it->second;
-                    }
-
-                    // throw an exception
-                    throw std::runtime_error("Request for string not in stringable\n");
-                }
-
-                /**
-                 * before a PrimitiveBlock gets serialized, all interim StringTable-ids needs to be
+                 * Before a PrimitiveBlock gets serialized, all interim StringTable-ids needs to be
                  * mapped to the associated real StringTable ids. Th is is done in this function.
                  *
-                 * this function needs to know about the concrete structure of all item types to find
+                 * This function needs to know about the concrete structure of all item types to find
                  * all occurrences of string-ids.
                  */
                 void map_string_ids() {
@@ -527,7 +374,7 @@ namespace Osmium {
                                 // map interim string-ids > 0 to real string ids
                                 uint16_t sid = dense->keys_vals(i);
                                 if (sid > 0) {
-                                    dense->set_keys_vals(i, map_string_id(sid));
+                                    dense->set_keys_vals(i, string_table.map_string_id(sid));
                                 }
                             }
 
@@ -539,7 +386,7 @@ namespace Osmium {
                                 // iterate over all username string-ids
                                 for (int i=0, l= denseinfo->user_sid_size(); i<l; i++) {
                                     // map interim string-ids > 0 to real string ids
-                                    uint16_t user_sid = map_string_id(denseinfo->user_sid(i));
+                                    uint16_t user_sid = string_table.map_string_id(denseinfo->user_sid(i));
 
                                     // delta encode the string-id
                                     denseinfo->set_user_sid(i, user_sid - last_dense_info.user_sid);
@@ -572,7 +419,7 @@ namespace Osmium {
                             // iterate over all relation members, mapping the interim string-ids
                             // of the role to real string ids
                             for (int mi=0, ml=relation->roles_sid_size(); mi<ml; mi++) {
-                                relation->set_roles_sid(mi, map_string_id(relation->roles_sid(mi)));
+                                relation->set_roles_sid(mi, string_table.map_string_id(relation->roles_sid(mi)));
                             }
                         }
                     }
@@ -589,13 +436,13 @@ namespace Osmium {
                     if (in->has_info()) {
                         // map the interim-id of the user name to a real id
                         OSMPBF::Info *info = in->mutable_info();
-                        info->set_user_sid(map_string_id(info->user_sid()));
+                        info->set_user_sid(string_table.map_string_id(info->user_sid()));
                     }
 
                     // iterate over all tags and map the interim-ids of the key and the value to real ids
                     for (int i=0, l=in->keys_size(); i<l; i++) {
-                        in->set_keys(i, map_string_id(in->keys(i)));
-                        in->set_vals(i, map_string_id(in->vals(i)));
+                        in->set_keys(i, string_table.map_string_id(in->keys(i)));
+                        in->set_vals(i, string_table.map_string_id(in->vals(i)));
                     }
                 }
 
@@ -608,7 +455,7 @@ namespace Osmium {
                  * convert a double lat or lon value to an int, respecting the current blocks granularity
                  */
                 int64_t latlon2int(double latlon) {
-                    return (latlon * NANO / granularity());
+                    return (latlon * OSMPBF::lonlat_resolution / granularity());
                 }
 
                 /**
@@ -631,18 +478,18 @@ namespace Osmium {
                     // iterate over all tags and set the keys and vals, recording the strings in the
                     // interim StringTable and storing the interim ids
                     for (int i=0, l=in->tag_count(); i<l; i++) {
-                        out->add_keys(record_string(in->get_tag_key(i)));
-                        out->add_vals(record_string(in->get_tag_value(i)));
+                        out->add_keys(string_table.record_string(in->get_tag_key(i)));
+                        out->add_vals(string_table.record_string(in->get_tag_value(i)));
                     }
 
-                    if (!omit_metadata()) {
+                    if (should_add_metadata()) {
                         // add an info-section to the pbf object and set the meta-info on it
                         OSMPBF::Info *out_info = out->mutable_info();
                         out_info->set_version(in->get_version());
                         out_info->set_timestamp(timestamp2int(in->get_timestamp()));
                         out_info->set_changeset(in->get_changeset());
                         out_info->set_uid(in->get_uid());
-                        out_info->set_user_sid(record_string(in->get_user()));
+                        out_info->set_user_sid(string_table.record_string(in->get_user()));
                     }
                 }
 
@@ -671,7 +518,7 @@ namespace Osmium {
                     }
 
                     // store the interim StringTable into the protobuf object
-                    store_stringtable();
+                    string_table.store_stringtable(pbf_primitive_block.mutable_stringtable());
 
                     // map all interim string ids to real ids
                     map_string_ids();
@@ -692,8 +539,7 @@ namespace Osmium {
                     pbf_primitive_block.set_date_granularity(date_granularity());
 
                     // clear the interim StringTable and its id map
-                    strings.clear();
-                    string_ids_map.clear();
+                    string_table.clear();
 
                     // reset the dense-info struct to zero
                     last_dense_info = {0, 0, 0, 0, 0, 0, 0};
@@ -723,10 +569,11 @@ namespace Osmium {
                 ///// Block content writing /////
 
                 /**
-                 * add a node in classic mode to the block
+                 * Add a node to the block.
+                 *
+                 * @param node The node to add.
                  */
-                void write_classic(Osmium::OSM::Node *node) {
-                    // add a "classic" node to the group
+                void write_node(Osmium::OSM::Node *node) {
                     OSMPBF::Node *pbf_node = pbf_nodes->add_nodes();
 
                     // copy the common meta-info from the osmium-object to the pbf-object
@@ -739,9 +586,11 @@ namespace Osmium {
                 }
 
                 /**
-                 * add a node in dense mode to the block
+                 * Add a node to the block using DenseNodes.
+                 *
+                 * @param node The node to add.
                  */
-                void write_dense(Osmium::OSM::Node *node) {
+                void write_dense_node(Osmium::OSM::Node *node) {
                     // add a DenseNodes-Section to the PrimitiveGroup
                     OSMPBF::DenseNodes *dense = pbf_nodes->mutable_dense();
 
@@ -767,12 +616,12 @@ namespace Osmium {
                     // the first node has two tags (3=>5 and 2=>1), the second node has does not
                     // have any tags and the third node has a single tag (8=>5)
                     for (int i=0, l=node->tag_count(); i<l; i++) {
-                        dense->add_keys_vals(record_string(node->get_tag_key(i)));
-                        dense->add_keys_vals(record_string(node->get_tag_value(i)));
+                        dense->add_keys_vals(string_table.record_string(node->get_tag_key(i)));
+                        dense->add_keys_vals(string_table.record_string(node->get_tag_value(i)));
                     }
                     dense->add_keys_vals(0);
 
-                    if (!omit_metadata()) {
+                    if (should_add_metadata()) {
                         // add a DenseInfo-Section to the PrimitiveGroup
                         OSMPBF::DenseInfo *denseinfo = dense->mutable_denseinfo();
 
@@ -796,14 +645,16 @@ namespace Osmium {
 
                         // record the user-name to the interim stringtable and copy the
                         // interim string-id to the pbf-object
-                        denseinfo->add_user_sid(record_string(node->get_user()));
+                        denseinfo->add_user_sid(string_table.record_string(node->get_user()));
                     }
                 }
 
                 /**
-                 * add a way in classic mode to the block
+                 * Add a way to the block.
+                 *
+                 * @param way The way to add.
                  */
-                void write_classic(Osmium::OSM::Way *way) {
+                void write_way(Osmium::OSM::Way *way) {
                     // add a way to the group
                     OSMPBF::Way *pbf_way = pbf_ways->add_ways();
 
@@ -823,9 +674,11 @@ namespace Osmium {
                 }
 
                 /**
-                 * add a relation in classic mode to the block
+                 * Add a relation to the block.
+                 *
+                 * @param relation The relation to add.
                  */
-                void write_classic(Osmium::OSM::Relation *relation) {
+                void write_relation(Osmium::OSM::Relation *relation) {
                     // add a relation to the group
                     OSMPBF::Relation *pbf_relation = pbf_relations->add_relations();
 
@@ -842,7 +695,7 @@ namespace Osmium {
 
                         // record the relation-member role to the interim stringtable and copy the
                         // interim string-id to the pbf-object
-                        pbf_relation->add_roles_sid(record_string(mem->get_role()));
+                        pbf_relation->add_roles_sid(string_table.record_string(mem->get_role()));
 
                         // copy the relation-member-id, delta encoded against last_id
                         int64_t id = mem->get_ref();
@@ -850,11 +703,18 @@ namespace Osmium {
                         last_id = id;
 
                         // copy the relation-member-type, mapped to the OSMPBF enum
-                        switch(mem->get_type()) {
-                            case 'n': pbf_relation->add_types(OSMPBF::Relation::NODE); break;
-                            case 'w': pbf_relation->add_types(OSMPBF::Relation::WAY); break;
-                            case 'r': pbf_relation->add_types(OSMPBF::Relation::RELATION); break;
-                            default: throw std::runtime_error("Unknown relation member type: " + mem->get_type());
+                        switch (mem->get_type()) {
+                            case 'n':
+                                pbf_relation->add_types(OSMPBF::Relation::NODE);
+                                break;
+                            case 'w':
+                                pbf_relation->add_types(OSMPBF::Relation::WAY);
+                                break;
+                            case 'r':
+                                pbf_relation->add_types(OSMPBF::Relation::RELATION);
+                                break;
+                            default:
+                                throw std::runtime_error("Unknown relation member type: " + mem->get_type());
                         }
                     }
                 }
@@ -862,67 +722,36 @@ namespace Osmium {
             public:
 
                 /**
-                 * default constructor, initializing the file descriptor to stdout
+                 * Create PBF output object from OSMFile.
                  */
-                PBF() : Base(),
-                    fd(stdout),
-                    fd_opened(false),
-                    use_dense_format_(true),
-                    use_compression_(true),
-                    omit_metadata_(false),
+                PBF(OSMFile& file) : Base(file),
                     pbf_nodes(NULL),
                     pbf_ways(NULL),
                     pbf_relations(NULL),
+                    m_location_granularity(pbf_primitive_block.granularity()),
+                    m_date_granularity(pbf_primitive_block.date_granularity()),
+                    m_use_dense_format(true),
+                    m_use_compression(true),
+                    m_should_add_metadata(true),
                     primitive_block_contents(0),
-                    last_dense_info({0, 0, 0, 0, 0, 0, 0}) {
+                    string_table(),
+                    last_dense_info( {0, 0, 0, 0, 0, 0, 0} ) {
 
                     GOOGLE_PROTOBUF_VERIFY_VERSION;
-
-                    // set defaults from proto-definiton
-                    granularity_ = pbf_primitive_block.granularity();
-                    date_granularity_ = pbf_primitive_block.date_granularity();
                 }
-
-                /**
-                 * filename constructor, opening the specified file for writing
-                 */
-                PBF(std::string &filename) : Base(),
-                    fd_opened(false),
-                    use_dense_format_(true),
-                    use_compression_(true),
-                    omit_metadata_(false),
-                    pbf_nodes(NULL),
-                    pbf_ways(NULL),
-                    pbf_relations(NULL),
-                    primitive_block_contents(0),
-                    last_dense_info({0, 0, 0, 0, 0, 0, 0}) {
-
-                    GOOGLE_PROTOBUF_VERIFY_VERSION;
-
-                    // set defaults from proto-definition
-                    granularity_ = pbf_primitive_block.granularity();
-                    date_granularity_ = pbf_primitive_block.date_granularity();
-
-                    // open the file for writing
-                    fd = fopen(filename.c_str(), "w");
-                    if (!fd) {
-                        throw std::runtime_error("unable to open outfile");
-                    }
-                }
-
 
                 /**
                  * getter to check whether the densenodes-feature is used
                  */
                 bool use_dense_format() const {
-                    return use_dense_format_;
+                    return m_use_dense_format;
                 }
 
                 /**
                  * setter to set whether the densenodes-feature is used
                  */
-                PBF& use_dense_format(bool d) {
-                    use_dense_format_ = d;
+                PBF& use_dense_format(bool flag) {
+                    m_use_dense_format = flag;
                     return *this;
                 }
 
@@ -931,14 +760,14 @@ namespace Osmium {
                  * getter to check whether zlib-compression is used
                  */
                 bool use_compression() const {
-                    return use_compression_;
+                    return m_use_compression;
                 }
 
                 /**
                  * setter to set whether zlib-compression is used
                  */
-                PBF& use_compression(bool d) {
-                    use_compression_ = d;
+                PBF& use_compression(bool flag) {
+                    m_use_compression = flag;
                     return *this;
                 }
 
@@ -947,14 +776,14 @@ namespace Osmium {
                  * getter to access the granularity
                  */
                 int granularity() const {
-                    return granularity_;
+                    return m_location_granularity;
                 }
 
                 /**
                  * setter to set the granularity
                  */
                 PBF& granularity(int g) {
-                    granularity_ = g;
+                    m_location_granularity = g;
                     return *this;
                 }
 
@@ -963,39 +792,39 @@ namespace Osmium {
                  * getter to access the date_granularity
                  */
                 int date_granularity() const {
-                    return date_granularity_;
+                    return m_date_granularity;
                 }
 
                 /**
-                 * setter to set whether zlib-compression is used
+                 * Set date granularity.
                  */
                 PBF& date_granularity(int g) {
-                    date_granularity_ = g;
+                    m_date_granularity = g;
                     return *this;
                 }
 
 
                 /**
-                 * getter to check whether metadata is omitted
+                 * Getter to check whether metadata should be added.
                  */
-                bool omit_metadata() const {
-                    return omit_metadata_;
+                bool should_add_metadata() const {
+                    return m_should_add_metadata;
                 }
 
                 /**
-                 * setter to set whether to omit metadata
+                 * Setter to set whether to add metadata.
                  */
-                PBF& omit_metadata(bool o) {
-                    omit_metadata_ = o;
+                PBF& should_add_metadata(bool flag) {
+                    m_should_add_metadata = flag;
                     return *this;
                 }
 
 
                 /**
-                 * initialize the writing process
+                 * Initialize the writing process.
                  *
-                 * this initializes the header-block, sets the required-features and
-                 * the writing-program and adds the obligatory StringTable-Index 0
+                 * This initializes the header-block, sets the required-features and
+                 * the writing-program and adds the obligatory StringTable-Index 0.
                  */
                 void write_init() {
                     if (Osmium::global.debug) {
@@ -1012,7 +841,7 @@ namespace Osmium {
 
                     // when the resulting file will carry history information, add
                     // HistoricalInformation as required feature
-                    if (is_history_file()) {
+                    if (m_file.get_type() == OSMFile::FileType::History()) {
                         pbf_header_block.add_required_features("HistoricalInformation");
                     }
 
@@ -1021,7 +850,7 @@ namespace Osmium {
                     store_header_block();
 
                     // add empty StringTable entry at index 0
-                    // StringTable index 0 is rserved as delimiter in the densenodes key/value list
+                    // StringTable index 0 is reserved as delimiter in the densenodes key/value list
                     // this line also ensures that there's always a valid StringTable
                     pbf_primitive_block.mutable_stringtable()->add_s("");
 
@@ -1038,16 +867,16 @@ namespace Osmium {
                     OSMPBF::HeaderBBox *bbox = pbf_header_block.mutable_bbox();
 
                     // encode the bbox in nanodegrees
-                    bbox->set_left(minlon * NANO);
-                    bbox->set_top(minlat * NANO);
-                    bbox->set_right(maxlon * NANO);
-                    bbox->set_bottom(maxlat * NANO);
+                    bbox->set_left(  minlon * OSMPBF::lonlat_resolution);
+                    bbox->set_top(   minlat * OSMPBF::lonlat_resolution);
+                    bbox->set_right( maxlon * OSMPBF::lonlat_resolution);
+                    bbox->set_bottom(maxlat * OSMPBF::lonlat_resolution);
                 }
 
                 /**
-                 * add a node to the pbf.
+                 * Add a node to the pbf.
                  *
-                 * a call to this method won't write the node to the file directly but
+                 * A call to this method won't write the node to the file directly but
                  * cache it for later bulk-writing. Calling write_final ensures that everything
                  * gets written and every file pointer is closed.
                  */
@@ -1056,27 +885,26 @@ namespace Osmium {
                     // disk if the limit is reached. This call also increases the contents-counter
                     check_block_contents_counter();
 
+                    if (Osmium::global.debug) {
+                        std::cerr << "node " << node->get_id() << " v" << node->get_version() << std::endl;
+                    }
+
                     // if no PrimitiveGroup for nodes has been added, add one and save the pointer
                     if (!pbf_nodes) {
                         pbf_nodes = pbf_primitive_block.add_primitivegroup();
                     }
 
-                    if (Osmium::global.debug) {
-                        std::cerr << "node " << node->get_id() << " v" << node->get_version() << std::endl;
-                    }
-
-                    // if the dense-format is disabled, use the classic format
                     if (use_dense_format()) {
-                        write_dense(node);
+                        write_dense_node(node);
                     } else {
-                        write_classic(node);
+                        write_node(node);
                     }
                 }
 
                 /**
-                 * add a way to the pbf.
+                 * Add a way to the pbf.
                  *
-                 * a call to this method won't write the way to the file directly but
+                 * A call to this method won't write the way to the file directly but
                  * cache it for later bulk-writing. Calling write_final ensures that everything
                  * gets written and every file pointer is closed.
                  */
@@ -1094,13 +922,13 @@ namespace Osmium {
                         pbf_ways = pbf_primitive_block.add_primitivegroup();
                     }
 
-                    write_classic(way);
+                    write_way(way);
                 }
 
                 /**
-                 * add a relation to the pbf.
+                 * Add a relation to the pbf.
                  *
-                 * a call to this method won't write the way to the file directly but
+                 * A call to this method won't write the way to the file directly but
                  * cache it for later bulk-writing. Calling write_final ensures that everything
                  * gets written and every file pointer is closed.
                  */
@@ -1118,12 +946,12 @@ namespace Osmium {
                         pbf_relations = pbf_primitive_block.add_primitivegroup();
                     }
 
-                    write_classic(relation);
+                    write_relation(relation);
                 }
 
                 /**
-                 * finalize the writing process, flush any open primitive blocks to the file and
-                 * close the file descriptor that the constructor opened.
+                 * Finalize the writing process, flush any open primitive blocks to the file and
+                 * close the file.
                  */
                 void write_final() {
                     if (Osmium::global.debug) {
@@ -1135,10 +963,7 @@ namespace Osmium {
                         store_primitive_block();
                     }
 
-                    // only close the fd if it has been opened by the constructor
-                    if (fd_opened && fd) {
-                        fclose(fd);
-                    }
+                    m_file.close();
                 }
 
             }; // class PBF

@@ -75,9 +75,11 @@ struct Osmium::global Osmium::global;
 #endif // OSMIUM_WITH_JAVASCRIPT
 
 #include <osmium/osm.hpp>
+#include <osmium/osmfile.hpp>
 #include <osmium/input.hpp>
 #include <osmium/framework.hpp>
 #include <osmium/output.hpp>
+#include <osmium/osmfile_impl.hpp>
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
 # include <osmium/javascript/object_templates.hpp>

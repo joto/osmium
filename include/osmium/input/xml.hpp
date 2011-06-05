@@ -36,12 +36,18 @@ namespace Osmium {
 
     namespace Input {
 
+        /**
+        * Class for parsing XML files.
+        *
+        * Generally you are not supposed to instantiate this class yourself.
+        * Instead create an OSMFile object and call its read() method.
+        *
+        * @tparam THandler A handler class (subclass of Osmium::Handler::Base).
+        */
         template <class THandler>
         class XML : public Base<THandler> {
 
             static const int buffer_size = 10240;
-
-            int fd; ///< The file descriptor we are reading the data from.
 
             Osmium::OSM::Object *current_object;
 
@@ -56,12 +62,12 @@ namespace Osmium {
         public:
 
             /**
-            * Instantiate XML Parser
+            * Instantiate XML Parser.
             *
-            * @param in_fd File descripter to read data from.
-            * @param h Instance of THandler or NULL.
+            * @param file OSMFile instance.
+            * @param handler Instance of THandler. If NULL an instance of class THandler is created internally.
             */
-            XML(int in_fd, THandler *h) __attribute__((noinline)) : Base<THandler>(h), fd(in_fd) {
+            XML(OSMFile& file, THandler *handler) __attribute__((noinline)) : Base<THandler>(file, handler) {
             }
 
             void parse() __attribute__((noinline)) {
@@ -84,7 +90,7 @@ namespace Osmium {
                             throw std::runtime_error("out of memory");
                         }
 
-                        int result = read(fd, buffer, buffer_size);
+                        int result = read(this->get_fd(), buffer, buffer_size);
                         if (result < 0) {
                             exit(1);
                         }
@@ -177,15 +183,15 @@ namespace Osmium {
 
             void end_element(const XML_Char* element) {
                 if (!strcmp(element, "node")) {
-                    this->handler->callback_node(this->node);
+                    this->callback_node();
                     current_object = 0;
                 }
                 if (!strcmp(element, "way")) {
-                    this->handler->callback_way(this->way);
+                    this->callback_way();
                     current_object = 0;
                 }
                 if (!strcmp(element, "relation")) {
-                    this->handler->callback_relation(this->relation);
+                    this->callback_relation();
                     current_object = 0;
                 }
             }

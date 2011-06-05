@@ -26,27 +26,25 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <zlib.h>
 #include <typeinfo>
 
-#include <osmpbf/fileformat.pb.h>
-#include <osmpbf/osmformat.pb.h>
+#include <osmpbf/osmpbf.h>
 
 namespace Osmium {
 
     namespace Input {
 
         /**
-        * Class for parsing PBF files
+        * Class for parsing PBF files.
+        *
+        * Generally you are not supposed to instantiate this class yourself.
+        * Instead create an OSMFile object and call its read() method.
+        *
+        * @tparam THandler A handler class (subclass of Osmium::Handler::Base).
         */
         template <class THandler>
         class PBF : public Base<THandler> {
 
-            static const int NANO = 1000 * 1000 * 1000;
-            static const int MAX_BLOB_HEADER_SIZE = 64 * 1024;
-            static const int MAX_BLOB_SIZE = 32 * 1024 * 1024;
-
-            char buffer[MAX_BLOB_SIZE];
-            char unpack_buffer[MAX_BLOB_SIZE];
-
-            int fd; ///< The file descriptor we are reading the data from.
+            char buffer[OSMPBF::max_uncompressed_blob_size];
+            char unpack_buffer[OSMPBF::max_uncompressed_blob_size];
 
             typedef struct {
                 const void *data;
@@ -62,15 +60,18 @@ namespace Osmium {
             /**
             * Instantiate PBF Parser
             *
-            * @param in_fd File descripter to read data from.
-            * @param h Instance of THandler or NULL.
+            * @param file OSMFile instance.
+            * @param handler Instance of THandler. If NULL an instance of class THandler is created internally.
             */
-            PBF(int in_fd, THandler *h) __attribute__((noinline)) : Base<THandler>(h), fd(in_fd) {
+            PBF(OSMFile& file, THandler *handler) __attribute__((noinline)) : Base<THandler>(file, handler) {
                 GOOGLE_PROTOBUF_VERIFY_VERSION;
             }
 
             /**
             * Parse PBF file.
+            *
+            * Will throw a subclass of Osmium::OSMFile::FileTypeError when it
+            * turns out while parsing the file, that it is of the wrong type.
             */
             void parse() __attribute__((noinline)) {
                 try {
@@ -92,14 +93,28 @@ namespace Osmium {
                                 throw std::runtime_error("Failed to parse HeaderBlock.");
                             }
 
+                            bool has_historical_information_feature = false;
                             for (int i=0; i < pbf_header_block.required_features_size(); i++) {
                                 const std::string& feature = pbf_header_block.required_features(i);
 
-                                if ((feature != "OsmSchema-V0.6") && (feature != "DenseNodes")) {
-                                    std::ostringstream errmsg;
-                                    errmsg << "Required feature not supported: " << feature;
-                                    throw std::runtime_error(errmsg.str());
+                                if (feature == "OsmSchema-V0.6") continue;
+                                if (feature == "DenseNodes") continue;
+                                if (feature == "HistoricalInformation") {
+                                    has_historical_information_feature = true;
+                                    continue;
                                 }
+
+                                std::ostringstream errmsg;
+                                errmsg << "Required feature not supported: " << feature;
+                                throw std::runtime_error(errmsg.str());
+                            }
+
+                            Osmium::OSMFile::FileType* expected_file_type = this->get_file().get_type();
+                            if (expected_file_type == Osmium::OSMFile::FileType::OSM() && has_historical_information_feature) {
+                                throw Osmium::OSMFile::FileTypeOSMExpected();
+                            }
+                            if (expected_file_type == Osmium::OSMFile::FileType::History() && !has_historical_information_feature) {
+                                throw Osmium::OSMFile::FileTypeHistoryExpected();
                             }
                         } else {
                             if (Osmium::global.debug) {
@@ -165,26 +180,29 @@ namespace Osmium {
                 for (int entity=0; entity < max_entity; entity++) {
                     this->node->reset();
 
-                    const OSMPBF::Node& inputNode = group.nodes(entity);
+                    const OSMPBF::Node& pbf_node = group.nodes(entity);
 
-                    this->node->set_id(inputNode.id());
-                    if (inputNode.has_info()) {
-                        this->node->set_version(inputNode.info().version()).
-                                    set_changeset(inputNode.info().changeset()).
-                                    set_timestamp(inputNode.info().timestamp() * date_factor).
-                                    set_uid(inputNode.info().uid()).
-                                    set_user(stringtable.s(inputNode.info().user_sid()).data());
+                    this->node->set_id(pbf_node.id());
+                    if (pbf_node.has_info()) {
+                        this->node->set_version(pbf_node.info().version())
+                        .set_changeset(pbf_node.info().changeset())
+                        .set_timestamp(pbf_node.info().timestamp() * date_factor)
+                        .set_uid(pbf_node.info().uid())
+                        .set_user(stringtable.s(pbf_node.info().user_sid()).data());
+                        if (pbf_node.info().has_visible()) {
+                            this->node->set_visible(pbf_node.info().visible());
+                        }
                     }
 
-                    for (int tag=0; tag < inputNode.keys_size(); tag++) {
-                        this->node->add_tag(stringtable.s( inputNode.keys( tag ) ).data(),
-                                            stringtable.s( inputNode.vals( tag ) ).data());
+                    for (int tag=0; tag < pbf_node.keys_size(); tag++) {
+                        this->node->add_tag(stringtable.s( pbf_node.keys( tag ) ).data(),
+                                            stringtable.s( pbf_node.vals( tag ) ).data());
                     }
 
-                    this->node->set_coordinates(( ( double ) inputNode.lon() * pbf_primitive_block.granularity() + pbf_primitive_block.lon_offset() ) / NANO,
-                                                ( ( double ) inputNode.lat() * pbf_primitive_block.granularity() + pbf_primitive_block.lat_offset() ) / NANO);
+                    this->node->set_coordinates(( ( double ) pbf_node.lon() * pbf_primitive_block.granularity() + pbf_primitive_block.lon_offset() ) / OSMPBF::lonlat_resolution,
+                                                ( ( double ) pbf_node.lat() * pbf_primitive_block.granularity() + pbf_primitive_block.lat_offset() ) / OSMPBF::lonlat_resolution);
 
-                    this->handler->callback_node(this->node);
+                    this->callback_node();
                 }
             }
 
@@ -193,29 +211,32 @@ namespace Osmium {
                 for (int entity=0; entity < max_entity; entity++) {
                     this->way->reset();
 
-                    const OSMPBF::Way& inputWay = group.ways(entity);
+                    const OSMPBF::Way& pbf_way = group.ways(entity);
 
-                    this->way->set_id(inputWay.id());
-                    if (inputWay.has_info()) {
-                        this->way->set_version(inputWay.info().version()).
-                                   set_changeset(inputWay.info().changeset()).
-                                   set_timestamp(inputWay.info().timestamp() * date_factor).
-                                   set_uid(inputWay.info().uid()).
-                                   set_user(stringtable.s(inputWay.info().user_sid()).data());
+                    this->way->set_id(pbf_way.id());
+                    if (pbf_way.has_info()) {
+                        this->way->set_version(pbf_way.info().version())
+                        .set_changeset(pbf_way.info().changeset())
+                        .set_timestamp(pbf_way.info().timestamp() * date_factor)
+                        .set_uid(pbf_way.info().uid())
+                        .set_user(stringtable.s(pbf_way.info().user_sid()).data());
+                        if (pbf_way.info().has_visible()) {
+                            this->node->set_visible(pbf_way.info().visible());
+                        }
                     }
 
-                    for (int tag=0; tag < inputWay.keys_size(); tag++) {
-                        this->way->add_tag(stringtable.s( inputWay.keys( tag ) ).data(),
-                                           stringtable.s( inputWay.vals( tag ) ).data());
+                    for (int tag=0; tag < pbf_way.keys_size(); tag++) {
+                        this->way->add_tag(stringtable.s( pbf_way.keys( tag ) ).data(),
+                                           stringtable.s( pbf_way.vals( tag ) ).data());
                     }
 
                     uint64_t lastRef = 0;
-                    for (int i=0; i < inputWay.refs_size(); i++) {
-                        lastRef += inputWay.refs(i);
+                    for (int i=0; i < pbf_way.refs_size(); i++) {
+                        lastRef += pbf_way.refs(i);
                         this->way->add_node(lastRef);
                     }
 
-                    this->handler->callback_way(this->way);
+                    this->callback_way();
                 }
             }
 
@@ -224,26 +245,29 @@ namespace Osmium {
                 for (int entity=0; entity < max_entity; entity++) {
                     this->relation->reset();
 
-                    const OSMPBF::Relation& inputRelation = group.relations(entity);
+                    const OSMPBF::Relation& pbf_relation = group.relations(entity);
 
-                    this->relation->set_id(inputRelation.id());
-                    if (inputRelation.has_info()) {
-                        this->relation->set_version(inputRelation.info().version()).
-                                        set_changeset(inputRelation.info().changeset()).
-                                        set_timestamp(inputRelation.info().timestamp() * date_factor).
-                                        set_uid(inputRelation.info().uid()).
-                                        set_user(stringtable.s(inputRelation.info().user_sid()).data());
+                    this->relation->set_id(pbf_relation.id());
+                    if (pbf_relation.has_info()) {
+                        this->relation->set_version(pbf_relation.info().version())
+                        .set_changeset(pbf_relation.info().changeset())
+                        .set_timestamp(pbf_relation.info().timestamp() * date_factor)
+                        .set_uid(pbf_relation.info().uid())
+                        .set_user(stringtable.s(pbf_relation.info().user_sid()).data());
+                        if (pbf_relation.info().has_visible()) {
+                            this->node->set_visible(pbf_relation.info().visible());
+                        }
                     }
 
-                    for (int tag=0; tag < inputRelation.keys_size(); tag++) {
-                        this->relation->add_tag(stringtable.s( inputRelation.keys(tag) ).data(),
-                                                stringtable.s( inputRelation.vals(tag) ).data());
+                    for (int tag=0; tag < pbf_relation.keys_size(); tag++) {
+                        this->relation->add_tag(stringtable.s( pbf_relation.keys(tag) ).data(),
+                                                stringtable.s( pbf_relation.vals(tag) ).data());
                     }
 
                     uint64_t lastRef = 0;
-                    for (int i=0; i < inputRelation.types_size(); i++) {
+                    for (int i=0; i < pbf_relation.types_size(); i++) {
                         char type = 'x';
-                        switch (inputRelation.types(i)) {
+                        switch (pbf_relation.types(i)) {
                             case OSMPBF::Relation::NODE:
                                 type = 'n';
                                 break;
@@ -254,11 +278,11 @@ namespace Osmium {
                                 type = 'r';
                                 break;
                         }
-                        lastRef += inputRelation.memids(i);
-                        this->relation->add_member(type, lastRef, stringtable.s( inputRelation.roles_sid( i ) ).data());
+                        lastRef += pbf_relation.memids(i);
+                        this->relation->add_member(type, lastRef, stringtable.s( pbf_relation.roles_sid( i ) ).data());
                     }
 
-                    this->handler->callback_relation(this->relation);
+                    this->callback_relation();
                 }
             }
 
@@ -291,12 +315,16 @@ namespace Osmium {
                         this->node->set_timestamp(last_dense_timestamp * date_factor);
                         this->node->set_uid(last_dense_uid);
                         this->node->set_user(stringtable.s(last_dense_user_sid).data());
+
+                        if (dense.denseinfo().visible_size() > 0) {
+                            this->node->set_visible(dense.denseinfo().visible(entity));
+                        }
                     }
 
                     last_dense_latitude  += dense.lat(entity);
                     last_dense_longitude += dense.lon(entity);
-                    this->node->set_coordinates(( ( double ) last_dense_longitude * pbf_primitive_block.granularity() + pbf_primitive_block.lon_offset() ) / NANO,
-                                                ( ( double ) last_dense_latitude  * pbf_primitive_block.granularity() + pbf_primitive_block.lat_offset() ) / NANO);
+                    this->node->set_coordinates(( ( double ) last_dense_longitude * pbf_primitive_block.granularity() + pbf_primitive_block.lon_offset() ) / OSMPBF::lonlat_resolution,
+                                                ( ( double ) last_dense_latitude  * pbf_primitive_block.granularity() + pbf_primitive_block.lat_offset() ) / OSMPBF::lonlat_resolution);
 
                     while (last_dense_tag < dense.keys_vals_size()) {
                         int tagValue = dense.keys_vals(last_dense_tag);
@@ -312,7 +340,7 @@ namespace Osmium {
                         last_dense_tag += 2;
                     }
 
-                    this->handler->callback_node(this->node);
+                    this->callback_node();
                 }
             }
 
@@ -330,7 +358,7 @@ namespace Osmium {
             */
             bool read_blob_header() {
                 unsigned char size_in_network_byte_order[4];
-                ssize_t bytes_read = read(fd, size_in_network_byte_order, sizeof(size_in_network_byte_order));
+                ssize_t bytes_read = read(this->get_fd(), size_in_network_byte_order, sizeof(size_in_network_byte_order));
                 if (bytes_read != sizeof(size_in_network_byte_order)) {
                     if (bytes_read == 0) {
                         return false; // EOF
@@ -339,13 +367,13 @@ namespace Osmium {
                 }
 
                 int size = convert_from_network_byte_order(size_in_network_byte_order);
-                if (size > MAX_BLOB_HEADER_SIZE || size < 0) {
+                if (size > OSMPBF::max_blob_header_size || size < 0) {
                     std::ostringstream errmsg;
                     errmsg << "BlobHeader size invalid:" << size;
                     throw std::runtime_error(errmsg.str());
                 }
 
-                if (read(fd, buffer, size) != size) {
+                if (read(this->get_fd(), buffer, size) != size) {
                     throw std::runtime_error("failed to read BlobHeader");
                 }
 
@@ -360,12 +388,12 @@ namespace Osmium {
             */
             array_t read_blob(int size) {
                 static OSMPBF::Blob blob;
-                if (size < 0 || size > MAX_BLOB_SIZE) {
+                if (size < 0 || size > OSMPBF::max_uncompressed_blob_size) {
                     std::ostringstream errmsg;
                     errmsg << "invalid blob size: " << size;
                     throw std::runtime_error(errmsg.str());
                 }
-                if (read(fd, buffer, size) != size) {
+                if (read(this->get_fd(), buffer, size) != size) {
                     throw std::runtime_error("failed to read blob");
                 }
                 if (!blob.ParseFromArray(buffer, size)) {

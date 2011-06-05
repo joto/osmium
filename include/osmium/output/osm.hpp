@@ -30,23 +30,21 @@ namespace Osmium {
 
             class Base {
 
-                bool is_history_file_;
+            protected:
+
+                OSMFile m_file;
+
+                int get_fd() {
+                    return m_file.get_fd();
+                }
 
             public:
 
-                Base() : is_history_file_(false) {
+                Base(OSMFile& file) : m_file(file) {
+                    m_file.open_for_output();
                 }
 
                 virtual ~Base() {
-                }
-
-                bool is_history_file() const {
-                    return is_history_file_;
-                }
-
-                Base& is_history_file(bool h) {
-                    is_history_file_ = h;
-                    return *this;
                 }
 
                 virtual void write_init() = 0;
@@ -58,8 +56,6 @@ namespace Osmium {
 
             }; // class Base
 
-            Base *create(std::string &filename);
-
         } // namespace OSM
 
     } // namespace Output
@@ -67,31 +63,8 @@ namespace Osmium {
 } // namespace Osmium
 
 #include <osmium/output/osm/pbf.hpp>
-#include <osmium/output/osm/historypbf.hpp>
 #ifdef OSMIUM_WITH_OUTPUT_OSM_XML
 # include <osmium/output/osm/xml.hpp>
-# include <osmium/output/osm/historyxml.hpp>
 #endif
-
-Osmium::Output::OSM::Base *Osmium::Output::OSM::create(std::string &filename) {
-    if (filename == "-") { // use stdout
-        return new Osmium::Output::OSM::PBF();
-    }
-
-    std::string suffix(filename.substr(filename.find_first_of('.')+1));
-    if (suffix == "pbf" || suffix == "osm.pbf") {
-        return new Osmium::Output::OSM::PBF(filename);
-    } else if (suffix == "osh.pbf") {
-        return new Osmium::Output::OSM::HistoryPBF(filename);
-#ifdef OSMIUM_WITH_OUTPUT_OSM_XML
-    } else if (suffix == "osm" || suffix == "osm.bz2") {
-        return new Osmium::Output::OSM::XML(filename);
-    } else if (suffix == "osh" || suffix == "osh.bz2") {
-        return new Osmium::Output::OSM::HistoryXML(filename);
-#endif
-    } else {
-        throw std::runtime_error("Unknown suffix.");
-    }
-}
 
 #endif // OSMIUM_OUTPUT_OSM_HPP
