@@ -258,9 +258,6 @@ namespace Osmium {
                     }
 
                     // compress
-                    /* XXX instead of failing when the buffer is overflowing we could
-                           just use the uncompressed data!?
-                    */
                     if (deflate(&z, Z_FINISH) != Z_STREAM_END) {
                         throw std::runtime_error("failed to deflate zlib stream");
                     }
