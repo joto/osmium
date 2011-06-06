@@ -333,7 +333,7 @@ namespace Osmium {
                     pbf_blob_header.Clear();
 
                     // the 4-byte size of the BlobHeader, transformed from Host- to Network-Byte-Order
-                    int32_t sz = htonl(blobhead.size());
+                    uint32_t sz = htonl(blobhead.size());
 
                     // write to the file: the 4-byte BlobHeader-Size followed by the BlobHeader followed by the Blob
                     if (::write(get_fd(), &sz, sizeof(sz)) < 0) {

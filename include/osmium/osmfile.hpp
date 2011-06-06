@@ -271,7 +271,7 @@ namespace Osmium {
                         exit(1);
                     }
                 } else {
-                    if (open(m_filename.c_str(), O_WRONLY | O_CREAT, 0666) != 1) {
+                    if (open(m_filename.c_str(), O_WRONLY | O_TRUNC | O_CREAT, 0666) != 1) {
                         exit(1);
                     }
                     open("/dev/null", O_WRONLY); // stderr
@@ -306,7 +306,7 @@ namespace Osmium {
             } else if (m_filename == "-") {
                 return 1; // stdout
             } else {
-                int fd = open(m_filename.c_str(), O_WRONLY | O_CREAT, 0666);
+                int fd = open(m_filename.c_str(), O_WRONLY | O_TRUNC | O_CREAT, 0666);
                 if (fd < 0) {
                     throw IOError("Open failed", m_filename, errno);
                 }
