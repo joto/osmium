@@ -90,6 +90,9 @@ More complete outlines of real .osm.pbf files can be created using the osmpbf-ou
 // the algorithm-lib contains the sort functions
 #include <algorithm>
 
+// math is used for round() in lonlat2int
+#include <math.h>
+
 #include <osmpbf/osmpbf.h>
 
 // StringTable management
@@ -212,8 +215,8 @@ namespace Osmium {
                 struct last_dense {
                     int64_t id;
 
-                    int32_t lat;
-                    int32_t lon;
+                    int64_t lat;
+                    int64_t lon;
 
                     int64_t timestamp;
                     int64_t changeset;
@@ -452,14 +455,14 @@ namespace Osmium {
                  * convert a double lat or lon value to an int, respecting the current blocks granularity
                  */
                 int64_t lonlat2int(double lonlat) {
-                    return (lonlat * OSMPBF::lonlat_resolution / location_granularity());
+                    return round(lonlat * OSMPBF::lonlat_resolution / location_granularity());
                 }
 
                 /**
                  * convert a timestamp to an int, respecting the current blocks granularity
                  */
                 int64_t timestamp2int(time_t timestamp) {
-                    return timestamp * ((double)1000 / date_granularity());
+                    return round(timestamp * ((double)1000 / date_granularity()));
                 }
 
                 /**
@@ -597,12 +600,12 @@ namespace Osmium {
                     last_dense_info.id = id;
 
                     // copy the longitude, delta encoded against last_dense_info
-                    int32_t lon = lonlat2int(node->get_lon());
+                    int64_t lon = lonlat2int(node->get_lon());
                     dense->add_lon(lon - last_dense_info.lon);
                     last_dense_info.lon = lon;
 
                     // copy the latitude, delta encoded against last_dense_info
-                    int32_t lat = lonlat2int(node->get_lat());
+                    int64_t lat = lonlat2int(node->get_lat());
                     dense->add_lat(lat - last_dense_info.lat);
                     last_dense_info.lat = lat;
 
