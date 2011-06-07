@@ -16,6 +16,7 @@ CXXFLAGS += -std=c++0x -Wall -Wextra -Wredundant-decls -Wdisabled-optimization -
 #CXXFLAGS += -DOSMIUM_WITH_MULTIPOLYGON_PROFILING
 
 CXXFLAGS_LIBXML2 = -DOSMIUM_WITH_OUTPUT_OSM_XML `xml2-config --cflags`
+CXXFLAGS_GEOS = -DOSMIUM_WITH_GEOS
 
 CXXFLAGS += -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 
@@ -29,8 +30,9 @@ LIB_V8       = -lv8
 LIB_SHAPE    = -lshp
 LIB_PROTOBUF = -lz -lprotobuf-lite -losmpbf
 LIB_XML2     = `xml2-config --libs`
+LIB_GEOS     = -lgeos
 
-PROGRAMS = osmium_sizeof osmium_debug osmium_stats osmium_find_bbox osmium_time osmium_progress osmium_convert nodedensity
+PROGRAMS = osmium_sizeof osmium_debug osmium_stats osmium_find_bbox osmium_time osmium_progress osmium_convert osmium_poly_reader nodedensity
 
 .PHONY: all clean
 
@@ -56,6 +58,9 @@ osmium_progress: osmium_progress.cpp
 
 osmium_convert: osmium_convert.cpp
 	$(CXX) $(CXXFLAGS) $(CXXFLAGS_LIBXML2) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_XML2)
+
+osmium_poly_reader: osmium_poly_reader.cpp
+	$(CXX) $(CXXFLAGS) $(CXXFLAGS_GEOS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_GEOS)
 
 nodedensity: nodedensity.cpp handler_nodedensity.hpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_GD)
