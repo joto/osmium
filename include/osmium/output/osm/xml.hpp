@@ -86,10 +86,10 @@ namespace Osmium {
                 void write_bounds(double minlon, double minlat, double maxlon, double maxlat) {
                     xmlTextWriterStartElement(xml_writer, BAD_CAST "bounds"); // <bounds>
 
-                    xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "minlon", "%f", minlon);
-                    xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "minlat", "%f", minlat);
-                    xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "maxlon", "%f", maxlon);
-                    xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "maxlat", "%f", maxlat);
+                    xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "minlon", "%.7f", minlon);
+                    xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "minlat", "%.7f", minlat);
+                    xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "maxlon", "%.7f", maxlon);
+                    xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "maxlat", "%.7f", maxlat);
 
                     xmlTextWriterEndElement(xml_writer); // </bounds>
                 }
@@ -99,8 +99,8 @@ namespace Osmium {
 
                     write_meta(node);
 
-                    xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "lon", "%f", node->get_lon());
-                    xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "lat", "%f", node->get_lat());
+                    xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "lon", "%.7f", node->get_lon());
+                    xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "lat", "%.7f", node->get_lat());
 
                     write_tags(node);
 
