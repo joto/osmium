@@ -56,7 +56,7 @@ namespace Osmium {
             geos::geom::GeometryFactory *f = Osmium::global.geos_geometry_factory;
 
             // pointer to coordinate vector
-            std::vector<geos::geom::Coordinate> *c;
+            std::vector<geos::geom::Coordinate> *c = NULL;
 
             // vectors of outer and inner polygons
             std::vector<geos::geom::Geometry*> *outer = new std::vector<geos::geom::Geometry*>();
