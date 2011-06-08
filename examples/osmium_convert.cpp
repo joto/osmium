@@ -83,13 +83,22 @@ int main(int argc, char *argv[]) {
     static struct option long_options[] = {
         {"debug",                no_argument, 0, 'd'},
         {"help",                 no_argument, 0, 'h'},
+        {"input",                required_argument, 0, 'i'},
+        {"output",               required_argument, 0, 'o'},
+        {"help",                 no_argument, 0, 'h'},
         {0, 0, 0, 0}
     };
 
     bool debug = false;
 
+    const char *input = NULL;
+    const char *input_type = NULL;
+
+    const char *output = NULL;
+    const char *output_type = NULL;
+
     while (1) {
-        int c = getopt_long(argc, argv, "dh", long_options, 0);
+        int c = getopt_long(argc, argv, "dhi:o:", long_options, 0);
         if (c == -1)
             break;
 
@@ -100,20 +109,51 @@ int main(int argc, char *argv[]) {
             case 'h':
                 print_help();
                 exit(0);
+            case 'i':
+                input_type = optarg;
+                break;
+            case 'o':
+                output_type = optarg;
+                break;
             default:
                 exit(1);
         }
     }
 
-    if (optind != argc-2) {
-        std::cerr << "Usage: " << argv[0] << " [OPTIONS] INFILE OUTFILE" << std::endl;
-        exit(1);
+    if (optind == argc-2) {
+        input =  argv[optind];
+        output = argv[optind+1];
+    }
+    else if (optind == argc-1) {
+        input =  argv[optind];
+        output = "-";
+    }
+    else {
+        input =  "-";
+        output = "-";
     }
 
     Osmium::Framework osmium(debug);
 
-    Osmium::OSMFile infile(argv[optind]);
-    Osmium::OSMFile* outfile = new Osmium::OSMFile(argv[optind+1]);
+    Osmium::OSMFile infile(input);
+    if (input_type) {
+        infile.set_type_and_encoding(input_type);
+    }
+
+    Osmium::OSMFile* outfile = new Osmium::OSMFile(output);
+    if (output_type) {
+        outfile->set_type_and_encoding(output_type);
+    }
+
+    if(infile.get_type() == Osmium::OSMFile::FileType::OSM() && outfile->get_type() == Osmium::OSMFile::FileType::History()) {
+        std::cerr << "Warning! converting from FileType::OSM to FileType::History will fake history information" << std::endl;
+    }
+    else if(infile.get_type() == Osmium::OSMFile::FileType::History() && outfile->get_type() == Osmium::OSMFile::FileType::OSM()) {
+        std::cerr << "Warning! converting from FileType::History to FileType::OSM will drop history information" << std::endl;
+    }
+    else if(infile.get_type() != outfile->get_type()) {
+        std::cerr << "Warning! source and destination are not of the same type." << std::endl;
+    }
 
     ConvertHandler *handler_convert = new ConvertHandler(outfile);
 
