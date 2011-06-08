@@ -303,7 +303,7 @@ namespace Osmium {
                 strncpy(user, o.user, max_length_username);
             }
 
-            ~Object() {
+            virtual ~Object() {
             }
 
         public:
