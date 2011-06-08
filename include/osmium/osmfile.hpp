@@ -44,33 +44,36 @@ namespace Osmium {
 
     public:
 
-        struct SystemError {
+        struct SystemError : public std::runtime_error {
 
-            std::string m_msg;
             int m_errno;
 
-            SystemError(std::string msg, int e) : m_msg(msg), m_errno(e) {
+            SystemError(const std::string& whatarg, int e) : std::runtime_error(whatarg), m_errno(e) {
             }
 
         };
 
-        struct IOError {
+        struct IOError : public std::runtime_error {
 
-            std::string m_msg;
             std::string m_filename;
             int m_errno;
 
-            IOError(std::string msg, std::string filename, int e) : m_msg(msg), m_filename(filename), m_errno(e) {
+            IOError(const std::string& whatarg, const std::string& filename, int e) : std::runtime_error(whatarg), m_filename(filename), m_errno(e) {
+            }
+
+            ~IOError() throw() {
             }
 
         };
 
-        struct ArgumentError {
+        struct ArgumentError : public std::runtime_error {
 
-            std::string m_msg;
             std::string m_value;
 
-            ArgumentError(std::string msg, std::string value="") : m_msg(msg), m_value(value) {
+            ArgumentError(const std::string& whatarg, const std::string& value="") : std::runtime_error(whatarg), m_value(value) {
+            }
+
+            ~ArgumentError() throw() {
             }
 
         };
