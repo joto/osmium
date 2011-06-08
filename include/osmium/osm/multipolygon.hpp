@@ -278,11 +278,8 @@ namespace Osmium {
             * Create a SHPObject for this multipolygon and return it. You have to call
             * SHPDestroyObject() with this object when you are done.
             */
-            SHPObject *create_shpobject(int shp_type) {
-                if (shp_type != SHPT_POLYGON) {
-                    throw std::runtime_error("a multipolygon can only be added to a shapefile of type polygon");
-                }
-                return SHPCreateSimpleObject(shp_type, num_nodes, lon, lat, NULL);
+            SHPObject *create_shp_polygon(std::string& /*transformation*/) {
+                return SHPCreateSimpleObject(SHPT_POLYGON, num_nodes, lon, lat, NULL);
             }
 #endif // OSMIUM_WITH_SHPLIB
 
@@ -480,11 +477,7 @@ namespace Osmium {
             * Returns NULL if a valid SHPObject could not be created.
             */
 #ifdef OSMIUM_WITH_SHPLIB
-            SHPObject *create_shpobject(int shp_type) {
-                if (shp_type != SHPT_POLYGON) {
-                    throw std::runtime_error("a multipolygon can only be added to a shapefile of type polygon");
-                }
-
+            SHPObject *create_shp_polygon(std::string& /*transformation*/) {
                 if (!geometry) {
                     return NULL;
                 }

@@ -38,35 +38,23 @@ namespace Osmium {
             static const unsigned int MAX_FIELD_NAME_LENGTH = 11;
             static const int max_dbf_field_length = 255;
 
-            int  shp_type;
             int  num_fields;
             char field_name[MAX_DBF_FIELDS][MAX_FIELD_NAME_LENGTH+1];
             int  field_type[MAX_DBF_FIELDS];
             int  field_width[MAX_DBF_FIELDS];
             int  field_decimals[MAX_DBF_FIELDS];
 
-            SHPHandle shp_handle;
-            DBFHandle dbf_handle;
+            SHPHandle m_shp_handle;
+            DBFHandle m_dbf_handle;
 
             v8::Persistent<v8::Object> js_object;
 
-            Shapefile(const char *filename, const char *shape_type) {
-                if (!strcmp(shape_type, "point")) {
-                    shp_type = SHPT_POINT;
-                } else if (!strcmp(shape_type, "line")) {
-                    shp_type = SHPT_ARC;
-                } else if (!strcmp(shape_type, "polygon")) {
-                    shp_type = SHPT_POLYGON;
-                } else {
-                    throw std::runtime_error("unkown shapefile type");
-                }
-
+            Shapefile(const char *filename, int type) {
                 num_fields = 0;
-
-                shp_handle = SHPCreate(filename, shp_type);
-                assert(shp_handle != 0);
-                dbf_handle = DBFCreate(filename);
-                assert(dbf_handle != 0);
+                m_shp_handle = SHPCreate(filename, type);
+                assert(m_shp_handle != 0);
+                m_dbf_handle = DBFCreate(filename);
+                assert(m_dbf_handle != 0);
 
                 std::string filen(filename);
                 std::ofstream file;
@@ -89,9 +77,11 @@ namespace Osmium {
                 // js_object.MakeWeak((void *)(this), JS_Cleanup); // XXX doesn't work!?
             }
 
-            ~Shapefile() {
+            virtual ~Shapefile() {
                 close();
             }
+
+            virtual SHPObject* add_geometry(Osmium::OSM::Object *object, std::string& transformation) = 0;
 
             /**
             * Define a field for a shapefile.
@@ -123,7 +113,7 @@ namespace Osmium {
                     throw std::runtime_error("unknown field type");
                 }
 
-                int field_num = DBFAddField(dbf_handle, f_name, type, f_width, f_decimals);
+                int field_num = DBFAddField(m_dbf_handle, f_name, type, f_width, f_decimals);
                 if (field_num < 0) {
                     throw std::runtime_error("failed to add field");
                 }
@@ -150,39 +140,40 @@ namespace Osmium {
                 } else if (U_FAILURE(error_code)) {
                     throw std::runtime_error("UTF-16 to UTF-8 conversion failed");
                 }
-                return DBFWriteStringAttribute(dbf_handle, ishape, n, dest);
+                return DBFWriteStringAttribute(m_dbf_handle, ishape, n, dest);
             }
 
             int add_logical_attribute(int ishape, int n, v8::Local<v8::Value> value) const {
                 v8::String::Utf8Value str(value);
 
                 if (atoi(*str) == 1 || !strncasecmp(*str, "T", 1) || !strncasecmp(*str, "Y", 1)) {
-                    return DBFWriteLogicalAttribute(dbf_handle, ishape, n, 'T');
+                    return DBFWriteLogicalAttribute(m_dbf_handle, ishape, n, 'T');
                 } else if ((!strcmp(*str, "0")) || !strncasecmp(*str, "F", 1) || !strncasecmp(*str, "N", 1)) {
-                    return DBFWriteLogicalAttribute(dbf_handle, ishape, n, 'F');
+                    return DBFWriteLogicalAttribute(m_dbf_handle, ishape, n, 'F');
                 } else {
-                    return DBFWriteNULLAttribute(dbf_handle, ishape, n);
+                    return DBFWriteNULLAttribute(m_dbf_handle, ishape, n);
                 }
             }
 
             /**
             * Add an %OSM object to the shapefile.
             */
-            void add(Osmium::OSM::Object *object,     ///< the %OSM object (Node, Way, or Relation)
-                     v8::Local<v8::Object> attributes ///< a %Javascript object (hash) with the attributes
+            void add(Osmium::OSM::Object *object,      ///< the %OSM object (Node, Way, or Relation)
+                     v8::Local<v8::Object> attributes, ///< a %Javascript object (hash) with the attributes
+                     std::string& transformation
                     ) {
 
                 SHPObject *shp_object = 0;
                 int ishape;
 
                 try {
-                    shp_object = object->create_shpobject(shp_type);
+                    shp_object = add_geometry(object, transformation);
                 } catch (std::exception& e) { // XXX ignore errors when creating geometry
                     std::cerr << "ignoring error: " << e.what() << "\n";
                     return;
                 }
                 if (!shp_object) return; // XXX return if the shape is invalid
-                ishape = SHPWriteObject(shp_handle, -1, shp_object);
+                ishape = SHPWriteObject(m_shp_handle, -1, shp_object);
                 SHPDestroyObject(shp_object);
 
                 int ok = 0;
@@ -191,14 +182,14 @@ namespace Osmium {
                     if (attributes->HasRealNamedProperty(key)) {
                         v8::Local<v8::Value> value = attributes->GetRealNamedProperty(key);
                         if (value->IsUndefined() || value->IsNull()) {
-                            DBFWriteNULLAttribute(dbf_handle, ishape, n);
+                            DBFWriteNULLAttribute(m_dbf_handle, ishape, n);
                         } else {
                             switch (field_type[n]) {
                                 case FTString:
                                     ok = add_string_attribute(ishape, n, value);
                                     break;
                                 case FTInteger:
-                                    ok = DBFWriteIntegerAttribute(dbf_handle, ishape, n, value->Int32Value());
+                                    ok = DBFWriteIntegerAttribute(m_dbf_handle, ishape, n, value->Int32Value());
                                     break;
                                 case FTDouble:
                                     throw std::runtime_error("fields of type double not implemented");
@@ -218,14 +209,20 @@ namespace Osmium {
                             }
                         }
                     } else {
-                        DBFWriteNULLAttribute(dbf_handle, ishape, n);
+                        DBFWriteNULLAttribute(m_dbf_handle, ishape, n);
                     }
                 }
             }
 
             void close() {
-                DBFClose(dbf_handle);
-                SHPClose(shp_handle);
+                if (m_dbf_handle) {
+                    DBFClose(m_dbf_handle);
+                    m_dbf_handle = 0;
+                }
+                if (m_shp_handle) {
+                    SHPClose(m_shp_handle);
+                    m_shp_handle = 0;
+                }
             }
 
             v8::Handle<v8::Object> get_js_object() {
@@ -246,14 +243,19 @@ namespace Osmium {
             }
 
             v8::Handle<v8::Value> js_add(const v8::Arguments& args) {
-                if (args.Length() != 2) {
+                if (args.Length() < 2 || args.Length() > 3) {
                     throw std::runtime_error("wrong number of arguments");
                 }
 
                 v8::Local<v8::Object> xxx = v8::Local<v8::Object>::Cast(args[0]);
                 Osmium::OSM::Object *object = (Osmium::OSM::Object *) v8::Local<v8::External>::Cast(xxx->GetInternalField(0))->Value();
 
-                add(object, v8::Local<v8::Object>::Cast(args[1]));
+                std::string transformation;
+                if (args.Length() == 3) {
+                    v8::String::AsciiValue gt(args[2]);
+                    transformation = *gt;
+                }
+                add(object, v8::Local<v8::Object>::Cast(args[1]), transformation);
 
                 return v8::Integer::New(1);
             }
@@ -264,6 +266,45 @@ namespace Osmium {
             }
 
         }; // class Shapefile
+
+        class PointShapefile : public Shapefile {
+
+        public:
+
+            PointShapefile(const char* filename) : Shapefile(filename, SHPT_POINT) {
+            }
+
+            SHPObject* add_geometry(Osmium::OSM::Object *object, std::string& transformation) {
+                return object->create_shp_point(transformation);
+            }
+
+        };
+
+        class LineShapefile : public Shapefile {
+
+        public:
+
+            LineShapefile(const char* filename) : Shapefile(filename, SHPT_ARC) {
+            }
+
+            SHPObject* add_geometry(Osmium::OSM::Object *object, std::string& transformation) {
+                return object->create_shp_line(transformation);
+            }
+
+        };
+
+        class PolygonShapefile : public Shapefile {
+
+        public:
+
+            PolygonShapefile(const char* filename) : Shapefile(filename, SHPT_POLYGON) {
+            }
+
+            SHPObject* add_geometry(Osmium::OSM::Object *object, std::string& transformation) {
+                return object->create_shp_polygon(transformation);
+            }
+
+        };
 
     } // namespace Output
 

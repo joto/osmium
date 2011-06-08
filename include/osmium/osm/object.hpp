@@ -389,7 +389,17 @@ namespace Osmium {
             }
 
 #ifdef OSMIUM_WITH_SHPLIB
-            virtual SHPObject *create_shpobject(int shp_type) = 0;
+            virtual SHPObject *create_shp_point(std::string& /*transformation*/) {
+                throw std::invalid_argument("Can't create point geometry from this kind of object");
+            }
+
+            virtual SHPObject *create_shp_line(std::string& /*transformation*/) {
+                throw std::invalid_argument("Can't create line geometry from this kind of object");
+            }
+
+            virtual SHPObject *create_shp_polygon(std::string& /*transformation*/) {
+                throw std::invalid_argument("Can't create polygon geometry from this kind of object");
+            }
 #endif // OSMIUM_WITH_SHPLIB
 
 #ifdef OSMIUM_WITH_JAVASCRIPT

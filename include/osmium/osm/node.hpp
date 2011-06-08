@@ -107,11 +107,8 @@ namespace Osmium {
             }
 
 #ifdef OSMIUM_WITH_SHPLIB
-            SHPObject *create_shpobject(int shp_type) {
-                if (shp_type != SHPT_POINT) {
-                    throw std::runtime_error("a node can only be added to a shapefile of type point");
-                }
-                return SHPCreateSimpleObject(shp_type, 1, &geom.point.x, &geom.point.y, NULL);
+            SHPObject *create_shp_point(std::string& /*transformation*/) {
+                return SHPCreateSimpleObject(SHPT_POINT, 1, &geom.point.x, &geom.point.y, NULL);
             }
 #endif // OSMIUM_WITH_SHPLIB
 

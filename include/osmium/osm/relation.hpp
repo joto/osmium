@@ -100,12 +100,6 @@ namespace Osmium {
                 return NULL;
             }
 
-#ifdef OSMIUM_WITH_SHPLIB
-            SHPObject *create_shpobject(int /*shp_type*/) {
-                throw std::runtime_error("a relation can not be added to a shapefile of any type");
-            }
-#endif // OSMIUM_WITH_SHPLIB
-
 #ifdef OSMIUM_WITH_JAVASCRIPT
             v8::Handle<v8::Value> js_get_members() const {
                 return js_members_instance;
