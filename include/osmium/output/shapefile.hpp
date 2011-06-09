@@ -33,15 +33,16 @@ namespace Osmium {
 
         class Shapefile {
 
-            static const unsigned int MAX_DBF_FIELDS = 16;
-            static const unsigned int MAX_FIELD_NAME_LENGTH = 11;
+            // the following limits are defined by the shapefile spec
+            static const unsigned int max_dbf_fields = 16;
+            static const unsigned int max_field_name_length = 11;
             static const int max_dbf_field_length = 255;
 
-            int  num_fields;
-            char field_name[MAX_DBF_FIELDS][MAX_FIELD_NAME_LENGTH+1];
-            int  field_type[MAX_DBF_FIELDS];
-            int  field_width[MAX_DBF_FIELDS];
-            int  field_decimals[MAX_DBF_FIELDS];
+            int  m_num_fields;
+            char field_name[max_dbf_fields][max_field_name_length+1];
+            int  field_type[max_dbf_fields];
+            int  field_width[max_dbf_fields];
+            int  field_decimals[max_dbf_fields];
 
             SHPHandle m_shp_handle;
             DBFHandle m_dbf_handle;
@@ -54,35 +55,45 @@ namespace Osmium {
             Shapefile(const Shapefile&);
             Shapefile& operator=(const Shapefile&);
 
-        public:
+        protected:
 
-            Shapefile(std::string& filename, int type) {
-                num_fields = 0;
+            /**
+             * The constructor for Shapefile is proteced. Use one of
+             * PointShapefile, LineShapefile, or PolygonShapefile.
+             */
+            Shapefile(std::string& filename, int type) : m_num_fields(0) {
                 m_shp_handle = SHPCreate(filename.c_str(), type);
-                assert(m_shp_handle != 0);
+                if (m_shp_handle == 0) {
+                    throw std::runtime_error("Can't open shapefile: " + filename + ".shp/shx");
+                }
                 m_dbf_handle = DBFCreate(filename.c_str());
-                assert(m_dbf_handle != 0);
+                if (m_dbf_handle == 0) {
+                    throw std::runtime_error("Can't open shapefile: " + filename + ".dbf");
+                }
 
                 std::ofstream file;
                 file.open(filename + ".prj");
                 if (file.fail()) {
-                    throw std::runtime_error("Can't open shapefile: " + filename);
+                    throw std::runtime_error("Can't open shapefile: " + filename + ".prj");
                 }
                 file << "GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"Degree\",0.017453292519943295]]" << std::endl;
                 file.close();
 
                 file.open(filename + ".cpg");
                 if (file.fail()) {
-                    throw std::runtime_error("Can't open shapefile: " + filename);
+                    throw std::runtime_error("Can't open shapefile: " + filename + ".cpg");
                 }
                 file << "UTF-8" << std::endl;
                 file.close();
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
                 js_object = v8::Persistent<v8::Object>::New( Osmium::Javascript::Template::create_output_shapefile_instance(this) );
-                // js_object.MakeWeak((void *)(this), JS_Cleanup); // XXX doesn't work!?
 #endif // OSMIUM_WITH_JAVASCRIPT
             }
+
+            virtual SHPObject* add_geometry(Osmium::OSM::Object *object, std::string& transformation) = 0;
+
+        public:
 
             virtual ~Shapefile() {
                 close();
@@ -99,8 +110,6 @@ namespace Osmium {
                 }
             }
 
-            virtual SHPObject* add_geometry(Osmium::OSM::Object *object, std::string& transformation) = 0;
-
             /**
             * Define a field for a shapefile.
             */
@@ -110,7 +119,7 @@ namespace Osmium {
                            int f_decimals      ///< The precision of double fields (otherwise ignored)
                           ) {
 
-                if (f_name[0] == '\0' || strlen(f_name) > MAX_FIELD_NAME_LENGTH) {
+                if (f_name[0] == '\0' || strlen(f_name) > max_field_name_length) {
                     throw std::runtime_error("field name must be between 1 and 11 characters long");
                 }
 
@@ -141,7 +150,7 @@ namespace Osmium {
                 field_width[field_num]    = f_width;
                 field_decimals[field_num] = f_decimals;
 
-                num_fields++;
+                m_num_fields++;
             }
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
@@ -196,7 +205,7 @@ namespace Osmium {
                 SHPDestroyObject(shp_object);
 
                 int ok = 0;
-                for (int n=0; n < num_fields; n++) {
+                for (int n=0; n < m_num_fields; n++) {
                     v8::Local<v8::String> key = v8::String::New(field_name[n]);
                     if (attributes->HasRealNamedProperty(key)) {
                         v8::Local<v8::Value> value = attributes->GetRealNamedProperty(key);
@@ -276,16 +285,26 @@ namespace Osmium {
 
         }; // class Shapefile
 
+        /**
+         * Shapefile containing point geometries.
+         */
         class PointShapefile : public Shapefile {
+
+        public:
+
+            /**
+             * Create shapefile.
+             *
+             * @param filename Filename (optionally including path) without any suffix.
+             */
+            PointShapefile(std::string& filename) : Shapefile(filename, SHPT_POINT) {
+            }
+
+        private:
 
             // define copy constructor and assignment operator as private
             PointShapefile(const PointShapefile&);
             PointShapefile& operator=(const PointShapefile&);
-
-        public:
-
-            PointShapefile(std::string& filename) : Shapefile(filename, SHPT_POINT) {
-            }
 
             SHPObject* add_geometry(Osmium::OSM::Object *object, std::string& transformation) {
                 return object->create_shp_point(transformation);
@@ -293,16 +312,26 @@ namespace Osmium {
 
         };
 
+        /**
+         * Shapefile containing line geometries.
+         */
         class LineShapefile : public Shapefile {
+
+        public:
+
+            /**
+             * Create shapefile.
+             *
+             * @param filename Filename (optionally including path) without any suffix.
+             */
+            LineShapefile(std::string& filename) : Shapefile(filename, SHPT_ARC) {
+            }
+
+        private:
 
             // define copy constructor and assignment operator as private
             LineShapefile(const LineShapefile&);
             LineShapefile& operator=(const LineShapefile&);
-
-        public:
-
-            LineShapefile(std::string& filename) : Shapefile(filename, SHPT_ARC) {
-            }
 
             SHPObject* add_geometry(Osmium::OSM::Object *object, std::string& transformation) {
                 return object->create_shp_line(transformation);
@@ -310,16 +339,26 @@ namespace Osmium {
 
         };
 
+        /**
+         * Shapefile containing polygon geometries.
+         */
         class PolygonShapefile : public Shapefile {
+
+        public:
+
+            /**
+             * Create shapefile.
+             *
+             * @param filename Filename (optionally including path) without any suffix.
+             */
+            PolygonShapefile(std::string& filename) : Shapefile(filename, SHPT_POLYGON) {
+            }
+
+        private:
 
             // define copy constructor and assignment operator as private
             PolygonShapefile(const PolygonShapefile&);
             PolygonShapefile& operator=(const PolygonShapefile&);
-
-        public:
-
-            PolygonShapefile(std::string& filename) : Shapefile(filename, SHPT_POLYGON) {
-            }
 
             SHPObject* add_geometry(Osmium::OSM::Object *object, std::string& transformation) {
                 return object->create_shp_polygon(transformation);
