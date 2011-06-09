@@ -24,6 +24,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #ifdef OSMIUM_WITH_SHPLIB
 
+#include <fstream>
 #include <shapefil.h>
 
 namespace Osmium {
@@ -47,7 +48,9 @@ namespace Osmium {
             SHPHandle m_shp_handle;
             DBFHandle m_dbf_handle;
 
+#ifdef OSMIUM_WITH_JAVASCRIPT
             v8::Persistent<v8::Object> js_object;
+#endif // OSMIUM_WITH_JAVASCRIPT
 
             Shapefile(const char *filename, int type) {
                 num_fields = 0;
@@ -73,12 +76,25 @@ namespace Osmium {
                 file << "UTF-8" << std::endl;
                 file.close();
 
+#ifdef OSMIUM_WITH_JAVASCRIPT
                 js_object = v8::Persistent<v8::Object>::New( Osmium::Javascript::Template::create_output_shapefile_instance(this) );
                 // js_object.MakeWeak((void *)(this), JS_Cleanup); // XXX doesn't work!?
+#endif // OSMIUM_WITH_JAVASCRIPT
             }
 
             virtual ~Shapefile() {
                 close();
+            }
+
+            void close() {
+                if (m_dbf_handle) {
+                    DBFClose(m_dbf_handle);
+                    m_dbf_handle = 0;
+                }
+                if (m_shp_handle) {
+                    SHPClose(m_shp_handle);
+                    m_shp_handle = 0;
+                }
             }
 
             virtual SHPObject* add_geometry(Osmium::OSM::Object *object, std::string& transformation) = 0;
@@ -126,6 +142,7 @@ namespace Osmium {
                 num_fields++;
             }
 
+#ifdef OSMIUM_WITH_JAVASCRIPT
             int add_string_attribute(int ishape, int n, v8::Local<v8::Value> value) const {
                 uint16_t source[(max_dbf_field_length+2)*2];
                 char dest[(max_dbf_field_length+1)*4];
@@ -214,17 +231,6 @@ namespace Osmium {
                 }
             }
 
-            void close() {
-                if (m_dbf_handle) {
-                    DBFClose(m_dbf_handle);
-                    m_dbf_handle = 0;
-                }
-                if (m_shp_handle) {
-                    SHPClose(m_shp_handle);
-                    m_shp_handle = 0;
-                }
-            }
-
             v8::Handle<v8::Object> get_js_object() {
                 return js_object;
             }
@@ -264,6 +270,7 @@ namespace Osmium {
                 close();
                 return v8::Undefined();
             }
+#endif // OSMIUM_WITH_JAVASCRIPT
 
         }; // class Shapefile
 
