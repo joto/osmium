@@ -33,8 +33,6 @@ namespace Osmium {
 
         class Shapefile {
 
-        public:
-
             static const unsigned int MAX_DBF_FIELDS = 16;
             static const unsigned int MAX_FIELD_NAME_LENGTH = 11;
             static const int max_dbf_field_length = 255;
@@ -52,26 +50,30 @@ namespace Osmium {
             v8::Persistent<v8::Object> js_object;
 #endif // OSMIUM_WITH_JAVASCRIPT
 
-            Shapefile(const char *filename, int type) {
+            // define copy constructor and assignment operator as private
+            Shapefile(const Shapefile&);
+            Shapefile& operator=(const Shapefile&);
+
+        public:
+
+            Shapefile(std::string& filename, int type) {
                 num_fields = 0;
-                m_shp_handle = SHPCreate(filename, type);
+                m_shp_handle = SHPCreate(filename.c_str(), type);
                 assert(m_shp_handle != 0);
-                m_dbf_handle = DBFCreate(filename);
+                m_dbf_handle = DBFCreate(filename.c_str());
                 assert(m_dbf_handle != 0);
 
-                std::string filen(filename);
                 std::ofstream file;
-
-                file.open(filen + ".prj");
+                file.open(filename + ".prj");
                 if (file.fail()) {
-                    throw std::runtime_error("Can't open shapefile: " + filen);
+                    throw std::runtime_error("Can't open shapefile: " + filename);
                 }
                 file << "GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"Degree\",0.017453292519943295]]" << std::endl;
                 file.close();
 
-                file.open(filen + ".cpg");
+                file.open(filename + ".cpg");
                 if (file.fail()) {
-                    throw std::runtime_error("Can't open shapefile: " + filen);
+                    throw std::runtime_error("Can't open shapefile: " + filename);
                 }
                 file << "UTF-8" << std::endl;
                 file.close();
@@ -276,9 +278,13 @@ namespace Osmium {
 
         class PointShapefile : public Shapefile {
 
+            // define copy constructor and assignment operator as private
+            PointShapefile(const PointShapefile&);
+            PointShapefile& operator=(const PointShapefile&);
+
         public:
 
-            PointShapefile(const char* filename) : Shapefile(filename, SHPT_POINT) {
+            PointShapefile(std::string& filename) : Shapefile(filename, SHPT_POINT) {
             }
 
             SHPObject* add_geometry(Osmium::OSM::Object *object, std::string& transformation) {
@@ -289,9 +295,13 @@ namespace Osmium {
 
         class LineShapefile : public Shapefile {
 
+            // define copy constructor and assignment operator as private
+            LineShapefile(const LineShapefile&);
+            LineShapefile& operator=(const LineShapefile&);
+
         public:
 
-            LineShapefile(const char* filename) : Shapefile(filename, SHPT_ARC) {
+            LineShapefile(std::string& filename) : Shapefile(filename, SHPT_ARC) {
             }
 
             SHPObject* add_geometry(Osmium::OSM::Object *object, std::string& transformation) {
@@ -302,9 +312,13 @@ namespace Osmium {
 
         class PolygonShapefile : public Shapefile {
 
+            // define copy constructor and assignment operator as private
+            PolygonShapefile(const PolygonShapefile&);
+            PolygonShapefile& operator=(const PolygonShapefile&);
+
         public:
 
-            PolygonShapefile(const char* filename) : Shapefile(filename, SHPT_POLYGON) {
+            PolygonShapefile(std::string& filename) : Shapefile(filename, SHPT_POLYGON) {
             }
 
             SHPObject* add_geometry(Osmium::OSM::Object *object, std::string& transformation) {

@@ -150,14 +150,14 @@ namespace Osmium {
                 } else {
                     v8::String::Utf8Value str(args[0]);
                     v8::String::AsciiValue type(args[1]);
-
+                    std::string filename(*str);
                     Osmium::Output::Shapefile *oc;
                     if (!strcmp(*type, "point")) {
-                        oc = new Osmium::Output::PointShapefile(*str);
+                        oc = new Osmium::Output::PointShapefile(filename);
                     } else if (!strcmp(*type, "line")) {
-                        oc = new Osmium::Output::LineShapefile(*str);
+                        oc = new Osmium::Output::LineShapefile(filename);
                     } else if (!strcmp(*type, "polygon")) {
-                        oc = new Osmium::Output::PolygonShapefile(*str);
+                        oc = new Osmium::Output::PolygonShapefile(filename);
                     } else {
                         throw std::runtime_error("unkown shapefile type");
                     }
