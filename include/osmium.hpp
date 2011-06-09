@@ -74,6 +74,7 @@ struct Osmium::global Osmium::global;
 # include <osmium/javascript/template.hpp>
 #endif // OSMIUM_WITH_JAVASCRIPT
 
+#include <osmium/exceptions.hpp>
 #include <osmium/osm.hpp>
 #include <osmium/osmfile.hpp>
 #include <osmium/input.hpp>

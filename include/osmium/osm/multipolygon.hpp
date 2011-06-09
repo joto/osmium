@@ -479,7 +479,7 @@ namespace Osmium {
 #ifdef OSMIUM_WITH_SHPLIB
             SHPObject *create_shp_polygon(std::string& /*transformation*/) {
                 if (!geometry) {
-                    return NULL;
+                    throw Osmium::Exception::IllegalGeometry();
                 }
 
                 std::vector<double> x;

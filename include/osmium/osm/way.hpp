@@ -237,7 +237,7 @@ namespace Osmium {
 #ifdef OSMIUM_CHECK_WAY_GEOMETRY
                 if (nodes.size() == 0 || nodes.size() == 1) {
                     if (Osmium::global.debug) std::cerr << "error building way geometry for way " << get_id() << ": must at least contain two nodes" << std::endl;
-                    return NULL;
+                    throw Osmium::Exception::IllegalGeometry();
                 }
 
                 std::vector<double> lon_checked;
@@ -260,7 +260,7 @@ namespace Osmium {
                 }
                 if (lon_checked.size() == 1) {
                     if (Osmium::global.debug) std::cerr << "error building way geometry for way " << get_id() << ": must at least contain two different points" << std::endl;
-                    return NULL;
+                    throw Osmium::Exception::IllegalGeometry();
                 }
                 if (reverse_way) {
                     reverse(lon_checked.begin(), lon_checked.end());

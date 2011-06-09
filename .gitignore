@@ -8,5 +8,6 @@ examples/osmium_progress
 examples/osmium_sizeof
 examples/osmium_stats
 examples/osmium_time
+examples/osmium_toshape
 osmjs/osmjs
 test/tmp/
