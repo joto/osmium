@@ -46,10 +46,14 @@ namespace Osmium {
             char buffer[OSMPBF::max_uncompressed_blob_size];
             char unpack_buffer[OSMPBF::max_uncompressed_blob_size];
 
-            typedef struct {
+            struct array_t {
+
                 const void *data;
                 size_t size;
-            } array_t;
+
+                array_t(const void *d, size_t s) : data(d), size(s) {
+                }
+            };
 
             OSMPBF::BlobHeader pbf_blob_header;
             OSMPBF::PrimitiveBlock pbf_primitive_block;
@@ -401,10 +405,10 @@ namespace Osmium {
                 }
 
                 if (blob.has_raw()) {
-                    return { blob.raw().data(), blob.raw().size() };
+                    return array_t(blob.raw().data(), blob.raw().size());
                 } else if (blob.has_zlib_data()) {
                     unpack_with_zlib(blob.zlib_data().data(), blob.zlib_data().size(), blob.raw_size());
-                    return { unpack_buffer, blob.raw_size() };
+                    return array_t(unpack_buffer, blob.raw_size());
                 } else if (blob.has_lzma_data()) {
                     throw std::runtime_error("lzma blobs not implemented");
                 } else {
