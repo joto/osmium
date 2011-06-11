@@ -107,13 +107,12 @@ namespace Osmium {
                             throw std::runtime_error(errorDesc.str());
                         }
                     } while (!done);
+                    XML_ParserFree(parser);
+
+                    this->call_after_and_before_handlers(UNKNOWN);
                 } catch (Osmium::Input::StopReading) {
                     // if a handler says to stop reading, we do
                 }
-
-                XML_ParserFree(parser);
-
-                this->call_after_and_before_handlers(UNKNOWN);
             }
 
         private:
