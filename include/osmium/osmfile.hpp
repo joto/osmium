@@ -582,7 +582,7 @@ namespace Osmium {
         /**
         * Read OSM file and call callback functions.
         */
-        template <class T> void read(T* handler);
+        template <class T> void read(T* handler = NULL);
 
         /**
          * Create output file from OSMFile.

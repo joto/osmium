@@ -25,7 +25,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 namespace Osmium {
 
     template <class T>
-    void OSMFile::read(T* handler = NULL) {
+    void OSMFile::read(T* handler) {
         Osmium::Input::Base<T>* input = m_encoding->is_pbf()
                                         ? static_cast<Osmium::Input::Base<T>*>(new Osmium::Input::PBF<T>(*this, handler))
                                         : static_cast<Osmium::Input::Base<T>*>(new Osmium::Input::XML<T>(*this, handler));
