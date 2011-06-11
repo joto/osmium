@@ -208,22 +208,45 @@ namespace Osmium {
                 char m_compression_buffer[OSMPBF::max_uncompressed_blob_size];
 
                 /**
-                 * this struct and its variable last_dense_info is used to calculate the
+                 * This class models a variable that keeps track of the value
+                 * it was last set to and returns the delta between old and
+                 * new value from the update() call.
+                 */
+                template<typename T>
+                class DeltaVar {
+
+                public:
+
+                    DeltaVar() : m_value(0) {
+                    }
+
+                    void clear() {
+                        m_value = 0;
+                    }
+
+                    T update(T new_value) {
+                        std::swap(m_value, new_value);
+                        return m_value - new_value;
+                    }
+
+                private:
+
+                    T m_value;                    
+
+                };
+
+                /**
+                 * These variables are used to calculate the
                  * delta-encoding while storing dense-nodes. It holds the last seen values
                  * from which the difference is stored into the protobuf.
                  */
-                struct last_dense {
-                    int64_t id;
-
-                    int64_t lat;
-                    int64_t lon;
-
-                    int64_t timestamp;
-                    int64_t changeset;
-                    int64_t uid;
-
-                    uint32_t user_sid;
-                } last_dense_info;
+                DeltaVar<int64_t> m_delta_id;
+                DeltaVar<int64_t> m_delta_lat;
+                DeltaVar<int64_t> m_delta_lon;
+                DeltaVar<int64_t> m_delta_timestamp;
+                DeltaVar<int64_t> m_delta_changeset;
+                DeltaVar<int64_t> m_delta_uid;
+                DeltaVar<uint32_t> m_delta_user_sid;
 
 
                 ///// Blob writing /////
@@ -389,10 +412,7 @@ namespace Osmium {
                                     uint16_t user_sid = string_table.map_string_id(denseinfo->user_sid(i));
 
                                     // delta encode the string-id
-                                    denseinfo->set_user_sid(i, user_sid - last_dense_info.user_sid);
-
-                                    // store the last string-id for the next delta-coding
-                                    last_dense_info.user_sid = user_sid;
+                                    denseinfo->set_user_sid(i, m_delta_user_sid.update(user_sid));
                                 }
                             }
                         }
@@ -541,8 +561,14 @@ namespace Osmium {
                     // clear the interim StringTable and its id map
                     string_table.clear();
 
-                    // reset the dense-info struct to zero
-                    last_dense_info = {0, 0, 0, 0, 0, 0, 0};
+                    // reset the delta variables
+                    m_delta_id.clear();
+                    m_delta_lat.clear();
+                    m_delta_lon.clear();
+                    m_delta_timestamp.clear();
+                    m_delta_changeset.clear();
+                    m_delta_uid.clear();
+                    m_delta_user_sid.clear();
 
                     // reset the contents-counter to zero
                     primitive_block_contents = 0;
@@ -594,20 +620,14 @@ namespace Osmium {
                     // add a DenseNodes-Section to the PrimitiveGroup
                     OSMPBF::DenseNodes *dense = pbf_nodes->mutable_dense();
 
-                    // copy the id, delta encoded against last_dense_info
-                    int64_t id = node->get_id();
-                    dense->add_id(id - last_dense_info.id);
-                    last_dense_info.id = id;
+                    // copy the id, delta encoded
+                    dense->add_id(m_delta_id.update(node->get_id()));
 
-                    // copy the longitude, delta encoded against last_dense_info
-                    int64_t lon = lonlat2int(node->get_lon());
-                    dense->add_lon(lon - last_dense_info.lon);
-                    last_dense_info.lon = lon;
+                    // copy the longitude, delta encoded
+                    dense->add_lon(m_delta_lon.update(lonlat2int(node->get_lon())));
 
-                    // copy the latitude, delta encoded against last_dense_info
-                    int64_t lat = lonlat2int(node->get_lat());
-                    dense->add_lat(lat - last_dense_info.lat);
-                    last_dense_info.lat = lat;
+                    // copy the latitude, delta encoded
+                    dense->add_lat(m_delta_lat.update(lonlat2int(node->get_lat())));
 
                     // in the densenodes structure keys and vals are encoded in an intermixed
                     // array, individual nodes are seperated by a value of 0 (0 in the StringTable
@@ -628,20 +648,14 @@ namespace Osmium {
                         // copy the version
                         denseinfo->add_version(node->get_version());
 
-                        // copy the timestamp, delta encoded against last_dense_info
-                        int64_t timestamp = timestamp2int(node->get_timestamp());
-                        denseinfo->add_timestamp(timestamp - last_dense_info.timestamp);
-                        last_dense_info.timestamp = timestamp;
+                        // copy the timestamp, delta encoded
+                        denseinfo->add_timestamp(m_delta_timestamp.update(timestamp2int(node->get_timestamp())));
 
-                        // copy the changeset, delta encoded against last_dense_info
-                        int64_t changeset = node->get_changeset();
-                        denseinfo->add_changeset(node->get_changeset() - last_dense_info.changeset);
-                        last_dense_info.changeset = changeset;
+                        // copy the changeset, delta encoded
+                        denseinfo->add_changeset(m_delta_changeset.update(node->get_changeset()));
 
-                        // copy the user id, delta encoded against last_dense_info
-                        int64_t uid = node->get_uid();
-                        denseinfo->add_uid(uid - last_dense_info.uid);
-                        last_dense_info.uid = uid;
+                        // copy the user id, delta encoded
+                        denseinfo->add_uid(m_delta_uid.update(node->get_uid()));
 
                         // record the user-name to the interim stringtable and copy the
                         // interim string-id to the pbf-object
@@ -662,14 +676,12 @@ namespace Osmium {
                     apply_common_info(way, pbf_way);
 
                     // last way-node-id used for delta-encoding
-                    int64_t last_id = 0;
+                    DeltaVar<int64_t> delta_id;
 
                     // iterate over all way-nodes
                     for (int i=0, l = way->node_count(); i<l; i++) {
-                        // copy the way-node-id, delta encoded against last_id
-                        int64_t id = way->get_node_id(i);
-                        pbf_way->add_refs(id - last_id);
-                        last_id = id;
+                        // copy the way-node-id, delta encoded
+                        pbf_way->add_refs(delta_id.update(way->get_node_id(i)));
                     }
                 }
 
@@ -685,8 +697,7 @@ namespace Osmium {
                     // copy the common meta-info from the osmium-object to the pbf-object
                     apply_common_info(relation, pbf_relation);
 
-                    // last relation-member-id used for delta-encoding
-                    int64_t last_id = 0;
+                    DeltaVar<int64_t> delta_id;
 
                     // iterate over all relation-members
                     for (int i=0, l=relation->member_count(); i<l; i++) {
@@ -697,10 +708,8 @@ namespace Osmium {
                         // interim string-id to the pbf-object
                         pbf_relation->add_roles_sid(string_table.record_string(mem->get_role()));
 
-                        // copy the relation-member-id, delta encoded against last_id
-                        int64_t id = mem->get_ref();
-                        pbf_relation->add_memids(id - last_id);
-                        last_id = id;
+                        // copy the relation-member-id, delta encoded
+                        pbf_relation->add_memids(delta_id.update(mem->get_ref()));
 
                         // copy the relation-member-type, mapped to the OSMPBF enum
                         switch (mem->get_type()) {
@@ -735,7 +744,13 @@ namespace Osmium {
                     m_should_add_metadata(true),
                     primitive_block_contents(0),
                     string_table(),
-                    last_dense_info( {0, 0, 0, 0, 0, 0, 0} ) {
+                    m_delta_id(),
+                    m_delta_lat(),
+                    m_delta_lon(),
+                    m_delta_timestamp(),
+                    m_delta_changeset(),
+                    m_delta_uid(),
+                    m_delta_user_sid() {
 
                     GOOGLE_PROTOBUF_VERIFY_VERSION;
                 }
