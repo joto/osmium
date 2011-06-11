@@ -107,14 +107,14 @@ namespace Osmium {
                 }
 
                 std::ofstream file;
-                file.open(filename + ".prj");
+                file.open((filename + ".prj").c_str());
                 if (file.fail()) {
                     throw std::runtime_error("Can't open shapefile: " + filename + ".prj");
                 }
                 file << "GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"Degree\",0.017453292519943295]]" << std::endl;
                 file.close();
 
-                file.open(filename + ".cpg");
+                file.open((filename + ".cpg").c_str());
                 if (file.fail()) {
                     throw std::runtime_error("Can't open shapefile: " + filename + ".cpg");
                 }
