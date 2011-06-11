@@ -180,13 +180,12 @@ void print_help() {
 }
 
 std::string find_include_file(std::string filename) {
-    static std::vector<std::string> search_path = {
-        ".",
-        "js",
-        std::string(getenv("HOME")) + "/.osmjs",
-        "/usr/local/share/osmjs",
-        "/usr/share/osmjs"
-    };
+    std::vector<std::string> search_path;
+    search_path.push_back(".");
+    search_path.push_back("js");
+    search_path.push_back(std::string(getenv("HOME")) + "/.osmjs");
+    search_path.push_back("/usr/local/share/osmjs");
+    search_path.push_back("/usr/share/osmjs");
 
     // add .js if there is no suffix
     if (filename.find_last_of('.') == std::string::npos) {
