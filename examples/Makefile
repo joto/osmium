@@ -34,11 +34,7 @@ LIB_PROTOBUF = -lz -lprotobuf-lite -losmpbf
 LIB_XML2     = `xml2-config --libs`
 LIB_GEOS     = -lgeos
 
-<<<<<<< HEAD
-PROGRAMS = osmium_sizeof osmium_debug osmium_stats osmium_find_bbox osmium_time osmium_progress osmium_convert osmium_poly_reader nodedensity
-=======
-PROGRAMS = osmium_sizeof osmium_debug osmium_stats osmium_find_bbox osmium_time osmium_progress osmium_convert osmium_toshape nodedensity
->>>>>>> upstream/master
+PROGRAMS = osmium_sizeof osmium_debug osmium_stats osmium_find_bbox osmium_time osmium_progress osmium_convert osmium_toshape nodedensity osmium_poly_reader
 
 .PHONY: all clean
 

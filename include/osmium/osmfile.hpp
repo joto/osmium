@@ -379,11 +379,7 @@ namespace Osmium {
             set_type_and_encoding(suffix);
         }
 
-<<<<<<< HEAD
-        void set_type_and_encoding(const std::string& suffix = "") {
-=======
         void set_type_and_encoding(const std::string& suffix) {
->>>>>>> upstream/master
             if (suffix == "pbf" || suffix == "osm.pbf") {
                 m_type     = FileType::OSM();
                 m_encoding = FileEncoding::PBF();

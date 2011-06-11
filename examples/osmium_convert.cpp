@@ -94,41 +94,21 @@ void print_help() {
 
 int main(int argc, char *argv[]) {
     static struct option long_options[] = {
-<<<<<<< HEAD
-        {"debug",                no_argument, 0, 'd'},
-        {"help",                 no_argument, 0, 'h'},
-        {"input",                required_argument, 0, 'i'},
-        {"output",               required_argument, 0, 'o'},
-        {"help",                 no_argument, 0, 'h'},
-=======
         {"debug",       no_argument, 0, 'd'},
         {"help",        no_argument, 0, 'h'},
         {"from-format", required_argument, 0, 'f'},
         {"to-format",   required_argument, 0, 't'},
->>>>>>> upstream/master
         {0, 0, 0, 0}
     };
 
     bool debug = false;
 
-<<<<<<< HEAD
-    const char *input = NULL;
-    const char *input_type = NULL;
-
-    const char *output = NULL;
-    const char *output_type = NULL;
-
-    while (1) {
-        int c = getopt_long(argc, argv, "dhi:o:", long_options, 0);
-        if (c == -1)
-=======
     std::string input_format;
     std::string output_format;
 
     while (true) {
         int c = getopt_long(argc, argv, "dhf:t:", long_options, 0);
         if (c == -1) {
->>>>>>> upstream/master
             break;
         }
 
@@ -139,38 +119,17 @@ int main(int argc, char *argv[]) {
             case 'h':
                 print_help();
                 exit(0);
-<<<<<<< HEAD
-            case 'i':
-                input_type = optarg;
-                break;
-            case 'o':
-                output_type = optarg;
-=======
             case 'f':
                 input_format = optarg;
                 break;
             case 't':
                 output_format = optarg;
->>>>>>> upstream/master
                 break;
             default:
                 exit(1);
         }
     }
 
-<<<<<<< HEAD
-    if (optind == argc-2) {
-        input =  argv[optind];
-        output = argv[optind+1];
-    }
-    else if (optind == argc-1) {
-        input =  argv[optind];
-        output = "-";
-    }
-    else {
-        input =  "-";
-        output = "-";
-=======
     std::string input;
     std::string output;
     int remaining_args = argc - optind;
@@ -182,31 +141,11 @@ int main(int argc, char *argv[]) {
         output = argv[optind+1];
     } else if (remaining_args == 1) {
         input =  argv[optind];
->>>>>>> upstream/master
     }
 
     Osmium::Framework osmium(debug);
 
     Osmium::OSMFile infile(input);
-<<<<<<< HEAD
-    if (input_type) {
-        infile.set_type_and_encoding(input_type);
-    }
-
-    Osmium::OSMFile* outfile = new Osmium::OSMFile(output);
-    if (output_type) {
-        outfile->set_type_and_encoding(output_type);
-    }
-
-    if(infile.get_type() == Osmium::OSMFile::FileType::OSM() && outfile->get_type() == Osmium::OSMFile::FileType::History()) {
-        std::cerr << "Warning! converting from FileType::OSM to FileType::History will fake history information" << std::endl;
-    }
-    else if(infile.get_type() == Osmium::OSMFile::FileType::History() && outfile->get_type() == Osmium::OSMFile::FileType::OSM()) {
-        std::cerr << "Warning! converting from FileType::History to FileType::OSM will drop history information" << std::endl;
-    }
-    else if(infile.get_type() != outfile->get_type()) {
-        std::cerr << "Warning! source and destination are not of the same type." << std::endl;
-=======
     if (!input_format.empty()) {
         try {
             infile.set_type_and_encoding(input_format);
@@ -232,7 +171,6 @@ int main(int argc, char *argv[]) {
         std::cerr << "Warning! You are converting from an OSM file with history information to one without history information.\nThis will almost certainly not do what you want!" << std::endl;
     } else if (infile.get_type() != outfile->get_type()) {
         std::cerr << "Warning! Source and destination are not of the same type." << std::endl;
->>>>>>> upstream/master
     }
 
     ConvertHandler *handler_convert = new ConvertHandler(outfile);
