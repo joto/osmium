@@ -46,14 +46,7 @@ namespace Osmium {
             char buffer[OSMPBF::max_uncompressed_blob_size];
             char unpack_buffer[OSMPBF::max_uncompressed_blob_size];
 
-            struct array_t {
-
-                const void *data;
-                size_t size;
-
-                array_t(const void *d, size_t s) : data(d), size(s) {
-                }
-            };
+            typedef std::pair<const void *, size_t> array_t;
 
             OSMPBF::BlobHeader pbf_blob_header;
             OSMPBF::PrimitiveBlock pbf_primitive_block;
@@ -83,7 +76,7 @@ namespace Osmium {
                         array_t a = read_blob(pbf_blob_header.datasize());
 
                         if (pbf_blob_header.type() == "OSMData") {
-                            if (!pbf_primitive_block.ParseFromArray(a.data, a.size)) {
+                            if (!pbf_primitive_block.ParseFromArray(a.first, a.second)) {
                                 throw std::runtime_error("Failed to parse PrimitiveBlock.");
                             }
                             OSMPBF::StringTable stringtable = pbf_primitive_block.stringtable();
@@ -93,7 +86,7 @@ namespace Osmium {
                             }
                         } else if (pbf_blob_header.type() == "OSMHeader") {
                             OSMPBF::HeaderBlock pbf_header_block;
-                            if (!pbf_header_block.ParseFromArray(a.data, a.size)) {
+                            if (!pbf_header_block.ParseFromArray(a.first, a.second)) {
                                 throw std::runtime_error("Failed to parse HeaderBlock.");
                             }
 
