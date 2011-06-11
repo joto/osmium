@@ -188,7 +188,7 @@ namespace Osmium {
             static const char *timestamp_format() {
                 static const char f[] = "%Y-%m-%dT%H:%M:%SZ";
                 return f;
-            };
+            }
 
             /**
              * Get the timestamp when this object last changed.
