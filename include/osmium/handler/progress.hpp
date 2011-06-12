@@ -52,7 +52,7 @@ namespace Osmium {
 
             void update_display() const {
                 std::cout << "[" << count_nodes << "]";
-                if (count_ways > 0) {
+                if (count_ways > 0 || count_relations > 0) {
                     std::cout << " [" << count_ways << "]";
                     if (count_relations > 0) {
                         std::cout << " [" << count_relations << "]";
