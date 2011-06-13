@@ -48,11 +48,9 @@ namespace Osmium {
             uint64_t count_relations;
 
             int step;
-            timeval first_node, last_node;
-            timeval first_way, last_way;
-            timeval first_relation, last_relation;
-
             bool is_a_tty;
+
+            timeval first_node, first_way, first_relation;
 
             void update_display() const {
                 std::cout << "[" << count_nodes << "]";
@@ -93,7 +91,7 @@ namespace Osmium {
              * @param s Step, after how many nodes/ways/relations the display
              *          should be updated. (default 1000).
              */
-            Progress(int s=1000) : Base(), count_nodes(0), count_ways(0), count_relations(0), step(s), is_a_tty(false) {
+            Progress(int s=1000) : Base(), count_nodes(0), count_ways(0), count_relations(0), step(s), is_a_tty(false), first_node(), first_way(), first_relation() {
                 if (isatty(1)) {
                     is_a_tty = true;
                 }
