@@ -95,12 +95,11 @@ public:
     }
 
     void callback_final() {
-        handler_javascript->callback_final();
-
         if (pg) {
             pg->callback_final();
             delete pg;
         }
+        handler_javascript->callback_final();
     }
 
 };
@@ -166,6 +165,10 @@ public:
     void callback_relation(Osmium::OSM::Relation *relation) {
         handler_multipolygon->callback_relation(relation);
         handler_javascript->callback_relation(relation);
+
+        if (pg) {
+            pg->callback_relation(relation);
+        }
     }
 
     void callback_after_relations() {
@@ -248,13 +251,12 @@ public:
     }
 
     void callback_final() {
-        handler_javascript->callback_final();
-        handler_multipolygon->callback_final();
-
         if (pg) {
             pg->callback_final();
             delete pg;
         }
+        handler_javascript->callback_final();
+        handler_multipolygon->callback_final();
     }
 };
 
