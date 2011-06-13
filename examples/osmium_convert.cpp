@@ -30,41 +30,50 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #define OSMIUM_MAIN
 #include <osmium.hpp>
+#include <osmium/handler/progress.hpp>
 
 class ConvertHandler : public Osmium::Handler::Base {
 
     Osmium::OSMFile *m_outfile;
+    Osmium::Handler::Progress *m_pg;
 
     Osmium::Output::OSM::Base *output;
 
 public:
 
     ConvertHandler(Osmium::OSMFile *osmfile = new Osmium::OSMFile("")) : m_outfile(osmfile) {
+        m_pg = new Osmium::Handler::Progress();
     }
 
     ~ConvertHandler() {
         delete m_outfile;
+        delete m_pg;
     }
 
     void callback_init() {
         output = m_outfile->create_output_file();
         output->write_init();
+        m_pg->callback_init();
     }
 
     void callback_node(Osmium::OSM::Node *node) {
         output->write(node);
+        m_pg->callback_node(node);
     }
 
     void callback_way(Osmium::OSM::Way *way) {
         output->write(way);
+        m_pg->callback_way(way);
     }
 
     void callback_relation(Osmium::OSM::Relation *relation) {
         output->write(relation);
+        m_pg->callback_relation(relation);
     }
 
     void callback_final() {
         output->write_final();
+        m_pg->callback_final();
         delete output;
     }
 
