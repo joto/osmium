@@ -23,6 +23,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 */
 
 #include <unistd.h>
+#include <sys/time.h>
 
 namespace Osmium {
 
@@ -47,6 +48,9 @@ namespace Osmium {
             uint64_t count_relations;
 
             int step;
+            timeval first_node, last_node;
+            timeval first_way, last_way;
+            timeval first_relation, last_relation;
 
             bool is_a_tty;
 
@@ -58,6 +62,26 @@ namespace Osmium {
                         std::cout << " [" << count_relations << "]";
                     }
                 }
+
+                timeval now;
+                gettimeofday(&now, 0);
+
+                if (count_relations > 0) {
+                    float relation_diff = (now.tv_sec - first_relation.tv_sec) * 1000000 + (now.tv_usec - first_relation.tv_usec);
+                    int relations_per_sec = (float)count_relations / relation_diff * 1000000;
+                    std::cout << " (" << relations_per_sec << " Relations per second)   ";
+                }
+                else if (count_ways > 0) {
+                    float way_diff = (now.tv_sec - first_way.tv_sec) * 1000000 + (now.tv_usec - first_way.tv_usec);
+                    int ways_per_sec = (float)count_ways / way_diff * 1000000;
+                    std::cout << " (" << ways_per_sec << " Ways per second)   ";
+                }
+                else if (count_nodes > 0) {
+                    float node_diff = (now.tv_sec - first_node.tv_sec) * 1000000 + (now.tv_usec - first_node.tv_usec);
+                    int nodes_per_sec = (float)count_nodes / node_diff * 1000000;
+                    std::cout << " (" << nodes_per_sec << " Nodes per second)   ";
+                }
+
                 std::cout << "\r";
                 std::cout.flush();
             }
@@ -91,18 +115,27 @@ namespace Osmium {
             }
 
             void callback_node(const OSM::Node * /*object*/) {
+                if(first_node.tv_sec == 0) {
+                    gettimeofday(&first_node, 0);
+                }
                 if (is_a_tty && ++count_nodes % step == 0) {
                     update_display();
                 }
             }
 
             void callback_way(const OSM::Way * /*object*/) {
+                if(first_way.tv_sec == 0) {
+                    gettimeofday(&first_way, 0);
+                }
                 if (is_a_tty && ++count_ways % step == 0) {
                     update_display();
                 }
             }
 
             void callback_relation(OSM::Relation * /*object*/) {
+                if(first_relation.tv_sec == 0) {
+                    gettimeofday(&first_relation, 0);
+                }
                 if (is_a_tty && ++count_relations % step == 0) {
                     update_display();
                 }
@@ -111,6 +144,25 @@ namespace Osmium {
             void callback_final() const {
                 if (is_a_tty) {
                     update_display();
+                    std::cout << std::endl;
+
+                    std::cout << "  Average: ";
+
+                    timeval now;
+                    gettimeofday(&now, 0);
+
+                    float node_diff = (now.tv_sec - first_node.tv_sec) * 1000000 + (now.tv_usec - first_node.tv_usec);
+                    int nodes_per_sec = (float)count_nodes / node_diff * 1000000;
+                    std::cout << nodes_per_sec << " Nodes, ";
+
+                    float way_diff = (now.tv_sec - first_way.tv_sec) * 1000000 + (now.tv_usec - first_way.tv_usec);
+                    int ways_per_sec = (float)count_ways / way_diff * 1000000;
+                    std::cout << ways_per_sec << " Ways and ";
+
+                    float relation_diff = (now.tv_sec - first_relation.tv_sec) * 1000000 + (now.tv_usec - first_relation.tv_usec);
+                    int relations_per_sec = (float)count_relations / relation_diff * 1000000;
+                    std::cout << relations_per_sec << " Relations per second";
+
                     show_cursor();
                     std::cout << std::endl;
                     std::cout.flush();
