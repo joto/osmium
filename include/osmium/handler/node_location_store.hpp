@@ -41,12 +41,12 @@ namespace Osmium {
         */
         class NodeLocationStore : public Base {
 
+        protected:
+
             struct coordinates {
                 int32_t x;
                 int32_t y;
             };
-
-        protected:
 
             /**
             * the node location store will add this number to all ids,
