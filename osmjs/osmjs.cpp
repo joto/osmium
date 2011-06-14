@@ -162,7 +162,7 @@ public:
 v8::Persistent<v8::Context> global_context;
 
 void print_help() {
-    std::cout << "osmjs [OPTIONS] OSMFILE" << std::endl \
+    std::cout << "osmjs [OPTIONS] OSMFILE [SCRIPT_ARG ...]" << std::endl \
               << "Options:" << std::endl \
               << "  --help, -h                       - This help message" << std::endl \
               << "  --debug, -d                      - Enable debugging output" << std::endl \
@@ -180,13 +180,12 @@ void print_help() {
 }
 
 std::string find_include_file(std::string filename) {
-    static std::vector<std::string> search_path = {
-        ".",
-        "js",
-        std::string(getenv("HOME")) + "/.osmjs",
-        "/usr/local/share/osmjs",
-        "/usr/share/osmjs"
-    };
+    std::vector<std::string> search_path;
+    search_path.push_back(".");
+    search_path.push_back("js");
+    search_path.push_back(std::string(getenv("HOME")) + "/.osmjs");
+    search_path.push_back("/usr/local/share/osmjs");
+    search_path.push_back("/usr/share/osmjs");
 
     // add .js if there is no suffix
     if (filename.find_last_of('.') == std::string::npos) {
@@ -292,11 +291,11 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    if (optind == argc-1) {
-        osm_filename = argv[optind];
-    } else {
-        std::cerr << "Usage: " << argv[0] << " [OPTIONS] OSMFILE" << std::endl;
+    if (optind >= argc) {
+        std::cerr << "Usage: " << argv[0] << " [OPTIONS] OSMFILE [SCRIPT_ARG ...]" << std::endl;
         exit(1);
+    } else {
+        osm_filename = argv[optind];
     }
 
     if (two_passes && osm_filename == "-") {
@@ -315,6 +314,15 @@ int main(int argc, char *argv[]) {
 
     global_context = v8::Persistent<v8::Context>::New(v8::Context::New(0, global_template));
     v8::Context::Scope context_scope(global_context);
+
+    // put rest of the arguments into Javascript argv array
+    v8::Handle<v8::Array> js_argv = v8::Array::New(argc-optind-1);
+    for (int i=optind+1; i<argc; ++i) {
+        v8::Local<v8::Integer> ii = v8::Integer::New(i-(optind+1));
+        v8::Local<v8::String> s = v8::String::New(argv[i]);
+        js_argv->Set(ii, s);
+    }
+    global_context->Global()->Set(v8::String::New("argv"), js_argv);
 
     Osmium::Javascript::Template::init();
 

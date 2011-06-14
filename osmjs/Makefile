@@ -9,7 +9,7 @@ CXX = g++
 CXXFLAGS = -g
 #CXXFLAGS = -O3
 
-CXXFLAGS += -std=c++0x -Wall -Wextra -Wredundant-decls -Wdisabled-optimization -pedantic
+CXXFLAGS += -Wall -Wextra -Wredundant-decls -Wdisabled-optimization -pedantic
 #CXXFLAGS += -Wpadded -Winline
 
 # uncomment this if you want information on how long it took to build the multipolygons

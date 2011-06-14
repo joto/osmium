@@ -131,7 +131,7 @@ namespace Osmium {
          */
         void store_stringtable(OSMPBF::StringTable *st) {
             // as a map can't be sorted, we need a vector holding our string/string_info pairs
-            std::vector<std::pair<std::string, string_info>> strvec;
+            std::vector<std::pair<std::string, string_info> > strvec;
 
             // we now copy the contents from the map over to the vector
             std::copy(strings.begin(), strings.end(), back_inserter(strvec));

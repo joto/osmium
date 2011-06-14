@@ -49,8 +49,8 @@ namespace Osmium {
             void callback_node(const OSM::Node *node) const {
                 std::cout << "node:" << std::endl;
                 print_meta(node);
-                std::cout << "  lon=" << node->get_lon() << std::endl;
-                std::cout << "  lat=" << node->get_lat() << std::endl;
+                std::cout << "  lon=" << std::fixed << std::setprecision(7) << node->get_lon() << std::endl;
+                std::cout << "  lat=" << std::fixed << std::setprecision(7) << node->get_lat() << std::endl;
             }
 
             void callback_way(const OSM::Way *way) const {

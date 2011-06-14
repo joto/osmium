@@ -23,9 +23,11 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 */
 
 #include <stdexcept>
+#include <iostream>
 
 #ifdef OSMIUM_WITH_SHPLIB
 # include <shapefil.h>
+# include <algorithm>
 #endif // OSMIUM_WITH_SHPLIB
 
 /** @file
@@ -251,16 +253,14 @@ namespace Osmium {
             * Create a SHPObject for this way and return it. You have to call
             * SHPDestroyObject() with this object when you are done.
             */
-            SHPObject *create_shpobject(int shp_type) {
-                if (lon.empty())
+            SHPObject *create_shpobject(int shp_type, bool reverse_way) {
+                if (lon.empty()) {
                     throw std::runtime_error("node coordinates not available for building way geometry");
-                if (shp_type != SHPT_ARC && shp_type != SHPT_POLYGON) {
-                    throw std::runtime_error("a way can only be added to a shapefile of type line or polygon");
                 }
 #ifdef OSMIUM_CHECK_WAY_GEOMETRY
                 if (nodes.size() == 0 || nodes.size() == 1) {
                     if (Osmium::global.debug) std::cerr << "error building way geometry for way " << get_id() << ": must at least contain two nodes" << std::endl;
-                    return NULL;
+                    throw Osmium::Exception::IllegalGeometry();
                 }
 
                 std::vector<double> lon_checked;
@@ -283,12 +283,24 @@ namespace Osmium {
                 }
                 if (lon_checked.size() == 1) {
                     if (Osmium::global.debug) std::cerr << "error building way geometry for way " << get_id() << ": must at least contain two different points" << std::endl;
-                    return NULL;
+                    throw Osmium::Exception::IllegalGeometry();
+                }
+                if (reverse_way) {
+                    reverse(lon_checked.begin(), lon_checked.end());
+                    reverse(lat_checked.begin(), lat_checked.end());
                 }
                 return SHPCreateSimpleObject(shp_type, lon_checked.size(), &(lon_checked[0]), &(lat_checked[0]), NULL);
 #else
                 return SHPCreateSimpleObject(shp_type, lon.size(), &(lon[0]), &(lat[0]), NULL);
 #endif // OSMIUM_CHECK_WAY_GEOMETRY
+            }
+
+            SHPObject *create_shp_line(std::string& transformation) {
+                return create_shpobject(SHPT_ARC, transformation == "reverse" ? 1 : 0);
+            }
+
+            SHPObject *create_shp_polygon(std::string& transformation) {
+                return create_shpobject(SHPT_POLYGON, transformation == "reverse" ? 1 : 0);
             }
 #endif // OSMIUM_WITH_SHPLIB
 

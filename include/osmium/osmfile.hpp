@@ -26,6 +26,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <fcntl.h>
+#include <errno.h>
 
 namespace Osmium {
 
@@ -39,38 +40,66 @@ namespace Osmium {
     /**
      * This class describes an OSM file in one of several different formats.
      * It can be used as factory class for generating input and output OSM files.
+     *
+     * If the filename is empty, this means stdin or stdout is used. If you set
+     * the filename to "-" it will be treated the same.
      */
     class OSMFile {
 
     public:
 
-        struct SystemError {
+        class SystemError : public std::runtime_error {
 
-            std::string m_msg;
             int m_errno;
 
-            SystemError(std::string msg, int e) : m_msg(msg), m_errno(e) {
+        public:
+
+            SystemError(const std::string& whatarg, int e) : std::runtime_error(whatarg), m_errno(e) {
+            }
+
+            int system_errno() const throw() {
+                return m_errno;
             }
 
         };
 
-        struct IOError {
+        class IOError : public std::runtime_error {
 
-            std::string m_msg;
             std::string m_filename;
             int m_errno;
 
-            IOError(std::string msg, std::string filename, int e) : m_msg(msg), m_filename(filename), m_errno(e) {
+        public:
+
+            IOError(const std::string& whatarg, const std::string& filename, int e) : std::runtime_error(whatarg), m_filename(filename), m_errno(e) {
+            }
+
+            ~IOError() throw() {
+            }
+
+            const std::string& filename() const throw() {
+                return m_filename;
+            }
+
+            int system_errno() const throw() {
+                return m_errno;
             }
 
         };
 
-        struct ArgumentError {
+        class ArgumentError : public std::runtime_error {
 
-            std::string m_msg;
             std::string m_value;
 
-            ArgumentError(std::string msg, std::string value="") : m_msg(msg), m_value(value) {
+        public:
+
+            ArgumentError(const std::string& whatarg, const std::string& value="") : std::runtime_error(whatarg), m_value(value) {
+            }
+
+            ~ArgumentError() throw() {
+            }
+
+            const std::string& value() const throw() {
+                return m_value;
             }
 
         };
@@ -267,15 +296,15 @@ namespace Osmium {
                 if (input == 0) {
                     open("/dev/null", O_RDONLY); // stdin
                     open("/dev/null", O_WRONLY); // stderr
-                    if (execlp(command.c_str(), command.c_str(), m_filename.c_str(), 0) < 0) {
+                    if (execlp(command.c_str(), command.c_str(), m_filename.c_str(), NULL) < 0) {
                         exit(1);
                     }
                 } else {
-                    if (open(m_filename.c_str(), O_WRONLY | O_CREAT, 0666) != 1) {
+                    if (open(m_filename.c_str(), O_WRONLY | O_TRUNC | O_CREAT, 0666) != 1) {
                         exit(1);
                     }
                     open("/dev/null", O_WRONLY); // stderr
-                    if (execlp(command.c_str(), command.c_str(), 0, 0) < 0) {
+                    if (execlp(command.c_str(), command.c_str(), 0, NULL) < 0) {
                         exit(1);
                     }
                 }
@@ -288,8 +317,6 @@ namespace Osmium {
 
         int open_input_file() const {
             if (m_filename == "") {
-                throw ArgumentError("Missing filename");
-            } else if (m_filename == "-") {
                 return 0; // stdin
             } else {
                 int fd = open(m_filename.c_str(), O_RDONLY);
@@ -302,11 +329,9 @@ namespace Osmium {
 
         int open_output_file() const {
             if (m_filename == "") {
-                throw ArgumentError("Missing filename");
-            } else if (m_filename == "-") {
                 return 1; // stdout
             } else {
-                int fd = open(m_filename.c_str(), O_WRONLY | O_CREAT, 0666);
+                int fd = open(m_filename.c_str(), O_WRONLY | O_TRUNC | O_CREAT, 0666);
                 if (fd < 0) {
                     throw IOError("Open failed", m_filename, errno);
                 }
@@ -330,12 +355,14 @@ namespace Osmium {
          * If you want to overwrite these settings you can change them later.
          *
          * @param filename Filename including suffix. The type and encoding of the file will be taken from the suffix.
+         *                 An empty filename or "-" means stdin or stdout.
          */
         OSMFile(const std::string& filename = "")
             : m_type(FileType::OSM()), m_encoding(FileEncoding::PBF()), m_filename(filename), m_fd(-1), m_childpid(0) {
 
             // stdin/stdout
-            if (filename == "-") {
+            if (filename == "" || filename == "-") {
+                m_filename = "";
                 default_settings_for_stdinout();
                 return;
             }
@@ -349,6 +376,10 @@ namespace Osmium {
 
             // set type depending on suffix
             std::string suffix(filename.substr(filename.find_first_of('.')+1));
+            set_type_and_encoding(suffix);
+        }
+
+        void set_type_and_encoding(const std::string& suffix) {
             if (suffix == "pbf" || suffix == "osm.pbf") {
                 m_type     = FileType::OSM();
                 m_encoding = FileEncoding::PBF();
@@ -445,9 +476,9 @@ namespace Osmium {
         }
 
         /**
-         * Set default settings for type and encoding when the filename is "-".
-         * If you want to have a different default setting override this in a
-         * subclass.
+         * Set default settings for type and encoding when the filename is
+         * empty or "-".  If you want to have a different default setting
+         * override this in a subclass.
          */
         void default_settings_for_stdinout() {
             m_type     = FileType::OSM();
@@ -518,7 +549,11 @@ namespace Osmium {
         }
 
         OSMFile& set_filename(std::string& filename) {
-            m_filename = filename;
+            if (filename == "-") {
+                m_filename = "";
+            } else {
+                m_filename = filename;
+            }
             return *this;
         }
 
@@ -547,7 +582,7 @@ namespace Osmium {
         /**
         * Read OSM file and call callback functions.
         */
-        template <class T> void read(T* handler);
+        template <class T> void read(T* handler = NULL);
 
         /**
          * Create output file from OSMFile.
