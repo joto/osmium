@@ -42,12 +42,22 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    geos::geom::Geometry *geom = Osmium::GeometryReader::fromPolyFile(argv[1]);
+    std::string filename = argv[1];
+    std::string suffix(filename.substr(filename.find_first_of('.')+1));
+    geos::geom::Geometry *geom = NULL;
+
+    if (suffix == "poly") {
+        geom = Osmium::GeometryReader::fromPolyFile(filename);
+    } else if (suffix == "osm") {
+        geom = Osmium::GeometryReader::fromOsmFile(filename);
+    } else {
+        std::cerr << "Unknown suffix " << suffix << std::endl;
+    }
     //geos::geom::Geometry *geom = Osmium::GeometryReader::fromBBox(-180, -90, 180, 90);
     //geos::geom::Geometry *geom = Osmium::GeometryReader::fromBBox("-180,-90,180,90");
 
-    if(!geom) {
-        std::cerr << "Unable to read polygon file: " << argv[1] << std::endl;
+    if (!geom) {
+        std::cerr << "Unable to read polygon file: " << filename << std::endl;
         return 1;
     }
 
