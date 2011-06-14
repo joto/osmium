@@ -42,6 +42,7 @@ int main(int argc, char *argv[]) {
     }
 
     Osmium::OSMFile infile(argv[1]);
-    infile.read<Osmium::Handler::Statistics>();
+    Osmium::Handler::Statistics handler;
+    infile.read(handler);
 }
 

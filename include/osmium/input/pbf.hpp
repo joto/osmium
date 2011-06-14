@@ -60,7 +60,7 @@ namespace Osmium {
             * @param file OSMFile instance.
             * @param handler Instance of THandler. If NULL an instance of class THandler is created internally.
             */
-            PBF(OSMFile& file, THandler *handler) __attribute__((noinline)) : Base<THandler>(file, handler) {
+            PBF(OSMFile& file, THandler& handler) : Base<THandler>(file, handler) {
                 GOOGLE_PROTOBUF_VERIFY_VERSION;
             }
 
@@ -70,7 +70,7 @@ namespace Osmium {
             * Will throw a subclass of Osmium::OSMFile::FileTypeError when it
             * turns out while parsing the file, that it is of the wrong type.
             */
-            void parse() __attribute__((noinline)) {
+            void parse() {
                 try {
                     while (read_blob_header()) {
                         array_t a = read_blob(pbf_blob_header.datasize());
