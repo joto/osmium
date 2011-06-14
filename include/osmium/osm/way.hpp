@@ -226,6 +226,10 @@ namespace Osmium {
              * Caller takes ownership of the pointer.
              */
             geos::geom::Geometry *create_geos_polygon_geometry() const {
+                if (!is_closed()) {
+                    std::cerr << "can't build way polygon geometry of unclosed way, leave it as NULL" << std::endl;
+                    return NULL;
+                }
                 try {
                     std::vector<geos::geom::Coordinate> *c = new std::vector<geos::geom::Coordinate>;
                     for (osm_sequence_id_t i=0; i < lon.size(); i++) {

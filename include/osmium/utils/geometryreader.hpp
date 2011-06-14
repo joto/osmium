@@ -38,7 +38,6 @@ namespace Osmium {
         }
 
         virtual ~OsmGeometryReader() {
-            std::cerr << "delete nls" << std::endl;
             delete nls;
 
             geos::geom::GeometryFactory *f = Osmium::global.geos_geometry_factory;
