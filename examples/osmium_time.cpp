@@ -73,7 +73,8 @@ int main(int argc, char *argv[]) {
     }
 
     Osmium::OSMFile infile(argv[1]);
-    infile.read<MyTimerHandler>();
+    MyTimerHandler handler;
+    infile.read(handler);
 
     struct tms tms;
     times(&tms);

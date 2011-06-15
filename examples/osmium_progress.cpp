@@ -42,6 +42,7 @@ int main(int argc, char *argv[]) {
     }
 
     Osmium::OSMFile infile(argv[1]);
-    infile.read<Osmium::Handler::Progress>();
+    Osmium::Handler::Progress handler;
+    infile.read(handler);
 }
 

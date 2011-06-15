@@ -173,10 +173,7 @@ int main(int argc, char *argv[]) {
         std::cerr << "Warning! Source and destination are not of the same type." << std::endl;
     }
 
-    ConvertHandler *handler_convert = new ConvertHandler(outfile);
-
-    infile.read<ConvertHandler>(handler_convert);
-
-    delete handler_convert;
+    ConvertHandler handler(outfile);
+    infile.read(handler);
 }
 
