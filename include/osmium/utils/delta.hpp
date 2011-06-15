@@ -1,3 +1,6 @@
+#ifndef OSMIUM_UTILS_DELTA_HPP
+#define OSMIUM_UTILS_DELTA_HPP
+
 /*
 
 Copyright 2011 Jochen Topf <jochen@topf.org> and others (see README).
@@ -19,26 +22,36 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
-#define OSMIUM_MAIN
-#include <osmium.hpp>
-#include "handler_nodedensity.hpp"
+namespace Osmium {
 
-/* ================================================== */
+    /**
+     * This class models a variable that keeps track of the value
+     * it was last set to and returns the delta between old and
+     * new value from the update() call.
+     */
+    template<typename T>
+    class Delta {
 
-int main(int argc, char *argv[]) {
-    Osmium::Framework osmium;
+    public:
 
-    if (argc != 5) {
-        std::cerr << "Usage: " << argv[0] << " OSMFILE SIZE MIN MAX" << std::endl;
-        exit(1);
-    }
+        Delta() : m_value(0) {
+        }
 
-    int size = atoi(argv[2]);
-    int min  = atoi(argv[3]);
-    int max  = atoi(argv[4]);
+        void clear() {
+            m_value = 0;
+        }
 
-    Osmium::OSMFile infile(argv[1]);
-    Osmium::Handler::NodeDensity handler(size, min, max);
-    infile.read(handler);
+        T update(T new_value) {
+            std::swap(m_value, new_value);
+            return m_value - new_value;
+        }
+
+    private:
+
+        T m_value;                    
+
+    };
+
 }
 
+#endif // OSMIUM_UTILS_DELTA_HPP
