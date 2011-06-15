@@ -93,6 +93,7 @@ int main(int argc, char *argv[]) {
     }
 
     Osmium::OSMFile infile(argv[1]);
-    infile.read<MyDebugHandler>();
+    MyDebugHandler handler;
+    infile.read(handler);
 }
 

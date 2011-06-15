@@ -76,6 +76,7 @@ int main(int argc, char *argv[]) {
     }
 
     Osmium::OSMFile infile(argv[1]);
-    infile.read<MyShapeHandler>();
+    MyShapeHandler handler;
+    infile.read(handler);
 }
 

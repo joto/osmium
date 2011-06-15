@@ -35,7 +35,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 int main(int argc, char *argv[]) {
     Osmium::Framework osmium;
-    Osmium::Handler::FindBbox handler;
 
     if (argc != 2) {
         std::cerr << "Usage: " << argv[0] << " OSMFILE" << std::endl;
@@ -43,7 +42,8 @@ int main(int argc, char *argv[]) {
     }
 
     Osmium::OSMFile infile(argv[1]);
-    infile.read<Osmium::Handler::FindBbox>(&handler);
+    Osmium::Handler::FindBbox handler;
+    infile.read(handler);
 
     std::cout <<  "minlon=" << handler.get_minlon()
               << " minlat=" << handler.get_minlat()

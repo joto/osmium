@@ -449,11 +449,14 @@ int main(int argc, char *argv[]) {
 
     if (two_passes) {
         Osmium::Handler::Multipolygon *handler_multipolygon = new Osmium::Handler::Multipolygon(attempt_repair, cbmp);
-        infile.read<DualPass1>(new DualPass1(handler_node_location_store, handler_multipolygon, handler_javascript, progress));
-        infile.read<DualPass2>(new DualPass2(handler_node_location_store, handler_multipolygon, handler_javascript, progress));
+        DualPass1 handler1(handler_node_location_store, handler_multipolygon, handler_javascript, progress);
+        infile.read(handler1);
+        DualPass2 handler2(handler_node_location_store, handler_multipolygon, handler_javascript, progress);
+        infile.read(handler2);
         delete handler_multipolygon;
     } else {
-        infile.read<SinglePass>(new SinglePass(handler_node_location_store, handler_javascript, progress));
+        SinglePass handler(handler_node_location_store, handler_javascript, progress);
+        infile.read(handler);
     }
     delete handler_javascript;
     delete handler_node_location_store;

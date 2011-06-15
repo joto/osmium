@@ -14,7 +14,7 @@ version 3 of the Licenses, or (at your option) any later version.
 
 Osmium is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE. See the GNU Lesser General Public Licanse and the GNU
+PARTICULAR PURPOSE. See the GNU Lesser General Public License and the GNU
 General Public License for more details.
 
 You should have received a copy of the Licenses along with Osmium. If not, see
@@ -25,7 +25,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 namespace Osmium {
 
     template <class T>
-    void OSMFile::read(T* handler) {
+    void OSMFile::read(T& handler) {
         Osmium::Input::Base<T>* input = m_encoding->is_pbf()
                                         ? static_cast<Osmium::Input::Base<T>*>(new Osmium::Input::PBF<T>(*this, handler))
                                         : static_cast<Osmium::Input::Base<T>*>(new Osmium::Input::XML<T>(*this, handler));

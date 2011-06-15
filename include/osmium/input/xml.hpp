@@ -67,10 +67,10 @@ namespace Osmium {
             * @param file OSMFile instance.
             * @param handler Instance of THandler. If NULL an instance of class THandler is created internally.
             */
-            XML(OSMFile& file, THandler *handler) __attribute__((noinline)) : Base<THandler>(file, handler) {
+            XML(OSMFile& file, THandler& handler) : Base<THandler>(file, handler) {
             }
 
-            void parse() __attribute__((noinline)) {
+            void parse() {
                 int done;
                 current_object = 0;
 

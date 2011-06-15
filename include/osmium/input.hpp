@@ -87,13 +87,6 @@ namespace Osmium {
         class Base {
 
             /**
-             * If there was no handler given when constructing this class,
-             * we create our own instance of the handler and store here
-             * that we need to delete it on destruction.
-             */
-            bool m_delete_handler_on_destruction;
-
-            /**
              * The last object type we read (before the current one).
              * Used to properly call before and after callbacks.
              */
@@ -107,7 +100,7 @@ namespace Osmium {
             /**
              * Handler we will call callbacks on.
              */
-            THandler *m_handler;
+            THandler& m_handler;
 
         protected:
 
@@ -115,47 +108,45 @@ namespace Osmium {
             OSM::Way      *way;
             OSM::Relation *relation;
 
-            Base(OSMFile& file, THandler *handler) __attribute__((noinline)) : m_last_object_type(UNKNOWN), m_file(file), m_handler(handler)  {
+            Base(OSMFile& file,
+                 THandler& handler)
+               : m_last_object_type(UNKNOWN),
+                 m_file(file),
+                 m_handler(handler)  {
+
                 m_file.open_for_input();
 
                 node     = new Osmium::OSM::Node;
                 way      = new Osmium::OSM::Way(2000); // create way object with space for 2000 nodes
                 relation = new Osmium::OSM::Relation;
 
-                if (m_handler) {
-                    m_delete_handler_on_destruction = false;
-                } else {
-                    m_handler = new THandler;
-                    m_delete_handler_on_destruction = true;
-                }
-
-                m_handler->callback_init();
+                m_handler.callback_init();
             }
 
             void call_after_and_before_handlers(osm_object_type_t current_object_type) {
                 if (current_object_type != m_last_object_type) {
                     switch (m_last_object_type) {
                         case NODE:
-                            m_handler->callback_after_nodes();
+                            m_handler.callback_after_nodes();
                             break;
                         case WAY:
-                            m_handler->callback_after_ways();
+                            m_handler.callback_after_ways();
                             break;
                         case RELATION:
-                            m_handler->callback_after_relations();
+                            m_handler.callback_after_relations();
                             break;
                         default:
                             break;
                     }
                     switch (current_object_type) {
                         case NODE:
-                            m_handler->callback_before_nodes();
+                            m_handler.callback_before_nodes();
                             break;
                         case WAY:
-                            m_handler->callback_before_ways();
+                            m_handler.callback_before_ways();
                             break;
                         case RELATION:
-                            m_handler->callback_before_relations();
+                            m_handler.callback_before_relations();
                             break;
                         default:
                             break;
@@ -173,25 +164,21 @@ namespace Osmium {
             }
 
             void callback_node() {
-                m_handler->callback_node(node);
+                m_handler.callback_node(node);
             }
 
             void callback_way() {
-                m_handler->callback_way(way);
+                m_handler.callback_way(way);
             }
 
             void callback_relation() {
-                m_handler->callback_relation(relation);
+                m_handler.callback_relation(relation);
             }
 
         public:
 
-            virtual ~Base() __attribute__((noinline)) {
-                m_handler->callback_final();
-
-                if (m_delete_handler_on_destruction) {
-                    delete m_handler;
-                }
+            virtual ~Base() {
+                m_handler.callback_final();
 
                 delete relation;
                 delete way;

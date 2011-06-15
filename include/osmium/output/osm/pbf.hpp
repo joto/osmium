@@ -98,6 +98,8 @@ More complete outlines of real .osm.pbf files can be created using the osmpbf-ou
 // StringTable management
 #include <osmium/utils/stringtable.hpp>
 
+#include <osmium/utils/delta.hpp>
+
 namespace Osmium {
 
     namespace Output {
@@ -208,45 +210,17 @@ namespace Osmium {
                 char m_compression_buffer[OSMPBF::max_uncompressed_blob_size];
 
                 /**
-                 * This class models a variable that keeps track of the value
-                 * it was last set to and returns the delta between old and
-                 * new value from the update() call.
-                 */
-                template<typename T>
-                class DeltaVar {
-
-                public:
-
-                    DeltaVar() : m_value(0) {
-                    }
-
-                    void clear() {
-                        m_value = 0;
-                    }
-
-                    T update(T new_value) {
-                        std::swap(m_value, new_value);
-                        return m_value - new_value;
-                    }
-
-                private:
-
-                    T m_value;                    
-
-                };
-
-                /**
                  * These variables are used to calculate the
                  * delta-encoding while storing dense-nodes. It holds the last seen values
                  * from which the difference is stored into the protobuf.
                  */
-                DeltaVar<int64_t> m_delta_id;
-                DeltaVar<int64_t> m_delta_lat;
-                DeltaVar<int64_t> m_delta_lon;
-                DeltaVar<int64_t> m_delta_timestamp;
-                DeltaVar<int64_t> m_delta_changeset;
-                DeltaVar<int64_t> m_delta_uid;
-                DeltaVar<uint32_t> m_delta_user_sid;
+                Delta<int64_t> m_delta_id;
+                Delta<int64_t> m_delta_lat;
+                Delta<int64_t> m_delta_lon;
+                Delta<int64_t> m_delta_timestamp;
+                Delta<int64_t> m_delta_changeset;
+                Delta<int64_t> m_delta_uid;
+                Delta<uint32_t> m_delta_user_sid;
 
 
                 ///// Blob writing /////
@@ -676,7 +650,7 @@ namespace Osmium {
                     apply_common_info(way, pbf_way);
 
                     // last way-node-id used for delta-encoding
-                    DeltaVar<int64_t> delta_id;
+                    Delta<int64_t> delta_id;
 
                     // iterate over all way-nodes
                     for (int i=0, l = way->node_count(); i<l; i++) {
@@ -697,7 +671,7 @@ namespace Osmium {
                     // copy the common meta-info from the osmium-object to the pbf-object
                     apply_common_info(relation, pbf_relation);
 
-                    DeltaVar<int64_t> delta_id;
+                    Delta<int64_t> delta_id;
 
                     // iterate over all relation-members
                     for (int i=0, l=relation->member_count(); i<l; i++) {
