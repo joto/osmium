@@ -24,8 +24,60 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <string.h>
 #include <geos/geom/MultiPolygon.h>
+#include <osmium/handler/node_location_store.hpp>
 
 namespace Osmium {
+
+    class OsmGeometryReader : public Osmium::Handler::Base {
+        std::vector<geos::geom::Geometry*> outer;
+        Osmium::Handler::NodeLocationStore *nls;
+
+    public:
+        OsmGeometryReader() : Base() {
+            nls = new Osmium::Handler::NLS_Sparsetable();
+        }
+
+        virtual ~OsmGeometryReader() {
+            delete nls;
+
+            geos::geom::GeometryFactory *f = Osmium::global.geos_geometry_factory;
+            for (uint32_t i=0; i < outer.size(); i++) {
+                f->destroyGeometry(outer[i]);
+            }
+            outer.clear();
+        }
+
+        void callback_init() {
+            nls->callback_init();
+        }
+
+        void callback_node(Osmium::OSM::Node *node) {
+            nls->callback_node(node);
+        }
+
+        void callback_way(Osmium::OSM::Way *way) {
+            nls->callback_way(way);
+
+            if (!way->is_closed()) {
+                std::cerr << "open way " << way->get_id() << " in osm-input" << std::endl;
+                return;
+            }
+
+            geos::geom::Geometry *geom = way->create_geos_polygon_geometry();
+            outer.push_back(geom);
+        }
+
+        void callback_final() {
+            nls->callback_final();
+        }
+
+        geos::geom::Geometry *buildGeom() const {
+            // shorthand to the geometry factory
+            geos::geom::GeometryFactory *f = Osmium::global.geos_geometry_factory;
+            geos::geom::MultiPolygon *outerPoly = f->createMultiPolygon(outer);
+            return outerPoly;
+        }
+    };
 
     class GeometryReader {
 
@@ -64,6 +116,10 @@ namespace Osmium {
 
             // file pointer to .poly file
             FILE *fp = fopen(file.c_str(), "r");
+            if(!fp) {
+                std::cerr << "unable to open polygon file " << file << std::endl;
+                return NULL;
+            }
 
             // line buffer
             char line[polyfile_linelen];
@@ -170,6 +226,16 @@ namespace Osmium {
             // and return their difference
             return poly;
         } // fromPolyFile
+
+        static geos::geom::Geometry *fromOsmFile(const std::string &file) {
+            Osmium::OSMFile infile(file);
+            Osmium::OsmGeometryReader *reader = new OsmGeometryReader();
+            infile.read<Osmium::OsmGeometryReader>(reader);
+            geos::geom::Geometry *geom = reader->buildGeom();
+
+            delete reader;
+            return geom;
+        }
 
         /**
          * construct a geos Geometry from a BoundingBox string.

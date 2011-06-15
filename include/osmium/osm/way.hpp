@@ -222,6 +222,29 @@ namespace Osmium {
                     return NULL;
                 }
             }
+
+            /**
+             * Returns the GEOS geometry of the closed way as polygon.
+             * Caller takes ownership of the pointer.
+             */
+            geos::geom::Geometry *create_geos_polygon_geometry() const {
+                if (!is_closed()) {
+                    std::cerr << "can't build way polygon geometry of unclosed way, leave it as NULL" << std::endl;
+                    return NULL;
+                }
+                try {
+                    std::vector<geos::geom::Coordinate> *c = new std::vector<geos::geom::Coordinate>;
+                    for (osm_sequence_id_t i=0; i < lon.size(); i++) {
+                        c->push_back(geos::geom::Coordinate(lon[i], lat[i], DoubleNotANumber));
+                    }
+                    geos::geom::CoordinateSequence *cs = Osmium::global.geos_geometry_factory->getCoordinateSequenceFactory()->create(c);
+                    geos::geom::LinearRing *ring = Osmium::global.geos_geometry_factory->createLinearRing(cs);
+                    return (geos::geom::Geometry *) Osmium::global.geos_geometry_factory->createPolygon(ring, NULL);
+                } catch (const geos::util::GEOSException& exc) {
+                    std::cerr << "error building way geometry, leave it as NULL" << std::endl;
+                    return NULL;
+                }
+            }
 #endif // OSMIUM_WITH_GEOS
 
 

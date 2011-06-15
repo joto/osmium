@@ -29,12 +29,12 @@ LDFLAGS = -L/usr/local/lib -lexpat -lpthread
 LIB_GD       = -lgd -lz -lm
 LIB_SQLITE   = -lsqlite3
 LIB_V8       = -lv8
-LIB_SHAPE    = -lshp $(shell geos-config --libs)
+LIB_GEOS     = $(shell geos-config --libs)
+LIB_SHAPE    = -lshp $(LIB_GEOS)
 LIB_PROTOBUF = -lz -lprotobuf-lite -losmpbf
 LIB_XML2     = `xml2-config --libs`
-LIB_GEOS     = -lgeos
 
-PROGRAMS = osmium_sizeof osmium_debug osmium_stats osmium_find_bbox osmium_time osmium_progress osmium_convert osmium_toshape nodedensity osmium_poly_reader
+PROGRAMS = osmium_sizeof osmium_debug osmium_stats osmium_find_bbox osmium_time osmium_progress osmium_convert osmium_toshape osmium_poly_reader nodedensity
 
 .PHONY: all clean
 
