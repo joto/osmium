@@ -28,43 +28,44 @@ namespace Osmium {
 
         class FindBbox : public Base {
 
-            double minlon, maxlon, minlat, maxlat;
-
         public:
 
-            FindBbox() : Base() {
-                minlon =  1000;
-                maxlon = -1000;
-                minlat =  1000;
-                maxlat = -1000;
+            FindBbox() : Base(), m_minlon(1000), m_maxlon(-1000), m_minlat(1000), m_maxlat(-1000) {
             }
 
-            double get_minlon() {
-                return minlon;
+            double minlon() const {
+                return m_minlon;
             }
 
-            double get_maxlon() {
-                return maxlon;
+            double maxlon() const {
+                return m_maxlon;
             }
 
-            double get_minlat() {
-                return minlat;
+            double minlat() const {
+                return m_minlat;
             }
 
-            double get_maxlat() {
-                return maxlat;
+            double maxlat() const {
+                return m_maxlat;
             }
 
             void callback_node(OSM::Node *node) {
-                if (node->get_lon() < minlon) minlon = node->get_lon();
-                if (node->get_lon() > maxlon) maxlon = node->get_lon();
-                if (node->get_lat() < minlat) minlat = node->get_lat();
-                if (node->get_lat() > maxlat) maxlat = node->get_lat();
+                if (node->get_lon() < m_minlon) m_minlon = node->get_lon();
+                if (node->get_lon() > m_maxlon) m_maxlon = node->get_lon();
+                if (node->get_lat() < m_minlat) m_minlat = node->get_lat();
+                if (node->get_lat() > m_maxlat) m_maxlat = node->get_lat();
             }
 
             void callback_after_nodes() const {
                 throw Osmium::Input::StopReading();
             }
+
+        private:
+
+            double m_minlon;
+            double m_maxlon;
+            double m_minlat;
+            double m_maxlat;
 
         }; // class FindBbox
 

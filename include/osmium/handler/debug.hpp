@@ -28,49 +28,51 @@ namespace Osmium {
 
         class Debug : public Base {
 
-            void print_meta(const OSM::Object *object) const {
-                std::cout << "  id="   << object->get_id() << std::endl;
-                std::cout << "  version="   << object->get_version() << std::endl;
-                std::cout << "  uid="       << object->get_uid() << std::endl;
-                std::cout << "  user=|"      << object->get_user() << "|" << std::endl;
-                std::cout << "  changeset=" << object->get_changeset() << std::endl;
-                std::cout << "  timestamp=" << object->get_timestamp_as_string() << std::endl;
-                std::cout << "  tags:" << std::endl;
-                for (int i=0; i < object->tag_count(); i++) {
-                    std::cout << "    k=|" << object->get_tag_key(i) << "| v=|" << object->get_tag_value(i) << "|" << std::endl;
-                }
-            }
-
         public:
 
             Debug() : Base() {
             }
 
             void callback_node(const OSM::Node *node) const {
-                std::cout << "node:" << std::endl;
+                std::cout << "node:\n";
                 print_meta(node);
-                std::cout << "  lon=" << std::fixed << std::setprecision(7) << node->get_lon() << std::endl;
-                std::cout << "  lat=" << std::fixed << std::setprecision(7) << node->get_lat() << std::endl;
+                std::cout << "  lon=" << std::fixed << std::setprecision(7) << node->get_lon() << "\n";
+                std::cout << "  lat=" << std::fixed << std::setprecision(7) << node->get_lat() << "\n";
             }
 
             void callback_way(const OSM::Way *way) const {
-                std::cout << "way:" << std::endl;
+                std::cout << "way:\n";
                 print_meta(way);
-                std::cout << "  node_count=" << way->node_count() << std::endl;
-                std::cout << "  nodes:" << std::endl;
-                for (osm_sequence_id_t i=0; i < way->node_count(); i++) {
-                    std::cout << "    ref=" << way->get_node_id(i) << std::endl;
+                std::cout << "  node_count=" << way->node_count() << "\n";
+                std::cout << "  nodes:\n";
+                for (osm_sequence_id_t i=0; i < way->node_count(); ++i) {
+                    std::cout << "    ref=" << way->get_node_id(i) << "\n";
                 }
             }
 
             void callback_relation(OSM::Relation *relation) const {
-                std::cout << "relation:" << std::endl;
+                std::cout << "relation:\n";
                 print_meta(relation);
-                std::cout << "  member_count=" << relation->member_count() << std::endl;
-                std::cout << "  members:" << std::endl;
-                for (osm_sequence_id_t i=0; i < relation->member_count(); i++) {
-                    const Osmium::OSM::RelationMember *m = relation->get_member(i);
-                    std::cout << "    type=" << m->type << " ref=" << m->ref << " role=|" << m->role << "|" << std::endl;
+                std::cout << "  member_count=" << relation->member_count() << "\n";
+                std::cout << "  members:\n";
+                for (osm_sequence_id_t i=0; i < relation->member_count(); ++i) {
+                    const Osmium::OSM::RelationMember* m = relation->get_member(i);
+                    std::cout << "    type=" << m->type << " ref=" << m->ref << " role=|" << m->role << "|" << "\n";
+                }
+            }
+
+        private:
+
+            void print_meta(const OSM::Object *object) const {
+                std::cout << "  id="   << object->get_id() << "\n";
+                std::cout << "  version="   << object->get_version() << "\n";
+                std::cout << "  uid="       << object->get_uid() << "\n";
+                std::cout << "  user=|"      << object->get_user() << "|\n";
+                std::cout << "  changeset=" << object->get_changeset() << "\n";
+                std::cout << "  timestamp=" << object->get_timestamp_as_string() << "\n";
+                std::cout << "  tags:" << "\n";
+                for (int i=0; i < object->tag_count(); ++i) {
+                    std::cout << "    k=|" << object->get_tag_key(i) << "| v=|" << object->get_tag_value(i) << "|" << "\n";
                 }
             }
 
