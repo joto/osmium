@@ -1,6 +1,8 @@
 #ifndef OSMIUM_HANDLER_NODELOCATIONSTORE_HPP
 #define OSMIUM_HANDLER_NODELOCATIONSTORE_HPP
 
+#warning "NodeLocationStore is deprectated. Use CoordinatesForWays handler instead"
+
 /*
 
 Copyright 2011 Jochen Topf <jochen@topf.org> and others (see README).
