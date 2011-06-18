@@ -63,6 +63,23 @@ namespace Osmium {
             /// Retrieve value by key. Does not check for overflow or empty fields.
             virtual const TValue& operator[](uint64_t id) const = 0;
 
+            /**
+             * Get the approximate number of items in the storage. The storage
+             * might allocate memory in blocks, so this size might not be
+             * accurate. You can not use this to find out how much memory the
+             * storage uses. Use used_memory() for that.
+             */
+            virtual uint64_t size() const = 0;
+
+            /**
+             * Get the memory used for this storage in bytes. Note that this
+             * is not necessarily entirely accurate but an approximation.
+             * For storage classes that store the data in memory, this is
+             * the main memory used, for storage classes storing data on disk
+             * this is the memory used on disk.
+             */
+            virtual uint64_t used_memory() const = 0;
+
         };
 
         /**
@@ -95,7 +112,7 @@ namespace Osmium {
              * @param max_id One larger than the largest ID you will ever have.
              * @exception std::bad_alloc Thrown when there is not enough memory.
              */
-            FixedArray(const uint64_t max_id) : ById<TValue>() {
+            FixedArray(const uint64_t max_id) : ById<TValue>(), m_size(max_id) {
                 m_items = (TValue *) malloc(sizeof(TValue) * max_id);
                 if (!m_items) {
                     throw std::bad_alloc();
@@ -114,9 +131,19 @@ namespace Osmium {
                 return m_items[id];
             }
 
+            uint64_t size() const {
+                return m_size;
+            }
+
+            uint64_t used_memory() const {
+                return m_size * sizeof(TValue);
+            }
+
         private:
 
             TValue* m_items;
+
+            uint64_t m_size;
 
             // disable copying and assignment
             FixedArray(const FixedArray&) {}
@@ -163,6 +190,16 @@ namespace Osmium {
 
             const TValue& operator[](uint64_t id) const {
                 return m_items[id];
+            }
+
+            uint64_t size() const {
+                return m_items.size();
+            }
+
+            uint64_t used_memory() const {
+                // unused items use 1 bit, used items sizeof(TValue) bytes
+                // http://google-sparsehash.googlecode.com/svn/trunk/doc/sparsetable.html
+                return (m_items.size() / 8) + (m_items.num_nonempty() * sizeof(TValue));
             }
 
         private:
@@ -279,6 +316,14 @@ namespace Osmium {
 
             const TValue& operator[](uint64_t id) const {
                 return m_items[id];
+            }
+
+            uint64_t size() const {
+                return m_size;
+            }
+
+            uint64_t used_memory() const {
+                return m_size * sizeof(TValue);
             }
 
         private:
