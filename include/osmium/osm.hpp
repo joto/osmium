@@ -47,7 +47,7 @@ typedef uint32_t osm_sequence_id_t;  ///< type for OSM nodes and members sequenc
 namespace Osmium {
 
     /**
-    *  @brief Namespace for basic OSM objects such as Tag, Node, ...
+    *  @brief Contains basic OSM objects such as Tag, Node, ...
     */
     namespace OSM {
     } // namespace OSM

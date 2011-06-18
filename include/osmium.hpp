@@ -25,7 +25,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 /**
  * @mainpage
  *
- * Osmium is a C++/Javascript framework for processing OSM files.
+ * Osmium is a flexible C++ toolkit and framework for processing OSM data.
+ * It includes optional Javascript support for some of its functionality.
  *
  * For more information see http://wiki.openstreetmap.org/wiki/Osmium .
  *
@@ -44,7 +45,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #endif // OSMIUM_WITH_JAVASCRIPT
 
 /**
- * @brief All Osmium code should be in this namespace.
+ * @brief All Osmium code is in this namespace.
  */
 namespace Osmium {
 
