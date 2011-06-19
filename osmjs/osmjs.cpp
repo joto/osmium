@@ -61,6 +61,11 @@ public:
         handler_javascript->callback_node(node);
     }
 
+    void callback_after_nodes() {
+        if (handler_cfw)
+            handler_cfw->callback_after_nodes();
+    }
+
     void callback_way(Osmium::OSM::Way *way) {
         if (handler_cfw) {
             handler_cfw->callback_way(way);
