@@ -674,7 +674,7 @@ namespace Osmium {
                     Delta<int64_t> delta_id;
 
                     // iterate over all relation-members
-                    for (int i=0, l=relation->member_count(); i<l; i++) {
+                    for (int i=0, l=relation->members().size(); i<l; i++) {
                         // save a pointer to the osmium-object representing the relation-member
                         const Osmium::OSM::RelationMember *mem = relation->get_member(i);
 
@@ -927,7 +927,7 @@ namespace Osmium {
                     check_block_contents_counter();
 
                     if (Osmium::global.debug) {
-                        std::cerr << "relation " << relation->get_id() << " v" << relation->get_version() << " with " << relation->member_count() << " members" << std::endl;
+                        std::cerr << "relation " << relation->get_id() << " v" << relation->get_version() << " with " << relation->members().size() << " members" << std::endl;
                     }
 
                     // if no PrimitiveGroup for relations has been added, add one and save the pointer

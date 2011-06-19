@@ -53,9 +53,9 @@ namespace Osmium {
             void callback_relation(OSM::Relation *relation) const {
                 std::cout << "relation:\n";
                 print_meta(relation);
-                std::cout << "  member_count=" << relation->member_count() << "\n";
+                std::cout << "  members.size=" << relation->members().size() << "\n";
                 std::cout << "  members:\n";
-                for (osm_sequence_id_t i=0; i < relation->member_count(); ++i) {
+                for (osm_sequence_id_t i=0; i < relation->members().size(); ++i) {
                     const Osmium::OSM::RelationMember* m = relation->get_member(i);
                     std::cout << "    type=" << m->type << " ref=" << m->ref << " role=|" << m->role << "|" << "\n";
                 }

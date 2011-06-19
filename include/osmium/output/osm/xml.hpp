@@ -128,7 +128,7 @@ namespace Osmium {
 
                     write_meta(relation);
 
-                    for (int i=0, l=relation->member_count(); i < l; i++) {
+                    for (int i=0, l=relation->members().size(); i < l; i++) {
                         const Osmium::OSM::RelationMember *mem = relation->get_member(i);
 
                         xmlTextWriterStartElement(xml_writer, BAD_CAST "member"); // <member>

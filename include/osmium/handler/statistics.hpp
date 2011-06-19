@@ -125,7 +125,7 @@ namespace Osmium {
                     m_stats.max_relation_id = m_id;
                 }
                 m_stats.relation_tags += m_tag_count;
-                osm_sequence_id_t member_count = relation->member_count();
+                osm_sequence_id_t member_count = relation->members().size();
                 m_stats.relation_members += member_count;
                 if (m_tag_count > (int64_t) m_stats.max_tags_on_relation) {
                     m_stats.max_tags_on_relation = m_tag_count;

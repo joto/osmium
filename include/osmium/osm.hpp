@@ -59,6 +59,7 @@ namespace Osmium {
 #include <osmium/osm/node.hpp>
 #include <osmium/osm/way.hpp>
 #include <osmium/osm/relation_member.hpp>
+#include <osmium/osm/relation_member_list.hpp>
 #include <osmium/osm/relation.hpp>
 #include <osmium/osm/multipolygon.hpp>
 
