@@ -67,6 +67,16 @@ namespace Osmium {
             v8::Handle<v8::Value> js_get_role() const {
                 return utf8_to_v8_String<max_utf16_length_role>(get_role());
             }
+
+            struct JavascriptTemplate : public Osmium::Javascript::Template::Base {
+
+                JavascriptTemplate() : Osmium::Javascript::Template::Base(1) {
+                    js_template->SetAccessor(v8::String::New("type"), accessor_getter<Osmium::OSM::RelationMember, &Osmium::OSM::RelationMember::js_get_type>);
+                    js_template->SetAccessor(v8::String::New("ref"),  accessor_getter<Osmium::OSM::RelationMember, &Osmium::OSM::RelationMember::js_get_ref>);
+                    js_template->SetAccessor(v8::String::New("role"), accessor_getter<Osmium::OSM::RelationMember, &Osmium::OSM::RelationMember::js_get_role>);
+                }
+
+            };
 #endif // OSMIUM_WITH_JAVASCRIPT
 
         };

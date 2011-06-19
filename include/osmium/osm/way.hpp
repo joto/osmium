@@ -86,7 +86,7 @@ namespace Osmium {
             void init() {
 #ifdef OSMIUM_WITH_JAVASCRIPT
                 js_tags_instance   = Osmium::Javascript::Template::create_tags_instance(this);
-                js_object_instance = Osmium::Javascript::Template::create_way_instance(this);
+                js_object_instance = JavascriptTemplate::get<JavascriptTemplate>().create_instance(this);
                 js_nodes_instance  = Osmium::Javascript::Template::create_way_nodes_instance(this);
                 js_geom_instance   = Osmium::Javascript::Template::create_way_geom_instance(this);
 #endif // OSMIUM_WITH_JAVASCRIPT
@@ -363,6 +363,15 @@ namespace Osmium {
                     return v8::Undefined();
                 }
             }
+
+            struct JavascriptTemplate : public Osmium::OSM::Object::JavascriptTemplate {
+
+                JavascriptTemplate() : Osmium::OSM::Object::JavascriptTemplate() {
+                    js_template->SetAccessor(v8::String::New("nodes"), accessor_getter<Osmium::OSM::Way, &Osmium::OSM::Way::js_get_nodes>);
+                    js_template->SetAccessor(v8::String::New("geom"),  accessor_getter<Osmium::OSM::Way, &Osmium::OSM::Way::js_get_geom>);
+                }
+
+            };
 #endif // OSMIUM_WITH_JAVASCRIPT
 
         }; // class Way

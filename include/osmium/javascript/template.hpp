@@ -48,6 +48,12 @@ namespace Osmium {
 
             public:
 
+                template <class T>
+                static T& get() {
+                    static T t;
+                    return t;
+                }
+
                 v8::Local<v8::Object> create_instance(void *wrapper) {
                     v8::Local<v8::Object> instance = js_template->NewInstance();
                     instance->SetInternalField(0, v8::External::New(wrapper));
@@ -102,19 +108,11 @@ namespace Osmium {
 
             v8::Local<v8::Object> create_tags_instance(void *wrapper);
 
-            v8::Local<v8::Object> create_node_instance(void *wrapper);
-
             v8::Local<v8::Object> create_node_geom_instance(void *wrapper);
-
-            v8::Local<v8::Object> create_way_instance(void *wrapper);
 
             v8::Local<v8::Object> create_way_nodes_instance(void *wrapper);
 
             v8::Local<v8::Object> create_way_geom_instance(void *wrapper);
-
-            v8::Local<v8::Object> create_relation_member_instance(void *wrapper);
-
-            v8::Local<v8::Object> create_relation_instance(void *wrapper);
 
             v8::Local<v8::Object> create_relation_members_instance(void *wrapper);
 

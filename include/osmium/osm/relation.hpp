@@ -50,7 +50,7 @@ namespace Osmium {
                 reset();
 #ifdef OSMIUM_WITH_JAVASCRIPT
                 js_tags_instance    = Osmium::Javascript::Template::create_tags_instance(this);
-                js_object_instance  = Osmium::Javascript::Template::create_relation_instance(this);
+                js_object_instance  = JavascriptTemplate::get<JavascriptTemplate>().create_instance(this);
                 js_members_instance = Osmium::Javascript::Template::create_relation_members_instance(this);
 #endif // OSMIUM_WITH_JAVASCRIPT
             }
@@ -60,7 +60,7 @@ namespace Osmium {
                 members = r.members;
 #ifdef OSMIUM_WITH_JAVASCRIPT
                 js_tags_instance    = Osmium::Javascript::Template::create_tags_instance(this);
-                js_object_instance  = Osmium::Javascript::Template::create_relation_instance(this);
+                js_object_instance  = JavascriptTemplate::get<JavascriptTemplate>().create_instance(this);
                 js_members_instance = Osmium::Javascript::Template::create_relation_members_instance(this);
 #endif // OSMIUM_WITH_JAVASCRIPT
             }
@@ -106,7 +106,7 @@ namespace Osmium {
             }
 
             v8::Handle<v8::Value> js_get_member(uint32_t index) {
-                v8::Local<v8::Object> member = Osmium::Javascript::Template::create_relation_member_instance(this);
+                v8::Local<v8::Object> member = Osmium::OSM::RelationMember::JavascriptTemplate::get<Osmium::OSM::RelationMember::JavascriptTemplate>().create_instance(this);
                 member->SetInternalField(0, v8::External::New((void *)get_member(index)));
 
                 return member;
@@ -127,6 +127,13 @@ namespace Osmium {
                 return v8::Number::New(member_count());
             }
 
+            struct JavascriptTemplate : public Osmium::OSM::Object::JavascriptTemplate {
+
+                JavascriptTemplate() : Osmium::OSM::Object::JavascriptTemplate() {
+                    js_template->SetAccessor(v8::String::New("members"), accessor_getter<Relation, &Relation::js_get_members>);
+                }
+
+            };
 #endif // OSMIUM_WITH_JAVASCRIPT
 
         }; // class Relation

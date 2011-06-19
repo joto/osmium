@@ -12,7 +12,7 @@ Osmium.Callbacks.node = function() {
 }
 
 Osmium.Callbacks.way = function() {
-    print('way ' + this.id + ' ' + this.version + ' ' + this.timestamp + ' ' + this.uid + ' ' + this.user + ' ' + this.changeset + ' ' + this.geom.linestring_wkt);
+    print('way ' + this.id + ' ' + this.version + ' ' + this.timestamp + ' ' + this.uid + ' ' + this.user + ' ' + this.changeset + ' ' + this.geom.as_wkt);
     for (key in this.tags) {
         print(' ' + key + '=' + this.tags[key]);
     }

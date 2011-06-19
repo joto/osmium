@@ -464,6 +464,20 @@ namespace Osmium {
                 return array;
             }
 
+            struct JavascriptTemplate : public Osmium::Javascript::Template::Base {
+
+                JavascriptTemplate() : Osmium::Javascript::Template::Base(1) {
+                    js_template->SetAccessor(v8::String::New("id"),        accessor_getter<Object, &Object::js_get_id>);
+                    js_template->SetAccessor(v8::String::New("version"),   accessor_getter<Object, &Object::js_get_version>);
+                    js_template->SetAccessor(v8::String::New("timestamp"), accessor_getter<Object, &Object::js_get_timestamp_as_string>);
+                    js_template->SetAccessor(v8::String::New("uid"),       accessor_getter<Object, &Object::js_get_uid>);
+                    js_template->SetAccessor(v8::String::New("user"),      accessor_getter<Object, &Object::js_get_user>);
+                    js_template->SetAccessor(v8::String::New("changeset"), accessor_getter<Object, &Object::js_get_changeset>);
+                    js_template->SetAccessor(v8::String::New("tags"),      accessor_getter<Object, &Object::js_get_tags>);
+                    js_template->SetAccessor(v8::String::New("visible"),   accessor_getter<Object, &Object::js_get_visible>);
+                }
+
+            };
 #endif // OSMIUM_WITH_JAVASCRIPT
 
         }; // class Object

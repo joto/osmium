@@ -95,13 +95,9 @@ namespace Osmium {
 
             Tags             *js_template_tags;
             NodeGeom         *js_template_nodegeom;
-            Node             *js_template_node;
             Nodes            *js_template_nodes;
             WayGeom          *js_template_waygeom;
-            Way              *js_template_way;
-            Member           *js_template_member;
             Members          *js_template_members;
-            Relation         *js_template_relation;
             Multipolygon     *js_template_multipolygon;
             MultipolygonGeom *js_template_multipolygongeom;
             OutputCSV        *js_template_output_csv;
@@ -115,10 +111,6 @@ namespace Osmium {
                 return js_template_nodegeom->create_instance(wrapper);
             }
 
-            v8::Local<v8::Object> create_node_instance(void *wrapper) {
-                return js_template_node->create_instance(wrapper);
-            }
-
             v8::Local<v8::Object> create_way_nodes_instance(void *wrapper) {
                 return js_template_nodes->create_instance(wrapper);
             }
@@ -127,20 +119,8 @@ namespace Osmium {
                 return js_template_waygeom->create_instance(wrapper);
             }
 
-            v8::Local<v8::Object> create_way_instance(void *wrapper) {
-                return js_template_way->create_instance(wrapper);
-            }
-
-            v8::Local<v8::Object> create_relation_member_instance(void *wrapper) {
-                return js_template_member->create_instance(wrapper);
-            }
-
             v8::Local<v8::Object> create_relation_members_instance(void *wrapper) {
                 return js_template_members->create_instance(wrapper);
-            }
-
-            v8::Local<v8::Object> create_relation_instance(void *wrapper) {
-                return js_template_relation->create_instance(wrapper);
             }
 
             v8::Local<v8::Object> create_multipolygon_instance(void *wrapper) {
@@ -162,13 +142,9 @@ namespace Osmium {
             void init() {
                 js_template_tags             = new Osmium::Javascript::Template::Tags;
                 js_template_nodegeom         = new Osmium::Javascript::Template::NodeGeom;
-                js_template_node             = new Osmium::Javascript::Template::Node;
                 js_template_nodes            = new Osmium::Javascript::Template::Nodes;
                 js_template_waygeom          = new Osmium::Javascript::Template::WayGeom;
-                js_template_way              = new Osmium::Javascript::Template::Way;
-                js_template_member           = new Osmium::Javascript::Template::Member;
                 js_template_members          = new Osmium::Javascript::Template::Members;
-                js_template_relation         = new Osmium::Javascript::Template::Relation;
                 js_template_multipolygon     = new Osmium::Javascript::Template::Multipolygon;
                 js_template_multipolygongeom = new Osmium::Javascript::Template::MultipolygonGeom;
                 js_template_output_csv       = new Osmium::Javascript::Template::OutputCSV;
@@ -180,13 +156,9 @@ namespace Osmium {
                 delete js_template_output_csv;
                 delete js_template_multipolygongeom;
                 delete js_template_multipolygon;
-                delete js_template_relation;
                 delete js_template_members;
-                delete js_template_member;
-                delete js_template_way;
                 delete js_template_waygeom;
                 delete js_template_nodes;
-                delete js_template_node;
                 delete js_template_nodegeom;
                 delete js_template_tags;
             }

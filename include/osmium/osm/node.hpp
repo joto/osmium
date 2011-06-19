@@ -53,7 +53,7 @@ namespace Osmium {
                 reset();
 #ifdef OSMIUM_WITH_JAVASCRIPT
                 js_tags_instance   = Osmium::Javascript::Template::create_tags_instance(this);
-                js_object_instance = Osmium::Javascript::Template::create_node_instance(this);
+                js_object_instance = JavascriptTemplate::get<JavascriptTemplate>().create_instance(this);
                 js_geom_instance   = Osmium::Javascript::Template::create_node_geom_instance(this);
 #endif // OSMIUM_WITH_JAVASCRIPT
             }
@@ -163,6 +163,16 @@ namespace Osmium {
                     return v8::Undefined();
                 }
             }
+
+            struct JavascriptTemplate : public Osmium::OSM::Object::JavascriptTemplate {
+
+                JavascriptTemplate() : Osmium::OSM::Object::JavascriptTemplate() {
+                    js_template->SetAccessor(v8::String::New("lon"),  accessor_getter<Node, &Node::js_get_lon>);
+                    js_template->SetAccessor(v8::String::New("lat"),  accessor_getter<Node, &Node::js_get_lat>);
+                    js_template->SetAccessor(v8::String::New("geom"), accessor_getter<Node, &Node::js_get_geom>);
+                }
+
+            };
 #endif // OSMIUM_WITH_JAVASCRIPT
 
         }; // class Node
