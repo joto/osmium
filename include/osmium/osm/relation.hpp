@@ -33,7 +33,6 @@ namespace Osmium {
             Relation() : Object(), m_members() {
                 reset();
 #ifdef OSMIUM_WITH_JAVASCRIPT
-                js_tags_instance    = Osmium::Javascript::Template::create_tags_instance(this);
                 js_object_instance  = JavascriptTemplate::get<JavascriptTemplate>().create_instance(this);
 #endif // OSMIUM_WITH_JAVASCRIPT
             }
@@ -41,7 +40,6 @@ namespace Osmium {
             Relation(const Relation &r) : Object(r) {
                 m_members = r.members();
 #ifdef OSMIUM_WITH_JAVASCRIPT
-                js_tags_instance    = Osmium::Javascript::Template::create_tags_instance(this);
                 js_object_instance  = JavascriptTemplate::get<JavascriptTemplate>().create_instance(this);
 #endif // OSMIUM_WITH_JAVASCRIPT
             }

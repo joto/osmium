@@ -93,7 +93,6 @@ namespace Osmium {
 
         namespace Template {
 
-            Tags             *js_template_tags;
             NodeGeom         *js_template_nodegeom;
             Nodes            *js_template_nodes;
             WayGeom          *js_template_waygeom;
@@ -101,10 +100,6 @@ namespace Osmium {
             MultipolygonGeom *js_template_multipolygongeom;
             OutputCSV        *js_template_output_csv;
             OutputShapefile  *js_template_output_shapefile;
-
-            v8::Local<v8::Object> create_tags_instance(void *wrapper) {
-                return js_template_tags->create_instance(wrapper);
-            }
 
             v8::Local<v8::Object> create_node_geom_instance(void *wrapper) {
                 return js_template_nodegeom->create_instance(wrapper);
@@ -135,7 +130,6 @@ namespace Osmium {
             }
 
             void init() {
-                js_template_tags             = new Osmium::Javascript::Template::Tags;
                 js_template_nodegeom         = new Osmium::Javascript::Template::NodeGeom;
                 js_template_nodes            = new Osmium::Javascript::Template::Nodes;
                 js_template_waygeom          = new Osmium::Javascript::Template::WayGeom;
@@ -153,7 +147,6 @@ namespace Osmium {
                 delete js_template_waygeom;
                 delete js_template_nodes;
                 delete js_template_nodegeom;
-                delete js_template_tags;
             }
 
         } // namespace Template

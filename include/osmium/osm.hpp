@@ -55,6 +55,7 @@ namespace Osmium {
 } // namespace Osmium
 
 #include <osmium/osm/tag.hpp>
+#include <osmium/osm/tag_list.hpp>
 #include <osmium/osm/object.hpp>
 #include <osmium/osm/node.hpp>
 #include <osmium/osm/way.hpp>

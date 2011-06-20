@@ -106,8 +106,6 @@ namespace Osmium {
 
             }; //class Base
 
-            v8::Local<v8::Object> create_tags_instance(void *wrapper);
-
             v8::Local<v8::Object> create_node_geom_instance(void *wrapper);
 
             v8::Local<v8::Object> create_way_nodes_instance(void *wrapper);

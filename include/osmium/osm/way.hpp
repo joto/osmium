@@ -85,7 +85,6 @@ namespace Osmium {
 
             void init() {
 #ifdef OSMIUM_WITH_JAVASCRIPT
-                js_tags_instance   = Osmium::Javascript::Template::create_tags_instance(this);
                 js_object_instance = JavascriptTemplate::get<JavascriptTemplate>().create_instance(this);
                 js_nodes_instance  = Osmium::Javascript::Template::create_way_nodes_instance(this);
                 js_geom_instance   = Osmium::Javascript::Template::create_way_geom_instance(this);

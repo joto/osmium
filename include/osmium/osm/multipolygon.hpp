@@ -193,7 +193,6 @@ namespace Osmium {
             Multipolygon() {
 #endif // OSMIUM_WITH_GEOS
 # ifdef OSMIUM_WITH_JAVASCRIPT
-                js_tags_instance    = Osmium::Javascript::Template::create_tags_instance(this);
                 js_object_instance  = Osmium::Javascript::Template::create_multipolygon_instance(this);
                 js_geom_instance    = Osmium::Javascript::Template::create_multipolygon_geom_instance(this);
 # endif // OSMIUM_WITH_JAVASCRIPT
@@ -249,8 +248,7 @@ namespace Osmium {
                 set_uid(way->get_uid());
                 set_user(way->get_user());
 
-                num_tags  = way->tag_count();
-                tags      = way->tags;
+                m_tags = way->tags();
 
                 num_nodes = way->node_count();
                 lon = (double *) malloc(sizeof(double) * num_nodes);
@@ -1167,8 +1165,7 @@ namespace Osmium {
                             }
                         }
                         // copy tags from relation into multipolygon
-                        num_tags = relation->tag_count();
-                        tags = relation->tags;
+                        m_tags = relation->tags();
                     }
                     // later delete ringlist[i];
                     // ringlist[i] = NULL;

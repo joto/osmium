@@ -28,8 +28,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <cstdlib>
 #include <stdexcept>
-#include <vector>
-#include <cstring>
 #include <assert.h>
 #include <time.h>
 
@@ -285,10 +283,7 @@ namespace Osmium {
 
         protected:
 
-            // how many tags are there on this object (XXX we could probably live without this and just use tags.size())
-            int num_tags;
-
-            Object() : tags() {
+            Object() : m_tags() {
                 reset();
             }
 
@@ -298,8 +293,7 @@ namespace Osmium {
                 uid       = o.uid;
                 changeset = o.changeset;
                 timestamp = o.timestamp;
-                num_tags  = o.num_tags;
-                tags      = o.tags;
+                m_tags    = o.tags();
                 visible   = o.visible;
                 strncpy(user, o.user, max_length_username);
             }
@@ -309,7 +303,7 @@ namespace Osmium {
 
         public:
 
-            std::vector<Tag> tags;
+            TagList m_tags;
 
             virtual osm_object_type_t get_type() const = 0;
 
@@ -320,9 +314,8 @@ namespace Osmium {
                 changeset        = 0;
                 timestamp        = 0;
                 user[0]          = '\0';
-                num_tags         = 0;
-                tags.clear();
                 visible          = true;
+                m_tags.clear();
             }
 
             /**
@@ -348,45 +341,28 @@ namespace Osmium {
                 }
             }
 
+            const TagList& tags() const {
+                return m_tags;
+            }
+
             void add_tag(const char *key, const char *value) {
-                /* first we resize the vector... */
-                tags.resize(num_tags+1);
-                /* ...so that we can directly write into the memory and avoid
-                a second copy */
-                if (!memccpy(tags[num_tags].key, key, 0, Tag::max_length_key)) {
-                    throw std::length_error("tag key too long");
-                }
-                if (!memccpy(tags[num_tags].value, value, 0, Tag::max_length_value)) {
-                    throw std::length_error("tag value too long");
-                }
-                num_tags++;
+                m_tags.add(key, value);
             }
 
             int tag_count() const {
-                return num_tags;
+                return m_tags.size();
             }
 
             const char *get_tag_by_key(const char *key) const {
-                for (int i=0; i < num_tags; i++) {
-                    if (!strcmp(tags[i].key, key)) {
-                        return tags[i].value;
-                    }
-                }
-                return 0;
+                return tags().get_tag_by_key(key);
             }
 
             const char *get_tag_key(int n) const {
-                if (n < num_tags) {
-                    return tags[n].key;
-                }
-                throw std::range_error("no tag with this index");
+                return tags().get_tag_key(n);
             }
 
             const char *get_tag_value(int n) const {
-                if (n < num_tags) {
-                    return tags[n].value;
-                }
-                throw std::range_error("no tag with this index");
+                return tags().get_tag_value(n);
             }
 
 #ifdef OSMIUM_WITH_SHPLIB
@@ -405,7 +381,6 @@ namespace Osmium {
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
             v8::Local<v8::Object> js_object_instance;
-            v8::Local<v8::Object> js_tags_instance;
 #endif // OSMIUM_WITH_JAVASCRIPT
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
@@ -442,26 +417,7 @@ namespace Osmium {
             }
 
             v8::Handle<v8::Value> js_get_tags() const {
-                return js_tags_instance;
-            }
-
-            v8::Handle<v8::Value> js_get_tag_value_by_key(v8::Local<v8::String> property) const {
-                const char *key = v8_String_to_utf8<Osmium::OSM::Tag::max_utf16_length_key>(property);
-                const char *value = get_tag_by_key(key);
-                if (value) {
-                    return utf8_to_v8_String<Osmium::OSM::Tag::max_utf16_length_value>(value);
-                }
-                return v8::Undefined();
-            }
-
-            v8::Handle<v8::Array> js_enumerate_tag_keys() const {
-                v8::Local<v8::Array> array = v8::Array::New(num_tags);
-
-                for (int i=0; i < num_tags; i++) {
-                    array->Set(v8::Integer::New(i), utf8_to_v8_String<Osmium::OSM::Tag::max_utf16_length_key>(get_tag_key(i)));
-                }
-
-                return array;
+                return tags().js_instance();
             }
 
             struct JavascriptTemplate : public Osmium::Javascript::Template::Base {
