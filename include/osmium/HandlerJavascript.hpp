@@ -139,7 +139,7 @@ namespace Osmium {
                 } else {
                     v8::String::Utf8Value str(args[0]);
                     Osmium::Output::CSV *oc = new Osmium::Output::CSV(*str);
-                    return oc->get_js_object();
+                    return oc->js_instance();
                 }
             }
 
@@ -162,7 +162,7 @@ namespace Osmium {
                         throw std::runtime_error("unkown shapefile type");
                     }
 
-                    return oc->get_js_object();
+                    return oc->js_instance();
                 }
             }
 #endif // OSMIUM_WITH_SHPLIB

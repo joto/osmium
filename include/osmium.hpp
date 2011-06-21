@@ -96,8 +96,6 @@ namespace Osmium {
             NodeGeom         *js_template_nodegeom;
             WayGeom          *js_template_waygeom;
             MultipolygonGeom *js_template_multipolygongeom;
-            OutputCSV        *js_template_output_csv;
-            OutputShapefile  *js_template_output_shapefile;
 
             v8::Local<v8::Object> create_node_geom_instance(void *wrapper) {
                 return js_template_nodegeom->create_instance(wrapper);
@@ -111,25 +109,13 @@ namespace Osmium {
                 return js_template_multipolygongeom->create_instance(wrapper);
             }
 
-            v8::Local<v8::Object> create_output_csv_instance(void *wrapper) {
-                return js_template_output_csv->create_instance(wrapper);
-            }
-
-            v8::Local<v8::Object> create_output_shapefile_instance(void *wrapper) {
-                return js_template_output_shapefile->create_instance(wrapper);
-            }
-
             void init() {
                 js_template_nodegeom         = new Osmium::Javascript::Template::NodeGeom;
                 js_template_waygeom          = new Osmium::Javascript::Template::WayGeom;
                 js_template_multipolygongeom = new Osmium::Javascript::Template::MultipolygonGeom;
-                js_template_output_csv       = new Osmium::Javascript::Template::OutputCSV;
-                js_template_output_shapefile = new Osmium::Javascript::Template::OutputShapefile;
             }
 
             void cleanup() {
-                delete js_template_output_shapefile;
-                delete js_template_output_csv;
                 delete js_template_multipolygongeom;
                 delete js_template_waygeom;
                 delete js_template_nodegeom;

@@ -82,10 +82,6 @@ namespace Osmium {
             /// entity number of the shape we care currently writing
             int m_current_shape;
 
-#ifdef OSMIUM_WITH_JAVASCRIPT
-            v8::Persistent<v8::Object> js_object;
-#endif // OSMIUM_WITH_JAVASCRIPT
-
             // define copy constructor and assignment operator as private
             Shapefile(const Shapefile&);
             Shapefile& operator=(const Shapefile&);
@@ -120,10 +116,6 @@ namespace Osmium {
                 }
                 file << "UTF-8" << std::endl;
                 file.close();
-
-#ifdef OSMIUM_WITH_JAVASCRIPT
-                js_object = v8::Persistent<v8::Object>::New( Osmium::Javascript::Template::create_output_shapefile_instance(this) );
-#endif // OSMIUM_WITH_JAVASCRIPT
             }
 
             virtual SHPObject* get_geometry_with_transformation(Osmium::OSM::Object *object, std::string& transformation) = 0;
@@ -329,8 +321,8 @@ namespace Osmium {
                 }
             }
 
-            v8::Handle<v8::Object> get_js_object() {
-                return js_object;
+            v8::Local<v8::Object> js_instance() const {
+                return JavascriptTemplate::get<JavascriptTemplate>().create_instance((void *)this);
             }
 
             v8::Handle<v8::Value> js_add_field(const v8::Arguments& args) {
@@ -379,6 +371,17 @@ namespace Osmium {
                 close();
                 return v8::Undefined();
             }
+
+            struct JavascriptTemplate : public Osmium::OSM::Object::JavascriptTemplate {
+
+                JavascriptTemplate() : Osmium::OSM::Object::JavascriptTemplate() {
+                    js_template->Set("add_field", v8::FunctionTemplate::New(function_template<Shapefile, &Shapefile::js_add_field>));
+                    js_template->Set("add",       v8::FunctionTemplate::New(function_template<Shapefile, &Shapefile::js_add>));
+                    js_template->Set("close",     v8::FunctionTemplate::New(function_template<Shapefile, &Shapefile::js_close>));
+                }
+
+            };
+
 #endif // OSMIUM_WITH_JAVASCRIPT
 
         }; // class Shapefile
