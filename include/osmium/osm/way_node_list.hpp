@@ -43,9 +43,6 @@ namespace Osmium {
 
             WayNodeList(unsigned int size=default_size) : m_list() {
                 m_list.reserve(size);
-#ifdef OSMIUM_WITH_JAVASCRIPT
-                m_js_instance = JavascriptTemplate::get<JavascriptTemplate>().create_instance((void *)this);
-#endif // OSMIUM_WITH_JAVASCRIPT
             }
 
             osm_sequence_id_t size() const {
@@ -96,7 +93,7 @@ namespace Osmium {
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
             v8::Local<v8::Object> js_instance() const {
-                return m_js_instance;
+                return JavascriptTemplate::get<JavascriptTemplate>().create_instance((void *)this);
             }
 
             v8::Handle<v8::Value> js_length() const {
