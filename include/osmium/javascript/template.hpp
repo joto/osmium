@@ -108,8 +108,6 @@ namespace Osmium {
 
             v8::Local<v8::Object> create_node_geom_instance(void *wrapper);
 
-            v8::Local<v8::Object> create_way_nodes_instance(void *wrapper);
-
             v8::Local<v8::Object> create_way_geom_instance(void *wrapper);
 
             v8::Local<v8::Object> create_multipolygon_instance(void *wrapper);

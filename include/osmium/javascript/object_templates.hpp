@@ -48,23 +48,6 @@ namespace Osmium {
 
             }; // class WayGeom
 
-            class Nodes : public Base {
-
-            public:
-
-                Nodes() : Base(1) {
-                    js_template->SetAccessor(v8::String::New("length"), accessor_getter<Osmium::OSM::Way, &Osmium::OSM::Way::js_get_nodes_length>);
-                    js_template->SetIndexedPropertyHandler(
-                        indexed_property_getter<Osmium::OSM::Way, &Osmium::OSM::Way::js_get_node_id>,
-                        0,
-                        0,
-                        0,
-                        property_enumerator<Osmium::OSM::Way, &Osmium::OSM::Way::js_enumerate_nodes>
-                    );
-                }
-
-            }; // class Nodes
-
             class Multipolygon : public Osmium::OSM::Object::JavascriptTemplate {
 
             public:
