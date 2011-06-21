@@ -48,17 +48,6 @@ namespace Osmium {
 
             }; // class WayGeom
 
-            class Multipolygon : public Osmium::OSM::Object::JavascriptTemplate {
-
-            public:
-
-                Multipolygon() : Osmium::OSM::Object::JavascriptTemplate() {
-                    js_template->SetAccessor(v8::String::New("from"), accessor_getter<Osmium::OSM::Multipolygon, &Osmium::OSM::Multipolygon::js_get_from>);
-                    js_template->SetAccessor(v8::String::New("geom"), accessor_getter<Osmium::OSM::Multipolygon, &Osmium::OSM::Multipolygon::js_get_geom>);
-                }
-
-            }; // class Multipolygon
-
             class MultipolygonGeom : public Base {
 
             public:

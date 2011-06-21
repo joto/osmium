@@ -193,8 +193,8 @@ namespace Osmium {
             Multipolygon() {
 #endif // OSMIUM_WITH_GEOS
 # ifdef OSMIUM_WITH_JAVASCRIPT
-                js_object_instance  = Osmium::Javascript::Template::create_multipolygon_instance(this);
-                js_geom_instance    = Osmium::Javascript::Template::create_multipolygon_geom_instance(this);
+                js_object_instance = JavascriptTemplate::get<JavascriptTemplate>().create_instance(this);
+                js_geom_instance   = Osmium::Javascript::Template::create_multipolygon_geom_instance(this);
 # endif // OSMIUM_WITH_JAVASCRIPT
             }
 
@@ -217,6 +217,15 @@ namespace Osmium {
             }
 
             virtual v8::Handle<v8::Value> js_get_geom_property(v8::Local<v8::String> property) const = 0;
+
+            struct JavascriptTemplate : public Osmium::OSM::Object::JavascriptTemplate {
+
+                JavascriptTemplate() : Osmium::OSM::Object::JavascriptTemplate() {
+                    js_template->SetAccessor(v8::String::New("from"), accessor_getter<Multipolygon, &Multipolygon::js_get_from>);
+                    js_template->SetAccessor(v8::String::New("geom"), accessor_getter<Multipolygon, &Multipolygon::js_get_geom>);
+                }
+
+            };
 
 #endif // OSMIUM_WITH_JAVASCRIPT
 
