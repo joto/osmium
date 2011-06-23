@@ -22,6 +22,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#include <stdint.h>
+
 // see 99-049_OpenGIS_Simple_Features_Specification_For_SQL_Rev_1.1.pdf for WKB
 // see PostGIS doc/ZMSgeoms.txt for EWKB
 
@@ -70,7 +72,7 @@ public:
     }
 
     const char *to_hex() const {
-        static const char *lookup_hex = "0123456789abcdef";
+        static const char *lookup_hex = "0123456789ABCDEF";
         static char buffer[2*(sizeof(uint8_t) + sizeof(uint32_t) + sizeof(Point))+1];
 
         for (unsigned int i = 0; i < sizeof(byteOrder) + sizeof(wkbType) + sizeof(point); i++) {

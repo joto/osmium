@@ -53,6 +53,27 @@ namespace Osmium {
                 m_list.clear();
             }
 
+            typedef std::vector<WayNode>::iterator iterator;
+            typedef std::vector<WayNode>::const_iterator const_iterator;
+            typedef std::vector<WayNode>::reverse_iterator reverse_iterator;
+            typedef std::vector<WayNode>::const_reverse_iterator const_reverse_iterator;
+
+            const_iterator begin() const {
+                return m_list.begin();
+            }
+
+            const_iterator end() const {
+                return m_list.end();
+            }
+
+            const_reverse_iterator rbegin() const {
+                return m_list.rbegin();
+            }
+
+            const_reverse_iterator rend() const {
+                return m_list.rend();
+            }
+
             WayNode& operator[](int i) {
                 return m_list[i];
             }

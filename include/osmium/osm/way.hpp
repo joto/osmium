@@ -76,6 +76,10 @@ namespace Osmium {
                 m_node_list = w.m_node_list;
             }
 
+            const WayNodeList& way_node_list() const {
+                return m_node_list;
+            }
+
         private:
 
             void init() {

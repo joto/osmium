@@ -6,6 +6,7 @@
 #  ./run_tests.sh some_file.cpp -- compiles and runs only one test
 #  
 
+CXX="g++"
 CXXFLAGS="-g -Wall -Wextra -Wredundant-decls -Wdisabled-optimization -pedantic -Wctor-dtor-privacy -Wnon-virtual-dtor -Woverloaded-virtual -Wsign-promo"
 
 if [ "x$1" = "x" ]; then
@@ -17,7 +18,7 @@ fi
 set -e
 set -x
 
-g++ $FILES -I../include $CXXFLAGS -lboost_unit_test_framework -o tests
+$CXX $FILES -I../include $CXXFLAGS -lboost_unit_test_framework -o tests
 
 ./tests
 

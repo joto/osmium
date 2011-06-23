@@ -36,6 +36,9 @@ namespace Osmium {
             WayNode(osm_object_id_t ref=0) : m_ref(ref) {
             }
 
+            WayNode(osm_object_id_t ref, Position position) : m_ref(ref), m_position(position) {
+            }
+
             osm_object_id_t ref() const {
                 return m_ref;
             }
@@ -51,6 +54,14 @@ namespace Osmium {
 
             bool has_position() const {
                 return m_position.defined();
+            }
+
+            double lon() const {
+                return m_position.lon();
+            }
+
+            double lat() const {
+                return m_position.lat();
             }
 
             friend bool operator==(const WayNode& wn1, const WayNode& wn2) {
