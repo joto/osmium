@@ -54,6 +54,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 # include <geos/geom/Polygon.h>
 # include <geos/geom/MultiPolygon.h>
 # include <geos/geom/MultiLineString.h>
+# include <geos/geom/prep/PreparedPolygon.h>
 # include <geos/io/WKTWriter.h>
 # include <geos/util/GEOSException.h>
 # include <geos/opLinemerge.h>
@@ -959,12 +960,14 @@ namespace Osmium {
                 // whether something is an inner (false) or outer (true) ring.
 
                 for (unsigned int i=0; i<ringlist.size(); i++) {
+                    const geos::geom::prep::PreparedPolygon *pp = new geos::geom::prep::PreparedPolygon(ringlist[i]->polygon);
                     for (unsigned int j=0; j<ringlist.size(); j++) {
                         if (i==j) continue;
                         if (contains[j][i]) continue;
-                        contains[i][j] = ringlist[i]->polygon->contains(ringlist[j]->polygon);
+                        contains[i][j] = pp->containsProperly(ringlist[j]->polygon);
                         contained_by_even_number[j] ^= contains[i][j];
                     }
+                    delete pp;
                 }
 
                 // we now have an array that has a true value whenever something is
