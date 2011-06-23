@@ -116,6 +116,14 @@ See "osmjs/README" for build instructions of osmjs.
 Call "make clean" in any of those places to clean up.
 
 
+TESTING
+-------
+
+There are a few tests using the Boost Unit Test Framework in the 'test'
+directory. Go there and type "./run_tests.sh" to compile and run the tests.
+Many more tests are needed, any help appreciated.
+
+
 LICENSE
 -------
 
