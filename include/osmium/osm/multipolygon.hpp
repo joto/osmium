@@ -485,6 +485,7 @@ namespace Osmium {
             * Returns NULL if a valid SHPObject could not be created.
             */
 #ifdef OSMIUM_WITH_SHPLIB
+# ifdef OSMIUM_WITH_GEOS
             SHPObject *create_shp_polygon(std::string& /*transformation*/) {
                 if (!geometry) {
                     throw Osmium::Exception::IllegalGeometry();
@@ -521,6 +522,7 @@ namespace Osmium {
 
                 return o;
             }
+# endif // OSMIUM_WITH_GEOS
 #endif // OSMIUM_WITH_SHPLIB
 
         private:
