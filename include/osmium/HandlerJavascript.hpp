@@ -155,7 +155,7 @@ namespace Osmium {
                     if (!strcmp(*type, "point")) {
                         oc = new Osmium::Output::PointShapefile(filename);
                     } else if (!strcmp(*type, "line")) {
-                        oc = new Osmium::Output::LineShapefile(filename);
+                        oc = new Osmium::Output::LineStringShapefile(filename);
                     } else if (!strcmp(*type, "polygon")) {
                         oc = new Osmium::Output::PolygonShapefile(filename);
                     } else {

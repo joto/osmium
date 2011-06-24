@@ -32,6 +32,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #endif // OSMIUM_WITH_SHPLIB
 
 #include <osmium/utils/wkb.hpp>
+#include <osmium/osm/position.hpp>
 
 /** @file
 *   @brief Contains the Osmium::OSM::Node class.
@@ -45,7 +46,7 @@ namespace Osmium {
 
             static const int max_length_coordinate = 12 + 1; ///< maximum length of coordinate string (3 digits + dot + 8 digits + null byte)
 
-            WKBPoint geom;
+            Position m_position;
 
         public:
 
@@ -53,14 +54,21 @@ namespace Osmium {
                 reset();
 #ifdef OSMIUM_WITH_JAVASCRIPT
                 js_object_instance = JavascriptTemplate::get<JavascriptTemplate>().create_instance(this);
-                js_geom_instance   = Osmium::Javascript::Template::create_node_geom_instance(this);
 #endif // OSMIUM_WITH_JAVASCRIPT
             }
 
             void reset() {
                 Object::reset();
-                geom.point.x = NAN;
-                geom.point.y = NAN;
+                m_position = Position();
+            }
+
+            const Position position() const {
+                return m_position;
+            }
+
+            Node& position(Position position) {
+                m_position = position;
+                return *this;
             }
 
             osm_object_type_t get_type() const {
@@ -68,106 +76,41 @@ namespace Osmium {
             }
 
             void set_x(double x) {
-                geom.point.x = x;
+                m_position.lon(x);
             }
 
             void set_y(double y) {
-                geom.point.y = y;
-            }
-
-            void set_coordinates(double x, double y) {
-                geom.point.x = x;
-                geom.point.y = y;
+                m_position.lat(y);
             }
 
             /// get longitude as string, returns a pointer to statically allocated memory thats valid until the next call to get_lon_str()
             const char *get_lon_str() const {
                 static char lon_str[max_length_coordinate];
-                snprintf(lon_str, max_length_coordinate, "%.7f", geom.point.x);
+                snprintf(lon_str, max_length_coordinate, "%.7f", m_position.lon());
                 return lon_str;
             }
 
             /// get latitude as string, returns a pointer to statically allocated memory thats valid until the next call to get_lat_str()
             const char *get_lat_str() const {
                 static char lat_str[max_length_coordinate];
-                snprintf(lat_str, max_length_coordinate, "%.7f", geom.point.y);
+                snprintf(lat_str, max_length_coordinate, "%.7f", m_position.lat());
                 return lat_str;
             }
 
             double get_lon() const {
-                return geom.point.x;
+                return m_position.lon();
             }
 
             double get_lat() const {
-                return geom.point.y;
+                return m_position.lat();
             }
-
-            const char *geom_as_hex_wkb() const {
-                return geom.to_hex();
-            }
-
-#ifdef OSMIUM_WITH_SHPLIB
-            SHPObject *create_shp_point(std::string& /*transformation*/) {
-                return SHPCreateSimpleObject(SHPT_POINT, 1, &geom.point.x, &geom.point.y, NULL);
-            }
-#endif // OSMIUM_WITH_SHPLIB
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
-            v8::Local<v8::Object> js_geom_instance;
-
-            v8::Handle<v8::Value> js_get_lon() const {
-                return v8::String::New(get_lon_str());
-            }
-
-            v8::Handle<v8::Value> js_get_lat() const {
-                return v8::String::New(get_lat_str());
-            }
-
-            v8::Handle<v8::Value> js_get_geom() const {
-                return js_geom_instance;
-            }
-
-            std::ostream& geom_as_wkt(std::ostream& s) const {
-                return s << "POINT(" << get_lon() << " " << get_lat() << ")";
-            }
-
-            v8::Handle<v8::Value> js_get_geom_property(v8::Local<v8::String> property) const {
-                v8::String::Utf8Value key(property);
-
-                if (!strcmp(*key, "as_wkt")) {
-                    std::ostringstream oss;
-                    geom_as_wkt(oss);
-                    return v8::String::New(oss.str().c_str());
-                } else if (!strcmp(*key, "as_ewkt")) {
-                    std::ostringstream oss;
-                    oss << "SRID=4326;";
-                    geom_as_wkt(oss);
-                    return v8::String::New(oss.str().c_str());
-                } else if (!strcmp(*key, "as_hex_wkb")) {
-                    std::ostringstream oss;
-                    oss << geom_as_hex_wkb();
-                    //            } else if (!strcmp(*key, "as_hex_ewkb")) {
-                    //                oss << geom.to_hex();             TODO TODO
-                    return v8::String::New(oss.str().c_str());
-                } else if (!strcmp(*key, "as_array")) {
-                    v8::Local<v8::Array> array = v8::Array::New(2);
-                    array->Set(v8::Integer::New(0), v8::Number::New(get_lon()));
-                    array->Set(v8::Integer::New(1), v8::Number::New(get_lat()));
-                    return array;
-                } else if (!strcmp(*key, "lon") || !strcmp(*key, "x")) {
-                    return v8::Number::New(get_lon());
-                } else if (!strcmp(*key, "lat") || !strcmp(*key, "y")) {
-                    return v8::Number::New(get_lat());
-                } else {
-                    return v8::Undefined();
-                }
-            }
+            v8::Handle<v8::Value> js_get_geom() const;
 
             struct JavascriptTemplate : public Osmium::OSM::Object::JavascriptTemplate {
 
                 JavascriptTemplate() : Osmium::OSM::Object::JavascriptTemplate() {
-                    js_template->SetAccessor(v8::String::New("lon"),  accessor_getter<Node, &Node::js_get_lon>);
-                    js_template->SetAccessor(v8::String::New("lat"),  accessor_getter<Node, &Node::js_get_lat>);
                     js_template->SetAccessor(v8::String::New("geom"), accessor_getter<Node, &Node::js_get_geom>);
                 }
 

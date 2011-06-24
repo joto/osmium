@@ -196,7 +196,11 @@ function check(type, osm_object) {
         var rule = rules[type][i];
         if (rule.match(osm_object)) {
             var a = tags2attributes(osm_object.id, osm_object.tags, rule.attrs);
-            files[rule.file].shp.add(osm_object, a);
+            if (files[rule.file].gtype != POLYGON) {
+                files[rule.file].shp.add_geom(osm_object.geom, a);
+            } else {
+                files[rule.file].shp.add(osm_object, a);
+            }
         }
     }
 }

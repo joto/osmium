@@ -270,6 +270,54 @@ namespace Osmium {
             }
 
             /**
+            * Add a geometry to the shapefile.
+            */
+            void add(Osmium::Geometry::Geometry *geometry, ///< the geometry
+                     v8::Local<v8::Object> attributes) {   ///< a %Javascript object (hash) with the attributes
+
+                SHPObject *shp_object = geometry->create_shp_object();
+                if (!shp_object) return; // XXX return if the shape is invalid
+                add_geometry(shp_object);
+
+                int ok = 0;
+                for (size_t n=0; n < m_fields.size(); n++) {
+                    v8::Local<v8::String> key = v8::String::New(m_fields[n].name().c_str());
+                    if (attributes->HasRealNamedProperty(key)) {
+                        v8::Local<v8::Value> value = attributes->GetRealNamedProperty(key);
+                        if (value->IsUndefined() || value->IsNull()) {
+                            DBFWriteNULLAttribute(m_dbf_handle, m_current_shape, n);
+                        } else {
+                            switch (m_fields[n].type()) {
+                                case FTString:
+                                    ok = add_string_attribute(n, value);
+                                    break;
+                                case FTInteger:
+                                    ok = DBFWriteIntegerAttribute(m_dbf_handle, m_current_shape, n, value->Int32Value());
+                                    break;
+                                case FTDouble:
+                                    throw std::runtime_error("fields of type double not implemented");
+                                    break;
+                                case FTLogical:
+                                    ok = add_logical_attribute(n, value);
+                                    break;
+                                default:
+                                    ok = 0; // should never be here
+                                    break;
+                            }
+                            if (!ok) {
+                                std::string errmsg("failed to add attribute '");
+                                errmsg += m_fields[n].name();
+                                errmsg += "'\n";
+                                throw std::runtime_error(errmsg);
+                            }
+                        }
+                    } else {
+                        DBFWriteNULLAttribute(m_dbf_handle, m_current_shape, n);
+                    }
+                }
+            }
+
+            /**
             * Add an %OSM object to the shapefile.
             */
             void add(Osmium::OSM::Object *object,      ///< the %OSM object (Node, Way, or Relation)
@@ -367,6 +415,24 @@ namespace Osmium {
                 return v8::Integer::New(1);
             }
 
+            v8::Handle<v8::Value> js_add_geom(const v8::Arguments& args) {
+                if (args.Length() != 2) {
+                    throw std::runtime_error("Wrong number of arguments to add_geom method.");
+                }
+
+                v8::Local<v8::Object> xxx = v8::Local<v8::Object>::Cast(args[0]);
+                Osmium::Geometry::Geometry *geometry = (Osmium::Geometry::Geometry *) v8::Local<v8::External>::Cast(xxx->GetInternalField(0))->Value();
+
+                try {
+                    add(geometry, v8::Local<v8::Object>::Cast(args[1]));
+                } catch (Osmium::Exception::IllegalGeometry) {
+                    std::cerr << "Ignoring object with illegal geometry." << std::endl;
+                    return v8::Integer::New(0);
+                } 
+
+                return v8::Integer::New(1);
+            }
+
             v8::Handle<v8::Value> js_close(const v8::Arguments& /*args*/) {
                 close();
                 return v8::Undefined();
@@ -377,6 +443,7 @@ namespace Osmium {
                 JavascriptTemplate() : Osmium::Javascript::Template::Base(1) {
                     js_template->Set("add_field", v8::FunctionTemplate::New(function_template<Shapefile, &Shapefile::js_add_field>));
                     js_template->Set("add",       v8::FunctionTemplate::New(function_template<Shapefile, &Shapefile::js_add>));
+                    js_template->Set("add_geom",  v8::FunctionTemplate::New(function_template<Shapefile, &Shapefile::js_add_geom>));
                     js_template->Set("close",     v8::FunctionTemplate::New(function_template<Shapefile, &Shapefile::js_close>));
                 }
 
@@ -416,7 +483,7 @@ namespace Osmium {
         /**
          * Shapefile containing line geometries.
          */
-        class LineShapefile : public Shapefile {
+        class LineStringShapefile : public Shapefile {
 
         public:
 
@@ -425,14 +492,14 @@ namespace Osmium {
              *
              * @param filename Filename (optionally including path) without any suffix.
              */
-            LineShapefile(std::string& filename) : Shapefile(filename, SHPT_ARC) {
+            LineStringShapefile(std::string& filename) : Shapefile(filename, SHPT_ARC) {
             }
 
         private:
 
             // define copy constructor and assignment operator as private
-            LineShapefile(const LineShapefile&);
-            LineShapefile& operator=(const LineShapefile&);
+            LineStringShapefile(const LineStringShapefile&);
+            LineStringShapefile& operator=(const LineStringShapefile&);
 
             SHPObject* get_geometry_with_transformation(Osmium::OSM::Object *object, std::string& transformation) {
                 return object->create_shp_line(transformation);

@@ -77,6 +77,8 @@ struct Osmium::global Osmium::global;
 
 #include <osmium/exceptions.hpp>
 #include <osmium/osm.hpp>
+#include <osmium/geometry/point.hpp>
+#include <osmium/geometry/linestring.hpp>
 #include <osmium/osmfile.hpp>
 #include <osmium/input.hpp>
 #include <osmium/framework.hpp>
@@ -93,32 +95,18 @@ namespace Osmium {
 
         namespace Template {
 
-            NodeGeom         *js_template_nodegeom;
-            WayGeom          *js_template_waygeom;
             MultipolygonGeom *js_template_multipolygongeom;
-
-            v8::Local<v8::Object> create_node_geom_instance(void *wrapper) {
-                return js_template_nodegeom->create_instance(wrapper);
-            }
-
-            v8::Local<v8::Object> create_way_geom_instance(void *wrapper) {
-                return js_template_waygeom->create_instance(wrapper);
-            }
 
             v8::Local<v8::Object> create_multipolygon_geom_instance(void *wrapper) {
                 return js_template_multipolygongeom->create_instance(wrapper);
             }
 
             void init() {
-                js_template_nodegeom         = new Osmium::Javascript::Template::NodeGeom;
-                js_template_waygeom          = new Osmium::Javascript::Template::WayGeom;
                 js_template_multipolygongeom = new Osmium::Javascript::Template::MultipolygonGeom;
             }
 
             void cleanup() {
                 delete js_template_multipolygongeom;
-                delete js_template_waygeom;
-                delete js_template_nodegeom;
             }
 
         } // namespace Template

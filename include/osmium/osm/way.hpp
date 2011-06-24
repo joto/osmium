@@ -54,11 +54,6 @@ namespace Osmium {
 
         public:
 
-#ifdef OSMIUM_WITH_JAVASCRIPT
-            v8::Local<v8::Object> js_nodes_instance;
-            v8::Local<v8::Object> js_geom_instance;
-#endif // OSMIUM_WITH_JAVASCRIPT
-
             /// Construct a Way object.
             Way() : Object(), m_node_list() {
                 init();
@@ -85,7 +80,6 @@ namespace Osmium {
             void init() {
 #ifdef OSMIUM_WITH_JAVASCRIPT
                 js_object_instance = JavascriptTemplate::get<JavascriptTemplate>().create_instance(this);
-                js_geom_instance   = Osmium::Javascript::Template::create_way_geom_instance(this);
 #endif // OSMIUM_WITH_JAVASCRIPT
             }
 
@@ -265,73 +259,20 @@ namespace Osmium {
 #endif // OSMIUM_WITH_SHPLIB
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
-            v8::Handle<v8::Value> js_get_nodes() const {
+            v8::Handle<v8::Value> js_nodes() const {
                 return m_node_list.js_instance();
             }
 
-            v8::Handle<v8::Value> js_get_geom() const {
-                return js_geom_instance;
-            }
+            v8::Handle<v8::Value> js_geom() const;
 
-            std::ostream& geom_as_wkt(std::ostream& s) const {
-                s << "LINESTRING(";
-                for (osm_sequence_id_t i=0; i < m_node_list.size(); i++) {
-                    if (i != 0) {
-                        s << ',';
-                    }
-                    s << m_node_list[i].position().lon()
-                      << ' '
-                      << m_node_list[i].position().lat();
-                }
-                return s << ')';
-            }
-
-            v8::Handle<v8::Value> js_get_geom_property(v8::Local<v8::String> property) const {
-                v8::String::Utf8Value key(property);
-
-                if (!node_coordinates_set()) {
-                    return v8::Undefined();
-                }
-
-                if (!strcmp(*key, "as_wkt")) {
-                    std::ostringstream oss;
-                    geom_as_wkt(oss);
-                    return v8::String::New(oss.str().c_str());
-                } else if (!strcmp(*key, "as_ewkt")) {
-                    std::ostringstream oss;
-                    oss << "SRID=4326;";
-                    geom_as_wkt(oss);
-                    return v8::String::New(oss.str().c_str());
-                } else if (!strcmp(*key, "as_array")) {
-                    v8::Local<v8::Array> linestring = v8::Array::New(m_node_list.size());
-                    for (osm_sequence_id_t i=0; i < m_node_list.size(); i++) {
-                        v8::Local<v8::Array> coord = v8::Array::New(2);
-                        coord->Set(v8::Integer::New(0), v8::Number::New(m_node_list[i].position().lon()));
-                        coord->Set(v8::Integer::New(1), v8::Number::New(m_node_list[i].position().lat()));
-                        linestring->Set(v8::Integer::New(i), coord);
-                    }
-                    return linestring;
-                } else if (!strcmp(*key, "as_polygon_array") && is_closed()) {
-                    v8::Local<v8::Array> polygon = v8::Array::New(1);
-                    v8::Local<v8::Array> ring = v8::Array::New(m_node_list.size());
-                    for (osm_sequence_id_t i=0; i < m_node_list.size(); i++) {
-                        v8::Local<v8::Array> coord = v8::Array::New(2);
-                        coord->Set(v8::Integer::New(0), v8::Number::New(m_node_list[i].position().lon()));
-                        coord->Set(v8::Integer::New(1), v8::Number::New(m_node_list[i].position().lat()));
-                        ring->Set(v8::Integer::New(i), coord);
-                    }
-                    polygon->Set(v8::Integer::New(0), ring);
-                    return polygon;
-                } else {
-                    return v8::Undefined();
-                }
-            }
+            v8::Handle<v8::Value> js_reverse_geom() const;
 
             struct JavascriptTemplate : public Osmium::OSM::Object::JavascriptTemplate {
 
                 JavascriptTemplate() : Osmium::OSM::Object::JavascriptTemplate() {
-                    js_template->SetAccessor(v8::String::New("nodes"), accessor_getter<Way, &Way::js_get_nodes>);
-                    js_template->SetAccessor(v8::String::New("geom"),  accessor_getter<Way, &Way::js_get_geom>);
+                    js_template->SetAccessor(v8::String::New("nodes"),        accessor_getter<Way, &Way::js_nodes>);
+                    js_template->SetAccessor(v8::String::New("geom"),         accessor_getter<Way, &Way::js_geom>);
+                    js_template->SetAccessor(v8::String::New("reverse_geom"), accessor_getter<Way, &Way::js_reverse_geom>);
                 }
 
             };

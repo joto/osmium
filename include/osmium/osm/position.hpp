@@ -25,6 +25,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <stdint.h>
 #include <ostream>
 #include <limits>
+#include <math.h>
+
 #ifdef OSMIUM_WITH_GEOS
 # include <geos/geom/Coordinate.h>
 #endif
@@ -72,6 +74,16 @@ namespace Osmium {
                 return fix_to_double(m_y);
             }
 
+            Position& lon(double lon) {
+                m_x = double_to_fix(lon);
+                return *this;
+            }
+
+            Position& lat(double lat) {
+                m_y = double_to_fix(lat);
+                return *this;
+            }
+
             friend bool operator==(const Position& p1, const Position& p2) {
                 return p1.m_x == p2.m_x && p1.m_y == p2.m_y;
             }
@@ -100,7 +112,7 @@ namespace Osmium {
             int32_t m_y;
 
             static int32_t double_to_fix(double c) {
-                return c * precision;
+                return round(c * precision);
             }
 
             static double fix_to_double(int32_t c) {

@@ -57,6 +57,9 @@ namespace Osmium {
 
         public:
 
+            virtual ~ById() {
+            }
+
             /// The "value" type, usually a coordinates class or similar.
             typedef TValue value_type;
 

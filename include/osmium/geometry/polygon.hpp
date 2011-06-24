@@ -1,5 +1,5 @@
-#ifndef OSMIUM_JAVASCRIPT_OBJECT_TEMPLATES_HPP
-#define OSMIUM_JAVASCRIPT_OBJECT_TEMPLATES_HPP
+#ifndef OSMIUM_GEOMETRY_POLYGON_HPP
+#define OSMIUM_GEOMETRY_POLYGON_HPP
 
 /*
 
@@ -22,26 +22,33 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#ifdef OSMIUM_WITH_SHPLIB
+# include <shapefil.h>
+#endif // OSMIUM_WITH_SHPLIB
+
+#include <osmium/geometry/from_way.hpp>
+
 namespace Osmium {
 
-    namespace Javascript {
+    namespace Geometry {
 
-        namespace Template {
+        class Polygon : public FromWay {
 
-            class MultipolygonGeom : public Base {
+        public:
 
-            public:
+            Polygon(const Osmium::OSM::Way& way) : FromWay(way) {
+            }
 
-                MultipolygonGeom() : Base(1) {
-                    js_template->SetNamedPropertyHandler(named_property_getter<Osmium::OSM::Multipolygon, &Osmium::OSM::Multipolygon::js_get_geom_property>);
-                }
+#ifdef  OSMIUM_WITH_SHPLIB
+            SHPObject *create_shp_object() {
+                return create_shp_line_or_polygon(SHPT_POLYGON);
+            }
+#endif // OSMIUM_WITH_SHPLIB
 
-            }; // class MultipolygonGeom
+        }; // class Polygon
 
-        } // namespace Template
-
-    } // namespace Javascript
+    } // namespace Geometry
 
 } // namespace Osmium
 
-#endif // OSMIUM_JAVASCRIPT_OBJECT_TEMPLATES_HPP
+#endif // OSMIUM_GEOMETRY_POLYGON_HPP
