@@ -50,7 +50,7 @@ namespace Osmium {
 
             std::ostream& write_to_stream(std::ostream& out, AsWKT) const {
                 LonLatListWriter<Osmium::OSM::WayNode> writer(out);
-                out << "LINESTRING(";
+                out << "LINESTRING(" << std::setprecision(10);
                 if (m_reverse) {
                     for_each(m_way_node_list->rbegin(), m_way_node_list->rend(), writer);
                 } else {

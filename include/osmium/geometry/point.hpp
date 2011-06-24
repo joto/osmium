@@ -57,7 +57,7 @@ namespace Osmium {
             }
 
             std::ostream& write_to_stream(std::ostream& out, AsWKT) const {
-                return out << "POINT(" << lon() << " " << lat() << ")";
+                return out << "POINT(" << std::setprecision(10) << lon() << " " << lat() << ")";
             }
 
             std::ostream& write_to_stream(std::ostream& out, AsEWKT) const {
@@ -104,9 +104,9 @@ namespace Osmium {
                     array->Set(v8::Integer::New(0), v8::Number::New(lon()));
                     array->Set(v8::Integer::New(1), v8::Number::New(lat()));
                     return array;
-                } else if (!strcmp(*key, "lon") || !strcmp(*key, "x")) {
+                } else if (!strcmp(*key, "lon")) {
                     return v8::Number::New(lon());
-                } else if (!strcmp(*key, "lat") || !strcmp(*key, "y")) {
+                } else if (!strcmp(*key, "lat")) {
                     return v8::Number::New(lat());
                 } else {
                     return v8::Undefined();

@@ -5,7 +5,7 @@ Osmium.Callbacks.init = function() {
 }
 
 Osmium.Callbacks.node = function() {
-    print('node ' + this.id + ' ' + this.version + ' ' + this.timestamp + ' ' + this.uid + ' ' + this.user + ' ' + this.changeset + ' ' + this.lon + ' ' + this.lat + ' ' + this.geom.as_wkt + ' [' + this.geom.as_hex_wkb + ']');
+    print('node ' + this.id + ' ' + this.version + ' ' + this.timestamp + ' ' + this.uid + ' ' + this.user + ' ' + this.changeset + ' ' + this.geom.lon + ' ' + this.geom.lat + ' ' + this.geom.as_wkt + ' [' + this.geom.as_hex_wkb + ']');
     for (key in this.tags) {
         print(' ' + key + '=' + this.tags[key]);
     }
