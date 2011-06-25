@@ -31,19 +31,27 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <osmium/geometry.hpp>
 #include <osmium/osm/node.hpp>
-#include <osmium/utils/wkb.hpp>
 
 namespace Osmium {
 
     namespace Geometry {
 
+        /**
+         * Point geometry.
+         */
         class Point : public Geometry {
 
         public:
 
+            /**
+             * Create point geometry from a position.
+             */
             Point(Osmium::OSM::Position& position) : Geometry(), m_position(position) {
             }
 
+            /**
+             * Create point geometry from position of a node.
+             */
             Point(const Osmium::OSM::Node& node) : Geometry() { //, m_position(node.position()) {
                 m_position = Osmium::OSM::Position(node.get_lon(), node.get_lat());
             }
@@ -56,19 +64,25 @@ namespace Osmium {
                 return m_position.lat();
             }
 
-            std::ostream& write_to_stream(std::ostream& out, AsWKT) const {
+            std::ostream& write_to_stream(std::ostream& out, AsWKT, bool with_srid=false) const {
+                if (with_srid) {
+                    out << "SRID=4326;";
+                }
                 return out << "POINT(" << std::setprecision(10) << lon() << " " << lat() << ")";
             }
 
-            std::ostream& write_to_stream(std::ostream& out, AsEWKT) const {
-                return out << "SRID=4326;" << this->as_WKT();
-            }
+            std::ostream& write_to_stream(std::ostream& out, AsWKB, bool with_srid=false) const {
+                write_binary_wkb_header(out, with_srid, wkbPoint);
+                write_binary<double>(out, lon());
+                write_binary<double>(out, lat());
+                return out;
+            };
 
-            std::ostream& write_to_stream(std::ostream& out, AsHexWKB) const {
-                WKBPoint wkb;
-                wkb.point.x = lon();
-                wkb.point.y = lat();
-                return out << wkb.to_hex();
+            std::ostream& write_to_stream(std::ostream& out, AsHexWKB, bool with_srid=false) const {
+                write_hex_wkb_header(out, with_srid, wkbPoint);
+                write_hex<double>(out, lon());
+                write_hex<double>(out, lat());
+                return out;
             }
 
 #ifdef OSMIUM_WITH_SHPLIB
@@ -93,7 +107,7 @@ namespace Osmium {
                     return v8::String::New(oss.str().c_str());
                 } else if (!strcmp(*key, "as_ewkt")) {
                     std::ostringstream oss;
-                    oss << this->as_EWKT();
+                    oss << this->as_WKT(true);
                     return v8::String::New(oss.str().c_str());
                 } else if (!strcmp(*key, "as_hex_wkb")) {
                     std::ostringstream oss;

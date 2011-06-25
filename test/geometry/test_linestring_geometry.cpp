@@ -11,6 +11,8 @@
 #include <osmium/osm.hpp>
 #include <osmium/geometry/linestring.hpp>
 
+#include "../utils.hpp"
+
 BOOST_AUTO_TEST_SUITE(LineStringGeometry)
 
 BOOST_AUTO_TEST_CASE(instantiation) {
@@ -35,18 +37,29 @@ BOOST_AUTO_TEST_CASE(output) {
     Osmium::Geometry::LineString line1(wnl);
     Osmium::Geometry::LineString line2(wnl, true);
 
-    std::ostringstream out1;
-    out1 << line1.as_WKT();
-    BOOST_CHECK_EQUAL(out1.str(), "LINESTRING(1.9 1.9,1.9 2.9,2.9 2.9)");
+    std::ostringstream out_wkt;
+    out_wkt << line1.as_WKT();
+    BOOST_CHECK_EQUAL(out_wkt.str(), "LINESTRING(1.9 1.9,1.9 2.9,2.9 2.9)");
 
-    std::ostringstream out2;
-    out2 << line1.as_EWKT();
-    BOOST_CHECK_EQUAL(out2.str(), "SRID=4326;LINESTRING(1.9 1.9,1.9 2.9,2.9 2.9)");
+    std::ostringstream out_ewkt;
+    out_ewkt << line1.as_WKT(true);
+    BOOST_CHECK_EQUAL(out_ewkt.str(), "SRID=4326;LINESTRING(1.9 1.9,1.9 2.9,2.9 2.9)");
 
-    std::ostringstream out3;
-    out3 << line2.as_WKT();
-    BOOST_CHECK_EQUAL(out3.str(), "LINESTRING(2.9 2.9,1.9 2.9,1.9 1.9)");
+    std::ostringstream out_wkb;
+    out_wkb << line2.as_WKB();
+    BOOST_CHECK_EQUAL(Osmium::Test::to_hex(out_wkb.str()), "010200000003000000666666666666FE3F666666666666FE3F666666666666FE3F333333333333074033333333333307403333333333330740");
 
+    std::ostringstream out_ewkb;
+    out_ewkb << line2.as_WKB(true);
+    BOOST_CHECK_EQUAL(Osmium::Test::to_hex(out_ewkb.str()), "0102000020E610000003000000666666666666FE3F666666666666FE3F666666666666FE3F333333333333074033333333333307403333333333330740");
+
+    std::ostringstream out_hexwkb;
+    out_hexwkb << line1.as_HexWKB();
+    BOOST_CHECK_EQUAL(out_hexwkb.str(), "010200000003000000666666666666FE3F666666666666FE3F666666666666FE3F333333333333074033333333333307403333333333330740");
+
+    std::ostringstream out_hexewkb;
+    out_hexewkb << line1.as_HexWKB(true);
+    BOOST_CHECK_EQUAL(out_hexewkb.str(), "0102000020E610000003000000666666666666FE3F666666666666FE3F666666666666FE3F333333333333074033333333333307403333333333330740");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

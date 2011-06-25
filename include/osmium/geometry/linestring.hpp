@@ -34,21 +34,33 @@ namespace Osmium {
 
     namespace Geometry {
 
+        /**
+         * LineString geometry.
+         */
         class LineString : public FromWay {
 
         public:
 
-            LineString(const Osmium::OSM::WayNodeList& way_node_list,
-                       bool reverse=false)
+            /**
+             * Create LineString geometry from a list of nodes.
+             */
+            LineString(const Osmium::OSM::WayNodeList& way_node_list, ///< Way node list this geometry should be created from
+                       bool reverse=false)                            ///< Create reverse geometry
                      : FromWay(way_node_list, reverse) {
             }
 
-            LineString(const Osmium::OSM::Way& way,
-                       bool reverse=false)
+            /**
+             * Create LineString geometry from a list of nodes in a way.
+             */
+            LineString(const Osmium::OSM::Way& way, ///< Way this geometry should be created from
+                       bool reverse=false)          ///< Create reverse geometry
                      : FromWay(way.way_node_list(), reverse) {
             }
 
-            std::ostream& write_to_stream(std::ostream& out, AsWKT) const {
+            std::ostream& write_to_stream(std::ostream& out, AsWKT, bool with_srid=false) const {
+                if (with_srid) {
+                    out << "SRID=4326;";
+                }
                 LonLatListWriter<Osmium::OSM::WayNode> writer(out);
                 out << "LINESTRING(" << std::setprecision(10);
                 if (m_reverse) {
@@ -59,12 +71,24 @@ namespace Osmium {
                 return out << ")";
             }
 
-            std::ostream& write_to_stream(std::ostream& out, AsEWKT) const {
-                return out << "SRID=4326;" << this->as_WKT();
-            }
+            std::ostream& write_to_stream(std::ostream& out, AsWKB, bool with_srid=false) const {
+                write_binary_wkb_header(out, with_srid, wkbLineString);
+                write_binary<uint32_t>(out, m_way_node_list->size());
+                for (Osmium::OSM::WayNodeList::const_iterator it = m_way_node_list->begin(); it != m_way_node_list->end(); ++it) {
+                    write_binary<double>(out, it->lon());
+                    write_binary<double>(out, it->lat());
+                }
+                return out;
+            };
 
-            std::ostream& write_to_stream(std::ostream& out, AsHexWKB) const {
-                return out; // XXX dummy
+            std::ostream& write_to_stream(std::ostream& out, AsHexWKB, bool with_srid=false) const {
+                write_hex_wkb_header(out, with_srid, wkbLineString);
+                write_hex<uint32_t>(out, m_way_node_list->size());
+                for (Osmium::OSM::WayNodeList::const_iterator it = m_way_node_list->begin(); it != m_way_node_list->end(); ++it) {
+                    write_hex<double>(out, it->lon());
+                    write_hex<double>(out, it->lat());
+                }
+                return out;
             }
 
 #ifdef OSMIUM_WITH_GEOS
@@ -118,7 +142,7 @@ namespace Osmium {
                     return v8::String::New(oss.str().c_str());
                 } else if (!strcmp(*key, "as_ewkt")) {
                     std::ostringstream oss;
-                    oss << this->as_EWKT();
+                    oss << this->as_WKT(true);
                     return v8::String::New(oss.str().c_str());
                 } else if (!strcmp(*key, "as_array")) {
                     v8::Local<v8::Array> linestring = v8::Array::New(m_way_node_list->size());

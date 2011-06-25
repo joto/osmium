@@ -10,9 +10,9 @@ CXX="g++"
 CXXFLAGS="-g -Wall -Wextra -Wredundant-decls -Wdisabled-optimization -pedantic -Wctor-dtor-privacy -Wnon-virtual-dtor -Woverloaded-virtual -Wsign-promo"
 
 if [ "x$1" = "x" ]; then
-    FILES="test_main.cpp */test_*.cpp"
+    FILES="test_main.cpp */test_*.cpp utils.cpp"
 else
-    FILES="$1 -DSTAND_ALONE"
+    FILES="-DSTAND_ALONE $1 utils.cpp"
 fi
 
 set -e

@@ -28,26 +28,80 @@ namespace Osmium {
 
     namespace Geometry {
 
-        class Geometry;
+        /// %OSM data always uses SRID 4326 (WGS84).
+        const int srid = 4326;
 
-        template <typename T>
-        struct StreamFormat {
-            StreamFormat(const Geometry& t) : m_t(t) {}
-            const Geometry& m_t;
+        /**
+         * Type of WKB geometry.
+         * These definitions are from 
+         * 99-049_OpenGIS_Simple_Features_Specification_For_SQL_Rev_1.1.pdf (for WKB)
+         * and http://trac.osgeo.org/postgis/browser/trunk/doc/ZMSgeoms.txt (for EWKB).
+         * They are used to encode geometries into the WKB format.
+         */
+        enum wkbGeometryType {
+            wkbPoint               = 1,
+            wkbLineString          = 2,
+            wkbPolygon             = 3,
+            wkbMultiPoint          = 4,
+            wkbMultiLineString     = 5,
+            wkbMultiPolygon        = 6,
+            wkbGeometryCollection  = 7,
+
+            // SRID-presence flag (EWKB)
+            wkbSRID                = 0x20000000
         };
 
+        /**
+         * Byte order marker in WKB geometry.
+         */
+        enum wkbByteOrder {
+            wkbXDR = 0,         // Big Endian
+            wkbNDR = 1          // Little Endian
+        };
+
+        class Geometry;
+
+        /**
+         * This helper class is used to allow writing geometries in different
+         * formats to an output stream.
+         *
+         * If we'd just write 
+         * @code
+         *  Osmium::Geometry::Geometry geometry;
+         *  std::stream out << geometry;
+         * @endcode
+         * we would not know in which format to write.
+         *
+         * Instead we can write
+         * @code
+         *   std::stream out << geometry.as_WKT();
+         * @endcode
+         * and this class magically makes this work.
+         *
+         * @see Geometry::AsWKT
+         * @see Geometry::AsWKB
+         * @see Geometry::AsHexWKB
+         */
         template <typename T>
-        std::ostream& operator <<(std::ostream& out, StreamFormat<T> format) {
-            return format.m_t.write_to_stream(out, format);
+        struct StreamFormat {
+            StreamFormat(const Geometry& geometry, bool with_srid) : m_geometry(geometry), m_with_srid(with_srid) {}
+            const Geometry& m_geometry;
+            const bool m_with_srid;
+        };
+
+        /**
+         * Output operator for StreamFormat.
+         */
+        template <typename T>
+        std::ostream& operator<<(std::ostream& out, StreamFormat<T> format) {
+            return format.m_geometry.write_to_stream(out, format, format.m_with_srid);
         }
 
-        typedef StreamFormat<struct WKT_>   AsWKT;
-        typedef StreamFormat<struct EWKT_>  AsEWKT;
-        typedef StreamFormat<struct WKB_>   AsWKB;
-        typedef StreamFormat<struct EWKB_>  AsEWKB;
-        typedef StreamFormat<struct HWKB_>  AsHexWKB;
-        typedef StreamFormat<struct HEWKB_> AsHexEWKB;
-
+        /**
+         * Abstract base class for all Osmium geometry classes. Geometries of different
+         * types are created from OSM objects (nodes, ways, relations). Geometries
+         * can be written out and transformed in different ways.
+         */
         class Geometry {
 
         public:
@@ -55,25 +109,91 @@ namespace Osmium {
             virtual ~Geometry() {
             }
 
-            AsWKT as_WKT() const {
-                return AsWKT(*this);
+            // These types are never instantiated, they are used in the write_to_stream()
+            // methods below as parameters to make the overloading mechanism choose the
+            // right version.
+            typedef StreamFormat<struct WKT_>  AsWKT;
+            typedef StreamFormat<struct WKB_>  AsWKB;
+            typedef StreamFormat<struct HWKB_> AsHexWKB;
+
+            AsWKT as_WKT(bool with_srid=false) const {
+                return AsWKT(*this, with_srid);
             }
 
-            AsEWKT as_EWKT() const {
-                return AsEWKT(*this);
+            AsWKB as_WKB(bool with_srid=false) const {
+                return AsWKB(*this, with_srid);
             }
 
-            AsHexWKB as_HexWKB() const {
-                return AsHexWKB(*this);
+            AsHexWKB as_HexWKB(bool with_srid=false) const {
+                return AsHexWKB(*this, with_srid);
             }
 
-            virtual std::ostream& write_to_stream(std::ostream& out, AsWKT) const = 0;
-
-            virtual std::ostream& write_to_stream(std::ostream& out, AsEWKT) const {
-                return out << "SRID=4326;" << this->as_WKT();
+            /**
+             * Write a value as binary to an output stream.
+             *
+             * @tparam T Type of value.
+             */
+            template<typename T>
+            inline void write_binary(std::ostream& out, const T value) const {
+                out.write(reinterpret_cast<const char *>(&value), sizeof(T));
             }
 
-            virtual std::ostream& write_to_stream(std::ostream& out, AsHexWKB) const = 0;
+            /**
+             * Write a value as hex encoding of binary to an output stream.
+             *
+             * @tparam T Type of value.
+             */
+            template<typename T>
+            inline void write_hex(std::ostream& out, const T value) const {
+                static const char *lookup_hex = "0123456789ABCDEF";
+                for (const char* in = reinterpret_cast<const char*>(&value); in < reinterpret_cast<const char*>(&value) + sizeof(T); ++in) {
+                    out << lookup_hex[(*in >> 4) & 0xf]
+                        << lookup_hex[*in & 0xf];
+                }
+            }
+
+            /**
+             * Write header of WKB data structure as binary to output stream.
+             * The header contains:
+             * - the byte order marker
+             * - the geometry type
+             * - (optionally) the SRID
+             */
+            inline void write_binary_wkb_header(std::ostream& out, bool with_srid, uint32_t type) const {
+                write_binary<uint8_t>(out, wkbNDR);
+                if (with_srid) {
+                    write_binary<uint32_t>(out, type | wkbSRID);
+                    write_binary<uint32_t>(out, srid);
+                } else {
+                    write_binary<uint32_t>(out, type);
+                }
+            }
+
+            /**
+             * Write header of WKB data structure as hex encoding of binary to output stream.
+             * The header contains:
+             * - the byte order marker
+             * - the geometry type
+             * - (optionally) the SRID
+             */
+            inline void write_hex_wkb_header(std::ostream& out, bool with_srid, uint32_t type) const {
+                write_hex<uint8_t>(out, wkbNDR);
+                if (with_srid) {
+                    write_hex<uint32_t>(out, type | wkbSRID);
+                    write_hex<uint32_t>(out, srid);
+                } else {
+                    write_hex<uint32_t>(out, type);
+                }
+            }
+
+            /// Write geometry as WKT to output stream.
+            virtual std::ostream& write_to_stream(std::ostream& out, AsWKT,    bool with_srid=false) const = 0;
+
+            /// Write geometry as WKB to output stream.
+            virtual std::ostream& write_to_stream(std::ostream& out, AsWKB,    bool with_srid=false) const = 0;
+
+            /// Write geometry as hex encoded WKB to output stream.
+            virtual std::ostream& write_to_stream(std::ostream& out, AsHexWKB, bool with_srid=false) const = 0;
 
 #ifdef  OSMIUM_WITH_SHPLIB
             virtual SHPObject *create_shp_object() const {
