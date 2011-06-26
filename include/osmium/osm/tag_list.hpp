@@ -97,13 +97,14 @@ namespace Osmium {
             }
 
             v8::Handle<v8::Array> js_enumerate_tag_keys() const {
+                v8::HandleScope scope;
                 v8::Local<v8::Array> array = v8::Array::New(m_tags.size());
 
                 for (unsigned int i=0; i < m_tags.size(); i++) {
-                    array->Set(v8::Integer::New(i), utf8_to_v8_String<Osmium::OSM::Tag::max_utf16_length_key>(get_tag_key(i)));
+                    array->Set(i, utf8_to_v8_String<Osmium::OSM::Tag::max_utf16_length_key>(get_tag_key(i)));
                 }
 
-                return array;
+                return scope.Close(array);
             }
 
             struct JavascriptTemplate : public Osmium::Javascript::Template {

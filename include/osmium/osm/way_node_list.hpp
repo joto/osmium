@@ -122,21 +122,18 @@ namespace Osmium {
             }
 
             v8::Handle<v8::Value> js_get_node_id(uint32_t index) const {
-                if (sizeof(osm_object_id_t) <= 4) // XXX do this at compile time
-                    return v8::Integer::New(m_list[index].ref());
-                else
-                    return v8::Number::New(m_list[index].ref());
+                return v8::Number::New(m_list[index].ref());
             }
 
             v8::Handle<v8::Array> js_enumerate_nodes() const {
+                v8::HandleScope scope;
                 v8::Local<v8::Array> array = v8::Array::New(m_list.size());
 
-                for (osm_sequence_id_t i=0; i < m_list.size(); i++) {
-                    v8::Local<v8::Integer> ii = v8::Integer::New(i);
-                    array->Set(ii, ii);
+                for (unsigned int i=0; i < m_list.size(); ++i) {
+                    array->Set(i, v8::Integer::New(i));
                 }
 
-                return array;
+                return scope.Close(array);
             }
 
             struct JavascriptTemplate : public Osmium::Javascript::Template {

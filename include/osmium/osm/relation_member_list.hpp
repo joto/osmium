@@ -75,15 +75,14 @@ namespace Osmium {
             }
 
             v8::Handle<v8::Array> js_enumerate_members() const {
-                int size = m_list.size();
-                v8::Local<v8::Array> array = v8::Array::New(size);
+                v8::HandleScope scope;
+                v8::Local<v8::Array> array = v8::Array::New(m_list.size());
 
-                for (int i=0; i < size; i++) {
-                    v8::Local<v8::Integer> ii = v8::Integer::New(i);
-                    array->Set(ii, ii);
+                for (unsigned int i=0; i < m_list.size(); i++) {
+                    array->Set(i, v8::Integer::New(i));
                 }
 
-                return array;
+                return scope.Close(array);
             }
 
             v8::Handle<v8::Value> js_length() const {
@@ -93,7 +92,7 @@ namespace Osmium {
             struct JavascriptTemplate : public Osmium::Javascript::Template {
 
                 JavascriptTemplate() : Osmium::Javascript::Template() {
-                    js_template->SetAccessor(v8::String::New("length"), accessor_getter<RelationMemberList, &RelationMemberList::js_length>);
+                    js_template->SetAccessor(v8::String::NewSymbol("length"), accessor_getter<RelationMemberList, &RelationMemberList::js_length>);
                     js_template->SetIndexedPropertyHandler(
                         indexed_property_getter<RelationMemberList, &RelationMemberList::js_get_member>,
                         0,
