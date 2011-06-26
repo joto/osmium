@@ -82,20 +82,6 @@ namespace Osmium {
                 m_position.lat(y);
             }
 
-            /// get longitude as string, returns a pointer to statically allocated memory thats valid until the next call to get_lon_str()
-            const char *get_lon_str() const {
-                static char lon_str[max_length_coordinate];
-                snprintf(lon_str, max_length_coordinate, "%.7f", m_position.lon());
-                return lon_str;
-            }
-
-            /// get latitude as string, returns a pointer to statically allocated memory thats valid until the next call to get_lat_str()
-            const char *get_lat_str() const {
-                static char lat_str[max_length_coordinate];
-                snprintf(lat_str, max_length_coordinate, "%.7f", m_position.lat());
-                return lat_str;
-            }
-
             double get_lon() const {
                 return m_position.lon();
             }
