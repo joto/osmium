@@ -209,7 +209,7 @@ namespace Osmium {
 
             v8::Handle<v8::Value> js_from() const {
                 const char *value = (get_type() == MULTIPOLYGON_FROM_WAY) ? "way" : "relation";
-                return v8::String::New(value);
+                return v8::String::NewSymbol(value);
             }
 
             v8::Handle<v8::Value> js_geom() const;
@@ -217,8 +217,8 @@ namespace Osmium {
             struct JavascriptTemplate : public Osmium::OSM::Object::JavascriptTemplate {
 
                 JavascriptTemplate() : Osmium::OSM::Object::JavascriptTemplate() {
-                    js_template->SetAccessor(v8::String::New("from"), accessor_getter<Multipolygon, &Multipolygon::js_from>);
-                    js_template->SetAccessor(v8::String::New("geom"), accessor_getter<Multipolygon, &Multipolygon::js_geom>);
+                    js_template->SetAccessor(v8::String::NewSymbol("from"), accessor_getter<Multipolygon, &Multipolygon::js_from>);
+                    js_template->SetAccessor(v8::String::NewSymbol("geom"), accessor_getter<Multipolygon, &Multipolygon::js_geom>);
                 }
 
             };

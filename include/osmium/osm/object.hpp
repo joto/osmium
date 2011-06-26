@@ -427,14 +427,14 @@ namespace Osmium {
             struct JavascriptTemplate : public Osmium::Javascript::Template {
 
                 JavascriptTemplate() : Osmium::Javascript::Template() {
-                    js_template->SetAccessor(v8::String::New("id"),        accessor_getter<Object, &Object::js_get_id>);
-                    js_template->SetAccessor(v8::String::New("version"),   accessor_getter<Object, &Object::js_get_version>);
-                    js_template->SetAccessor(v8::String::New("timestamp"), accessor_getter<Object, &Object::js_get_timestamp_as_string>);
-                    js_template->SetAccessor(v8::String::New("uid"),       accessor_getter<Object, &Object::js_get_uid>);
-                    js_template->SetAccessor(v8::String::New("user"),      accessor_getter<Object, &Object::js_get_user>);
-                    js_template->SetAccessor(v8::String::New("changeset"), accessor_getter<Object, &Object::js_get_changeset>);
-                    js_template->SetAccessor(v8::String::New("tags"),      accessor_getter<Object, &Object::js_get_tags>);
-                    js_template->SetAccessor(v8::String::New("visible"),   accessor_getter<Object, &Object::js_get_visible>);
+                    js_template->SetAccessor(v8::String::NewSymbol("id"),        accessor_getter<Object, &Object::js_get_id>);
+                    js_template->SetAccessor(v8::String::NewSymbol("version"),   accessor_getter<Object, &Object::js_get_version>);
+                    js_template->SetAccessor(v8::String::NewSymbol("timestamp"), accessor_getter<Object, &Object::js_get_timestamp_as_string>);
+                    js_template->SetAccessor(v8::String::NewSymbol("uid"),       accessor_getter<Object, &Object::js_get_uid>);
+                    js_template->SetAccessor(v8::String::NewSymbol("user"),      accessor_getter<Object, &Object::js_get_user>);
+                    js_template->SetAccessor(v8::String::NewSymbol("changeset"), accessor_getter<Object, &Object::js_get_changeset>);
+                    js_template->SetAccessor(v8::String::NewSymbol("tags"),      accessor_getter<Object, &Object::js_get_tags>);
+                    js_template->SetAccessor(v8::String::NewSymbol("visible"),   accessor_getter<Object, &Object::js_get_visible>);
                 }
 
             };

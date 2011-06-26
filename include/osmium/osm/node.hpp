@@ -96,7 +96,7 @@ namespace Osmium {
             struct JavascriptTemplate : public Osmium::OSM::Object::JavascriptTemplate {
 
                 JavascriptTemplate() : Osmium::OSM::Object::JavascriptTemplate() {
-                    js_template->SetAccessor(v8::String::New("geom"), accessor_getter<Node, &Node::js_get_geom>);
+                    js_template->SetAccessor(v8::String::NewSymbol("geom"), accessor_getter<Node, &Node::js_get_geom>);
                 }
 
             };

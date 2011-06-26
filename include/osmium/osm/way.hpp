@@ -270,9 +270,9 @@ namespace Osmium {
             struct JavascriptTemplate : public Osmium::OSM::Object::JavascriptTemplate {
 
                 JavascriptTemplate() : Osmium::OSM::Object::JavascriptTemplate() {
-                    js_template->SetAccessor(v8::String::New("nodes"),        accessor_getter<Way, &Way::js_nodes>);
-                    js_template->SetAccessor(v8::String::New("geom"),         accessor_getter<Way, &Way::js_geom>);
-                    js_template->SetAccessor(v8::String::New("reverse_geom"), accessor_getter<Way, &Way::js_reverse_geom>);
+                    js_template->SetAccessor(v8::String::NewSymbol("nodes"),        accessor_getter<Way, &Way::js_nodes>);
+                    js_template->SetAccessor(v8::String::NewSymbol("geom"),         accessor_getter<Way, &Way::js_geom>);
+                    js_template->SetAccessor(v8::String::NewSymbol("reverse_geom"), accessor_getter<Way, &Way::js_reverse_geom>);
                 }
 
             };

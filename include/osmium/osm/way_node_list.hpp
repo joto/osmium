@@ -142,7 +142,7 @@ namespace Osmium {
             struct JavascriptTemplate : public Osmium::Javascript::Template {
 
                 JavascriptTemplate() : Osmium::Javascript::Template() {
-                    js_template->SetAccessor(v8::String::New("length"), accessor_getter<WayNodeList, &WayNodeList::js_length>);
+                    js_template->SetAccessor(v8::String::NewSymbol("length"), accessor_getter<WayNodeList, &WayNodeList::js_length>);
                     js_template->SetIndexedPropertyHandler(
                         indexed_property_getter<WayNodeList, &WayNodeList::js_get_node_id>,
                         0,

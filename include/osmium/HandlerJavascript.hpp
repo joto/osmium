@@ -172,21 +172,21 @@ namespace Osmium {
                 v8::Handle<v8::String> init_source = v8::String::New("Osmium = { Callbacks: {}, Output: { } };");
                 v8::Handle<v8::Script> init_script = v8::Script::Compile(init_source);
                 osmium_object = v8::Persistent<v8::Object>::New(init_script->Run()->ToObject());
-                v8::Handle<v8::Object> output_object = osmium_object->Get(v8::String::New("Output"))->ToObject();
+                v8::Handle<v8::Object> output_object = osmium_object->Get(v8::String::NewSymbol("Output"))->ToObject();
 
-                osmium_object->Set(v8::String::New("debug"), v8::Boolean::New(Osmium::global.debug));
+                osmium_object->Set(v8::String::NewSymbol("debug"), v8::Boolean::New(Osmium::global.debug));
 
                 v8::Handle<v8::ObjectTemplate> output_csv_template = v8::ObjectTemplate::New();
-                output_csv_template->Set(v8::String::New("open"), v8::FunctionTemplate::New(OutputCSVOpen));
-                output_object->Set(v8::String::New("CSV"), output_csv_template->NewInstance());
+                output_csv_template->Set(v8::String::NewSymbol("open"), v8::FunctionTemplate::New(OutputCSVOpen));
+                output_object->Set(v8::String::NewSymbol("CSV"), output_csv_template->NewInstance());
 
 #ifdef OSMIUM_WITH_SHPLIB
                 v8::Handle<v8::ObjectTemplate> output_shapefile_template = v8::ObjectTemplate::New();
-                output_shapefile_template->Set(v8::String::New("open"), v8::FunctionTemplate::New(OutputShapefileOpen));
-                output_object->Set(v8::String::New("Shapefile"), output_shapefile_template->NewInstance());
+                output_shapefile_template->Set(v8::String::NewSymbol("open"), v8::FunctionTemplate::New(OutputShapefileOpen));
+                output_object->Set(v8::String::NewSymbol("Shapefile"), output_shapefile_template->NewInstance());
 #endif // OSMIUM_WITH_SHPLIB
 
-                v8::Handle<v8::Object> callbacks_object = osmium_object->Get(v8::String::New("Callbacks"))->ToObject();
+                v8::Handle<v8::Object> callbacks_object = osmium_object->Get(v8::String::NewSymbol("Callbacks"))->ToObject();
 
                 v8::TryCatch tryCatch;
 
@@ -232,27 +232,27 @@ namespace Osmium {
 
                 v8::Handle<v8::Value> cc;
 
-                cc = callbacks_object->Get(v8::String::New("init"));
+                cc = callbacks_object->Get(v8::String::NewSymbol("init"));
                 if (cc->IsFunction()) {
                     cb.init = v8::Handle<v8::Function>::Cast(cc);
                 }
-                cc = callbacks_object->Get(v8::String::New("node"));
+                cc = callbacks_object->Get(v8::String::NewSymbol("node"));
                 if (cc->IsFunction()) {
                     cb.node = v8::Handle<v8::Function>::Cast(cc);
                 }
-                cc = callbacks_object->Get(v8::String::New("way"));
+                cc = callbacks_object->Get(v8::String::NewSymbol("way"));
                 if (cc->IsFunction()) {
                     cb.way = v8::Handle<v8::Function>::Cast(cc);
                 }
-                cc = callbacks_object->Get(v8::String::New("relation"));
+                cc = callbacks_object->Get(v8::String::NewSymbol("relation"));
                 if (cc->IsFunction()) {
                     cb.relation = v8::Handle<v8::Function>::Cast(cc);
                 }
-                cc = callbacks_object->Get(v8::String::New("multipolygon"));
+                cc = callbacks_object->Get(v8::String::NewSymbol("multipolygon"));
                 if (cc->IsFunction()) {
                     cb.multipolygon = v8::Handle<v8::Function>::Cast(cc);
                 }
-                cc = callbacks_object->Get(v8::String::New("end"));
+                cc = callbacks_object->Get(v8::String::NewSymbol("end"));
                 if (cc->IsFunction()) {
                     cb.end = v8::Handle<v8::Function>::Cast(cc);
                 }

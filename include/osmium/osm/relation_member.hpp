@@ -65,7 +65,7 @@ namespace Osmium {
                 char type[2];
                 type[0] = get_type();
                 type[1] = 0;
-                return v8::String::New(type);
+                return v8::String::NewSymbol(type);
             }
 
             v8::Handle<v8::Value> js_get_role() const {
@@ -75,9 +75,9 @@ namespace Osmium {
             struct JavascriptTemplate : public Osmium::Javascript::Template {
 
                 JavascriptTemplate() : Osmium::Javascript::Template() {
-                    js_template->SetAccessor(v8::String::New("type"), accessor_getter<Osmium::OSM::RelationMember, &Osmium::OSM::RelationMember::js_get_type>);
-                    js_template->SetAccessor(v8::String::New("ref"),  accessor_getter<Osmium::OSM::RelationMember, &Osmium::OSM::RelationMember::js_get_ref>);
-                    js_template->SetAccessor(v8::String::New("role"), accessor_getter<Osmium::OSM::RelationMember, &Osmium::OSM::RelationMember::js_get_role>);
+                    js_template->SetAccessor(v8::String::NewSymbol("type"), accessor_getter<Osmium::OSM::RelationMember, &Osmium::OSM::RelationMember::js_get_type>);
+                    js_template->SetAccessor(v8::String::NewSymbol("ref"),  accessor_getter<Osmium::OSM::RelationMember, &Osmium::OSM::RelationMember::js_get_ref>);
+                    js_template->SetAccessor(v8::String::NewSymbol("role"), accessor_getter<Osmium::OSM::RelationMember, &Osmium::OSM::RelationMember::js_get_role>);
                 }
 
             };

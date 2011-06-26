@@ -76,7 +76,7 @@ namespace Osmium {
             struct JavascriptTemplate : public Osmium::OSM::Object::JavascriptTemplate {
 
                 JavascriptTemplate() : Osmium::OSM::Object::JavascriptTemplate() {
-                    js_template->SetAccessor(v8::String::New("members"), accessor_getter<Relation, &Relation::js_members>);
+                    js_template->SetAccessor(v8::String::NewSymbol("members"), accessor_getter<Relation, &Relation::js_members>);
                 }
 
             };
