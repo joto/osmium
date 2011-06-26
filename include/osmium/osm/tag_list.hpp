@@ -56,23 +56,13 @@ namespace Osmium {
             }
 
             void add(const char *key, const char *value) {
-                int size = m_tags.size();
-                /* first we resize the vector... */
-                m_tags.resize(size+1);
-                /* ...so that we can directly write into the memory and avoid
-                a second copy */
-                if (!memccpy(m_tags[size].key, key, 0, Tag::max_length_key)) {
-                    throw std::length_error("tag key too long");
-                }
-                if (!memccpy(m_tags[size].value, value, 0, Tag::max_length_value)) {
-                    throw std::length_error("tag value too long");
-                }
+                m_tags.push_back(Tag(key, value));
             }
 
             const char *get_tag_by_key(const char *key) const {
                 for (unsigned int i=0; i < m_tags.size(); ++i) {
-                    if (!strcmp(m_tags[i].key, key)) {
-                        return m_tags[i].value;
+                    if (!strcmp(m_tags[i].key(), key)) {
+                        return m_tags[i].value();
                     }
                 }
                 return 0;
@@ -80,14 +70,14 @@ namespace Osmium {
 
             const char *get_tag_key(unsigned int n) const {
                 if (n < m_tags.size()) {
-                    return m_tags[n].key;
+                    return m_tags[n].key();
                 }
                 throw std::range_error("no tag with this index");
             }
 
             const char *get_tag_value(unsigned int n) const {
                 if (n < m_tags.size()) {
-                    return m_tags[n].value;
+                    return m_tags[n].value();
                 }
                 throw std::range_error("no tag with this index");
             }
