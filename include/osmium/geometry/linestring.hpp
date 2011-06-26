@@ -185,13 +185,14 @@ namespace Osmium {
 } // namespace Osmium
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
-// XXX these functions leads to a resource leak, the created object is only available from Javascript
 v8::Handle<v8::Value> Osmium::OSM::Way::js_geom() const {
-    return (new Osmium::Geometry::LineString(*this))->js_instance();
+    Osmium::Geometry::LineString* geom = new Osmium::Geometry::LineString(*this);
+    return Osmium::Javascript::Template::get<Osmium::Geometry::LineString::JavascriptTemplate>().create_persistent_instance<Osmium::Geometry::LineString>(geom);
 }
 
 v8::Handle<v8::Value> Osmium::OSM::Way::js_reverse_geom() const {
-    return (new Osmium::Geometry::LineString(*this, true))->js_instance();
+    Osmium::Geometry::LineString* geom = new Osmium::Geometry::LineString(*this, true);
+    return Osmium::Javascript::Template::get<Osmium::Geometry::LineString::JavascriptTemplate>().create_persistent_instance<Osmium::Geometry::LineString>(geom);
 }
 #endif // OSMIUM_WITH_JAVASCRIPT
 

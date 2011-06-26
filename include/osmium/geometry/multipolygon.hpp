@@ -114,9 +114,9 @@ namespace Osmium {
 } // namespace Osmium
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
-// XXX this function leads to a resource leak, the created object is only available from Javascript
 v8::Handle<v8::Value> Osmium::OSM::Multipolygon::js_geom() const {
-    return (new Osmium::Geometry::MultiPolygon(*this))->js_instance();
+    Osmium::Geometry::MultiPolygon* geom = new Osmium::Geometry::MultiPolygon(*this);
+    return Osmium::Javascript::Template::get<Osmium::Geometry::MultiPolygon::JavascriptTemplate>().create_persistent_instance<Osmium::Geometry::MultiPolygon>(geom);
 }
 #endif // OSMIUM_WITH_JAVASCRIPT
 

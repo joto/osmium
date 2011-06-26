@@ -56,6 +56,19 @@ namespace Osmium {
                 return instance;
             }
 
+            template <class TWrapped>
+            v8::Persistent<v8::Object> create_persistent_instance(TWrapped *wrapped) {
+                v8::Persistent<v8::Object> instance = v8::Persistent<v8::Object>::New(create_instance(wrapped));
+                instance.MakeWeak(wrapped, Osmium::Javascript::Template::free_instance<TWrapped>);
+                return instance;
+            }
+
+            template <class TWrapped>
+            static void free_instance(v8::Persistent<v8::Value> instance, void* obj) {
+                instance.Dispose();
+                delete static_cast<TWrapped*>(obj);
+            }
+
             /*
                 These magic helper function are used to connect Javascript
                 methods to C++ methods. They are given to the SetAccessor,

@@ -148,9 +148,9 @@ namespace Osmium {
 
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
-// XXX this function leads to a resource leak, the created Point object is only available from Javascript
 v8::Handle<v8::Value> Osmium::OSM::Node::js_get_geom() const {
-    return (new Osmium::Geometry::Point(*this))->js_instance();
+    Osmium::Geometry::Point* geom = new Osmium::Geometry::Point(*this);
+    return Osmium::Javascript::Template::get<Osmium::Geometry::Point::JavascriptTemplate>().create_persistent_instance<Osmium::Geometry::Point>(geom);
 }
 #endif // OSMIUM_WITH_JAVASCRIPT
 
