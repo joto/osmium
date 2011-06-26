@@ -64,9 +64,9 @@ namespace Osmium {
                 return v8::Undefined();
             }
 
-            struct JavascriptTemplate : public Osmium::Javascript::Template::Base {
+            struct JavascriptTemplate : public Osmium::Javascript::Template {
 
-                JavascriptTemplate() : Osmium::Javascript::Template::Base(1) {
+                JavascriptTemplate() : Osmium::Javascript::Template() {
                     js_template->Set("print", v8::FunctionTemplate::New(function_template<CSV, &CSV::js_print>));
                     js_template->Set("close", v8::FunctionTemplate::New(function_template<CSV, &CSV::js_close>));
                 }

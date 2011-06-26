@@ -90,9 +90,9 @@ namespace Osmium {
                 return v8::Number::New(m_list.size());
             }
 
-            struct JavascriptTemplate : public Osmium::Javascript::Template::Base {
+            struct JavascriptTemplate : public Osmium::Javascript::Template {
 
-                JavascriptTemplate() : Osmium::Javascript::Template::Base(1) {
+                JavascriptTemplate() : Osmium::Javascript::Template() {
                     js_template->SetAccessor(v8::String::New("length"), accessor_getter<RelationMemberList, &RelationMemberList::js_length>);
                     js_template->SetIndexedPropertyHandler(
                         indexed_property_getter<RelationMemberList, &RelationMemberList::js_get_member>,

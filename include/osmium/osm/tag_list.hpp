@@ -116,9 +116,9 @@ namespace Osmium {
                 return array;
             }
 
-            struct JavascriptTemplate : public Osmium::Javascript::Template::Base {
+            struct JavascriptTemplate : public Osmium::Javascript::Template {
 
-                JavascriptTemplate() : Osmium::Javascript::Template::Base(1) {
+                JavascriptTemplate() : Osmium::Javascript::Template() {
                     js_template->SetNamedPropertyHandler(
                         named_property_getter<TagList, &TagList::js_get_tag_value_by_key>,
                         0,

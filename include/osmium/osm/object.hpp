@@ -420,9 +420,9 @@ namespace Osmium {
                 return tags().js_instance();
             }
 
-            struct JavascriptTemplate : public Osmium::Javascript::Template::Base {
+            struct JavascriptTemplate : public Osmium::Javascript::Template {
 
-                JavascriptTemplate() : Osmium::Javascript::Template::Base(1) {
+                JavascriptTemplate() : Osmium::Javascript::Template() {
                     js_template->SetAccessor(v8::String::New("id"),        accessor_getter<Object, &Object::js_get_id>);
                     js_template->SetAccessor(v8::String::New("version"),   accessor_getter<Object, &Object::js_get_version>);
                     js_template->SetAccessor(v8::String::New("timestamp"), accessor_getter<Object, &Object::js_get_timestamp_as_string>);

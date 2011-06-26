@@ -438,9 +438,9 @@ namespace Osmium {
                 return v8::Undefined();
             }
 
-            struct JavascriptTemplate : public Osmium::Javascript::Template::Base {
+            struct JavascriptTemplate : public Osmium::Javascript::Template {
 
-                JavascriptTemplate() : Osmium::Javascript::Template::Base(1) {
+                JavascriptTemplate() : Osmium::Javascript::Template() {
                     js_template->Set("add_field", v8::FunctionTemplate::New(function_template<Shapefile, &Shapefile::js_add_field>));
                     js_template->Set("add",       v8::FunctionTemplate::New(function_template<Shapefile, &Shapefile::js_add>));
                     js_template->Set("add_geom",  v8::FunctionTemplate::New(function_template<Shapefile, &Shapefile::js_add_geom>));

@@ -169,9 +169,9 @@ namespace Osmium {
                 }
             }
 
-            struct JavascriptTemplate : public Osmium::Javascript::Template::Base {
+            struct JavascriptTemplate : public Osmium::Javascript::Template {
 
-                JavascriptTemplate() : Osmium::Javascript::Template::Base(1) {
+                JavascriptTemplate() : Osmium::Javascript::Template() {
                     js_template->SetNamedPropertyHandler(named_property_getter<LineString, &LineString::js_get_property>);
                 }
 
