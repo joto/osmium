@@ -185,7 +185,7 @@ namespace Osmium {
 } // namespace Osmium
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
-// XXX these functions leads to a resource leak, the created Point object is only available from Javascript
+// XXX these functions leads to a resource leak, the created object is only available from Javascript
 v8::Handle<v8::Value> Osmium::OSM::Way::js_geom() const {
     return (new Osmium::Geometry::LineString(*this))->js_instance();
 }

@@ -104,13 +104,7 @@ namespace Osmium {
                     return (( reinterpret_cast<TObject *>(v8::Local<v8::External>::Cast(args.Holder()->GetInternalField(0))->Value()) )->*(func))(args);
                 }
 
-            }; //class Base
-
-            v8::Local<v8::Object> create_multipolygon_geom_instance(void *wrapper);
-
-            void init();
-
-            void cleanup();
+            }; // class Base
 
         } // namespace Template
 

@@ -182,10 +182,6 @@ namespace Osmium {
 
         protected:
 
-#ifdef OSMIUM_WITH_JAVASCRIPT
-            v8::Local<v8::Object> js_geom_instance;
-#endif // OSMIUM_WITH_JAVASCRIPT
-
 #ifdef OSMIUM_WITH_GEOS
             geos::geom::Geometry *geometry;
 
@@ -195,7 +191,6 @@ namespace Osmium {
 #endif // OSMIUM_WITH_GEOS
 # ifdef OSMIUM_WITH_JAVASCRIPT
                 js_object_instance = JavascriptTemplate::get<JavascriptTemplate>().create_instance(this);
-                js_geom_instance   = Osmium::Javascript::Template::create_multipolygon_geom_instance(this);
 # endif // OSMIUM_WITH_JAVASCRIPT
             }
 
@@ -208,22 +203,22 @@ namespace Osmium {
         public:
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
-            v8::Handle<v8::Value> js_get_from() const {
+            geos::geom::Geometry* get_geometry() const {
+                return geometry;
+            }
+
+            v8::Handle<v8::Value> js_from() const {
                 const char *value = (get_type() == MULTIPOLYGON_FROM_WAY) ? "way" : "relation";
                 return v8::String::New(value);
             }
 
-            v8::Handle<v8::Value> js_get_geom() const {
-                return js_geom_instance;
-            }
-
-            virtual v8::Handle<v8::Value> js_get_geom_property(v8::Local<v8::String> property) const = 0;
+            v8::Handle<v8::Value> js_geom() const;
 
             struct JavascriptTemplate : public Osmium::OSM::Object::JavascriptTemplate {
 
                 JavascriptTemplate() : Osmium::OSM::Object::JavascriptTemplate() {
-                    js_template->SetAccessor(v8::String::New("from"), accessor_getter<Multipolygon, &Multipolygon::js_get_from>);
-                    js_template->SetAccessor(v8::String::New("geom"), accessor_getter<Multipolygon, &Multipolygon::js_get_geom>);
+                    js_template->SetAccessor(v8::String::New("from"), accessor_getter<Multipolygon, &Multipolygon::js_from>);
+                    js_template->SetAccessor(v8::String::New("geom"), accessor_getter<Multipolygon, &Multipolygon::js_geom>);
                 }
 
             };
@@ -1216,50 +1211,6 @@ namespace Osmium {
                 return false;
             }
 
-# ifdef OSMIUM_WITH_JAVASCRIPT
-            v8::Handle<v8::Array> js_ring_as_array(const geos::geom::LineString *ring) const {
-                const geos::geom::CoordinateSequence *cs = ring->getCoordinatesRO();
-                v8::Local<v8::Array> ring_array = v8::Array::New(cs->getSize());
-                for (size_t i = 0; i < cs->getSize(); i++) {
-                    v8::Local<v8::Array> coord = v8::Array::New(2);
-                    coord->Set(v8::Integer::New(0), v8::Number::New(cs->getX(i)));
-                    coord->Set(v8::Integer::New(1), v8::Number::New(cs->getY(i)));
-                    ring_array->Set(v8::Integer::New(i), coord);
-                }
-
-                return ring_array;
-            }
-
-            v8::Handle<v8::Value> js_get_geom_property(v8::Local<v8::String> property) const {
-                if (!geometry) {
-                    return v8::Undefined();
-                }
-
-                v8::String::Utf8Value key(property);
-/*                if (!strcmp(*key, "as_wkt")) {
-                } else if (!strcmp(*key, "as_ewkt")) {
-                } else*/ if (!strcmp(*key, "as_array")) {
-                    if (geometry->getGeometryTypeId() == geos::geom::GEOS_MULTIPOLYGON) {
-                        v8::Local<v8::Array> multipolygon_array = v8::Array::New(geometry->getNumGeometries());
-
-                        for (size_t i=0; i < geometry->getNumGeometries(); i++) {
-                            geos::geom::Polygon *polygon = (geos::geom::Polygon *) geometry->getGeometryN(i);
-                            v8::Local<v8::Array> polygon_array = v8::Array::New(polygon->getNumInteriorRing());
-                            multipolygon_array->Set(v8::Integer::New(i), polygon_array);
-                            polygon_array->Set(v8::Integer::New(0), js_ring_as_array(polygon->getExteriorRing()));
-                            for (size_t j=0; j < polygon->getNumInteriorRing(); j++) {
-                                polygon_array->Set(v8::Integer::New(j+1), js_ring_as_array(polygon->getInteriorRingN(j)));
-                            }
-                        }
-                        return multipolygon_array;
-                    } else {
-                        return v8::Undefined();
-                    }
-                } else {
-                    return v8::Undefined();
-                }
-            }
-# endif // OSMIUM_WITH_JAVASCRIPT
 #endif // OSMIUM_WITH_GEOS
 
         }; // class MultipolygonFromRelation

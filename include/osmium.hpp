@@ -79,6 +79,7 @@ struct Osmium::global Osmium::global;
 #include <osmium/osm.hpp>
 #include <osmium/geometry/point.hpp>
 #include <osmium/geometry/linestring.hpp>
+#include <osmium/geometry/multipolygon.hpp>
 #include <osmium/osmfile.hpp>
 #include <osmium/input.hpp>
 #include <osmium/framework.hpp>
@@ -86,35 +87,7 @@ struct Osmium::global Osmium::global;
 #include <osmium/osmfile_impl.hpp>
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
-# include <osmium/javascript/object_templates.hpp>
 # include <osmium/HandlerJavascript.hpp>
-# ifdef OSMIUM_MAIN
-namespace Osmium {
-
-    namespace Javascript {
-
-        namespace Template {
-
-            MultipolygonGeom *js_template_multipolygongeom;
-
-            v8::Local<v8::Object> create_multipolygon_geom_instance(void *wrapper) {
-                return js_template_multipolygongeom->create_instance(wrapper);
-            }
-
-            void init() {
-                js_template_multipolygongeom = new Osmium::Javascript::Template::MultipolygonGeom;
-            }
-
-            void cleanup() {
-                delete js_template_multipolygongeom;
-            }
-
-        } // namespace Template
-
-    } // namespace Javascript
-
-} // namespace Osmium
-# endif // OSMIUM_MAIN
 #endif // OSMIUM_WITH_JAVASCRIPT
 
 #endif // OSMIUM_OSMIUM_HPP

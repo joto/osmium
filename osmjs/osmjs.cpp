@@ -338,8 +338,6 @@ int main(int argc, char *argv[]) {
     }
     global_context->Global()->Set(v8::String::New("argv"), js_argv);
 
-    Osmium::Javascript::Template::init();
-
     storage_byid_t* store_pos = NULL;
     if (location_store == ARRAY) {
         store_pos = new Osmium::Storage::Mmap<Osmium::Coordinates>();
