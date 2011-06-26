@@ -286,29 +286,6 @@ namespace Osmium {
             }
 #endif // OSMIUM_WITH_SHPLIB
 
-#ifdef OSMIUM_WITH_JAVASCRIPT
-            v8::Handle<v8::Value> js_get_geom_property(v8::Local<v8::String> property) const {
-                v8::String::Utf8Value key(property);
-
-/*                if (!strcmp(*key, "as_wkt")) {
-                } else if (!strcmp(*key, "as_ewkt")) {
-                } else*/ if (!strcmp(*key, "as_array")) {
-                    v8::Local<v8::Array> polygon = v8::Array::New(1);
-                    v8::Local<v8::Array> ring = v8::Array::New(num_nodes);
-                    for (osm_sequence_id_t i=0; i < num_nodes; i++) {
-                        v8::Local<v8::Array> coord = v8::Array::New(2);
-                        coord->Set(v8::Integer::New(0), v8::Number::New(lon[i]));
-                        coord->Set(v8::Integer::New(1), v8::Number::New(lat[i]));
-                        ring->Set(v8::Integer::New(i), coord);
-                    }
-                    polygon->Set(v8::Integer::New(0), ring);
-                    return polygon;
-                } else {
-                    return v8::Undefined();
-                }
-            }
-#endif // OSMIUM_WITH_JAVASCRIPT
-
         }; // class MultipolygonFromWay
 
         /***
