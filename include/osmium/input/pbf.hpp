@@ -226,10 +226,10 @@ namespace Osmium {
                                            stringtable.s( pbf_way.vals( tag ) ).data());
                     }
 
-                    uint64_t lastRef = 0;
+                    uint64_t ref = 0;
                     for (int i=0; i < pbf_way.refs_size(); i++) {
-                        lastRef += pbf_way.refs(i);
-                        this->way->add_node(lastRef);
+                        ref += pbf_way.refs(i);
+                        this->way->add_node(ref);
                     }
 
                     this->callback_way();
@@ -260,7 +260,7 @@ namespace Osmium {
                                                 stringtable.s( pbf_relation.vals(tag) ).data());
                     }
 
-                    uint64_t lastRef = 0;
+                    uint64_t ref = 0;
                     for (int i=0; i < pbf_relation.types_size(); i++) {
                         char type = 'x';
                         switch (pbf_relation.types(i)) {
@@ -274,8 +274,8 @@ namespace Osmium {
                                 type = 'r';
                                 break;
                         }
-                        lastRef += pbf_relation.memids(i);
-                        this->relation->add_member(type, lastRef, stringtable.s( pbf_relation.roles_sid( i ) ).data());
+                        ref += pbf_relation.memids(i);
+                        this->relation->add_member(type, ref, stringtable.s( pbf_relation.roles_sid( i ) ).data());
                     }
 
                     this->callback_relation();
@@ -292,11 +292,11 @@ namespace Osmium {
                 int64_t last_dense_timestamp = 0;
                 int     last_dense_tag       = 0;
 
-                int max_entity = group.dense().id_size();
-                for (int entity=0; entity < max_entity; entity++) {
+                const OSMPBF::DenseNodes& dense = group.dense();
+                int max_entity = dense.id_size();
+                for (int entity=0; entity < max_entity; ++entity) {
                     this->node->reset();
 
-                    const OSMPBF::DenseNodes& dense = group.dense();
                     last_dense_id += dense.id(entity);
                     this->node->set_id(last_dense_id);
 
@@ -323,15 +323,15 @@ namespace Osmium {
                                                                ( (double) last_dense_latitude  * pbf_primitive_block.granularity() + pbf_primitive_block.lat_offset() ) / OSMPBF::lonlat_resolution));
 
                     while (last_dense_tag < dense.keys_vals_size()) {
-                        int tagValue = dense.keys_vals(last_dense_tag);
+                        int tag_key_pos = dense.keys_vals(last_dense_tag);
 
-                        if (tagValue == 0) {
+                        if (tag_key_pos == 0) {
                             last_dense_tag++;
                             break;
                         }
 
-                        this->node->add_tag(stringtable.s( dense.keys_vals(last_dense_tag  ) ).data(),
-                                            stringtable.s( dense.keys_vals(last_dense_tag+1) ).data());
+                        this->node->add_tag(stringtable.s(tag_key_pos).data(),
+                                            stringtable.s(dense.keys_vals(last_dense_tag+1)).data());
 
                         last_dense_tag += 2;
                     }

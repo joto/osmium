@@ -345,6 +345,10 @@ namespace Osmium {
                 return m_tags;
             }
 
+            TagList& tags() {
+                return m_tags;
+            }
+
             void add_tag(const char *key, const char *value) {
                 m_tags.add(key, value);
             }
