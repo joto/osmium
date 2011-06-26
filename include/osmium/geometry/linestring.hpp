@@ -145,24 +145,25 @@ namespace Osmium {
                     oss << this->as_WKT(true);
                     return v8::String::New(oss.str().c_str());
                 } else if (!strcmp(*key, "as_array")) {
+                    v8::HandleScope scope;
                     v8::Local<v8::Array> linestring = v8::Array::New(m_way_node_list->size());
                     for (osm_sequence_id_t i=0; i < m_way_node_list->size(); i++) {
                         v8::Local<v8::Array> coord = v8::Array::New(2);
-                        coord->Set(v8::Integer::New(0), v8::Number::New((*m_way_node_list)[i].position().lon()));
-                        coord->Set(v8::Integer::New(1), v8::Number::New((*m_way_node_list)[i].position().lat()));
-                        linestring->Set(v8::Integer::New(i), coord);
+                        coord->Set(0, v8::Number::New((*m_way_node_list)[i].position().lon()));
+                        coord->Set(1, v8::Number::New((*m_way_node_list)[i].position().lat()));
+                        linestring->Set(i, coord);
                     }
-                    return linestring;
+                    return scope.Close(linestring);
 /*                } else if (!strcmp(*key, "as_polygon_array") && is_closed()) {
                     v8::Local<v8::Array> polygon = v8::Array::New(1);
                     v8::Local<v8::Array> ring = v8::Array::New(m_node_list.size());
                     for (osm_sequence_id_t i=0; i < m_way_node_list->size(); i++) {
                         v8::Local<v8::Array> coord = v8::Array::New(2);
-                        coord->Set(v8::Integer::New(0), v8::Number::New((*m_way_node_list)[i].position().lon()));
-                        coord->Set(v8::Integer::New(1), v8::Number::New((*m_way_node_list)[i].position().lat()));
-                        ring->Set(v8::Integer::New(i), coord);
+                        coord->Set(0, v8::Number::New((*m_way_node_list)[i].position().lon()));
+                        coord->Set(1, v8::Number::New((*m_way_node_list)[i].position().lat()));
+                        ring->Set(i, coord);
                     }
-                    polygon->Set(v8::Integer::New(0), ring);
+                    polygon->Set(0, ring);
                     return polygon;*/
                 } else {
                     return v8::Undefined();

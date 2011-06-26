@@ -52,23 +52,25 @@ namespace Osmium {
             }
 
             v8::Handle<v8::Array> js_ring_as_array(const geos::geom::LineString *ring) const {
+                v8::HandleScope scope;
                 const geos::geom::CoordinateSequence *cs = ring->getCoordinatesRO();
                 v8::Local<v8::Array> ring_array = v8::Array::New(cs->getSize());
-                for (size_t i = 0; i < cs->getSize(); i++) {
+                for (size_t i = 0; i < cs->getSize(); ++i) {
                     v8::Local<v8::Array> coord = v8::Array::New(2);
-                    coord->Set(v8::Integer::New(0), v8::Number::New(cs->getX(i)));
-                    coord->Set(v8::Integer::New(1), v8::Number::New(cs->getY(i)));
-                    ring_array->Set(v8::Integer::New(i), coord);
+                    coord->Set(0, v8::Number::New(cs->getX(i)));
+                    coord->Set(1, v8::Number::New(cs->getY(i)));
+                    ring_array->Set(i, coord);
                 }
 
-                return ring_array;
+                return scope.Close(ring_array);
             }
 
             v8::Handle<v8::Value> js_get_property(v8::Local<v8::String> property) const {
+                v8::HandleScope scope;
                 geos::geom::Geometry* geometry = m_mp->get_geometry();
 
                 if (!geometry) {
-                    return v8::Undefined();
+                    return scope.Close(v8::Undefined());
                 }
 
                 v8::String::Utf8Value key(property);
@@ -79,19 +81,31 @@ namespace Osmium {
                         for (size_t i=0; i < geometry->getNumGeometries(); i++) {
                             geos::geom::Polygon *polygon = (geos::geom::Polygon *) geometry->getGeometryN(i);
                             v8::Local<v8::Array> polygon_array = v8::Array::New(polygon->getNumInteriorRing());
-                            multipolygon_array->Set(v8::Integer::New(i), polygon_array);
-                            polygon_array->Set(v8::Integer::New(0), js_ring_as_array(polygon->getExteriorRing()));
+                            multipolygon_array->Set(i, polygon_array);
+                            polygon_array->Set(0, js_ring_as_array(polygon->getExteriorRing()));
                             for (size_t j=0; j < polygon->getNumInteriorRing(); j++) {
-                                polygon_array->Set(v8::Integer::New(j+1), js_ring_as_array(polygon->getInteriorRingN(j)));
+                                polygon_array->Set(j+1, js_ring_as_array(polygon->getInteriorRingN(j)));
                             }
                         }
-                        return multipolygon_array;
-                    } else {
-                        return v8::Undefined();
+                        return scope.Close(multipolygon_array);
+                    } else if (geometry->getGeometryTypeId() == geos::geom::GEOS_LINESTRING) {
+                        const Osmium::OSM::MultipolygonFromWay* mpfw = dynamic_cast<const Osmium::OSM::MultipolygonFromWay*>(m_mp);
+                        if (mpfw) {
+                            v8::Local<v8::Array> polygon = v8::Array::New(1);
+                            v8::Local<v8::Array> ring = v8::Array::New(mpfw->num_nodes);
+                            for (osm_sequence_id_t i=0; i < mpfw->num_nodes; i++) {
+                                v8::Local<v8::Array> coord = v8::Array::New(2);
+                                coord->Set(0, v8::Number::New(mpfw->lon[i]));
+                                coord->Set(1, v8::Number::New(mpfw->lat[i]));
+                                ring->Set(i, coord);
+                            }
+                            polygon->Set(0, ring);
+                            return polygon;
+                            return scope.Close(polygon);
+                        }
                     }
-                } else {
-                    return v8::Undefined();
                 }
+                return scope.Close(v8::Undefined());
             }
 
             struct JavascriptTemplate : public Osmium::Javascript::Template {

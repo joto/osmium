@@ -235,11 +235,11 @@ namespace Osmium {
         */
         class MultipolygonFromWay : public Multipolygon {
 
+        public:
+
             osm_sequence_id_t num_nodes;
             double           *lon; // XXX should this be a vector?
             double           *lat;
-
-        public:
 
 #ifdef OSMIUM_WITH_GEOS
             MultipolygonFromWay(Way *way, geos::geom::Geometry *geom) : Multipolygon(geom) {

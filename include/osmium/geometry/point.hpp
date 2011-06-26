@@ -114,10 +114,11 @@ namespace Osmium {
                     oss << this->as_HexWKB();
                     return v8::String::New(oss.str().c_str());
                 } else if (!strcmp(*key, "as_array")) { // used for GeoJSON
+                    v8::HandleScope scope;
                     v8::Local<v8::Array> array = v8::Array::New(2);
-                    array->Set(v8::Integer::New(0), v8::Number::New(lon()));
-                    array->Set(v8::Integer::New(1), v8::Number::New(lat()));
-                    return array;
+                    array->Set(0, v8::Number::New(lon()));
+                    array->Set(1, v8::Number::New(lat()));
+                    return scope.Close(array);
                 } else if (!strcmp(*key, "lon")) {
                     return v8::Number::New(lon());
                 } else if (!strcmp(*key, "lat")) {
