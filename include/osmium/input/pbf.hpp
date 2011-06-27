@@ -383,7 +383,7 @@ namespace Osmium {
             * Read a (possibly compressed) blob of data. If the blob is compressed, it is uncompressed.
             */
             array_t read_blob(int size) {
-                static OSMPBF::Blob blob;
+                OSMPBF::Blob blob;
                 if (size < 0 || size > OSMPBF::max_uncompressed_blob_size) {
                     std::ostringstream errmsg;
                     errmsg << "invalid blob size: " << size;
