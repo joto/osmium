@@ -73,6 +73,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 # include <shapefil.h>
 #endif // OSMIUM_WITH_SHPLIB
 
+#include <osmium/geometry.hpp>
+
 namespace Osmium {
 
     namespace OSM {
@@ -562,7 +564,7 @@ namespace Osmium {
                 while (1) {
                     std::vector<geos::geom::Coordinate> *vv = new std::vector<geos::geom::Coordinate>(coords->begin(), coords->begin() + current);
                     geos::geom::CoordinateSequence *cs = geos::geom::CoordinateArraySequenceFactory::instance()->create(vv);
-                    geos::geom::LineString *a = Osmium::global.geos_geometry_factory->createLineString(cs);
+                    geos::geom::LineString *a = Osmium::Geometry::geos_geometry_factory()->createLineString(cs);
                     if (!(simple = a->isSimple())) {
                         inv = current;
                     } else {
@@ -590,7 +592,7 @@ namespace Osmium {
                 while (1) {
                     std::vector<geos::geom::Coordinate> *vv = new std::vector<geos::geom::Coordinate>(coords->begin() + current, coords->end());
                     geos::geom::CoordinateSequence *cs = geos::geom::CoordinateArraySequenceFactory::instance()->create(vv);
-                    geos::geom::LineString *a = Osmium::global.geos_geometry_factory->createLineString(cs);
+                    geos::geom::LineString *a = Osmium::Geometry::geos_geometry_factory()->createLineString(cs);
                     if (!(simple = a->isSimple())) {
                         inv = current;
                     } else {
@@ -621,7 +623,7 @@ namespace Osmium {
                     vv->insert(vv->end(), coords->begin() + cutoutstart, coords->end());
                 }
                 geos::geom::CoordinateSequence *cs = geos::geom::CoordinateArraySequenceFactory::instance()->create(vv);
-                geos::geom::LinearRing *a = Osmium::global.geos_geometry_factory->createLinearRing(cs);
+                geos::geom::LinearRing *a = Osmium::Geometry::geos_geometry_factory()->createLinearRing(cs);
 
                 // if this results in a valid ring, return it; else return NULL.
 
@@ -656,7 +658,7 @@ namespace Osmium {
                             cs->add(((geos::geom::LineString *)sorted_ways[i]->way_geom)->getCoordinatesRO(), false, !sorted_ways[i]->invert);
                         }
                         delete[] sorted_ways;
-                        lr = Osmium::global.geos_geometry_factory->createLinearRing(cs);
+                        lr = Osmium::Geometry::geos_geometry_factory()->createLinearRing(cs);
                         STOP_TIMER(mor_polygonizer);
                         if (!lr->isSimple() || !lr->isValid()) {
                             //delete lr;
@@ -673,7 +675,7 @@ namespace Osmium {
                         bool ccw = geos::algorithm::CGAlgorithms::isCCW(lr->getCoordinatesRO());
                         RingInfo *rl = new RingInfo();
                         rl->direction = ccw ? COUNTERCLOCKWISE : CLOCKWISE;
-                        rl->polygon = Osmium::global.geos_geometry_factory->createPolygon(lr, NULL);
+                        rl->polygon = Osmium::Geometry::geos_geometry_factory()->createPolygon(lr, NULL);
                         return rl;
                     } catch (const geos::util::GEOSException& exc) {
                         if (Osmium::global.debug)
@@ -817,8 +819,8 @@ namespace Osmium {
                         std::vector<geos::geom::Coordinate> *c = new std::vector<geos::geom::Coordinate>;
                         c->push_back(*(node1->getCoordinate()));
                         c->push_back(*(node2->getCoordinate()));
-                        geos::geom::CoordinateSequence *cs = Osmium::global.geos_geometry_factory->getCoordinateSequenceFactory()->create(c);
-                        geos::geom::Geometry *geometry = (geos::geom::Geometry *) Osmium::global.geos_geometry_factory->createLineString(cs);
+                        geos::geom::CoordinateSequence *cs = Osmium::Geometry::geos_geometry_factory()->getCoordinateSequenceFactory()->create(c);
+                        geos::geom::Geometry *geometry = (geos::geom::Geometry *) Osmium::Geometry::geos_geometry_factory()->createLineString(cs);
                         ways->push_back(new WayInfo(geometry, node1_id, mindist_id, UNSET));
                         if (Osmium::global.debug)
                             std::cerr << "fill gap between nodes " << node1_id << " and " << mindist_id << std::endl;
@@ -1006,12 +1008,12 @@ namespace Osmium {
                             } else {
                                 geos::geom::LineString *tmp = (geos::geom::LineString *) ringlist[i]->polygon->getExteriorRing()->reverse();
                                 geos::geom::LinearRing *reversed_ring =
-                                    Osmium::global.geos_geometry_factory->createLinearRing(tmp->getCoordinates());
+                                    Osmium::Geometry::geos_geometry_factory()->createLinearRing(tmp->getCoordinates());
                                 delete tmp;
-                                g->push_back(Osmium::global.geos_geometry_factory->createPolygon(reversed_ring, NULL));
+                                g->push_back(Osmium::Geometry::geos_geometry_factory()->createPolygon(reversed_ring, NULL));
                             }
 
-                            geos::geom::MultiPolygon *special_mp = Osmium::global.geos_geometry_factory->createMultiPolygon(g);
+                            geos::geom::MultiPolygon *special_mp = Osmium::Geometry::geos_geometry_factory()->createMultiPolygon(g);
 
                             if (same_tags(ringlist[i]->ways[0]->way, relation)) {
                                 // warning
@@ -1094,7 +1096,7 @@ namespace Osmium {
                             // reverse ring
                             geos::geom::LineString *tmp = (geos::geom::LineString *) ring->reverse();
                             geos::geom::LinearRing *reversed_ring =
-                                Osmium::global.geos_geometry_factory->createLinearRing(tmp->getCoordinates());
+                                Osmium::Geometry::geos_geometry_factory()->createLinearRing(tmp->getCoordinates());
                             delete tmp;
                             holes->push_back(reversed_ring);
                         } else {
@@ -1105,7 +1107,7 @@ namespace Osmium {
                     geos::geom::LinearRing *ring = (geos::geom::LinearRing *) ringlist[i]->polygon->getExteriorRing();
                     if (ringlist[i]->direction == COUNTERCLOCKWISE) {
                         geos::geom::LineString *tmp = (geos::geom::LineString *) ring->reverse();
-                        geos::geom::LinearRing *reversed_ring = Osmium::global.geos_geometry_factory->createLinearRing(tmp->getCoordinates());
+                        geos::geom::LinearRing *reversed_ring = Osmium::Geometry::geos_geometry_factory()->createLinearRing(tmp->getCoordinates());
                         ring = reversed_ring;
                         delete tmp;
                     } else {
@@ -1117,7 +1119,7 @@ namespace Osmium {
                     bool valid = false;
 
                     try {
-                        p = Osmium::global.geos_geometry_factory->createPolygon(ring, holes);
+                        p = Osmium::Geometry::geos_geometry_factory()->createPolygon(ring, holes);
                         if (p) valid = p->isValid();
                     } catch (const geos::util::GEOSException& exc) {
                         // nop
@@ -1169,7 +1171,7 @@ namespace Osmium {
                 START_TIMER(multipolygon_build);
                 bool valid = false;
                 try {
-                    mp = Osmium::global.geos_geometry_factory->createMultiPolygon(polygons);
+                    mp = Osmium::Geometry::geos_geometry_factory()->createMultiPolygon(polygons);
                     valid = mp->isValid();
                 } catch (const geos::util::GEOSException& exc) {
                     // nop

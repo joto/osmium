@@ -44,6 +44,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 # include <geos/util/GEOSException.h>
 #endif // OSMIUM_WITH_GEOS
 
+#include <osmium/geometry.hpp>
+
 namespace Osmium {
 
     namespace OSM {
@@ -149,7 +151,7 @@ namespace Osmium {
                 if (!m_node_list.front().has_position()) {
                     throw std::range_error("geometry for nodes not available");
                 }
-                return Osmium::global.geos_geometry_factory->createPoint(m_node_list.front().position());
+                return Osmium::Geometry::geos_geometry_factory()->createPoint(m_node_list.front().position());
             }
 
             /**
@@ -160,7 +162,7 @@ namespace Osmium {
                 if (!m_node_list.back().has_position()) {
                     throw std::range_error("geometry for nodes not available");
                 }
-                return Osmium::global.geos_geometry_factory->createPoint(m_node_list.back().position());
+                return Osmium::Geometry::geos_geometry_factory()->createPoint(m_node_list.back().position());
             }
 #endif // OSMIUM_WITH_GEOS
 
@@ -199,8 +201,8 @@ namespace Osmium {
                     for (osm_sequence_id_t i=0; i < m_node_list.size(); i++) {
                         c->push_back(m_node_list[i].position());
                     }
-                    geos::geom::CoordinateSequence *cs = Osmium::global.geos_geometry_factory->getCoordinateSequenceFactory()->create(c);
-                    return (geos::geom::Geometry *) Osmium::global.geos_geometry_factory->createLineString(cs);
+                    geos::geom::CoordinateSequence *cs = Osmium::Geometry::geos_geometry_factory()->getCoordinateSequenceFactory()->create(c);
+                    return (geos::geom::Geometry *) Osmium::Geometry::geos_geometry_factory()->createLineString(cs);
                 } catch (const geos::util::GEOSException& exc) {
                     std::cerr << "error building way geometry, leave it as NULL" << std::endl;
                     return NULL;

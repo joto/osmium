@@ -22,6 +22,11 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#ifdef OSMIUM_WITH_GEOS
+# include <geos/geom/GeometryFactory.h>
+# include <geos/geom/PrecisionModel.h>
+#endif // OSMIUM_WITH_GEOS
+
 #include <osmium/exceptions.hpp>
 
 namespace Osmium {
@@ -58,6 +63,19 @@ namespace Osmium {
             wkbXDR = 0,         // Big Endian
             wkbNDR = 1          // Little Endian
         };
+
+#ifdef OSMIUM_WITH_GEOS
+        /**
+         * Return pointer to a static GEOS GeometryFactory object created the
+         * first time this function is run. This is used by all functions in
+         * Osmium that need to create GEOS geometries.
+         */
+        geos::geom::GeometryFactory* geos_geometry_factory() {
+            static geos::geom::PrecisionModel pm;
+            static geos::geom::GeometryFactory factory(&pm, -1);
+            return &factory;
+        }
+#endif // OSMIUM_WITH_GEOS
 
         class Geometry;
 

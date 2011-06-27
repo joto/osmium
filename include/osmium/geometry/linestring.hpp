@@ -108,8 +108,8 @@ namespace Osmium {
                             c->push_back((*m_way_node_list)[i].position());
                         }
                     }
-                    geos::geom::CoordinateSequence *cs = Osmium::global.geos_geometry_factory->getCoordinateSequenceFactory()->create(c);
-                    return (geos::geom::Geometry *) Osmium::global.geos_geometry_factory->createLineString(cs);
+                    geos::geom::CoordinateSequence *cs = Osmium::Geometry::geos_geometry_factory()->getCoordinateSequenceFactory()->create(c);
+                    return (geos::geom::Geometry *) Osmium::Geometry::geos_geometry_factory()->createLineString(cs);
                 } catch (const geos::util::GEOSException& exc) {
                     std::cerr << "error building way geometry, leave it as NULL" << std::endl;
                     return NULL;

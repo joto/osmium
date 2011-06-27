@@ -34,10 +34,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
  *
  */
 
-#ifdef OSMIUM_WITH_GEOS
-# include <geos/geom/GeometryFactory.h>
-#endif // OSMIUM_WITH_GEOS
-
 #ifdef OSMIUM_WITH_JAVASCRIPT
 # include <v8.h>
 # include <unicode/ustring.h>
@@ -54,9 +50,6 @@ namespace Osmium {
     struct global {
         Framework *framework;
         bool debug;
-#ifdef OSMIUM_WITH_GEOS
-        geos::geom::GeometryFactory *geos_geometry_factory;
-#endif // OSMIUM_WITH_GEOS
     };
 
     extern struct global global;

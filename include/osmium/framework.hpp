@@ -24,11 +24,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <fcntl.h>
 
-#ifdef OSMIUM_WITH_GEOS
-# include <geos/geom/GeometryFactory.h>
-# include <geos/geom/PrecisionModel.h>
-#endif // OSMIUM_WITH_GEOS
-
 namespace Osmium {
 
     class Framework {
@@ -40,19 +35,12 @@ namespace Osmium {
                 throw std::runtime_error("Do not instantiate Osmium::Framework more than once!");
             }
             Osmium::global.debug = debug;
-#ifdef OSMIUM_WITH_GEOS
-            geos::geom::PrecisionModel pm;
-            Osmium::global.geos_geometry_factory = new geos::geom::GeometryFactory(&pm, -1);
-#endif // OSMIUM_WITH_GEOS
             Osmium::global.framework = this;
         }
 
         ~Framework() {
             // this is needed even if the protobuf lib was never used so that valgrind doesn't report any errors
             google::protobuf::ShutdownProtobufLibrary();
-#ifdef OSMIUM_WITH_GEOS
-            delete Osmium::global.geos_geometry_factory;
-#endif // OSMIUM_WITH_GEOS
         }
 
     }; // class Framework
