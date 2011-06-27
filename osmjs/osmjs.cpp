@@ -6,7 +6,6 @@
 #define OSMIUM_MAIN
 #include <osmium.hpp>
 #include <osmium/storage/byid.hpp>
-#include <osmium/utils/coordinates.hpp>
 #include <osmium/handler/coordinates_for_ways.hpp>
 #include <osmium/handler/multipolygon.hpp>
 
@@ -29,8 +28,8 @@ timer Osmium::OSM::MultipolygonFromRelation::multipolygon_write_timer;
 timer Osmium::OSM::MultipolygonFromRelation::error_write_timer;
 #endif // OSMIUM_WITH_MULTIPOLYGON_PROFILING
 
-typedef Osmium::Storage::ById<Osmium::Coordinates> storage_byid_t;
-typedef Osmium::Storage::Mmap<Osmium::Coordinates> storage_mmap_t;
+typedef Osmium::Storage::ById<Osmium::OSM::Position> storage_byid_t;
+typedef Osmium::Storage::Mmap<Osmium::OSM::Position> storage_mmap_t;
 typedef Osmium::Handler::CoordinatesForWays<storage_byid_t, storage_mmap_t> cfw_handler_t;
 
 class SinglePass : public Osmium::Handler::Base {
@@ -340,14 +339,14 @@ int main(int argc, char *argv[]) {
 
     storage_byid_t* store_pos = NULL;
     if (location_store == ARRAY) {
-        store_pos = new Osmium::Storage::Mmap<Osmium::Coordinates>();
+        store_pos = new Osmium::Storage::Mmap<Osmium::OSM::Position>();
     } else if (location_store == DISK) {
         std::string filename("");
-        store_pos = new Osmium::Storage::Mmap<Osmium::Coordinates>(filename);
+        store_pos = new Osmium::Storage::Mmap<Osmium::OSM::Position>(filename);
     } else if (location_store == SPARSETABLE) {
-        store_pos = new Osmium::Storage::SparseTable<Osmium::Coordinates>();
+        store_pos = new Osmium::Storage::SparseTable<Osmium::OSM::Position>();
     }
-    Osmium::Storage::Mmap<Osmium::Coordinates> store_neg;
+    Osmium::Storage::Mmap<Osmium::OSM::Position> store_neg;
     cfw_handler_t* handler_cfw = (store_pos == NULL) ? NULL : new cfw_handler_t(*store_pos, store_neg);
     handler_javascript = new Osmium::Handler::Javascript(include_files, javascript_filename.c_str());
 

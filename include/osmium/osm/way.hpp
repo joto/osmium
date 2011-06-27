@@ -75,6 +75,10 @@ namespace Osmium {
                 return m_node_list;
             }
 
+            WayNodeList& way_node_list() {
+                return m_node_list;
+            }
+
         private:
 
             void init() {

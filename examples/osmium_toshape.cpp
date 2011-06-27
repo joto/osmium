@@ -29,14 +29,13 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #define OSMIUM_MAIN
 #include <osmium.hpp>
-#include <osmium/utils/coordinates.hpp>
 #include <osmium/storage/byid.hpp>
 #include <osmium/handler/coordinates_for_ways.hpp>
 #include <osmium/geometry/point.hpp>
 #include <osmium/output/shapefile.hpp>
 
-typedef Osmium::Storage::SparseTable<Osmium::Coordinates> storage_sparsetable_t;
-typedef Osmium::Storage::Mmap<Osmium::Coordinates> storage_mmap_t;
+typedef Osmium::Storage::SparseTable<Osmium::OSM::Position> storage_sparsetable_t;
+typedef Osmium::Storage::Mmap<Osmium::OSM::Position> storage_mmap_t;
 typedef Osmium::Handler::CoordinatesForWays<storage_sparsetable_t, storage_mmap_t> cfw_handler_t;
 
 class MyShapeHandler : public Osmium::Handler::Base {

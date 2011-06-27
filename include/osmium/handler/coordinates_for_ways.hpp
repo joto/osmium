@@ -47,12 +47,12 @@ namespace Osmium {
             /**
              * Store the location of the node in the storage.
              */
-            void callback_node(const OSM::Node *node) {
+            void callback_node(const Osmium::OSM::Node *node) {
                 int64_t id = node->get_id();
                 if (id >= 0) {
-                    m_storage_pos.set( id, typename TStoragePosIDs::value_type(*node));
+                    m_storage_pos.set( id, node->position());
                 } else {
-                    m_storage_neg.set(-id, typename TStorageNegIDs::value_type(*node));
+                    m_storage_neg.set(-id, node->position());
                 }
             }
 
@@ -70,12 +70,10 @@ namespace Osmium {
              * Retrieve locations of all nodes in the way from storage and add
              * them to the way object.
              */
-            void callback_way(OSM::Way *way) {
-                const osm_sequence_id_t num_nodes = way->node_count();
-                for (osm_sequence_id_t i=0; i < num_nodes; i++) {
-                    const int64_t id = way->get_node_id(i);
-                    const typename TStoragePosIDs::value_type& item = id >= 0 ? m_storage_pos[id] : m_storage_neg[-id];
-                    way->set_node_coordinates(i, item.x(), item.y());
+            void callback_way(Osmium::OSM::Way *way) {
+                for (Osmium::OSM::WayNodeList::iterator it = way->way_node_list().begin(); it != way->way_node_list().end(); ++it) {
+                    const int64_t id = it->ref();
+                    it->position(id >= 0 ? m_storage_pos[id] : m_storage_neg[-id]);
                 }
             }
 

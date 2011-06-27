@@ -36,7 +36,7 @@ namespace Osmium {
             WayNode(osm_object_id_t ref=0) : m_ref(ref) {
             }
 
-            WayNode(osm_object_id_t ref, Position position) : m_ref(ref), m_position(position) {
+            WayNode(osm_object_id_t ref, const Position& position) : m_ref(ref), m_position(position) {
             }
 
             osm_object_id_t ref() const {
@@ -47,7 +47,7 @@ namespace Osmium {
                 return m_position;
             }
 
-            WayNode& position(Position position) {
+            WayNode& position(const Position& position) {
                 m_position = position;
                 return *this;
             }
