@@ -201,6 +201,48 @@ namespace Osmium {
             }
 #endif // OSMIUM_WITH_SHPLIB
 
+#ifdef OSMIUM_WITH_JAVASCRIPT
+            v8::Handle<v8::Value> js_to_wkt(const v8::Arguments& args) {
+                std::ostringstream oss;
+                bool with_srid = false;
+                if (args.Length() >= 1) {
+                    with_srid = args[0]->ToBoolean()->Value();
+                }
+                oss << this->as_WKT(with_srid);
+                return v8::String::New(oss.str().c_str());
+            }
+
+            v8::Handle<v8::Value> js_to_wkb(const v8::Arguments& args) {
+                std::ostringstream oss;
+                bool with_srid = false;
+                if (args.Length() >= 1) {
+                    with_srid = args[0]->ToBoolean()->Value();
+                }
+                oss << this->as_WKB(with_srid);
+                return v8::String::New(oss.str().c_str());
+            }
+
+            v8::Handle<v8::Value> js_to_hexwkb(const v8::Arguments& args) {
+                std::ostringstream oss;
+                bool with_srid = false;
+                if (args.Length() >= 1) {
+                    with_srid = args[0]->ToBoolean()->Value();
+                }
+                oss << this->as_HexWKB(with_srid);
+                return v8::String::New(oss.str().c_str());
+            }
+
+            struct JavascriptTemplate : public Osmium::Javascript::Template {
+
+                JavascriptTemplate() : Osmium::Javascript::Template() {
+                    js_template->Set("toWKT",    v8::FunctionTemplate::New(function_template<Geometry, &Geometry::js_to_wkt>));
+                    js_template->Set("toWKB",    v8::FunctionTemplate::New(function_template<Geometry, &Geometry::js_to_wkb>));
+                    js_template->Set("toHexWKB", v8::FunctionTemplate::New(function_template<Geometry, &Geometry::js_to_hexwkb>));
+                }
+
+            };
+#endif // OSMIUM_WITH_JAVASCRIPT
+
         }; // class Geometry
 
         /**

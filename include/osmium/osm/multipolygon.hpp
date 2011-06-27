@@ -202,11 +202,13 @@ namespace Osmium {
 
         public:
 
-#ifdef OSMIUM_WITH_JAVASCRIPT
+#ifdef OSMIUM_WITH_GEOS
             geos::geom::Geometry* get_geometry() const {
                 return geometry;
             }
+#endif // OSMIUM_WITH_GEOS
 
+#ifdef OSMIUM_WITH_JAVASCRIPT
             v8::Handle<v8::Value> js_from() const {
                 const char *value = (get_type() == MULTIPOLYGON_FROM_WAY) ? "way" : "relation";
                 return v8::String::NewSymbol(value);

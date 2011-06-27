@@ -26,27 +26,49 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 # include <shapefil.h>
 #endif // OSMIUM_WITH_SHPLIB
 
-#include <osmium/geometry/from_way.hpp>
+#include <osmium/geometry.hpp>
+
+#ifdef OSMIUM_WITH_GEOS
+# include <geos/io/WKBWriter.h>
+#endif // OSMIUM_WITH_GEOS
 
 namespace Osmium {
 
     namespace Geometry {
 
-        class MultiPolygon {
+        class MultiPolygon : public Geometry {
 
         public:
 
             MultiPolygon(const Osmium::OSM::Multipolygon& mp) : m_mp(&mp) {
-
             }
 
-#ifdef  OSMIUM_WITH_SHPLIB
-            SHPObject *create_shp_object() {
-                return NULL;
+#ifdef OSMIUM_WITH_GEOS
+            std::ostream& write_to_stream(std::ostream& out, AsWKT, bool with_srid=false) const {
+                if (with_srid) {
+                    out << "SRID=4326;";
+                }
+                geos::io::WKTWriter writer; 
+                return out << writer.write(m_mp->get_geometry());
             }
-#endif // OSMIUM_WITH_SHPLIB
+
+            std::ostream& write_to_stream(std::ostream& out, AsWKB, bool with_srid=false) const {
+                geos::io::WKBWriter writer;
+                writer.setIncludeSRID(with_srid);
+                writer.write(*(m_mp->get_geometry()), out);
+                return out;
+            }
+
+            std::ostream& write_to_stream(std::ostream& out, AsHexWKB, bool with_srid=false) const {
+                geos::io::WKBWriter writer;
+                writer.setIncludeSRID(with_srid);
+                writer.writeHEX(*(m_mp->get_geometry()), out);
+                return out;
+            }
+#endif // OSMIUM_WITH_GEOS
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
+# ifdef OSMIUM_WITH_GEOS
             v8::Local<v8::Object> js_instance() const {
                 return JavascriptTemplate::get<JavascriptTemplate>().create_instance((void *)this);
             }
@@ -65,56 +87,50 @@ namespace Osmium {
                 return scope.Close(ring_array);
             }
 
-            v8::Handle<v8::Value> js_get_property(v8::Local<v8::String> property) const {
+            v8::Handle<v8::Value> js_to_array(const v8::Arguments& /*args*/) {
                 v8::HandleScope scope;
                 geos::geom::Geometry* geometry = m_mp->get_geometry();
 
-                if (!geometry) {
-                    return scope.Close(v8::Undefined());
-                }
+                if (geometry->getGeometryTypeId() == geos::geom::GEOS_MULTIPOLYGON) {
+                    v8::Local<v8::Array> multipolygon_array = v8::Array::New(geometry->getNumGeometries());
 
-                v8::String::Utf8Value key(property);
-                if (!strcmp(*key, "as_array")) {
-                    if (geometry->getGeometryTypeId() == geos::geom::GEOS_MULTIPOLYGON) {
-                        v8::Local<v8::Array> multipolygon_array = v8::Array::New(geometry->getNumGeometries());
-
-                        for (size_t i=0; i < geometry->getNumGeometries(); i++) {
-                            geos::geom::Polygon *polygon = (geos::geom::Polygon *) geometry->getGeometryN(i);
-                            v8::Local<v8::Array> polygon_array = v8::Array::New(polygon->getNumInteriorRing());
-                            multipolygon_array->Set(i, polygon_array);
-                            polygon_array->Set(0, js_ring_as_array(polygon->getExteriorRing()));
-                            for (size_t j=0; j < polygon->getNumInteriorRing(); j++) {
-                                polygon_array->Set(j+1, js_ring_as_array(polygon->getInteriorRingN(j)));
-                            }
-                        }
-                        return scope.Close(multipolygon_array);
-                    } else if (geometry->getGeometryTypeId() == geos::geom::GEOS_LINESTRING) {
-                        const Osmium::OSM::MultipolygonFromWay* mpfw = dynamic_cast<const Osmium::OSM::MultipolygonFromWay*>(m_mp);
-                        if (mpfw) {
-                            v8::Local<v8::Array> polygon = v8::Array::New(1);
-                            v8::Local<v8::Array> ring = v8::Array::New(mpfw->num_nodes);
-                            for (osm_sequence_id_t i=0; i < mpfw->num_nodes; i++) {
-                                v8::Local<v8::Array> coord = v8::Array::New(2);
-                                coord->Set(0, v8::Number::New(mpfw->lon[i]));
-                                coord->Set(1, v8::Number::New(mpfw->lat[i]));
-                                ring->Set(i, coord);
-                            }
-                            polygon->Set(0, ring);
-                            return polygon;
-                            return scope.Close(polygon);
+                    for (size_t i=0; i < geometry->getNumGeometries(); ++i) {
+                        geos::geom::Polygon *polygon = (geos::geom::Polygon *) geometry->getGeometryN(i);
+                        v8::Local<v8::Array> polygon_array = v8::Array::New(polygon->getNumInteriorRing());
+                        multipolygon_array->Set(i, polygon_array);
+                        polygon_array->Set(0, js_ring_as_array(polygon->getExteriorRing()));
+                        for (size_t j=0; j < polygon->getNumInteriorRing(); ++j) {
+                            polygon_array->Set(j+1, js_ring_as_array(polygon->getInteriorRingN(j)));
                         }
                     }
+                    return scope.Close(multipolygon_array);
+                } else if (geometry->getGeometryTypeId() == geos::geom::GEOS_LINESTRING) {
+                    const Osmium::OSM::MultipolygonFromWay* mpfw = dynamic_cast<const Osmium::OSM::MultipolygonFromWay*>(m_mp);
+                    if (mpfw) {
+                        v8::Local<v8::Array> polygon = v8::Array::New(1);
+                        v8::Local<v8::Array> ring = v8::Array::New(mpfw->num_nodes);
+                        for (osm_sequence_id_t i=0; i < mpfw->num_nodes; ++i) {
+                            v8::Local<v8::Array> coord = v8::Array::New(2);
+                            coord->Set(0, v8::Number::New(mpfw->lon[i]));
+                            coord->Set(1, v8::Number::New(mpfw->lat[i]));
+                            ring->Set(i, coord);
+                        }
+                        polygon->Set(0, ring);
+                        return scope.Close(polygon);
+                    }
                 }
+
                 return scope.Close(v8::Undefined());
             }
 
-            struct JavascriptTemplate : public Osmium::Javascript::Template {
+            struct JavascriptTemplate : public Osmium::Geometry::Geometry::JavascriptTemplate {
 
-                JavascriptTemplate() : Osmium::Javascript::Template() {
-                    js_template->SetNamedPropertyHandler(named_property_getter<MultiPolygon, &MultiPolygon::js_get_property>);
+                JavascriptTemplate() : Osmium::Geometry::Geometry::JavascriptTemplate() {
+                    js_template->Set("toArray",  v8::FunctionTemplate::New(function_template<MultiPolygon, &MultiPolygon::js_to_array>));
                 }
 
             };
+# endif // OSMIUM_WITH_GEOS
 #endif // OSMIUM_WITH_JAVASCRIPT
 
         private:
@@ -129,8 +145,13 @@ namespace Osmium {
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
 v8::Handle<v8::Value> Osmium::OSM::Multipolygon::js_geom() const {
-    Osmium::Geometry::MultiPolygon* geom = new Osmium::Geometry::MultiPolygon(*this);
-    return Osmium::Javascript::Template::get<Osmium::Geometry::MultiPolygon::JavascriptTemplate>().create_persistent_instance<Osmium::Geometry::MultiPolygon>(geom);
+    if (get_geometry()) {
+        Osmium::Geometry::MultiPolygon* geom = new Osmium::Geometry::MultiPolygon(*this);
+        return Osmium::Javascript::Template::get<Osmium::Geometry::MultiPolygon::JavascriptTemplate>().create_persistent_instance<Osmium::Geometry::MultiPolygon>(geom);
+    } else {
+        Osmium::Geometry::Null* geom = new Osmium::Geometry::Null();
+        return Osmium::Javascript::Template::get<Osmium::Geometry::Null::JavascriptTemplate>().create_persistent_instance<Osmium::Geometry::Null>(geom);
+    }
 }
 #endif // OSMIUM_WITH_JAVASCRIPT
 

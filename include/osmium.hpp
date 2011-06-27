@@ -77,6 +77,7 @@ struct Osmium::global Osmium::global;
 
 #include <osmium/exceptions.hpp>
 #include <osmium/osm.hpp>
+#include <osmium/geometry/null.hpp>
 #include <osmium/geometry/point.hpp>
 #include <osmium/geometry/linestring.hpp>
 #include <osmium/geometry/multipolygon.hpp>

@@ -76,7 +76,7 @@ namespace Osmium {
                 write_binary<double>(out, lon());
                 write_binary<double>(out, lat());
                 return out;
-            };
+            }
 
             std::ostream& write_to_stream(std::ostream& out, AsHexWKB, bool with_srid=false) const {
                 write_hex_wkb_header(out, with_srid, wkbPoint);
@@ -98,40 +98,24 @@ namespace Osmium {
                 return JavascriptTemplate::get<JavascriptTemplate>().create_instance((void *)this);
             }
 
-            v8::Handle<v8::Value> js_get_property(v8::Local<v8::String> property) const {
-                v8::String::Utf8Value key(property);
-
-                if (!strcmp(*key, "as_wkt")) {
-                    std::ostringstream oss;
-                    oss << this->as_WKT();
-                    return v8::String::New(oss.str().c_str());
-                } else if (!strcmp(*key, "as_ewkt")) {
-                    std::ostringstream oss;
-                    oss << this->as_WKT(true);
-                    return v8::String::New(oss.str().c_str());
-                } else if (!strcmp(*key, "as_hex_wkb")) {
-                    std::ostringstream oss;
-                    oss << this->as_HexWKB();
-                    return v8::String::New(oss.str().c_str());
-                } else if (!strcmp(*key, "as_array")) { // used for GeoJSON
-                    v8::HandleScope scope;
-                    v8::Local<v8::Array> array = v8::Array::New(2);
-                    array->Set(0, v8::Number::New(lon()));
-                    array->Set(1, v8::Number::New(lat()));
-                    return scope.Close(array);
-                } else if (!strcmp(*key, "lon")) {
-                    return v8::Number::New(lon());
-                } else if (!strcmp(*key, "lat")) {
-                    return v8::Number::New(lat());
-                } else {
-                    return v8::Undefined();
-                }
+            v8::Handle<v8::Value> js_lon() const {
+                return v8::Number::New(lon());
             }
 
-            struct JavascriptTemplate : public Osmium::Javascript::Template {
+            v8::Handle<v8::Value> js_lat() const {
+                return v8::Number::New(lat());
+            }
 
-                JavascriptTemplate() : Osmium::Javascript::Template() {
-                    js_template->SetNamedPropertyHandler(named_property_getter<Point, &Point::js_get_property>);
+            v8::Handle<v8::Value> js_to_array(const v8::Arguments& /*args*/) {
+                return m_position.js_to_array();
+            }
+
+            struct JavascriptTemplate : public Osmium::Geometry::Geometry::JavascriptTemplate {
+
+                JavascriptTemplate() : Osmium::Geometry::Geometry::JavascriptTemplate() {
+                    js_template->SetAccessor(v8::String::NewSymbol("lon"), accessor_getter<Point, &Point::js_lon>);
+                    js_template->SetAccessor(v8::String::NewSymbol("lat"), accessor_getter<Point, &Point::js_lat>);
+                    js_template->Set("toArray",  v8::FunctionTemplate::New(function_template<Point, &Point::js_to_array>));
                 }
 
             };

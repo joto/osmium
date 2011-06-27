@@ -5,14 +5,14 @@ Osmium.Callbacks.init = function() {
 }
 
 Osmium.Callbacks.node = function() {
-    print('node ' + this.id + ' ' + this.version + ' ' + this.timestamp + ' ' + this.uid + ' ' + this.user + ' ' + this.changeset + ' ' + this.geom.lon + ' ' + this.geom.lat + ' ' + this.geom.as_wkt + ' [' + this.geom.as_hex_wkb + ']');
+    print('node ' + this.id + ' ' + this.version + ' ' + this.timestamp + ' ' + this.uid + ' ' + this.user + ' ' + this.changeset + ' ' + this.geom.lon + ' ' + this.geom.lat + ' ' + this.geom.toWKT() + ' [' + this.geom.toHexWKB() + ']');
     for (key in this.tags) {
         print(' ' + key + '=' + this.tags[key]);
     }
 }
 
 Osmium.Callbacks.way = function() {
-    print('way ' + this.id + ' ' + this.version + ' ' + this.timestamp + ' ' + this.uid + ' ' + this.user + ' ' + this.changeset + ' ' + this.geom.as_wkt);
+    print('way ' + this.id + ' ' + this.version + ' ' + this.timestamp + ' ' + this.uid + ' ' + this.user + ' ' + this.changeset + ' ' + this.geom.toWKT());
     for (key in this.tags) {
         print(' ' + key + '=' + this.tags[key]);
     }

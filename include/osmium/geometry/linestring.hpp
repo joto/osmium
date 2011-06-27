@@ -79,7 +79,7 @@ namespace Osmium {
                     write_binary<double>(out, it->lat());
                 }
                 return out;
-            };
+            }
 
             std::ostream& write_to_stream(std::ostream& out, AsHexWKB, bool with_srid=false) const {
                 write_hex_wkb_header(out, with_srid, wkbLineString);
@@ -117,7 +117,6 @@ namespace Osmium {
             }
 #endif // OSMIUM_WITH_GEOS
 
-
 #ifdef OSMIUM_WITH_SHPLIB
             SHPObject *create_shp_object() const {
                 return create_line_or_polygon(SHPT_ARC);
@@ -129,51 +128,26 @@ namespace Osmium {
                 return JavascriptTemplate::get<JavascriptTemplate>().create_instance((void *)this);
             }
 
-            v8::Handle<v8::Value> js_get_property(v8::Local<v8::String> property) const {
-                v8::String::Utf8Value key(property);
-
-                if (!m_way_node_list->has_position()) {
-                    return v8::Undefined();
-                }
-
-                if (!strcmp(*key, "as_wkt")) {
-                    std::ostringstream oss;
-                    oss << this->as_WKT();
-                    return v8::String::New(oss.str().c_str());
-                } else if (!strcmp(*key, "as_ewkt")) {
-                    std::ostringstream oss;
-                    oss << this->as_WKT(true);
-                    return v8::String::New(oss.str().c_str());
-                } else if (!strcmp(*key, "as_array")) {
-                    v8::HandleScope scope;
-                    v8::Local<v8::Array> linestring = v8::Array::New(m_way_node_list->size());
-                    for (osm_sequence_id_t i=0; i < m_way_node_list->size(); i++) {
-                        v8::Local<v8::Array> coord = v8::Array::New(2);
-                        coord->Set(0, v8::Number::New((*m_way_node_list)[i].position().lon()));
-                        coord->Set(1, v8::Number::New((*m_way_node_list)[i].position().lat()));
-                        linestring->Set(i, coord);
+            v8::Handle<v8::Value> js_to_array(const v8::Arguments& /*args*/) {
+                v8::HandleScope scope;
+                v8::Local<v8::Array> linestring = v8::Array::New(m_way_node_list->size());
+                unsigned int max = m_way_node_list->size() - 1;
+                if (m_reverse) {
+                    for (unsigned int i=0; i <= max; ++i) {
+                        linestring->Set(max - i, (*m_way_node_list)[i].position().js_to_array());
                     }
-                    return scope.Close(linestring);
-/*                } else if (!strcmp(*key, "as_polygon_array") && is_closed()) {
-                    v8::Local<v8::Array> polygon = v8::Array::New(1);
-                    v8::Local<v8::Array> ring = v8::Array::New(m_node_list.size());
-                    for (osm_sequence_id_t i=0; i < m_way_node_list->size(); i++) {
-                        v8::Local<v8::Array> coord = v8::Array::New(2);
-                        coord->Set(0, v8::Number::New((*m_way_node_list)[i].position().lon()));
-                        coord->Set(1, v8::Number::New((*m_way_node_list)[i].position().lat()));
-                        ring->Set(i, coord);
-                    }
-                    polygon->Set(0, ring);
-                    return polygon;*/
                 } else {
-                    return v8::Undefined();
+                    for (unsigned int i=0; i <= max; ++i) {
+                        linestring->Set(i, (*m_way_node_list)[i].position().js_to_array());
+                    }
                 }
+                return scope.Close(linestring);
             }
 
-            struct JavascriptTemplate : public Osmium::Javascript::Template {
+            struct JavascriptTemplate : public Osmium::Geometry::Geometry::JavascriptTemplate {
 
-                JavascriptTemplate() : Osmium::Javascript::Template() {
-                    js_template->SetNamedPropertyHandler(named_property_getter<LineString, &LineString::js_get_property>);
+                JavascriptTemplate() : Osmium::Geometry::Geometry::JavascriptTemplate() {
+                    js_template->Set("toArray",  v8::FunctionTemplate::New(function_template<LineString, &LineString::js_to_array>));
                 }
 
             };
@@ -187,13 +161,23 @@ namespace Osmium {
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
 v8::Handle<v8::Value> Osmium::OSM::Way::js_geom() const {
-    Osmium::Geometry::LineString* geom = new Osmium::Geometry::LineString(*this);
-    return Osmium::Javascript::Template::get<Osmium::Geometry::LineString::JavascriptTemplate>().create_persistent_instance<Osmium::Geometry::LineString>(geom);
+    if (m_node_list.has_position()) {
+        Osmium::Geometry::LineString* geom = new Osmium::Geometry::LineString(*this);
+        return Osmium::Javascript::Template::get<Osmium::Geometry::LineString::JavascriptTemplate>().create_persistent_instance<Osmium::Geometry::LineString>(geom);
+    } else {
+        Osmium::Geometry::Null* geom = new Osmium::Geometry::Null();
+        return Osmium::Javascript::Template::get<Osmium::Geometry::Null::JavascriptTemplate>().create_persistent_instance<Osmium::Geometry::Null>(geom);
+    }
 }
 
 v8::Handle<v8::Value> Osmium::OSM::Way::js_reverse_geom() const {
-    Osmium::Geometry::LineString* geom = new Osmium::Geometry::LineString(*this, true);
-    return Osmium::Javascript::Template::get<Osmium::Geometry::LineString::JavascriptTemplate>().create_persistent_instance<Osmium::Geometry::LineString>(geom);
+    if (m_node_list.has_position()) {
+        Osmium::Geometry::LineString* geom = new Osmium::Geometry::LineString(*this, true);
+        return Osmium::Javascript::Template::get<Osmium::Geometry::LineString::JavascriptTemplate>().create_persistent_instance<Osmium::Geometry::LineString>(geom);
+    } else {
+        Osmium::Geometry::Null* geom = new Osmium::Geometry::Null();
+        return Osmium::Javascript::Template::get<Osmium::Geometry::Null::JavascriptTemplate>().create_persistent_instance<Osmium::Geometry::Null>(geom);
+    }
 }
 #endif // OSMIUM_WITH_JAVASCRIPT
 
