@@ -3,7 +3,6 @@
 #include <getopt.h>
 #include <unistd.h>
 
-#define OSMIUM_MAIN
 #include <osmium.hpp>
 #include <osmium/storage/byid.hpp>
 #include <osmium/handler/coordinates_for_ways.hpp>
@@ -316,7 +315,7 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    Osmium::Framework osmium(debug);
+    Osmium::init(debug);
     Osmium::OSMFile infile(osm_filename);
 
     v8::HandleScope handle_scope;

@@ -114,7 +114,7 @@ namespace Osmium {
                                 throw Osmium::OSMFile::FileTypeHistoryExpected();
                             }
                         } else {
-                            if (Osmium::global.debug) {
+                            if (Osmium::debug()) {
                                 std::cerr << "Ignoring unknown blob type (" << pbf_blob_header.type().data() << ")." << std::endl;
                             }
                         }

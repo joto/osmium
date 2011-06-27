@@ -57,7 +57,7 @@ namespace Osmium {
             }
 
             void callback_after_nodes() const {
-                if (Osmium::global.debug) {
+                if (Osmium::debug()) {
                     std::cerr << "Memory used for node coordinates storage (approximate):\n  for positive IDs: "
                               << m_storage_pos.used_memory() / (1024 * 1024)
                               << " MiB\n  for negative IDs: "

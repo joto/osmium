@@ -28,7 +28,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <cstdlib>
 #include <getopt.h>
 
-#define OSMIUM_MAIN
 #include <osmium.hpp>
 
 class ConvertHandler : public Osmium::Handler::Base {
@@ -143,7 +142,7 @@ int main(int argc, char *argv[]) {
         input =  argv[optind];
     }
 
-    Osmium::Framework osmium(debug);
+    Osmium::init(debug);
 
     Osmium::OSMFile infile(input);
     if (!input_format.empty()) {

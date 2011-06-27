@@ -268,7 +268,7 @@ namespace Osmium {
                     }
 
                     // print debug info about the compression
-                    if (Osmium::global.debug) {
+                    if (Osmium::debug()) {
                         std::cerr << "pack " << in.size() << " bytes to " << z.total_out << " bytes (1:" << (double)in.size() / z.total_out << ")" << std::endl;
                     }
 
@@ -298,7 +298,7 @@ namespace Osmium {
                         pbf_blob.set_zlib_data(m_compression_buffer, out);
                     } else { // no compression
                         // print debug info about the raw data
-                        if (Osmium::global.debug) {
+                        if (Osmium::debug()) {
                             std::cerr << "store uncompressed " << data.size() << " bytes" << std::endl;
                         }
 
@@ -494,7 +494,7 @@ namespace Osmium {
                  * store the current pbf_header_block into a Blob and clear this struct afterwards.
                  */
                 void store_header_block() {
-                    if (Osmium::global.debug) {
+                    if (Osmium::debug()) {
                         std::cerr << "storing header block" << std::endl;
                     }
                     store_blob("OSMHeader", pbf_header_block);
@@ -507,7 +507,7 @@ namespace Osmium {
                  * this struct and all related pointers and maps afterwards.
                  */
                 void store_primitive_block() {
-                    if (Osmium::global.debug) {
+                    if (Osmium::debug()) {
                         std::cerr << "storing primitive block with " << primitive_block_contents << " items" << std::endl;
                     }
 
@@ -816,7 +816,7 @@ namespace Osmium {
                  * the writing-program and adds the obligatory StringTable-Index 0.
                  */
                 void write_init() {
-                    if (Osmium::global.debug) {
+                    if (Osmium::debug()) {
                         std::cerr << "pbf write init" << std::endl;
                     }
 
@@ -874,7 +874,7 @@ namespace Osmium {
                     // disk if the limit is reached. This call also increases the contents-counter
                     check_block_contents_counter();
 
-                    if (Osmium::global.debug) {
+                    if (Osmium::debug()) {
                         std::cerr << "node " << node->get_id() << " v" << node->get_version() << std::endl;
                     }
 
@@ -902,7 +902,7 @@ namespace Osmium {
                     // disk if the limit is reached. This call also increases the contents-counter
                     check_block_contents_counter();
 
-                    if (Osmium::global.debug) {
+                    if (Osmium::debug()) {
                         std::cerr << "way " << way->get_id() << " v" << way->get_version() << " with " << way->node_count() << " nodes" << std::endl;
                     }
 
@@ -926,7 +926,7 @@ namespace Osmium {
                     // disk if the limit is reached. This call also increases the contents-counter
                     check_block_contents_counter();
 
-                    if (Osmium::global.debug) {
+                    if (Osmium::debug()) {
                         std::cerr << "relation " << relation->get_id() << " v" << relation->get_version() << " with " << relation->members().size() << " members" << std::endl;
                     }
 
@@ -943,7 +943,7 @@ namespace Osmium {
                  * close the file.
                  */
                 void write_final() {
-                    if (Osmium::global.debug) {
+                    if (Osmium::debug()) {
                         std::cerr << "finishing" << std::endl;
                     }
 

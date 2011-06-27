@@ -19,14 +19,13 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
-#define OSMIUM_MAIN
 #include <osmium.hpp>
 #include "handler_nodedensity.hpp"
 
 /* ================================================== */
 
 int main(int argc, char *argv[]) {
-    Osmium::Framework osmium;
+    Osmium::init();
 
     if (argc != 5) {
         std::cerr << "Usage: " << argv[0] << " OSMFILE SIZE MIN MAX" << std::endl;

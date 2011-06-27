@@ -40,25 +40,60 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 # include <osmium/utils/unicode.hpp>
 #endif // OSMIUM_WITH_JAVASCRIPT
 
+#include <osmpbf/osmpbf.h>
+
 /**
  * @brief All Osmium code is in this namespace.
  */
 namespace Osmium {
 
-    class Framework;
+    /**
+     * Internal class to manage global state.
+     */
+    class Framework {
 
-    struct global {
-        Framework *framework;
+        Framework(bool d) : debug(d) {
+        }
+
+        ~Framework() {
+            // this is needed even if the protobuf lib was never used so that valgrind doesn't report any errors
+            google::protobuf::ShutdownProtobufLibrary();
+        }
+
         bool debug;
-    };
 
-    extern struct global global;
+        friend Framework& init(bool debug);
+        friend void set_debug(bool d);
+        friend bool debug();
+
+    }; // class Framework
+
+    /**
+     * Initialize the Osmium library. Call this before using any of the Osmium
+     * functions.
+     *
+     * @param debug Enable or disable the debugging output.
+     */
+    Framework& init(bool debug=false) {
+        static Framework f(debug);
+        return f;
+    }
+
+    /**
+     * Enable or disable the debugging output.
+     */
+    void set_debug(bool d) {
+        init().debug = d;
+    }
+
+    /**
+     * Is debugging output set?
+     */
+    bool debug() {
+        return init().debug;
+    }
 
 } // namespace Osmium
-
-#ifdef OSMIUM_MAIN
-struct Osmium::global Osmium::global;
-#endif // OSMIUM_MAIN
 
 // check way geometry before making a shplib object from it
 // normally this should be defined, otherwise you will generate invalid linestring geometries
@@ -76,7 +111,6 @@ struct Osmium::global Osmium::global;
 #include <osmium/geometry/multipolygon.hpp>
 #include <osmium/osmfile.hpp>
 #include <osmium/input.hpp>
-#include <osmium/framework.hpp>
 #include <osmium/output.hpp>
 #include <osmium/osmfile_impl.hpp>
 

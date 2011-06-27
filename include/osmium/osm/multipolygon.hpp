@@ -666,7 +666,7 @@ namespace Osmium {
                             if (attempt_repair) {
                                 lr = create_non_intersecting_linear_ring(cs);
                                 if (lr) {
-                                    if (Osmium::global.debug)
+                                    if (Osmium::debug())
                                         std::cerr << "successfully repaired an invalid ring" << std::endl;
                                 }
                             }
@@ -678,7 +678,7 @@ namespace Osmium {
                         rl->polygon = Osmium::Geometry::geos_geometry_factory()->createPolygon(lr, NULL);
                         return rl;
                     } catch (const geos::util::GEOSException& exc) {
-                        if (Osmium::global.debug)
+                        if (Osmium::debug())
                             std::cerr << "Exception: " << exc.what() << std::endl;
                         return NULL;
                     }
@@ -822,7 +822,7 @@ namespace Osmium {
                         geos::geom::CoordinateSequence *cs = Osmium::Geometry::geos_geometry_factory()->getCoordinateSequenceFactory()->create(c);
                         geos::geom::Geometry *geometry = (geos::geom::Geometry *) Osmium::Geometry::geos_geometry_factory()->createLineString(cs);
                         ways->push_back(new WayInfo(geometry, node1_id, mindist_id, UNSET));
-                        if (Osmium::global.debug)
+                        if (Osmium::debug())
                             std::cerr << "fill gap between nodes " << node1_id << " and " << mindist_id << std::endl;
                     } else {
                         break;
@@ -1123,7 +1123,7 @@ namespace Osmium {
                         if (p) valid = p->isValid();
                     } catch (const geos::util::GEOSException& exc) {
                         // nop
-                        if (Osmium::global.debug)
+                        if (Osmium::debug())
                             std::cerr << "Exception during creation of polygon for relation #" << relation->get_id() << ": " << exc.what() << " (treating as invalid polygon)" << std::endl;
                     }
                     if (!valid) {
@@ -1186,8 +1186,9 @@ namespace Osmium {
 
             bool geometry_error(const char *message) {
                 geometry_error_message = message;
-                if (Osmium::global.debug)
+                if (Osmium::debug()) {
                     std::cerr << "building mp failed: " << geometry_error_message << std::endl;
+                }
                 geometry = NULL;
                 return false;
             }

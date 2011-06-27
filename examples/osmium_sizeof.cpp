@@ -28,11 +28,11 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <cstdlib>
 
-#define OSMIUM_MAIN
 #include <osmium.hpp>
 
 int main() {
-    Osmium::Framework osmium;
+    Osmium::init();
+
     std::cout << "sizeof(Osmium::OSM::Object)="                   << sizeof(Osmium::OSM::Object) << std::endl;
     std::cout << "sizeof(Osmium::OSM::Node)="                     << sizeof(Osmium::OSM::Node)                     << "  (Object+" << sizeof(Osmium::OSM::Node)                     - sizeof(Osmium::OSM::Object) << ")" << std::endl;
     std::cout << "sizeof(Osmium::OSM::Way)="                      << sizeof(Osmium::OSM::Way)                      << "  (Object+" << sizeof(Osmium::OSM::Way)                      - sizeof(Osmium::OSM::Object) << ")" << std::endl;

@@ -29,7 +29,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <time.h>
 #include <sys/times.h>
 
-#define OSMIUM_MAIN
 #include <osmium.hpp>
 
 class MyTimerHandler : public Osmium::Handler::Base {
@@ -63,7 +62,7 @@ public:
 /* ================================================== */
 
 int main(int argc, char *argv[]) {
-    Osmium::Framework osmium(true);
+    Osmium::init(true);
 
     time_t t0 = time(NULL);
 
