@@ -87,7 +87,7 @@ namespace Osmium {
                 if (with_srid) {
                     out << "SRID=4326;";
                 }
-                geos::io::WKTWriter writer; 
+                geos::io::WKTWriter writer;
                 return out << writer.write(m_mp->get_geometry());
             }
 

@@ -56,8 +56,8 @@ namespace Osmium {
 
             SystemError(const std::string& whatarg,
                         int e)
-                      : std::runtime_error(whatarg),
-                        m_errno(e) {
+                : std::runtime_error(whatarg),
+                  m_errno(e) {
             }
 
             int system_errno() const throw() {
@@ -76,9 +76,9 @@ namespace Osmium {
             IOError(const std::string& whatarg,
                     const std::string& filename,
                     int e)
-                  : std::runtime_error(whatarg),
-                    m_filename(filename),
-                    m_errno(e) {
+                : std::runtime_error(whatarg),
+                  m_filename(filename),
+                  m_errno(e) {
             }
 
             ~IOError() throw() {
@@ -102,8 +102,8 @@ namespace Osmium {
 
             ArgumentError(const std::string& whatarg,
                           const std::string& value="")
-                        : std::runtime_error(whatarg),
-                          m_value(value) {
+                : std::runtime_error(whatarg),
+                  m_value(value) {
             }
 
             ~ArgumentError() throw() {
@@ -370,11 +370,11 @@ namespace Osmium {
          *                 An empty filename or "-" means stdin or stdout.
          */
         OSMFile(const std::string& filename = "")
-              : m_type(FileType::OSM()),
-                m_encoding(FileEncoding::PBF()),
-                m_filename(filename),
-                m_fd(-1),
-                m_childpid(0) {
+            : m_type(FileType::OSM()),
+              m_encoding(FileEncoding::PBF()),
+              m_filename(filename),
+              m_fd(-1),
+              m_childpid(0) {
 
             // stdin/stdout
             if (filename == "" || filename == "-") {

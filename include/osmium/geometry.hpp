@@ -38,7 +38,7 @@ namespace Osmium {
 
         /**
          * Type of WKB geometry.
-         * These definitions are from 
+         * These definitions are from
          * 99-049_OpenGIS_Simple_Features_Specification_For_SQL_Rev_1.1.pdf (for WKB)
          * and http://trac.osgeo.org/postgis/browser/trunk/doc/ZMSgeoms.txt (for EWKB).
          * They are used to encode geometries into the WKB format.
@@ -83,7 +83,7 @@ namespace Osmium {
          * This helper class is used to allow writing geometries in different
          * formats to an output stream.
          *
-         * If we'd just write 
+         * If we'd just write
          * @code
          *  Osmium::Geometry::Geometry geometry;
          *  std::stream out << geometry;
@@ -279,10 +279,10 @@ namespace Osmium {
             LonLatListWriter(std::ostream& out,      ///< The output stream
                              char delim_lonlat=' ',  ///< The delimiter between longitude and latitude
                              char delim_items=',')   ///< The delimiter between consecutive coordinates
-                           : m_out(out),
-                             m_delim_lonlat(delim_lonlat),
-                             m_delim_items(delim_items),
-                             m_first(true) {
+                : m_out(out),
+                  m_delim_lonlat(delim_lonlat),
+                  m_delim_items(delim_items),
+                  m_first(true) {
             }
 
             void operator()(const TLonLat& lonlat) {

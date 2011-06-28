@@ -405,7 +405,7 @@ namespace Osmium {
                 } catch (Osmium::Exception::IllegalGeometry) {
                     std::cerr << "Ignoring object with illegal geometry." << std::endl;
                     return v8::Integer::New(0);
-                } 
+                }
 
                 return v8::Integer::New(1);
             }

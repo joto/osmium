@@ -179,9 +179,9 @@ namespace Osmium {
              *                  every time it runs out of space.
              */
             SparseTable(const uint64_t grow_size=10000)
-                      : ById<TValue>(),
-                        m_grow_size(grow_size),
-                        m_items(grow_size) {
+                : ById<TValue>(),
+                  m_grow_size(grow_size),
+                  m_items(grow_size) {
             }
 
             ~SparseTable() {

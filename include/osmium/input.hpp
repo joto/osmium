@@ -110,9 +110,9 @@ namespace Osmium {
 
             Base(OSMFile& file,
                  THandler& handler)
-               : m_last_object_type(UNKNOWN),
-                 m_file(file),
-                 m_handler(handler)  {
+                : m_last_object_type(UNKNOWN),
+                  m_file(file),
+                  m_handler(handler)  {
 
                 m_file.open_for_input();
 

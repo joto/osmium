@@ -40,9 +40,9 @@ namespace Osmium {
 
             FromWay(const Osmium::OSM::WayNodeList& way_node_list,
                     bool reverse=false)
-                  : Geometry(),
-                    m_way_node_list(&way_node_list),
-                    m_reverse(reverse) {
+                : Geometry(),
+                  m_way_node_list(&way_node_list),
+                  m_reverse(reverse) {
             }
 
 #ifdef OSMIUM_WITH_SHPLIB
