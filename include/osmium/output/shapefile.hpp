@@ -198,8 +198,14 @@ namespace Osmium {
              *
              * @param shp_object A pointer to the shape object to be added. The object
              *                   will be freed for you by calling SHPDestroyObject()!
+             * @exception Osmium::Exception::IllegalGeometry If shp_object is NULL or
+             *                   the type of geometry does not fit the type of the
+             *                   shapefile.
              */
             void add_geometry(SHPObject *shp_object) {
+                if (!shp_object || shp_object->nSHPType != m_shp_handle->nShapeType) {
+                    throw Osmium::Exception::IllegalGeometry();
+                }
                 m_current_shape = SHPWriteObject(m_shp_handle, -1, shp_object);
                 SHPDestroyObject(shp_object);
             }
@@ -265,12 +271,14 @@ namespace Osmium {
             /**
             * Add a geometry to the shapefile.
             */
-            void add(Osmium::Geometry::Geometry* geometry, ///< the geometry
+            bool add(Osmium::Geometry::Geometry* geometry, ///< the geometry
                      v8::Local<v8::Object> attributes) {   ///< a %Javascript object (hash) with the attributes
 
-                SHPObject* shp_object = geometry->create_shp_object();
-                if (!shp_object) return; // XXX return if the shape is invalid
-                add_geometry(shp_object);
+                try {
+                    add_geometry(geometry->create_shp_object());
+                } catch (Osmium::Exception::IllegalGeometry) {
+                    return false;
+                }
 
                 int ok = 0;
                 for (size_t n=0; n < m_fields.size(); n++) {
@@ -308,6 +316,7 @@ namespace Osmium {
                         DBFWriteNULLAttribute(m_dbf_handle, m_current_shape, n);
                     }
                 }
+                return true;
             }
 
             v8::Local<v8::Object> js_instance() const {

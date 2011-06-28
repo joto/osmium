@@ -18,7 +18,7 @@ Osmium.Callbacks.init = function() {
 }
 
 Osmium.Callbacks.multipolygon = function() {
-    print('multipolygon ' + this.id);
+    print('multipolygon ' + this.id + " from " + this.from);
 
     mp.add(this.geom, {
         id:   this.id,

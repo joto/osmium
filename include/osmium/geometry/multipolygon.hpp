@@ -26,11 +26,11 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 # include <shapefil.h>
 #endif // OSMIUM_WITH_SHPLIB
 
-#include <osmium/geometry.hpp>
-
 #ifdef OSMIUM_WITH_GEOS
 # include <geos/io/WKBWriter.h>
 #endif // OSMIUM_WITH_GEOS
+
+#include <osmium/geometry.hpp>
 
 namespace Osmium {
 
@@ -45,6 +45,38 @@ namespace Osmium {
 
 #ifdef OSMIUM_WITH_GEOS
 # ifdef OSMIUM_WITH_SHPLIB
+            void dump_geometry(const geos::geom::Geometry *g, std::vector<int>& partStart, std::vector<double>& x, std::vector<double>& y) const {
+                switch (g->getGeometryTypeId()) {
+                    case geos::geom::GEOS_MULTIPOLYGON:
+                    case geos::geom::GEOS_MULTILINESTRING: {
+                        for (size_t i=0; i < g->getNumGeometries(); ++i) {
+                            dump_geometry(g->getGeometryN(i), partStart, x, y);
+                        }
+                        break;
+                    }
+                    case geos::geom::GEOS_POLYGON: {
+                        const geos::geom::Polygon *p = (geos::geom::Polygon *) g;
+                        dump_geometry(p->getExteriorRing(), partStart, x, y);
+                        for (size_t i=0; i < p->getNumInteriorRing(); ++i) {
+                            dump_geometry(p->getInteriorRingN(i), partStart, x, y);
+                        }
+                        break;
+                    }
+                    case geos::geom::GEOS_LINESTRING:
+                    case geos::geom::GEOS_LINEARRING: {
+                        partStart.push_back(x.size());
+                        const geos::geom::CoordinateSequence *cs = ((geos::geom::LineString *) g)->getCoordinatesRO();
+                        for (size_t i = 0; i < cs->getSize(); ++i) {
+                            x.push_back(cs->getX(i));
+                            y.push_back(cs->getY(i));
+                        }
+                        break;
+                    }
+                    default:
+                        throw std::runtime_error("invalid geometry type encountered");
+                }
+            }
+
             SHPObject *create_shp_object() const {
                 if (!m_mp->get_geometry()) {
                     throw Osmium::Exception::IllegalGeometry();
@@ -54,7 +86,7 @@ namespace Osmium {
                 std::vector<double> y;
                 std::vector<int> partStart;
 
-                dynamic_cast<const Osmium::OSM::MultipolygonFromRelation*>(m_mp)->dump_geometry(m_mp->get_geometry(), partStart, x, y);
+                dump_geometry(m_mp->get_geometry(), partStart, x, y);
 
                 int *ps = new int[partStart.size()];
                 for (size_t i=0; i<partStart.size(); i++) ps[i]=partStart[i];
@@ -104,10 +136,8 @@ namespace Osmium {
                 writer.writeHEX(*(m_mp->get_geometry()), out);
                 return out;
             }
-#endif // OSMIUM_WITH_GEOS
 
-#ifdef OSMIUM_WITH_JAVASCRIPT
-# ifdef OSMIUM_WITH_GEOS
+# ifdef OSMIUM_WITH_JAVASCRIPT
             v8::Local<v8::Object> js_instance() const {
                 return JavascriptTemplate::get<JavascriptTemplate>().create_instance((void *)this);
             }
@@ -169,8 +199,8 @@ namespace Osmium {
                 }
 
             };
-# endif // OSMIUM_WITH_GEOS
-#endif // OSMIUM_WITH_JAVASCRIPT
+# endif // OSMIUM_WITH_JAVASCRIPT
+#endif // OSMIUM_WITH_GEOS
 
         private:
 

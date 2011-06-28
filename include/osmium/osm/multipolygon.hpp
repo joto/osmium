@@ -445,43 +445,6 @@ namespace Osmium {
                 callback(this);
             }
 
-#ifdef OSMIUM_WITH_SHPLIB
-# ifdef OSMIUM_WITH_GEOS
-            bool dump_geometry(const geos::geom::Geometry *g, std::vector<int>& partStart, std::vector<double>& x, std::vector<double>& y) const {
-                switch (g->getGeometryTypeId()) {
-                    case geos::geom::GEOS_MULTIPOLYGON:
-                    case geos::geom::GEOS_MULTILINESTRING: {
-                        for (size_t i=0; i<g->getNumGeometries(); i++) {
-                            if (!dump_geometry(g->getGeometryN(i), partStart, x, y)) return false;
-                        }
-                        break;
-                    }
-                    case geos::geom::GEOS_POLYGON: {
-                        geos::geom::Polygon *p = (geos::geom::Polygon *) g;
-                        if (!dump_geometry(p->getExteriorRing(), partStart, x, y)) return false;
-                        for (size_t i=0; i<p->getNumInteriorRing(); i++) {
-                            if (!dump_geometry(p->getInteriorRingN(i), partStart, x, y)) return false;
-                        }
-                        break;
-                    }
-                    case geos::geom::GEOS_LINESTRING:
-                    case geos::geom::GEOS_LINEARRING: {
-                        partStart.push_back(x.size());
-                        const geos::geom::CoordinateSequence *cs = ((geos::geom::LineString *) g)->getCoordinatesRO();
-                        for (size_t i = 0; i < cs->getSize(); i++) {
-                            x.push_back(cs->getX(i));
-                            y.push_back(cs->getY(i));
-                        }
-                        break;
-                    }
-                    default:
-                        throw std::runtime_error("invalid geometry type encountered");
-                }
-                return true;
-            }
-# endif // OSMIUM_WITH_GEOS
-#endif // OSMIUM_WITH_SHPLIB
-
         private:
 
             /**

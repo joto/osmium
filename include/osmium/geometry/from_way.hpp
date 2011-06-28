@@ -60,7 +60,9 @@ namespace Osmium {
                 }
                 int size = m_way_node_list->size();
                 if (size == 0 || size == 1) {
-                    if (Osmium::debug()) std::cerr << "error building way geometry for way " << get_id() << ": must at least contain two nodes" << std::endl;
+                    if (Osmium::debug()) {
+                        std::cerr << "error building way geometry for way " << get_id() << ": must at least contain two nodes" << std::endl;
+                    }
                     throw Osmium::Exception::IllegalGeometry();
                 }
 
@@ -83,7 +85,9 @@ namespace Osmium {
                     }
                 }
                 if (lon_checked.size() == 1) {
-                    if (Osmium::debug()) std::cerr << "error building way geometry for way " << get_id() << ": must at least contain two different points" << std::endl;
+                    if (Osmium::debug()) {
+                        std::cerr << "error building way geometry for way " << get_id() << ": must at least contain two different points" << std::endl;
+                    }
                     throw Osmium::Exception::IllegalGeometry();
                 }
                 if (m_reverse) {
