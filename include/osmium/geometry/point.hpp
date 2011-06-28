@@ -85,6 +85,16 @@ namespace Osmium {
                 return out;
             }
 
+#ifdef OSMIUM_WITH_GEOS
+            /**
+             * Returns the GEOS geometry of the point.
+             * Caller takes ownership of the pointer.
+             */
+            geos::geom::Point* create_geos_geometry() const {
+                return Osmium::Geometry::geos_geometry_factory()->createPoint(m_position);
+            }
+#endif // OSMIUM_WITH_GEOS
+
 #ifdef OSMIUM_WITH_SHPLIB
             SHPObject *create_shp_object() const {
                 double x = lon();
