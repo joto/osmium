@@ -22,15 +22,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
-#include <cstdio>
-#include <cmath>
-#include <sstream>
-#include <ostream>
-
-#ifdef OSMIUM_WITH_SHPLIB
-# include <shapefil.h>
-#endif // OSMIUM_WITH_SHPLIB
-
 #include <osmium/osm/position.hpp>
 
 /** @file

@@ -27,11 +27,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <osmium/osm/way_node_list.hpp>
 
-#ifdef OSMIUM_WITH_SHPLIB
-# include <shapefil.h>
-# include <algorithm>
-#endif // OSMIUM_WITH_SHPLIB
-
 /** @file
 *   @brief Contains the Osmium::OSM::Way class.
 */

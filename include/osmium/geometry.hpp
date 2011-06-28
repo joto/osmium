@@ -22,6 +22,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#include <sstream>
+
 #ifdef OSMIUM_WITH_GEOS
 # include <geos/geom/GeometryFactory.h>
 # include <geos/geom/PrecisionModel.h>
