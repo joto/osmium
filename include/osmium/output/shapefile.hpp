@@ -393,31 +393,8 @@ namespace Osmium {
             }
 
             v8::Handle<v8::Value> js_add(const v8::Arguments& args) {
-                if (args.Length() < 2 || args.Length() > 3) {
-                    throw std::runtime_error("Wrong number of arguments to add method.");
-                }
-
-                v8::Local<v8::Object> xxx = v8::Local<v8::Object>::Cast(args[0]);
-                Osmium::OSM::Object *object = (Osmium::OSM::Object *) v8::Local<v8::External>::Cast(xxx->GetInternalField(0))->Value();
-
-                std::string transformation;
-                if (args.Length() == 3) {
-                    v8::String::AsciiValue gt(args[2]);
-                    transformation = *gt;
-                }
-                try {
-                    add(object, v8::Local<v8::Object>::Cast(args[1]), transformation);
-                } catch (Osmium::Exception::IllegalGeometry) {
-                    std::cerr << "Ignoring object with illegal geometry." << std::endl;
-                    return v8::Integer::New(0);
-                } 
-
-                return v8::Integer::New(1);
-            }
-
-            v8::Handle<v8::Value> js_add_geom(const v8::Arguments& args) {
                 if (args.Length() != 2) {
-                    throw std::runtime_error("Wrong number of arguments to add_geom method.");
+                    throw std::runtime_error("Wrong number of arguments to add method.");
                 }
 
                 v8::Local<v8::Object> xxx = v8::Local<v8::Object>::Cast(args[0]);
@@ -443,7 +420,6 @@ namespace Osmium {
                 JavascriptTemplate() : Osmium::Javascript::Template() {
                     js_template->Set("add_field", v8::FunctionTemplate::New(function_template<Shapefile, &Shapefile::js_add_field>));
                     js_template->Set("add",       v8::FunctionTemplate::New(function_template<Shapefile, &Shapefile::js_add>));
-                    js_template->Set("add_geom",  v8::FunctionTemplate::New(function_template<Shapefile, &Shapefile::js_add_geom>));
                     js_template->Set("close",     v8::FunctionTemplate::New(function_template<Shapefile, &Shapefile::js_close>));
                 }
 

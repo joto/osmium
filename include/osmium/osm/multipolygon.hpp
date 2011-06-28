@@ -501,11 +501,9 @@ namespace Osmium {
 # endif // OSMIUM_WITH_GEOS
 #endif // OSMIUM_WITH_SHPLIB
 
-        private:
-
 #ifdef OSMIUM_WITH_SHPLIB
 # ifdef OSMIUM_WITH_GEOS
-            bool dump_geometry(const geos::geom::Geometry *g, std::vector<int>& partStart, std::vector<double>& x, std::vector<double>& y) {
+            bool dump_geometry(const geos::geom::Geometry *g, std::vector<int>& partStart, std::vector<double>& x, std::vector<double>& y) const {
                 switch (g->getGeometryTypeId()) {
                     case geos::geom::GEOS_MULTIPOLYGON:
                     case geos::geom::GEOS_MULTILINESTRING: {
@@ -539,6 +537,8 @@ namespace Osmium {
             }
 # endif // OSMIUM_WITH_GEOS
 #endif // OSMIUM_WITH_SHPLIB
+
+        private:
 
             /**
             * This helper gets called when we find a ring that is not valid -

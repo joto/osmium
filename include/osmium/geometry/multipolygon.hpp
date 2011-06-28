@@ -44,6 +44,45 @@ namespace Osmium {
             }
 
 #ifdef OSMIUM_WITH_GEOS
+# ifdef OSMIUM_WITH_SHPLIB
+            SHPObject *create_shp_object() const {
+                if (!m_mp->get_geometry()) {
+                    throw Osmium::Exception::IllegalGeometry();
+                }
+
+                std::vector<double> x;
+                std::vector<double> y;
+                std::vector<int> partStart;
+
+                dynamic_cast<const Osmium::OSM::MultipolygonFromRelation*>(m_mp)->dump_geometry(m_mp->get_geometry(), partStart, x, y);
+
+                int *ps = new int[partStart.size()];
+                for (size_t i=0; i<partStart.size(); i++) ps[i]=partStart[i];
+                double *xx = new double[x.size()];
+                for (size_t i=0; i<x.size(); i++) xx[i]=x[i];
+                double *yy = new double[y.size()];
+                for (size_t i=0; i<y.size(); i++) yy[i]=y[i];
+
+                SHPObject *o = SHPCreateObject(
+                                   SHPT_POLYGON,       // type
+                                   -1,                 // id
+                                   partStart.size(),   // nParts
+                                   ps,                 // panPartStart
+                                   NULL,               // panPartType
+                                   x.size(),           // nVertices,
+                                   xx,
+                                   yy,
+                                   NULL,
+                                   NULL);
+
+                delete[] ps;
+                delete[] xx;
+                delete[] yy;
+
+                return o;
+            }
+# endif // OSMIUM_WITH_SHPLIB
+
             std::ostream& write_to_stream(std::ostream& out, AsWKT, bool with_srid=false) const {
                 if (with_srid) {
                     out << "SRID=4326;";
