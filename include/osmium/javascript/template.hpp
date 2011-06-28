@@ -69,6 +69,13 @@ namespace Osmium {
                 delete static_cast<TWrapped*>(obj);
             }
 
+            /**
+             * Function that always returns undefined.
+             */
+            v8::Handle<v8::Value> js_undefined(const v8::Arguments& /*args*/) {
+                return v8::Undefined();
+            }
+
             /*
                 These magic helper function are used to connect Javascript
                 methods to C++ methods. They are given to the SetAccessor,

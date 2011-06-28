@@ -52,17 +52,13 @@ namespace Osmium {
             }
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
-            v8::Handle<v8::Value> js_undefined(const v8::Arguments& /*args*/) {
-                return v8::Undefined();
-            }
-
             struct JavascriptTemplate : public Osmium::Javascript::Template {
 
                 JavascriptTemplate() : Osmium::Javascript::Template() {
-                    js_template->Set("toWKT",    v8::FunctionTemplate::New(function_template<Null, &Null::js_undefined>));
-                    js_template->Set("toWKB",    v8::FunctionTemplate::New(function_template<Null, &Null::js_undefined>));
-                    js_template->Set("toHexWKB", v8::FunctionTemplate::New(function_template<Null, &Null::js_undefined>));
-                    js_template->Set("toArray",  v8::FunctionTemplate::New(function_template<Null, &Null::js_undefined>));
+                    js_template->Set("toWKT",    v8::FunctionTemplate::New(function_template<Osmium::Javascript::Template, &Osmium::Javascript::Template::js_undefined>));
+                    js_template->Set("toWKB",    v8::FunctionTemplate::New(function_template<Osmium::Javascript::Template, &Osmium::Javascript::Template::js_undefined>));
+                    js_template->Set("toHexWKB", v8::FunctionTemplate::New(function_template<Osmium::Javascript::Template, &Osmium::Javascript::Template::js_undefined>));
+                    js_template->Set("toArray",  v8::FunctionTemplate::New(function_template<Osmium::Javascript::Template, &Osmium::Javascript::Template::js_undefined>));
                 }
 
             };
