@@ -1,5 +1,13 @@
-/* test geom output */
 /*
+
+  Osmium Javascript Example
+
+  testgeom.js
+
+  run with: osmjs -2 -l sparsetable -j testgeom.js OSMFILE
+
+*/
+
 Osmium.Callbacks.node = function() {
     print("node id:              " + this.id);
     print("geom.lon:             " + this.geom.lon);
@@ -23,7 +31,7 @@ Osmium.Callbacks.way = function() {
     print("reverse_geom.toArray():       " + JSON.stringify(this.reverse_geom.toArray()));
     print("");
 }
-*/
+
 Osmium.Callbacks.multipolygon = function() {
     print("multipolygon id:      " + this.id);
     print("geom.toWKT():         " + this.geom.toWKT());

@@ -1,4 +1,12 @@
-/* objects.js (2-pass version) */
+/*
+
+  Osmium Javascript Example
+
+  objects_2pass.js
+
+  run with: osmjs -2 -l sparsetable -j objects_2pass.js OSMFILE
+
+*/
 
 Osmium.Callbacks.init = function() {
     print('Start!');
@@ -6,14 +14,14 @@ Osmium.Callbacks.init = function() {
 
 Osmium.Callbacks.node = function() {
     print('node ' + this.id + ' ' + this.version + ' ' + this.timestamp + ' ' + this.uid + ' ' + this.user + ' ' + this.changeset + ' ' + this.geom.lon + ' ' + this.geom.lat + ' ' + this.geom.toWKT() + ' [' + this.geom.toHexWKB() + ']');
-    for (key in this.tags) {
+    for (var key in this.tags) {
         print(' ' + key + '=' + this.tags[key]);
     }
 }
 
 Osmium.Callbacks.way = function() {
     print('way ' + this.id + ' ' + this.version + ' ' + this.timestamp + ' ' + this.uid + ' ' + this.user + ' ' + this.changeset + ' ' + this.geom.toWKT());
-    for (key in this.tags) {
+    for (var key in this.tags) {
         print(' ' + key + '=' + this.tags[key]);
     }
     for (var i=0; i < this.nodes.length; i++) {
@@ -23,7 +31,7 @@ Osmium.Callbacks.way = function() {
 
 Osmium.Callbacks.relation = function() {
     print('relation ' + this.id + ' ' + this.version + ' ' + this.timestamp + ' ' + this.uid + ' ' + this.user + ' ' + this.changeset);
-    for (key in this.tags) {
+    for (var key in this.tags) {
         print(' ' + key + '=' + this.tags[key]);
     }
     for (var i=0; i < this.members.length; i++) {
@@ -34,7 +42,7 @@ Osmium.Callbacks.relation = function() {
 
 Osmium.Callbacks.multipolygon = function() {
     print('multipolygon from ' + this.from + ' ' + this.id + ' ' + this.version + ' ' + this.timestamp + ' ' + this.uid + ' ' + this.changeset);
-    for (key in this.tags) {
+    for (var key in this.tags) {
         print(' ' + key + '=' + this.tags[key]);
     }
 }

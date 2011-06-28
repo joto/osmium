@@ -1,4 +1,12 @@
-/* multipolygon.js (use with 2-pass version) */
+/*
+
+  Osmium Javascript Example
+
+  multipolygon.js
+
+  run with: osmjs -2 -l sparsetable -j multipolygon.js OSMFILE
+
+*/
 
 var mp = Osmium.Output.Shapefile.open('./multipolygons', 'polygon');
 mp.add_field('id', 'integer', 10);
@@ -12,12 +20,11 @@ Osmium.Callbacks.init = function() {
 Osmium.Callbacks.multipolygon = function() {
     print('multipolygon ' + this.id);
 
-    mp.add(this, {
+    mp.add(this.geom, {
         id:   this.id,
         name: this.tags.name,
         type: this.tags.boundary ? 'boundary' :
-              this.tags.building ? 'building' :
-              this.tags.highway  ? 'highway'  : 'unknown'
+              this.tags.building ? 'building' : 'unknown'
     });
 }
 
