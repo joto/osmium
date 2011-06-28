@@ -369,25 +369,9 @@ namespace Osmium {
                 return tags().get_tag_value(n);
             }
 
-#ifdef OSMIUM_WITH_SHPLIB
-            virtual SHPObject *create_shp_point(std::string& /*transformation*/) {
-                throw std::invalid_argument("Can't create point geometry from this kind of object");
-            }
-
-            virtual SHPObject *create_shp_line(std::string& /*transformation*/) {
-                throw std::invalid_argument("Can't create line geometry from this kind of object");
-            }
-
-            virtual SHPObject *create_shp_polygon(std::string& /*transformation*/) {
-                throw std::invalid_argument("Can't create polygon geometry from this kind of object");
-            }
-#endif // OSMIUM_WITH_SHPLIB
-
 #ifdef OSMIUM_WITH_JAVASCRIPT
             v8::Local<v8::Object> js_object_instance;
-#endif // OSMIUM_WITH_JAVASCRIPT
 
-#ifdef OSMIUM_WITH_JAVASCRIPT
             v8::Local<v8::Object> get_instance() const {
                 return js_object_instance;
             }

@@ -280,16 +280,6 @@ namespace Osmium {
                 return MULTIPOLYGON_FROM_WAY;
             }
 
-#ifdef OSMIUM_WITH_SHPLIB
-            /**
-            * Create a SHPObject for this multipolygon and return it. You have to call
-            * SHPDestroyObject() with this object when you are done.
-            */
-            SHPObject *create_shp_polygon(std::string& /*transformation*/) {
-                return SHPCreateSimpleObject(SHPT_POLYGON, num_nodes, lon, lat, NULL);
-            }
-#endif // OSMIUM_WITH_SHPLIB
-
         }; // class MultipolygonFromWay
 
         /***
@@ -454,52 +444,6 @@ namespace Osmium {
 #endif // OSMIUM_WITH_GEOS
                 callback(this);
             }
-
-            /**
-            * Create a SHPObject for this multipolygon and return it. You have to call
-            * SHPDestroyObject() with this object when you are done.
-            * Returns NULL if a valid SHPObject could not be created.
-            */
-#ifdef OSMIUM_WITH_SHPLIB
-# ifdef OSMIUM_WITH_GEOS
-            SHPObject *create_shp_polygon(std::string& /*transformation*/) {
-                if (!geometry) {
-                    throw Osmium::Exception::IllegalGeometry();
-                }
-
-                std::vector<double> x;
-                std::vector<double> y;
-                std::vector<int> partStart;
-
-                dump_geometry(geometry, partStart, x, y);
-
-                int *ps = new int[partStart.size()];
-                for (size_t i=0; i<partStart.size(); i++) ps[i]=partStart[i];
-                double *xx = new double[x.size()];
-                for (size_t i=0; i<x.size(); i++) xx[i]=x[i];
-                double *yy = new double[y.size()];
-                for (size_t i=0; i<y.size(); i++) yy[i]=y[i];
-
-                SHPObject *o = SHPCreateObject(
-                                   SHPT_POLYGON,       // type
-                                   -1,                 // id
-                                   partStart.size(),   // nParts
-                                   ps,                 // panPartStart
-                                   NULL,               // panPartType
-                                   x.size(),           // nVertices,
-                                   xx,
-                                   yy,
-                                   NULL,
-                                   NULL);
-
-                delete[] ps;
-                delete[] xx;
-                delete[] yy;
-
-                return o;
-            }
-# endif // OSMIUM_WITH_GEOS
-#endif // OSMIUM_WITH_SHPLIB
 
 #ifdef OSMIUM_WITH_SHPLIB
 # ifdef OSMIUM_WITH_GEOS

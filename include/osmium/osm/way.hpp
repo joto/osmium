@@ -210,60 +210,6 @@ namespace Osmium {
             }
 #endif // OSMIUM_WITH_GEOS
 
-
-#ifdef OSMIUM_WITH_SHPLIB
-            /**
-            * Create a SHPObject for this way and return it. You have to call
-            * SHPDestroyObject() with this object when you are done.
-            */
-            SHPObject *create_shpobject(int shp_type, bool reverse_way) {
-                if (!m_node_list.has_position()) {
-                    throw std::runtime_error("node coordinates not available for building way geometry");
-                }
-                int size = m_node_list.size();
-                if (size == 0 || size == 1) {
-                    if (Osmium::debug()) std::cerr << "error building way geometry for way " << get_id() << ": must at least contain two nodes" << std::endl;
-                    throw Osmium::Exception::IllegalGeometry();
-                }
-
-                std::vector<double> lon_checked;
-                lon_checked.reserve(size);
-                lon_checked.push_back(m_node_list[0].position().lon());
-
-                std::vector<double> lat_checked;
-                lat_checked.reserve(size);
-                lat_checked.push_back(m_node_list[0].position().lat());
-
-                for (int i=1; i < size; i++) {
-                    if (m_node_list[i] == m_node_list[i-1]) {
-                        if (Osmium::debug()) std::cerr << "warning building way geometry for way " << get_id() << ": contains node " << m_node_list[i].ref() << " twice" << std::endl;
-                    } else if (m_node_list[i].position() == m_node_list[i-1].position()) {
-                        if (Osmium::debug()) std::cerr << "warning building way geometry for way " << get_id() << ": contains position " << m_node_list[i].position() << " twice" << std::endl;
-                    } else {
-                        lon_checked.push_back(m_node_list[i].position().lon());
-                        lat_checked.push_back(m_node_list[i].position().lat());
-                    }
-                }
-                if (lon_checked.size() == 1) {
-                    if (Osmium::debug()) std::cerr << "error building way geometry for way " << get_id() << ": must at least contain two different points" << std::endl;
-                    throw Osmium::Exception::IllegalGeometry();
-                }
-                if (reverse_way) {
-                    reverse(lon_checked.begin(), lon_checked.end());
-                    reverse(lat_checked.begin(), lat_checked.end());
-                }
-                return SHPCreateSimpleObject(shp_type, lon_checked.size(), &(lon_checked[0]), &(lat_checked[0]), NULL);
-            }
-
-            SHPObject *create_shp_line(std::string& transformation) {
-                return create_shpobject(SHPT_ARC, transformation == "reverse" ? 1 : 0);
-            }
-
-            SHPObject *create_shp_polygon(std::string& transformation) {
-                return create_shpobject(SHPT_POLYGON, transformation == "reverse" ? 1 : 0);
-            }
-#endif // OSMIUM_WITH_SHPLIB
-
 #ifdef OSMIUM_WITH_JAVASCRIPT
             v8::Handle<v8::Value> js_nodes() const {
                 return m_node_list.js_instance();
