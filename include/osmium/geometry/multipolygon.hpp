@@ -45,30 +45,31 @@ namespace Osmium {
 
 #ifdef OSMIUM_WITH_GEOS
 # ifdef OSMIUM_WITH_SHPLIB
-            void dump_geometry(const geos::geom::Geometry *g, std::vector<int>& partStart, std::vector<double>& x, std::vector<double>& y) const {
+            void dump_geometry(const geos::geom::Geometry *g, std::vector<int>& part_start_list, std::vector<double>& x_list, std::vector<double>& y_list) const {
                 switch (g->getGeometryTypeId()) {
                     case geos::geom::GEOS_MULTIPOLYGON:
                     case geos::geom::GEOS_MULTILINESTRING: {
-                        for (size_t i=0; i < g->getNumGeometries(); ++i) {
-                            dump_geometry(g->getGeometryN(i), partStart, x, y);
+                        for (geos::geom::GeometryCollection::const_iterator it = static_cast<const geos::geom::GeometryCollection*>(g)->begin();
+                                                                           it != static_cast<const geos::geom::GeometryCollection*>(g)->end(); ++it) {
+                            dump_geometry(*it, part_start_list, x_list, y_list);
                         }
                         break;
                     }
                     case geos::geom::GEOS_POLYGON: {
-                        const geos::geom::Polygon *p = (geos::geom::Polygon *) g;
-                        dump_geometry(p->getExteriorRing(), partStart, x, y);
-                        for (size_t i=0; i < p->getNumInteriorRing(); ++i) {
-                            dump_geometry(p->getInteriorRingN(i), partStart, x, y);
+                        const geos::geom::Polygon* polygon = static_cast<const geos::geom::Polygon*>(g);
+                        dump_geometry(polygon->getExteriorRing(), part_start_list, x_list, y_list);
+                        for (size_t i=0; i < polygon->getNumInteriorRing(); ++i) {
+                            dump_geometry(polygon->getInteriorRingN(i), part_start_list, x_list, y_list);
                         }
                         break;
                     }
                     case geos::geom::GEOS_LINESTRING:
                     case geos::geom::GEOS_LINEARRING: {
-                        partStart.push_back(x.size());
-                        const geos::geom::CoordinateSequence *cs = ((geos::geom::LineString *) g)->getCoordinatesRO();
+                        part_start_list.push_back(x_list.size());
+                        const geos::geom::CoordinateSequence *cs = static_cast<const geos::geom::LineString*>(g)->getCoordinatesRO();
                         for (size_t i = 0; i < cs->getSize(); ++i) {
-                            x.push_back(cs->getX(i));
-                            y.push_back(cs->getY(i));
+                            x_list.push_back(cs->getX(i));
+                            y_list.push_back(cs->getY(i));
                         }
                         break;
                     }
@@ -82,36 +83,23 @@ namespace Osmium {
                     throw Osmium::Exception::IllegalGeometry();
                 }
 
-                std::vector<double> x;
-                std::vector<double> y;
-                std::vector<int> partStart;
+                std::vector<double> x_list;
+                std::vector<double> y_list;
+                std::vector<int> part_start_list;
 
-                dump_geometry(m_mp->get_geometry(), partStart, x, y);
+                dump_geometry(m_mp->get_geometry(), part_start_list, x_list, y_list);
 
-                int *ps = new int[partStart.size()];
-                for (size_t i=0; i<partStart.size(); i++) ps[i]=partStart[i];
-                double *xx = new double[x.size()];
-                for (size_t i=0; i<x.size(); i++) xx[i]=x[i];
-                double *yy = new double[y.size()];
-                for (size_t i=0; i<y.size(); i++) yy[i]=y[i];
-
-                SHPObject *o = SHPCreateObject(
-                                   SHPT_POLYGON,       // type
-                                   -1,                 // id
-                                   partStart.size(),   // nParts
-                                   ps,                 // panPartStart
-                                   NULL,               // panPartType
-                                   x.size(),           // nVertices,
-                                   xx,
-                                   yy,
-                                   NULL,
-                                   NULL);
-
-                delete[] ps;
-                delete[] xx;
-                delete[] yy;
-
-                return o;
+                return SHPCreateObject(
+                        SHPT_POLYGON,           // nSHPType
+                        -1,                     // iShape
+                        part_start_list.size(), // nParts
+                        &part_start_list[0],    // panPartStart
+                        NULL,                   // panPartType
+                        x_list.size(),          // nVertices,
+                        &x_list[0],             // padfX
+                        &y_list[0],             // padfY
+                        NULL,                   // padfZ
+                        NULL);                  // padfM
             }
 # endif // OSMIUM_WITH_SHPLIB
 
