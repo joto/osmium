@@ -108,6 +108,9 @@ namespace Osmium {
             }
 
 #ifdef OSMIUM_WITH_GEOS
+            /**
+             * Conversion of Position to GEOS Coordinate.
+             */
             operator geos::geom::Coordinate() const {
                 geos::geom::Coordinate c(lon(), lat());
                 return c;

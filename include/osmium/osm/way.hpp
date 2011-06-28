@@ -137,12 +137,19 @@ namespace Osmium {
                 return m_node_list.back().ref();
             }
 
+            /**
+            * Check whether this way is closed. A way is closed if the first and last node have the same id.
+            */
+            bool is_closed() const {
+                return m_node_list.is_closed();
+            }
+
 #ifdef OSMIUM_WITH_GEOS
             /**
              * Returns the GEOS geometry of the first node.
              * Caller takes ownership of the pointer.
              */
-            geos::geom::Point *get_first_node_geometry() const {
+            geos::geom::Point* get_first_node_geometry() const {
                 if (!m_node_list.front().has_position()) {
                     throw std::range_error("geometry for nodes not available");
                 }
@@ -153,53 +160,27 @@ namespace Osmium {
              * Returns the GEOS geometry of the last node.
              * Caller takes ownership of the pointer.
              */
-            geos::geom::Point *get_last_node_geometry() const {
+            geos::geom::Point* get_last_node_geometry() const {
                 if (!m_node_list.back().has_position()) {
                     throw std::range_error("geometry for nodes not available");
                 }
                 return Osmium::Geometry::geos_geometry_factory()->createPoint(m_node_list.back().position());
             }
-#endif // OSMIUM_WITH_GEOS
 
-            /**
-            * Check whether this way is closed. A way is closed if the first and last node have the same id.
-            */
-            bool is_closed() const {
-                return m_node_list.is_closed();
-            }
-
-            /**
-            * Set coordinates for the nth node in this way.
-            */
-            void set_node_coordinates(osm_sequence_id_t n, double nlon, double nlat) {
-                if (n >= m_node_list.size()) {
-                    throw std::range_error("trying to set coordinate for unknown node");
-                }
-                m_node_list[n].position(Position(nlon, nlat));
-            }
-
-            /**
-             * Are the node coordinates set for this way?
-             */
-            bool node_coordinates_set() const {
-                return m_node_list.has_position();
-            }
-
-#ifdef OSMIUM_WITH_GEOS
             /**
              * Returns the GEOS geometry of the way.
              * Caller takes ownership of the pointer.
              */
-            geos::geom::Geometry *create_geos_geometry() const {
+            geos::geom::Geometry* create_geos_geometry() const {
                 try {
                     std::vector<geos::geom::Coordinate> *c = new std::vector<geos::geom::Coordinate>;
-                    for (osm_sequence_id_t i=0; i < m_node_list.size(); i++) {
+                    for (osm_sequence_id_t i=0; i < m_node_list.size(); ++i) {
                         c->push_back(m_node_list[i].position());
                     }
                     geos::geom::CoordinateSequence *cs = Osmium::Geometry::geos_geometry_factory()->getCoordinateSequenceFactory()->create(c);
                     return (geos::geom::Geometry *) Osmium::Geometry::geos_geometry_factory()->createLineString(cs);
                 } catch (const geos::util::GEOSException& exc) {
-                    std::cerr << "error building way geometry, leave it as NULL" << std::endl;
+                    std::cerr << "error building way geometry, leave it as NULL\n";
                     return NULL;
                 }
             }
