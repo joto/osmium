@@ -718,6 +718,7 @@ namespace Osmium {
                     m_should_add_metadata(true),
                     primitive_block_contents(0),
                     string_table(),
+                    m_compression_buffer(),
                     m_delta_id(),
                     m_delta_lat(),
                     m_delta_lon(),
