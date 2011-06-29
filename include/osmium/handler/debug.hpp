@@ -33,14 +33,14 @@ namespace Osmium {
             Debug() : Base() {
             }
 
-            void callback_node(const OSM::Node *node) const {
+            void callback_node(const Osmium::OSM::Node* node) const {
                 std::cout << "node:\n";
                 print_meta(node);
                 std::cout << "  lon=" << std::fixed << std::setprecision(7) << node->get_lon() << "\n";
                 std::cout << "  lat=" << std::fixed << std::setprecision(7) << node->get_lat() << "\n";
             }
 
-            void callback_way(const OSM::Way *way) const {
+            void callback_way(const Osmium::OSM::Way* way) const {
                 std::cout << "way:\n";
                 print_meta(way);
                 std::cout << "  node_count=" << way->node_count() << "\n";
@@ -50,7 +50,7 @@ namespace Osmium {
                 }
             }
 
-            void callback_relation(OSM::Relation *relation) const {
+            void callback_relation(Osmium::OSM::Relation* relation) const {
                 std::cout << "relation:\n";
                 print_meta(relation);
                 std::cout << "  members.size=" << relation->members().size() << "\n";
@@ -63,7 +63,7 @@ namespace Osmium {
 
         private:
 
-            void print_meta(const OSM::Object *object) const {
+            void print_meta(const Osmium::OSM::Object* object) const {
                 std::cout << "  id="   << object->get_id() << "\n";
                 std::cout << "  version="   << object->get_version() << "\n";
                 std::cout << "  uid="       << object->get_uid() << "\n";

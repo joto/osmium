@@ -10,7 +10,7 @@ object.
 
 Available handlers include:
 * Javascript handler (calls Javascript callbacks you provide)
-* Multipolygon handler (assembles multipolygons from relations and ways)
+* Multipolygon handler (assembles areas(multipolygons) from relations and ways)
 * NodeLocationStore handler (stores node locations and builds way geometries from them)
 * Statistics handler (does some general statistics)
 * (others...)

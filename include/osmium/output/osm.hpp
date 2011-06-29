@@ -32,7 +32,7 @@ namespace Osmium {
 
             protected:
 
-                OSMFile m_file;
+                Osmium::OSMFile m_file;
 
                 int get_fd() {
                     return m_file.get_fd();
@@ -40,7 +40,7 @@ namespace Osmium {
 
             public:
 
-                Base(OSMFile& file) : m_file(file) {
+                Base(Osmium::OSMFile& file) : m_file(file) {
                     m_file.open_for_output();
                 }
 
@@ -49,9 +49,9 @@ namespace Osmium {
 
                 virtual void write_init() = 0;
                 virtual void write_bounds(double minlon, double minlat, double maxlon, double maxlat) = 0;
-                virtual void write(Osmium::OSM::Node *) = 0;
-                virtual void write(Osmium::OSM::Way *) = 0;
-                virtual void write(Osmium::OSM::Relation *) = 0;
+                virtual void write(Osmium::OSM::Node*) = 0;
+                virtual void write(Osmium::OSM::Way*) = 0;
+                virtual void write(Osmium::OSM::Relation*) = 0;
                 virtual void write_final() = 0;
 
             }; // class Base

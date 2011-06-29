@@ -53,10 +53,10 @@ namespace Osmium {
          *
          * - callback_init()
          * - callback_before_nodes/ways/relations()
-         * - callback_node/way/relation(Osmium::OSM::Node/Way/Relation *)
+         * - callback_node/way/relation(Osmium::OSM::Node/Way/Relation*)
          * - callback_after_nodes/ways/relations()
          * - callback_final()
-         * - callback_multipolygon(Osmium::OSM::Multipolygon *)
+         * - callback_area(Osmium::OSM::Area*)
          *
          * callback_init() will be called before all others, callback_final()
          * after all others.
@@ -78,9 +78,9 @@ namespace Osmium {
          * file these handlers will probably not called in a useful way for you.
          * You can use osmosis --sort to sort your input file first.
          *
-         * The callback_multipolygon() is special. It will only be called if
+         * The callback_area() is special. It will only be called if
          * you have the multipolygon handler before your handler. There are no
-         * before/after_multipolygons() callbacks. Use callback_init() and
+         * before/after_areas() callbacks. Use callback_init() and
          * callback_final() instead.
          */
         template <class THandler>
@@ -95,7 +95,7 @@ namespace Osmium {
             /**
              * The OSMFile we opened this file with.
              */
-            OSMFile m_file;
+            Osmium::OSMFile m_file;
 
             /**
              * Handler we will call callbacks on.
@@ -104,11 +104,11 @@ namespace Osmium {
 
         protected:
 
-            OSM::Node     *node;
-            OSM::Way      *way;
-            OSM::Relation *relation;
+            Osmium::OSM::Node*     node;
+            Osmium::OSM::Way*      way;
+            Osmium::OSM::Relation* relation;
 
-            Base(OSMFile& file,
+            Base(Osmium::OSMFile& file,
                  THandler& handler)
                 : m_last_object_type(UNKNOWN),
                   m_file(file),
@@ -159,7 +159,7 @@ namespace Osmium {
                 return m_file.get_fd();
             }
 
-            const OSMFile& get_file() const {
+            const Osmium::OSMFile& get_file() const {
                 return m_file;
             }
 

@@ -28,12 +28,11 @@ Osmium.Callbacks.way = function() {
     print("geom.toHexWKB():      " + this.geom.toHexWKB());
     print("geom.toHexWKB(true):  " + this.geom.toHexWKB(true));
     print("reverse_geom.toWKT(): " + this.reverse_geom.toWKT());
-    print("reverse_geom.toArray():       " + JSON.stringify(this.reverse_geom.toArray()));
     print("");
 }
 
-Osmium.Callbacks.multipolygon = function() {
-    print("multipolygon id:      " + this.id);
+Osmium.Callbacks.area = function() {
+    print("area id:              " + this.id);
     print("geom.toWKT():         " + this.geom.toWKT());
     print("geom.toWKT(true):     " + this.geom.toWKT(true));
     print("geom.toHexWKB():      " + this.geom.toHexWKB());

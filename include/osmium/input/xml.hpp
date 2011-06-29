@@ -67,7 +67,7 @@ namespace Osmium {
             * @param file OSMFile instance.
             * @param handler Instance of THandler. If NULL an instance of class THandler is created internally.
             */
-            XML(OSMFile& file, THandler& handler) : Base<THandler>(file, handler) {
+            XML(Osmium::OSMFile& file, THandler& handler) : Base<THandler>(file, handler) {
             }
 
             void parse() {
@@ -117,7 +117,7 @@ namespace Osmium {
 
         private:
 
-            void init_object(OSM::Object *obj, const XML_Char **attrs) {
+            void init_object(Osmium::OSM::Object *obj, const XML_Char **attrs) {
                 current_object = obj;
                 current_object->reset();
                 for (int count = 0; attrs[count]; count += 2) {

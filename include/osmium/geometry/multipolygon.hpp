@@ -40,7 +40,7 @@ namespace Osmium {
 
         public:
 
-            MultiPolygon(const Osmium::OSM::Multipolygon& mp) : m_mp(&mp) {
+            MultiPolygon(const Osmium::OSM::Area& area) : m_area(&area) {
             }
 
 #ifdef OSMIUM_WITH_GEOS
@@ -79,7 +79,7 @@ namespace Osmium {
             }
 
             SHPObject *create_shp_object() const {
-                if (!m_mp->get_geometry()) {
+                if (!m_area->get_geometry()) {
                     throw Osmium::Exception::IllegalGeometry();
                 }
 
@@ -87,7 +87,7 @@ namespace Osmium {
                 std::vector<double> y_list;
                 std::vector<int> part_start_list;
 
-                dump_geometry(m_mp->get_geometry(), part_start_list, x_list, y_list);
+                dump_geometry(m_area->get_geometry(), part_start_list, x_list, y_list);
 
                 return SHPCreateObject(
                         SHPT_POLYGON,           // nSHPType
@@ -108,20 +108,20 @@ namespace Osmium {
                     out << "SRID=4326;";
                 }
                 geos::io::WKTWriter writer;
-                return out << writer.write(m_mp->get_geometry());
+                return out << writer.write(m_area->get_geometry());
             }
 
             std::ostream& write_to_stream(std::ostream& out, AsWKB, bool with_srid=false) const {
                 geos::io::WKBWriter writer;
                 writer.setIncludeSRID(with_srid);
-                writer.write(*(m_mp->get_geometry()), out);
+                writer.write(*(m_area->get_geometry()), out);
                 return out;
             }
 
             std::ostream& write_to_stream(std::ostream& out, AsHexWKB, bool with_srid=false) const {
                 geos::io::WKBWriter writer;
                 writer.setIncludeSRID(with_srid);
-                writer.writeHEX(*(m_mp->get_geometry()), out);
+                writer.writeHEX(*(m_area->get_geometry()), out);
                 return out;
             }
 
@@ -146,7 +146,7 @@ namespace Osmium {
 
             v8::Handle<v8::Value> js_to_array(const v8::Arguments& /*args*/) {
                 v8::HandleScope scope;
-                geos::geom::Geometry* geometry = m_mp->get_geometry();
+                geos::geom::Geometry* geometry = m_area->get_geometry();
 
                 if (geometry->getGeometryTypeId() == geos::geom::GEOS_MULTIPOLYGON) {
                     v8::Local<v8::Array> multipolygon_array = v8::Array::New(geometry->getNumGeometries());
@@ -162,14 +162,14 @@ namespace Osmium {
                     }
                     return scope.Close(multipolygon_array);
                 } else if (geometry->getGeometryTypeId() == geos::geom::GEOS_LINESTRING) {
-                    const Osmium::OSM::MultipolygonFromWay* mpfw = dynamic_cast<const Osmium::OSM::MultipolygonFromWay*>(m_mp);
-                    if (mpfw) {
+                    const Osmium::OSM::AreaFromWay* area_from_way = dynamic_cast<const Osmium::OSM::AreaFromWay*>(m_area);
+                    if (area_from_way) {
                         v8::Local<v8::Array> polygon = v8::Array::New(1);
-                        v8::Local<v8::Array> ring = v8::Array::New(mpfw->num_nodes);
-                        for (osm_sequence_id_t i=0; i < mpfw->num_nodes; ++i) {
+                        v8::Local<v8::Array> ring = v8::Array::New(area_from_way->num_nodes);
+                        for (osm_sequence_id_t i=0; i < area_from_way->num_nodes; ++i) {
                             v8::Local<v8::Array> coord = v8::Array::New(2);
-                            coord->Set(0, v8::Number::New(mpfw->lon[i]));
-                            coord->Set(1, v8::Number::New(mpfw->lat[i]));
+                            coord->Set(0, v8::Number::New(area_from_way->lon[i]));
+                            coord->Set(1, v8::Number::New(area_from_way->lat[i]));
                             ring->Set(i, coord);
                         }
                         polygon->Set(0, ring);
@@ -192,7 +192,7 @@ namespace Osmium {
 
         private:
 
-            const Osmium::OSM::Multipolygon* m_mp;
+            const Osmium::OSM::Area* m_area;
 
         }; // class MultiPolygon
 
@@ -201,7 +201,7 @@ namespace Osmium {
 } // namespace Osmium
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
-v8::Handle<v8::Value> Osmium::OSM::Multipolygon::js_geom() const {
+v8::Handle<v8::Value> Osmium::OSM::Area::js_geom() const {
     if (get_geometry()) {
         Osmium::Geometry::MultiPolygon* geom = new Osmium::Geometry::MultiPolygon(*this);
         return Osmium::Javascript::Template::get<Osmium::Geometry::MultiPolygon::JavascriptTemplate>().create_persistent_instance<Osmium::Geometry::MultiPolygon>(geom);

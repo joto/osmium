@@ -220,7 +220,7 @@ Osmium.Callbacks.way = function() {
     check('way', this);
 }
 
-Osmium.Callbacks.multipolygon = function() {
+Osmium.Callbacks.area = function() {
     check('area', this);
 }
 

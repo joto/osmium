@@ -9,22 +9,22 @@
 #include <osmium/handler/multipolygon.hpp>
 
 #ifdef OSMIUM_WITH_MULTIPOLYGON_PROFILING
-std::vector<std::pair<std::string, timer *> > Osmium::OSM::MultipolygonFromRelation::timers;
+std::vector<std::pair<std::string, timer *> > Osmium::OSM::AreaFromRelation::timers;
 
-timer Osmium::OSM::MultipolygonFromRelation::write_complex_poly_timer;
-timer Osmium::OSM::MultipolygonFromRelation::assemble_ways_timer;
-timer Osmium::OSM::MultipolygonFromRelation::assemble_nodes_timer;
-timer Osmium::OSM::MultipolygonFromRelation::make_one_ring_timer;
-timer Osmium::OSM::MultipolygonFromRelation::mor_polygonizer_timer;
-timer Osmium::OSM::MultipolygonFromRelation::mor_union_timer;
-timer Osmium::OSM::MultipolygonFromRelation::contains_timer;
-timer Osmium::OSM::MultipolygonFromRelation::extra_polygons_timer;
-timer Osmium::OSM::MultipolygonFromRelation::polygon_build_timer;
-timer Osmium::OSM::MultipolygonFromRelation::inner_ring_touch_timer;
-timer Osmium::OSM::MultipolygonFromRelation::polygon_intersection_timer;
-timer Osmium::OSM::MultipolygonFromRelation::multipolygon_build_timer;
-timer Osmium::OSM::MultipolygonFromRelation::multipolygon_write_timer;
-timer Osmium::OSM::MultipolygonFromRelation::error_write_timer;
+timer Osmium::OSM::AreaFromRelation::write_complex_poly_timer;
+timer Osmium::OSM::AreaFromRelation::assemble_ways_timer;
+timer Osmium::OSM::AreaFromRelation::assemble_nodes_timer;
+timer Osmium::OSM::AreaFromRelation::make_one_ring_timer;
+timer Osmium::OSM::AreaFromRelation::mor_polygonizer_timer;
+timer Osmium::OSM::AreaFromRelation::mor_union_timer;
+timer Osmium::OSM::AreaFromRelation::contains_timer;
+timer Osmium::OSM::AreaFromRelation::extra_polygons_timer;
+timer Osmium::OSM::AreaFromRelation::polygon_build_timer;
+timer Osmium::OSM::AreaFromRelation::inner_ring_touch_timer;
+timer Osmium::OSM::AreaFromRelation::polygon_intersection_timer;
+timer Osmium::OSM::AreaFromRelation::multipolygon_build_timer;
+timer Osmium::OSM::AreaFromRelation::multipolygon_write_timer;
+timer Osmium::OSM::AreaFromRelation::error_write_timer;
 #endif // OSMIUM_WITH_MULTIPOLYGON_PROFILING
 
 typedef Osmium::Storage::ById<Osmium::OSM::Position> storage_byid_t;
@@ -223,8 +223,8 @@ std::string find_include_file(std::string filename) {
 
 Osmium::Handler::Javascript* handler_javascript;
 
-void cbmp(Osmium::OSM::Multipolygon* multipolygon) {
-    handler_javascript->callback_multipolygon(multipolygon);
+void cbmp(Osmium::OSM::Area* area) {
+    handler_javascript->callback_area(area);
 }
 
 int main(int argc, char *argv[]) {

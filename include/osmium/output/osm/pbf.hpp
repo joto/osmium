@@ -707,7 +707,7 @@ namespace Osmium {
                 /**
                  * Create PBF output object from OSMFile.
                  */
-                PBF(OSMFile& file) : Base(file),
+                PBF(Osmium::OSMFile& file) : Base(file),
                     pbf_nodes(NULL),
                     pbf_ways(NULL),
                     pbf_relations(NULL),
@@ -831,7 +831,7 @@ namespace Osmium {
 
                     // when the resulting file will carry history information, add
                     // HistoricalInformation as required feature
-                    if (m_file.get_type() == OSMFile::FileType::History()) {
+                    if (m_file.get_type() == Osmium::OSMFile::FileType::History()) {
                         pbf_header_block.add_required_features("HistoricalInformation");
                     }
 

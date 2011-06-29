@@ -41,6 +41,6 @@ namespace Osmium {
 #include <osmium/osm/relation_member.hpp>
 #include <osmium/osm/relation_member_list.hpp>
 #include <osmium/osm/relation.hpp>
-#include <osmium/osm/multipolygon.hpp>
+#include <osmium/osm/area.hpp>
 
 #endif // OSMIUM_OSM_HPP

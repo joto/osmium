@@ -38,7 +38,7 @@ namespace Osmium {
 
                 xmlTextWriterPtr xml_writer;
 
-                void write_meta(Osmium::OSM::Object *object) {
+                void write_meta(Osmium::OSM::Object* object) {
                     xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "id",        "%d", object->get_id());
                     xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "version",   "%d", object->get_version());
                     xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "changeset", "%d", object->get_changeset());
@@ -50,12 +50,12 @@ namespace Osmium {
                         xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "user", BAD_CAST object->get_user());
                     }
 
-                    if (m_file.get_type() == OSMFile::FileType::History()) {
+                    if (m_file.get_type() == Osmium::OSMFile::FileType::History()) {
                         xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "visible", object->get_visible() ? BAD_CAST "true" : BAD_CAST "false");
                     }
                 }
 
-                void write_tags(Osmium::OSM::Object *object) {
+                void write_tags(Osmium::OSM::Object* object) {
                     for (int i=0, l = object->tag_count(); i < l; i++) {
                         xmlTextWriterStartElement(xml_writer, BAD_CAST "tag"); // <tag>
                         xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "k", BAD_CAST object->get_tag_key(i));
@@ -66,7 +66,7 @@ namespace Osmium {
 
             public:
 
-                XML(OSMFile& file) : Base(file) {
+                XML(Osmium::OSMFile& file) : Base(file) {
                     xml_writer = xmlNewTextWriter(xmlOutputBufferCreateFd(this->get_fd(), NULL));
                 }
 

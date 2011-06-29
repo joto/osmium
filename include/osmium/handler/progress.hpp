@@ -90,19 +90,19 @@ namespace Osmium {
                 }
             }
 
-            void callback_node(const OSM::Node * /*object*/) {
+            void callback_node(const Osmium::OSM::Node* /*object*/) {
                 if (is_a_tty && ++count_nodes % step == 0) {
                     update_display();
                 }
             }
 
-            void callback_way(const OSM::Way * /*object*/) {
+            void callback_way(const Osmium::OSM::Way* /*object*/) {
                 if (is_a_tty && ++count_ways % step == 0) {
                     update_display();
                 }
             }
 
-            void callback_relation(OSM::Relation * /*object*/) {
+            void callback_relation(const Osmium::OSM::Relation* /*object*/) {
                 if (is_a_tty && ++count_relations % step == 0) {
                     update_display();
                 }

@@ -1,5 +1,5 @@
-#ifndef OSMIUM_OSM_MULTIPOLYGON_HPP
-#define OSMIUM_OSM_MULTIPOLYGON_HPP
+#ifndef OSMIUM_OSM_AREA_HPP
+#define OSMIUM_OSM_AREA_HPP
 
 /*
 
@@ -85,7 +85,7 @@ namespace Osmium {
 #ifdef OSMIUM_WITH_GEOS
         class WayInfo {
 
-            friend class MultipolygonFromRelation;
+            friend class AreaFromRelation;
 
             Osmium::OSM::Way *way;
             int used;
@@ -159,7 +159,7 @@ namespace Osmium {
 
         class RingInfo {
 
-            friend class MultipolygonFromRelation;
+            friend class AreaFromRelation;
 
             geos::geom::Polygon *polygon;
             direction_t direction;
@@ -179,24 +179,24 @@ namespace Osmium {
         };
 #endif // OSMIUM_WITH_GEOS
 
-        /// virtual parent class for MultipolygonFromWay and MultipolygonFromRelation
-        class Multipolygon : public Object {
+        /// virtual parent class for AreaFromWay and AreaFromRelation
+        class Area : public Object {
 
         protected:
 
 #ifdef OSMIUM_WITH_GEOS
             geos::geom::Geometry *geometry;
 
-            Multipolygon(geos::geom::Geometry *geom = NULL) : geometry(geom) {
+            Area(geos::geom::Geometry *geom = NULL) : geometry(geom) {
 #else
-            Multipolygon() {
+            Area() {
 #endif // OSMIUM_WITH_GEOS
 # ifdef OSMIUM_WITH_JAVASCRIPT
                 js_object_instance = JavascriptTemplate::get<JavascriptTemplate>().create_instance(this);
 # endif // OSMIUM_WITH_JAVASCRIPT
             }
 
-            ~Multipolygon() {
+            ~Area() {
 #ifdef OSMIUM_WITH_GEOS
                 delete(geometry);
 #endif // OSMIUM_WITH_GEOS
@@ -221,23 +221,22 @@ namespace Osmium {
             struct JavascriptTemplate : public Osmium::OSM::Object::JavascriptTemplate {
 
                 JavascriptTemplate() : Osmium::OSM::Object::JavascriptTemplate() {
-                    js_template->SetAccessor(v8::String::NewSymbol("from"), accessor_getter<Multipolygon, &Multipolygon::js_from>);
-                    js_template->SetAccessor(v8::String::NewSymbol("geom"), accessor_getter<Multipolygon, &Multipolygon::js_geom>);
+                    js_template->SetAccessor(v8::String::NewSymbol("from"), accessor_getter<Area, &Area::js_from>);
+                    js_template->SetAccessor(v8::String::NewSymbol("geom"), accessor_getter<Area, &Area::js_geom>);
                 }
 
             };
 
 #endif // OSMIUM_WITH_JAVASCRIPT
 
-        }; // class Multipolygon
+        }; // class Area
 
         /***
-        * Multipolygon created from a way (so strictly speaking this will
-        * always be a simple polygon).
+        * Area created from a way.
         * The way pointer given to the constructor will not be stored, all
         * needed attributes are copied.
         */
-        class MultipolygonFromWay : public Multipolygon {
+        class AreaFromWay : public Area {
 
         public:
 
@@ -246,9 +245,9 @@ namespace Osmium {
             double           *lat;
 
 #ifdef OSMIUM_WITH_GEOS
-            MultipolygonFromWay(Way *way, geos::geom::Geometry *geom) : Multipolygon(geom) {
+            AreaFromWay(Way *way, geos::geom::Geometry *geom) : Area(geom) {
 #else
-            MultipolygonFromWay(Way *way) : Multipolygon() {
+            AreaFromWay(Way *way) : Area() {
 #endif // OSMIUM_WITH_GEOS
                 set_id(way->get_id());
                 set_version(way->get_version());
@@ -271,7 +270,7 @@ namespace Osmium {
                 }
             }
 
-            ~MultipolygonFromWay() {
+            ~AreaFromWay() {
                 free(lat);
                 free(lon);
             }
@@ -280,31 +279,31 @@ namespace Osmium {
                 return MULTIPOLYGON_FROM_WAY;
             }
 
-        }; // class MultipolygonFromWay
+        }; // class AreaFromWay
 
         /***
-        * multipolygon created from a relation with tag type=multipolygon or type=boundary
+        * Area created from a relation with tag type=multipolygon or type=boundary
         */
-        class MultipolygonFromRelation : public Multipolygon {
+        class AreaFromRelation : public Area {
 
-            bool boundary; ///< was this multipolygon created from relation with tag type=boundary?
+            bool boundary; ///< was this area created from relation with tag type=boundary?
 
-            /// the relation this multipolygon was build from
+            /// the relation this area was build from
             Relation *relation;
 
-            /// the member ways of this multipolygon
+            /// the member ways of this area
             std::vector<Osmium::OSM::Way> member_ways;
 
-            /// number of ways in this multipolygon
+            /// number of ways in this area
             int num_ways;
 
-            /// how many ways are missing before we can build this multipolygon
+            /// how many ways are missing before we can build the multipolygon
             int missing_ways;
 
             std::string geometry_error_message;
 
             /// callback we should call when a multipolygon was completed
-            void (*callback)(Osmium::OSM::Multipolygon *);
+            void (*callback)(Osmium::OSM::Area *);
 
             /// whether we want to repair a broken geometry
             bool attempt_repair;
@@ -366,7 +365,7 @@ namespace Osmium {
 
         public:
 
-            MultipolygonFromRelation(Relation *r, bool b, int n, void (*callback)(Osmium::OSM::Multipolygon *), bool repair) : Multipolygon(), boundary(b), relation(r), callback(callback) {
+            AreaFromRelation(Relation *r, bool b, int n, void (*callback)(Osmium::OSM::Area *), bool repair) : Area(), boundary(b), relation(r), callback(callback) {
                 num_ways = n;
                 missing_ways = n;
 #ifdef OSMIUM_WITH_GEOS
@@ -416,7 +415,7 @@ namespace Osmium {
             }
 #endif // OSMIUM_WITH_MULTIPOLYGON_PROFILING
 
-            ~MultipolygonFromRelation() {
+            ~AreaFromRelation() {
                 delete relation;
                 member_ways.erase(member_ways.begin(), member_ways.end());
             }
@@ -431,7 +430,7 @@ namespace Osmium {
                 missing_ways--;
             }
 
-            /// Do we have all the ways we need to build this multipolygon?
+            /// Do we have all the ways we need to build the multipolygon?
             bool is_complete() {
                 return missing_ways == 0;
             }
@@ -929,11 +928,11 @@ namespace Osmium {
                                 // warning
                                 // warnings.insert("duplicate_tags_on_inner");
                             } else {
-                                Osmium::OSM::MultipolygonFromWay *internal_mp =
-                                    new Osmium::OSM::MultipolygonFromWay(ringlist[i]->ways[0]->way, special_mp);
+                                Osmium::OSM::AreaFromWay *internal_mp =
+                                    new Osmium::OSM::AreaFromWay(ringlist[i]->ways[0]->way, special_mp);
                                 callback(internal_mp);
                                 delete internal_mp;
-                                // MultipolygonFromWay destructor deletes the
+                                // AreaFromWay destructor deletes the
                                 // geometry, so avoid to delete it again.
                                 special_mp = NULL;
                             }
@@ -1061,7 +1060,7 @@ namespace Osmium {
                                 // warning: inner/outer mismatch
                             }
                         }
-                        // copy tags from relation into multipolygon
+                        // copy tags from relation into area
                         m_tags = relation->tags();
                     }
                     // later delete ringlist[i];
@@ -1102,10 +1101,10 @@ namespace Osmium {
 
 #endif // OSMIUM_WITH_GEOS
 
-        }; // class MultipolygonFromRelation
+        }; // class AreaFromRelation
 
     } // namespace OSM
 
 } // namespace Osmium
 
-#endif // OSMIUM_OSM_MULTIPOLYGON_HPP
+#endif // OSMIUM_OSM_AREA_HPP

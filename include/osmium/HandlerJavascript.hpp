@@ -89,7 +89,7 @@ namespace Osmium {
                 v8::Handle<v8::Function> node;
                 v8::Handle<v8::Function> way;
                 v8::Handle<v8::Function> relation;
-                v8::Handle<v8::Function> multipolygon;
+                v8::Handle<v8::Function> area;
                 v8::Handle<v8::Function> end;
             } cb;
 
@@ -248,9 +248,9 @@ namespace Osmium {
                 if (cc->IsFunction()) {
                     cb.relation = v8::Handle<v8::Function>::Cast(cc);
                 }
-                cc = callbacks_object->Get(v8::String::NewSymbol("multipolygon"));
+                cc = callbacks_object->Get(v8::String::NewSymbol("area"));
                 if (cc->IsFunction()) {
-                    cb.multipolygon = v8::Handle<v8::Function>::Cast(cc);
+                    cb.area = v8::Handle<v8::Function>::Cast(cc);
                 }
                 cc = callbacks_object->Get(v8::String::NewSymbol("end"));
                 if (cc->IsFunction()) {
@@ -268,7 +268,7 @@ namespace Osmium {
                 }
             }
 
-            void callback_node(OSM::Node *object) {
+            void callback_node(Osmium::OSM::Node *object) {
                 if (!cb.node.IsEmpty()) {
                     (void) cb.node->Call(object->get_instance(), 0, 0);
                 }
@@ -277,7 +277,7 @@ namespace Osmium {
 #endif // OSMIUM_V8_FORCE_GC
             }
 
-            void callback_way(OSM::Way *object) {
+            void callback_way(Osmium::OSM::Way *object) {
                 if (!cb.way.IsEmpty()) {
                     (void) cb.way->Call(object->get_instance(), 0, 0);
                 }
@@ -286,7 +286,7 @@ namespace Osmium {
 #endif // OSMIUM_V8_FORCE_GC
             }
 
-            void callback_relation(OSM::Relation *object) {
+            void callback_relation(Osmium::OSM::Relation *object) {
                 if (!cb.relation.IsEmpty()) {
                     (void) cb.relation->Call(object->get_instance(), 0, 0);
                 }
@@ -295,9 +295,9 @@ namespace Osmium {
 #endif // OSMIUM_V8_FORCE_GC
             }
 
-            void callback_multipolygon(OSM::Multipolygon *object) {
-                if (!cb.multipolygon.IsEmpty()) {
-                    (void) cb.multipolygon->Call(object->get_instance(), 0, 0);
+            void callback_area(Osmium::OSM::Area *object) {
+                if (!cb.area.IsEmpty()) {
+                    (void) cb.area->Call(object->get_instance(), 0, 0);
                 }
             }
 

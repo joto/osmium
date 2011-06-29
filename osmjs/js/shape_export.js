@@ -60,7 +60,7 @@ Osmium.Callbacks.way = function() {
     }
 }
 
-Osmium.Callbacks.multipolygon = function() {
+Osmium.Callbacks.area = function() {
     if (this.tags.landuse) {
         shp_landuse.add(this.geom, { id: this.id, type: this.tags.landuse });
     }

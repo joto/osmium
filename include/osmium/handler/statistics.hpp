@@ -76,7 +76,7 @@ namespace Osmium {
                 }
             }
 
-            void callback_node(const OSM::Node *node) {
+            void callback_node(const Osmium::OSM::Node* node) {
                 update_common_stats(node);
                 m_stats.nodes++;
                 if (m_tag_count == 0) {
@@ -95,7 +95,7 @@ namespace Osmium {
                 m_stats.sum_node_version += m_version;
             }
 
-            void callback_way(const OSM::Way *way) {
+            void callback_way(const Osmium::OSM::Way* way) {
                 update_common_stats(way);
                 m_stats.ways++;
                 if (way->is_closed()) {
@@ -118,7 +118,7 @@ namespace Osmium {
                 m_stats.sum_way_version += m_version;
             }
 
-            void callback_relation(const OSM::Relation *relation) {
+            void callback_relation(const Osmium::OSM::Relation* relation) {
                 update_common_stats(relation);
                 m_stats.relations++;
                 if (m_id > (int64_t) m_stats.max_relation_id) {
@@ -212,7 +212,7 @@ namespace Osmium {
             osm_version_t   m_version;
             int             m_tag_count;
 
-            void update_common_stats(const OSM::Object *object) {
+            void update_common_stats(const Osmium::OSM::Object* object) {
                 m_id        = object->get_id();
                 m_version   = object->get_version();
                 m_tag_count = object->tag_count();
