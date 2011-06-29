@@ -40,7 +40,7 @@ namespace Osmium {
 
         public:
 
-            MultiPolygon(const Osmium::OSM::Area& area) : m_area(&area) {
+            MultiPolygon(const Osmium::OSM::Area& area) : Geometry(area.get_id()), m_area(&area) {
             }
 
 #ifdef OSMIUM_WITH_GEOS

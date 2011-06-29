@@ -30,6 +30,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #endif // OSMIUM_WITH_GEOS
 
 #include <osmium/exceptions.hpp>
+#include <osmium/osm/types.hpp>
 
 namespace Osmium {
 
@@ -126,7 +127,14 @@ namespace Osmium {
 
         public:
 
+            Geometry(osm_object_id_t id=0) : m_id(id) {
+            }
+
             virtual ~Geometry() {
+            }
+
+            osm_object_id_t id() const {
+                return m_id;
             }
 
             // These types are never instantiated, they are used in the write_to_stream()
@@ -262,6 +270,10 @@ namespace Osmium {
 
             };
 #endif // OSMIUM_WITH_JAVASCRIPT
+
+        private:
+
+            osm_object_id_t m_id;
 
         }; // class Geometry
 

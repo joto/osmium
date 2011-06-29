@@ -45,8 +45,9 @@ namespace Osmium {
              * Create LineString geometry from a list of nodes.
              */
             LineString(const Osmium::OSM::WayNodeList& way_node_list, ///< Way node list this geometry should be created from
-                       bool reverse=false)                            ///< Create reverse geometry
-                : FromWay(way_node_list, reverse) {
+                       bool reverse=false,                            ///< Create reverse geometry
+                       osm_object_id_t id=0)                          ///< Object ID of the way this geometry was created from
+                : FromWay(way_node_list, reverse, id) {
             }
 
             /**
@@ -54,7 +55,7 @@ namespace Osmium {
              */
             LineString(const Osmium::OSM::Way& way, ///< Way this geometry should be created from
                        bool reverse=false)          ///< Create reverse geometry
-                : FromWay(way.way_node_list(), reverse) {
+                : FromWay(way.way_node_list(), reverse, way.get_id()) {
             }
 
             std::ostream& write_to_stream(std::ostream& out, AsWKT, bool with_srid=false) const {

@@ -36,7 +36,9 @@ namespace Osmium {
 
         public:
 
-            Polygon(const Osmium::OSM::Way& way) : FromWay(way) {
+            Polygon(const Osmium::OSM::Way& way,
+                    bool reverse=false)
+                : FromWay(way.way_node_list(), reverse, way->get_id()) {
             }
 
 #ifdef  OSMIUM_WITH_SHPLIB

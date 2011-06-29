@@ -46,14 +46,15 @@ namespace Osmium {
             /**
              * Create point geometry from a position.
              */
-            Point(Osmium::OSM::Position& position) : Geometry(), m_position(position) {
+            Point(Osmium::OSM::Position& position, osm_object_id_t id=0) : Geometry(id), m_position(position) {
             }
 
             /**
              * Create point geometry from position of a node.
              */
-            Point(const Osmium::OSM::Node& node) : Geometry() { //, m_position(node.position()) {
-                m_position = Osmium::OSM::Position(node.get_lon(), node.get_lat());
+            Point(const Osmium::OSM::Node& node)
+                : Geometry(node.get_id()),
+                  m_position(Osmium::OSM::Position(node.get_lon(), node.get_lat())) {
             }
 
             double lon() const {

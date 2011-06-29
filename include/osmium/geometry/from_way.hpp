@@ -39,17 +39,14 @@ namespace Osmium {
         public:
 
             FromWay(const Osmium::OSM::WayNodeList& way_node_list,
-                    bool reverse=false)
-                : Geometry(),
+                    bool reverse=false,
+                    osm_object_id_t id=0)
+                : Geometry(id),
                   m_way_node_list(&way_node_list),
                   m_reverse(reverse) {
             }
 
 #ifdef OSMIUM_WITH_SHPLIB
-            char get_id() const { // XXX
-                return 'X';
-            }
-
             /**
             * Create a SHPObject for this way and return it. You have to call
             * SHPDestroyObject() with this object when you are done.
@@ -61,7 +58,7 @@ namespace Osmium {
                 int size = m_way_node_list->size();
                 if (size == 0 || size == 1) {
                     if (Osmium::debug()) {
-                        std::cerr << "error building way geometry for way " << get_id() << ": must at least contain two nodes" << std::endl;
+                        std::cerr << "error building way geometry for way " << id() << ": must at least contain two nodes" << std::endl;
                     }
                     throw Osmium::Exception::IllegalGeometry();
                 }
@@ -76,9 +73,13 @@ namespace Osmium {
 
                 for (int i=1; i < size; i++) {
                     if ((*m_way_node_list)[i] == (*m_way_node_list)[i-1]) {
-                        if (Osmium::debug()) std::cerr << "warning building way geometry for way " << get_id() << ": contains node " << (*m_way_node_list)[i].ref() << " twice" << std::endl;
+                        if (Osmium::debug()) {
+                            std::cerr << "warning building way geometry for way " << id() << ": contains node " << (*m_way_node_list)[i].ref() << " twice" << std::endl;
+                        }
                     } else if ((*m_way_node_list)[i].position() == (*m_way_node_list)[i-1].position()) {
-                        if (Osmium::debug()) std::cerr << "warning building way geometry for way " << get_id() << ": contains position " << (*m_way_node_list)[i].position() << " twice" << std::endl;
+                        if (Osmium::debug()) {
+                            std::cerr << "warning building way geometry for way " << id() << ": contains position " << (*m_way_node_list)[i].position() << " twice" << std::endl;
+                        }
                     } else {
                         lon_checked.push_back((*m_way_node_list)[i].position().lon());
                         lat_checked.push_back((*m_way_node_list)[i].position().lat());
@@ -86,7 +87,7 @@ namespace Osmium {
                 }
                 if (lon_checked.size() == 1) {
                     if (Osmium::debug()) {
-                        std::cerr << "error building way geometry for way " << get_id() << ": must at least contain two different points" << std::endl;
+                        std::cerr << "error building way geometry for way " << id() << ": must at least contain two different points" << std::endl;
                     }
                     throw Osmium::Exception::IllegalGeometry();
                 }
