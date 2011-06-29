@@ -849,7 +849,7 @@ namespace Osmium {
                     for (unsigned int j=0; j<ringlist.size(); j++) {
                         if (i==j) continue;
                         if (contains[j][i]) continue;
-                        contains[i][j] = pp->containsProperly(ringlist[j]->polygon);
+                        contains[i][j] = pp->contains(ringlist[j]->polygon);
                         contained_by_even_number[j] ^= contains[i][j];
                     }
                     delete pp;
