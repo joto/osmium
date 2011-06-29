@@ -207,6 +207,9 @@ namespace Osmium {
                     throw Osmium::Exception::IllegalGeometry();
                 }
                 m_current_shape = SHPWriteObject(m_shp_handle, -1, shp_object);
+                if (m_current_shape == -1) {
+                    throw std::runtime_error("error writing to shapefile. too large?");
+                }
                 SHPDestroyObject(shp_object);
             }
 
