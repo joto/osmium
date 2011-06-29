@@ -21,7 +21,7 @@ check:
 	cppcheck --enable=all -I include */*.cpp test/*/test_*.cpp
 
 indent:
-	astyle --style=java --indent-namespaces --indent-switches --pad-header --suffix=none --recursive include/\*.hpp examples/\*.cpp examples/\*.hpp osmjs/\*.cpp test/\*/\*.cpp
+	astyle --style=java --indent-namespaces --indent-switches --pad-header --suffix=none --recursive include/\*.hpp examples/\*.cpp examples/\*.hpp osmjs/\*.cpp test/\*.cpp
 
 doc: doc/html/files.html
 

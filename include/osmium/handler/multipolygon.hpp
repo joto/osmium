@@ -50,12 +50,12 @@ namespace Osmium {
 
             Multipolygon(bool attempt_repair,
                          void (*callback_area)(Osmium::OSM::Area*))
-                       : Base(),
-                         m_areas(),
-                         m_way2areaidx(),
-                         m_attempt_repair(attempt_repair),
-                         m_callback_area(callback_area),
-                         m_count_ways_in_all_areas(0) {
+                : Base(),
+                  m_areas(),
+                  m_way2areaidx(),
+                  m_attempt_repair(attempt_repair),
+                  m_callback_area(callback_area),
+                  m_count_ways_in_all_areas(0) {
             }
 
             // in pass 1
