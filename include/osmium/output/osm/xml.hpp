@@ -99,8 +99,9 @@ namespace Osmium {
 
                     write_meta(node);
 
-                    xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "lon", "%.7f", node->get_lon());
-                    xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "lat", "%.7f", node->get_lat());
+                    const Osmium::OSM::Position position = node->position();
+                    xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "lon", "%.7f", position.lon());
+                    xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "lat", "%.7f", position.lat());
 
                     write_tags(node->tags());
 
@@ -112,9 +113,9 @@ namespace Osmium {
 
                     write_meta(way);
 
-                    for (int i=0, l=way->node_count(); i < l; i++) {
+                    for (Osmium::OSM::WayNodeList::const_iterator it = way->nodes().begin(); it != way->nodes().end(); ++it) {
                         xmlTextWriterStartElement(xml_writer, BAD_CAST "nd"); // <nd>
-                        xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "ref", "%d", way->get_node_id(i));
+                        xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "ref", "%d", it->ref());
                         xmlTextWriterEndElement(xml_writer); // </nd>
                     }
 
@@ -128,12 +129,10 @@ namespace Osmium {
 
                     write_meta(relation);
 
-                    for (int i=0, l=relation->members().size(); i < l; i++) {
-                        const Osmium::OSM::RelationMember *mem = relation->get_member(i);
-
+                    for (Osmium::OSM::RelationMemberList::const_iterator it = relation->members().begin(); it != relation->members().end(); ++it) {
                         xmlTextWriterStartElement(xml_writer, BAD_CAST "member"); // <member>
 
-                        switch (mem->get_type()) {
+                        switch (it->get_type()) {
                             case 'n':
                                 xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "type", BAD_CAST "node");
                                 break;
@@ -144,8 +143,8 @@ namespace Osmium {
                                 xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "type", BAD_CAST "relation");
                                 break;
                         }
-                        xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "ref", "%d", mem->get_ref());
-                        xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "role", BAD_CAST mem->get_role());
+                        xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "ref", "%d", it->get_ref());
+                        xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "role", BAD_CAST it->get_role());
 
                         xmlTextWriterEndElement(xml_writer); // </member>
                     }

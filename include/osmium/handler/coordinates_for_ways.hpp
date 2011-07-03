@@ -47,7 +47,7 @@ namespace Osmium {
             /**
              * Store the location of the node in the storage.
              */
-            void node(const Osmium::OSM::Node *node) {
+            void node(const Osmium::OSM::Node* node) {
                 int64_t id = node->get_id();
                 if (id >= 0) {
                     m_storage_pos.set( id, node->position());
@@ -70,8 +70,8 @@ namespace Osmium {
              * Retrieve locations of all nodes in the way from storage and add
              * them to the way object.
              */
-            void way(Osmium::OSM::Way *way) {
-                for (Osmium::OSM::WayNodeList::iterator it = way->way_node_list().begin(); it != way->way_node_list().end(); ++it) {
+            void way(Osmium::OSM::Way* way) {
+                for (Osmium::OSM::WayNodeList::iterator it = way->nodes().begin(); it != way->nodes().end(); ++it) {
                     const int64_t id = it->ref();
                     it->position(id >= 0 ? m_storage_pos[id] : m_storage_neg[-id]);
                 }

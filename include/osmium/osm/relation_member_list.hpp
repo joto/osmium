@@ -51,6 +51,25 @@ namespace Osmium {
                 return m_list[i];
             }
 
+            typedef std::vector<RelationMember>::iterator iterator;
+            typedef std::vector<RelationMember>::const_iterator const_iterator;
+
+            iterator begin() {
+                return m_list.begin();
+            }
+
+            const_iterator begin() const {
+                return m_list.begin();
+            }
+
+            iterator end() {
+                return m_list.end();
+            }
+
+            const_iterator end() const {
+                return m_list.end();
+            }
+
             void add_member(const char type, osm_object_id_t ref, const char *role) {
                 /* first we resize the vector... */
                 m_list.resize(m_list.size()+1);
