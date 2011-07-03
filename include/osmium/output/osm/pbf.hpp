@@ -816,7 +816,7 @@ namespace Osmium {
                  * This initializes the header-block, sets the required-features and
                  * the writing-program and adds the obligatory StringTable-Index 0.
                  */
-                void write_init() {
+                void init() {
                     if (Osmium::debug()) {
                         std::cerr << "pbf write init" << std::endl;
                     }
@@ -870,7 +870,7 @@ namespace Osmium {
                  * cache it for later bulk-writing. Calling write_final ensures that everything
                  * gets written and every file pointer is closed.
                  */
-                void write(Osmium::OSM::Node *node) {
+                void node(Osmium::OSM::Node* node) {
                     // first of we check the contents-counter which may flush the cached nodes to
                     // disk if the limit is reached. This call also increases the contents-counter
                     check_block_contents_counter();
@@ -898,7 +898,7 @@ namespace Osmium {
                  * cache it for later bulk-writing. Calling write_final ensures that everything
                  * gets written and every file pointer is closed.
                  */
-                void write(Osmium::OSM::Way *way) {
+                void way(Osmium::OSM::Way* way) {
                     // first of we check the contents-counter which may flush the cached nodes to
                     // disk if the limit is reached. This call also increases the contents-counter
                     check_block_contents_counter();
@@ -922,7 +922,7 @@ namespace Osmium {
                  * cache it for later bulk-writing. Calling write_final ensures that everything
                  * gets written and every file pointer is closed.
                  */
-                void write(Osmium::OSM::Relation *relation) {
+                void relation(Osmium::OSM::Relation* relation) {
                     // first of we check the contents-counter which may flush the cached nodes to
                     // disk if the limit is reached. This call also increases the contents-counter
                     check_block_contents_counter();
@@ -943,7 +943,7 @@ namespace Osmium {
                  * Finalize the writing process, flush any open primitive blocks to the file and
                  * close the file.
                  */
-                void write_final() {
+                void final() {
                     if (Osmium::debug()) {
                         std::cerr << "finishing" << std::endl;
                     }

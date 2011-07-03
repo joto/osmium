@@ -73,7 +73,7 @@ namespace Osmium {
                 ~XML() {
                 }
 
-                void write_init() {
+                void init() {
                     xmlTextWriterSetIndent(xml_writer, 1);
                     xmlTextWriterSetIndentString(xml_writer, BAD_CAST "  ");
                     xmlTextWriterStartDocument(xml_writer, NULL, "utf-8", NULL); // <?xml .. ?>
@@ -94,7 +94,7 @@ namespace Osmium {
                     xmlTextWriterEndElement(xml_writer); // </bounds>
                 }
 
-                void write(Osmium::OSM::Node* node) {
+                void node(Osmium::OSM::Node* node) {
                     xmlTextWriterStartElement(xml_writer, BAD_CAST "node"); // <node>
 
                     write_meta(node);
@@ -107,7 +107,7 @@ namespace Osmium {
                     xmlTextWriterEndElement(xml_writer); // </node>
                 }
 
-                void write(Osmium::OSM::Way* way) {
+                void way(Osmium::OSM::Way* way) {
                     xmlTextWriterStartElement(xml_writer, BAD_CAST "way"); // <way>
 
                     write_meta(way);
@@ -123,7 +123,7 @@ namespace Osmium {
                     xmlTextWriterEndElement(xml_writer); // </way>
                 }
 
-                void write(Osmium::OSM::Relation* relation) {
+                void relation(Osmium::OSM::Relation* relation) {
                     xmlTextWriterStartElement(xml_writer, BAD_CAST "relation"); // <relation>
 
                     write_meta(relation);
@@ -155,7 +155,7 @@ namespace Osmium {
                     xmlTextWriterEndElement(xml_writer); // </relation>
                 }
 
-                void write_final() {
+                void final() {
                     xmlTextWriterEndElement(xml_writer); // </osm>
                     xmlFreeTextWriter(xml_writer);
                     m_file.close();

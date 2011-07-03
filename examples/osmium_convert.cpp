@@ -32,9 +32,9 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 class ConvertHandler : public Osmium::Handler::Base {
 
-    Osmium::OSMFile *m_outfile;
+    Osmium::OSMFile* m_outfile;
 
-    Osmium::Output::OSM::Base *output;
+    Osmium::Output::OSM::Base* output;
 
 public:
 
@@ -47,23 +47,23 @@ public:
 
     void init() {
         output = m_outfile->create_output_file();
-        output->write_init();
+        output->init();
     }
 
-    void node(Osmium::OSM::Node *node) {
-        output->write(node);
+    void node(Osmium::OSM::Node* node) {
+        output->node(node);
     }
 
-    void way(Osmium::OSM::Way *way) {
-        output->write(way);
+    void way(Osmium::OSM::Way* way) {
+        output->way(way);
     }
 
-    void relation(Osmium::OSM::Relation *relation) {
-        output->write(relation);
+    void relation(Osmium::OSM::Relation* relation) {
+        output->relation(relation);
     }
 
     void final() {
-        output->write_final();
+        output->final();
         delete output;
     }
 
