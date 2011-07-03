@@ -38,7 +38,7 @@ namespace Osmium {
 
                 xmlTextWriterPtr xml_writer;
 
-                void write_meta(Osmium::OSM::Object* object) {
+                void write_meta(const Osmium::OSM::Object* object) {
                     xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "id",        "%d", object->get_id());
                     xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "version",   "%d", object->get_version());
                     xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "changeset", "%d", object->get_changeset());
@@ -55,11 +55,11 @@ namespace Osmium {
                     }
                 }
 
-                void write_tags(Osmium::OSM::Object* object) {
-                    for (int i=0, l = object->tag_count(); i < l; i++) {
+                void write_tags(const Osmium::OSM::TagList& tags) {
+                    for (Osmium::OSM::TagList::const_iterator it = tags.begin(); it != tags.end(); ++it) {
                         xmlTextWriterStartElement(xml_writer, BAD_CAST "tag"); // <tag>
-                        xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "k", BAD_CAST object->get_tag_key(i));
-                        xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "v", BAD_CAST object->get_tag_value(i));
+                        xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "k", BAD_CAST it->key());
+                        xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "v", BAD_CAST it->value());
                         xmlTextWriterEndElement(xml_writer); // </tag>
                     }
                 }
@@ -102,7 +102,7 @@ namespace Osmium {
                     xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "lon", "%.7f", node->get_lon());
                     xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "lat", "%.7f", node->get_lat());
 
-                    write_tags(node);
+                    write_tags(node->tags());
 
                     xmlTextWriterEndElement(xml_writer); // </node>
                 }
@@ -118,7 +118,7 @@ namespace Osmium {
                         xmlTextWriterEndElement(xml_writer); // </nd>
                     }
 
-                    write_tags(way);
+                    write_tags(way->tags());
 
                     xmlTextWriterEndElement(xml_writer); // </way>
                 }
@@ -150,7 +150,7 @@ namespace Osmium {
                         xmlTextWriterEndElement(xml_writer); // </member>
                     }
 
-                    write_tags(relation);
+                    write_tags(relation->tags());
 
                     xmlTextWriterEndElement(xml_writer); // </relation>
                 }

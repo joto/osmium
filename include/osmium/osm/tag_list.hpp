@@ -55,6 +55,25 @@ namespace Osmium {
                 return m_tags[i];
             }
 
+            typedef std::vector<Tag>::iterator iterator;
+            typedef std::vector<Tag>::const_iterator const_iterator;
+
+            iterator begin() {
+                return m_tags.begin();
+            }
+
+            const_iterator begin() const {
+                return m_tags.begin();
+            }
+
+            iterator end() {
+                return m_tags.end();
+            }
+
+            const_iterator end() const {
+                return m_tags.end();
+            }
+
             void add(const char *key, const char *value) {
                 m_tags.push_back(Tag(key, value));
             }

@@ -465,7 +465,7 @@ namespace Osmium {
                  *
                  * pbf_object_t is either OSMPBF::Node, OSMPBF::Way or OSMPBF::Relation.
                  */
-                template <class pbf_object_t> void apply_common_info(Osmium::OSM::Object *in, pbf_object_t *out) {
+                template <class pbf_object_t> void apply_common_info(const Osmium::OSM::Object *in, pbf_object_t *out) {
                     // set the object-id
                     out->set_id(in->get_id());
 
@@ -573,7 +573,7 @@ namespace Osmium {
                  *
                  * @param node The node to add.
                  */
-                void write_node(Osmium::OSM::Node *node) {
+                void write_node(const Osmium::OSM::Node* node) {
                     OSMPBF::Node *pbf_node = pbf_nodes->add_nodes();
 
                     // copy the common meta-info from the osmium-object to the pbf-object
@@ -590,7 +590,7 @@ namespace Osmium {
                  *
                  * @param node The node to add.
                  */
-                void write_dense_node(Osmium::OSM::Node *node) {
+                void write_dense_node(const Osmium::OSM::Node* node) {
                     // add a DenseNodes-Section to the PrimitiveGroup
                     OSMPBF::DenseNodes *dense = pbf_nodes->mutable_dense();
 
@@ -642,7 +642,7 @@ namespace Osmium {
                  *
                  * @param way The way to add.
                  */
-                void write_way(Osmium::OSM::Way *way) {
+                void write_way(const Osmium::OSM::Way* way) {
                     // add a way to the group
                     OSMPBF::Way *pbf_way = pbf_ways->add_ways();
 
@@ -664,7 +664,7 @@ namespace Osmium {
                  *
                  * @param relation The relation to add.
                  */
-                void write_relation(Osmium::OSM::Relation *relation) {
+                void write_relation(const Osmium::OSM::Relation* relation) {
                     // add a relation to the group
                     OSMPBF::Relation *pbf_relation = pbf_relations->add_relations();
 
