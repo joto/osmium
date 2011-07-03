@@ -65,12 +65,12 @@ public:
         delete shapefile_point;
     }
 
-    void callback_init() {
-        handler_cfw->callback_init();
+    void init() {
+        handler_cfw->init();
     }
 
-    void callback_node(Osmium::OSM::Node *node) {
-        handler_cfw->callback_node(node);
+    void node(Osmium::OSM::Node *node) {
+        handler_cfw->node(node);
         const char *amenity = node->get_tag_by_key("amenity");
         if (amenity && !strcmp(amenity, "post_box")) {
             try {
@@ -87,12 +87,12 @@ public:
         }
     }
 
-    void callback_after_nodes() {
-        handler_cfw->callback_after_nodes();
+    void after_nodes() {
+        handler_cfw->after_nodes();
     }
 
-    void callback_way(Osmium::OSM::Way *way) {
-        handler_cfw->callback_way(way);
+    void way(Osmium::OSM::Way *way) {
+        handler_cfw->way(way);
         const char *highway = way->get_tag_by_key("highway");
         if (highway) {
             try {

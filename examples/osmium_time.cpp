@@ -42,19 +42,19 @@ public:
     MyTimerHandler() : nodes(0), ways(0), relations(0) {
     }
 
-    void callback_node(Osmium::OSM::Node * /*node*/) {
+    void node(Osmium::OSM::Node * /*node*/) {
         nodes++;
     }
 
-    void callback_way(Osmium::OSM::Way * /*way*/) {
+    void way(Osmium::OSM::Way * /*way*/) {
         ways++;
     }
 
-    void callback_relation(Osmium::OSM::Relation * /*relation*/) {
+    void relation(Osmium::OSM::Relation * /*relation*/) {
         relations++;
     }
 
-    void callback_final() {
+    void final() {
         std::cout << "nodes: " << nodes << "  ways: " << ways << "  relations: " << relations << std::endl;
     }
 };

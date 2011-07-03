@@ -262,13 +262,13 @@ namespace Osmium {
                 callbacks_object.Dispose();
             }
 
-            void callback_init() const {
+            void init() const {
                 if (!cb.init.IsEmpty()) {
                     (void) cb.init->Call(cb.init, 0, 0);
                 }
             }
 
-            void callback_node(Osmium::OSM::Node *object) {
+            void node(Osmium::OSM::Node *object) {
                 if (!cb.node.IsEmpty()) {
                     (void) cb.node->Call(object->get_instance(), 0, 0);
                 }
@@ -277,7 +277,7 @@ namespace Osmium {
 #endif // OSMIUM_V8_FORCE_GC
             }
 
-            void callback_way(Osmium::OSM::Way *object) {
+            void way(Osmium::OSM::Way *object) {
                 if (!cb.way.IsEmpty()) {
                     (void) cb.way->Call(object->get_instance(), 0, 0);
                 }
@@ -286,7 +286,7 @@ namespace Osmium {
 #endif // OSMIUM_V8_FORCE_GC
             }
 
-            void callback_relation(Osmium::OSM::Relation *object) {
+            void relation(Osmium::OSM::Relation *object) {
                 if (!cb.relation.IsEmpty()) {
                     (void) cb.relation->Call(object->get_instance(), 0, 0);
                 }
@@ -295,13 +295,13 @@ namespace Osmium {
 #endif // OSMIUM_V8_FORCE_GC
             }
 
-            void callback_area(Osmium::OSM::Area *object) {
+            void area(Osmium::OSM::Area *object) {
                 if (!cb.area.IsEmpty()) {
                     (void) cb.area->Call(object->get_instance(), 0, 0);
                 }
             }
 
-            void callback_final() {
+            void final() {
                 if (!cb.end.IsEmpty()) {
                     (void) cb.end->Call(cb.end, 0, 0);
                 }

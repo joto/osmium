@@ -45,38 +45,38 @@ public:
           handler_javascript(js) {
     }
 
-    void callback_init() {
+    void init() {
         if (handler_cfw) {
-            handler_cfw->callback_init();
+            handler_cfw->init();
         }
-        handler_javascript->callback_init();
+        handler_javascript->init();
     }
 
-    void callback_node(Osmium::OSM::Node *node) {
+    void node(Osmium::OSM::Node *node) {
         if (handler_cfw) {
-            handler_cfw->callback_node(node);
+            handler_cfw->node(node);
         }
-        handler_javascript->callback_node(node);
+        handler_javascript->node(node);
     }
 
-    void callback_after_nodes() {
+    void after_nodes() {
         if (handler_cfw)
-            handler_cfw->callback_after_nodes();
+            handler_cfw->after_nodes();
     }
 
-    void callback_way(Osmium::OSM::Way *way) {
+    void way(Osmium::OSM::Way *way) {
         if (handler_cfw) {
-            handler_cfw->callback_way(way);
+            handler_cfw->way(way);
         }
-        handler_javascript->callback_way(way);
+        handler_javascript->way(way);
     }
 
-    void callback_relation(Osmium::OSM::Relation *relation) {
-        handler_javascript->callback_relation(relation);
+    void relation(Osmium::OSM::Relation *relation) {
+        handler_javascript->relation(relation);
     }
 
-    void callback_final() {
-        handler_javascript->callback_final();
+    void final() {
+        handler_javascript->final();
     }
 
 };
@@ -98,28 +98,28 @@ public:
           handler_javascript(js) {
     }
 
-    void callback_init() {
-        handler_multipolygon->callback_init();
+    void init() {
+        handler_multipolygon->init();
         if (handler_cfw)
-            handler_cfw->callback_init();
-        handler_javascript->callback_init();
+            handler_cfw->init();
+        handler_javascript->init();
     }
 
-    void callback_node(Osmium::OSM::Node *node) {
-        handler_javascript->callback_node(node);
+    void node(Osmium::OSM::Node *node) {
+        handler_javascript->node(node);
     }
 
-    void callback_before_relations() {
-        handler_multipolygon->callback_before_relations();
+    void before_relations() {
+        handler_multipolygon->before_relations();
     }
 
-    void callback_relation(Osmium::OSM::Relation *relation) {
-        handler_multipolygon->callback_relation(relation);
-        handler_javascript->callback_relation(relation);
+    void relation(Osmium::OSM::Relation *relation) {
+        handler_multipolygon->relation(relation);
+        handler_javascript->relation(relation);
     }
 
-    void callback_after_relations() {
-        handler_multipolygon->callback_after_relations();
+    void after_relations() {
+        handler_multipolygon->after_relations();
         std::cerr << "1st pass finished" << std::endl;
     }
 
@@ -142,30 +142,30 @@ public:
           handler_javascript(js) {
     }
 
-    void callback_node(Osmium::OSM::Node *node) {
+    void node(Osmium::OSM::Node *node) {
         if (handler_cfw)
-            handler_cfw->callback_node(node);
+            handler_cfw->node(node);
     }
 
-    void callback_after_nodes() {
+    void after_nodes() {
         if (handler_cfw)
-            handler_cfw->callback_after_nodes();
+            handler_cfw->after_nodes();
     }
 
-    void callback_way(Osmium::OSM::Way *way) {
+    void way(Osmium::OSM::Way *way) {
         if (handler_cfw)
-            handler_cfw->callback_way(way);
-        handler_multipolygon->callback_way(way);
-        handler_javascript->callback_way(way);
+            handler_cfw->way(way);
+        handler_multipolygon->way(way);
+        handler_javascript->way(way);
     }
 
-    void callback_after_ways() {
-        handler_multipolygon->callback_after_ways();
+    void after_ways() {
+        handler_multipolygon->after_ways();
     }
 
-    void callback_final() {
-        handler_javascript->callback_final();
-        handler_multipolygon->callback_final();
+    void final() {
+        handler_javascript->final();
+        handler_multipolygon->final();
     }
 };
 
@@ -224,7 +224,7 @@ std::string find_include_file(std::string filename) {
 Osmium::Handler::Javascript* handler_javascript;
 
 void cbmp(Osmium::OSM::Area* area) {
-    handler_javascript->callback_area(area);
+    handler_javascript->area(area);
 }
 
 int main(int argc, char *argv[]) {

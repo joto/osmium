@@ -136,12 +136,12 @@ namespace Osmium {
                 if (!strcmp(element, "nd")) {
                     for (int count = 0; attrs[count]; count += 2) {
                         if (!strcmp(attrs[count], "ref")) {
-                            this->way->add_node(atoll(attrs[count+1]));
+                            this->way()->add_node(atoll(attrs[count+1]));
                         }
                     }
                 } else if (!strcmp(element, "node")) {
                     this->call_after_and_before_handlers(NODE);
-                    init_object(this->node, attrs);
+                    init_object(this->node(), attrs);
                 } else if (!strcmp(element, "tag")) {
                     const char *key = "", *value = "";
                     for (int count = 0; attrs[count]; count += 2) {
@@ -158,7 +158,7 @@ namespace Osmium {
                     }
                 } else if (!strcmp(element, "way")) {
                     this->call_after_and_before_handlers(WAY);
-                    init_object(this->way, attrs);
+                    init_object(this->way(), attrs);
                 } else if (!strcmp(element, "member")) {
                     char        type = 'x';
                     uint64_t    ref  = 0;
@@ -173,24 +173,24 @@ namespace Osmium {
                         }
                     }
                     // XXX assert type, ref, role are set
-                    this->relation->add_member(type, ref, role);
+                    this->relation()->add_member(type, ref, role);
                 } else if (!strcmp(element, "relation")) {
                     this->call_after_and_before_handlers(RELATION);
-                    init_object(this->relation, attrs);
+                    init_object(this->relation(), attrs);
                 }
             }
 
             void end_element(const XML_Char* element) {
                 if (!strcmp(element, "node")) {
-                    this->callback_node();
+                    this->handle_node();
                     current_object = 0;
                 }
                 if (!strcmp(element, "way")) {
-                    this->callback_way();
+                    this->handle_way();
                     current_object = 0;
                 }
                 if (!strcmp(element, "relation")) {
-                    this->callback_relation();
+                    this->handle_relation();
                     current_object = 0;
                 }
             }

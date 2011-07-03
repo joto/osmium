@@ -36,47 +36,47 @@ class MyDebugHandler : public Osmium::Handler::Base {
 
 public:
 
-    void callback_init() {
+    void init() {
         std::cout << "init" << std::endl;
     }
 
-    void callback_before_nodes() {
+    void before_nodes() {
         std::cout << "before_nodes" << std::endl;
     }
 
-    void callback_node(Osmium::OSM::Node *node) {
-        handler_debug.callback_node(node);
+    void node(Osmium::OSM::Node *node) {
+        handler_debug.node(node);
     }
 
-    void callback_after_nodes() {
+    void after_nodes() {
         std::cout << "after_nodes" << std::endl;
     }
 
-    void callback_before_ways() {
+    void before_ways() {
         std::cout << "before_ways" << std::endl;
     }
 
-    void callback_way(Osmium::OSM::Way *way) {
-        handler_debug.callback_way(way);
+    void way(Osmium::OSM::Way *way) {
+        handler_debug.way(way);
     }
 
-    void callback_after_ways() {
+    void after_ways() {
         std::cout << "after_ways" << std::endl;
     }
 
-    void callback_before_relations() {
+    void before_relations() {
         std::cout << "before_relations" << std::endl;
     }
 
-    void callback_relation(Osmium::OSM::Relation *relation) {
-        handler_debug.callback_relation(relation);
+    void relation(Osmium::OSM::Relation *relation) {
+        handler_debug.relation(relation);
     }
 
-    void callback_after_relations() {
+    void after_relations() {
         std::cout << "after_relations" << std::endl;
     }
 
-    void callback_final() {
+    void final() {
         std::cout << "final" << std::endl;
     }
 };

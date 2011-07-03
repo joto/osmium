@@ -34,7 +34,7 @@ namespace Osmium {
         /**
          * Handlers can throw this exception to show that they are done.
          * When a handler, for instance, is only interested in nodes, it
-         * can throw this in the after_nodes() callback. The parser will
+         * can throw this in the after_nodes() method. The parser will
          * stop reading the input file after this.
          *
          * Note that when you write a handler that calls other handlers
@@ -48,29 +48,29 @@ namespace Osmium {
          * Virtual base class for all input classes.
          *
          * The THandler template parameter of this class (and child classes)
-         * names a class on which callbacks will be called. The class should
-         * implement one or more of the following functions:
+         * names a policy class on which methods will be called. The class
+         * should implement one or more of the following functions:
          *
-         * - callback_init()
-         * - callback_before_nodes/ways/relations()
-         * - callback_node/way/relation(Osmium::OSM::Node/Way/Relation*)
-         * - callback_after_nodes/ways/relations()
-         * - callback_final()
-         * - callback_area(Osmium::OSM::Area*)
+         * - init()
+         * - before_nodes/ways/relations()
+         * - node/way/relation(Osmium::OSM::Node/Way/Relation*)
+         * - after_nodes/ways/relations()
+         * - final()
+         * - area(Osmium::OSM::Area*)
          *
-         * callback_init() will be called before all others, callback_final()
+         * init() will be called before all others, final()
          * after all others.
          *
-         * For every object callback_node(), callback_way(), or
-         * callback_relation() will be called, respectively.
+         * For every object node(), way(), or
+         * relation() will be called, respectively.
          *
          * When there are several objects of the same type in a row the
-         * callback_before_*() function will be called before them and the
-         * callback_after_*() function after them. If your input file is
+         * before_*() function will be called before them and the
+         * after_*() function after them. If your input file is
          * sorted as OSM files normally are, i.e. all nodes, then all ways,
-         * then all relations, this will call callback_before_nodes() once,
-         * then for all the nodes callback_node(), then callback_after_nodes(),
-         * then callback_before_ways(), and so on.
+         * then all relations, this will call before_nodes() once,
+         * then for all the nodes node(), then after_nodes(),
+         * then before_ways(), and so on.
          * This will also work properly if the input file contains, say, first
          * all relations, than all ways and then all nodes.
          *
@@ -78,35 +78,31 @@ namespace Osmium {
          * file these handlers will probably not called in a useful way for you.
          * You can use osmosis --sort to sort your input file first.
          *
-         * The callback_area() is special. It will only be called if
+         * The method area() is special. It will only be called if
          * you have the multipolygon handler before your handler. There are no
-         * before/after_areas() callbacks. Use callback_init() and
-         * callback_final() instead.
+         * before/after_areas() methods. Use init() and
+         * final() instead.
          */
         template <class THandler>
         class Base {
 
-            /**
-             * The last object type we read (before the current one).
-             * Used to properly call before and after callbacks.
-             */
-            osm_object_type_t m_last_object_type;
+        public:
+
+            virtual ~Base() {
+                m_handler.final();
+
+                delete m_relation;
+                delete m_way;
+                delete m_node;
+            }
 
             /**
-             * The OSMFile we opened this file with.
+             * Parse an OSM input file. This is a pure virtual function,
+             * it must be overwritten in a child class of Osmium::Input::Base.
              */
-            Osmium::OSMFile m_file;
-
-            /**
-             * Handler we will call callbacks on.
-             */
-            THandler& m_handler;
+            virtual void parse() = 0;
 
         protected:
-
-            Osmium::OSM::Node*     node;
-            Osmium::OSM::Way*      way;
-            Osmium::OSM::Relation* relation;
 
             Base(Osmium::OSMFile& file,
                  THandler& handler)
@@ -116,37 +112,37 @@ namespace Osmium {
 
                 m_file.open_for_input();
 
-                node     = new Osmium::OSM::Node;
-                way      = new Osmium::OSM::Way(2000); // create way object with space for 2000 nodes
-                relation = new Osmium::OSM::Relation;
+                m_node     = new Osmium::OSM::Node;
+                m_way      = new Osmium::OSM::Way(2000); // create way object with space for 2000 nodes
+                m_relation = new Osmium::OSM::Relation;
 
-                m_handler.callback_init();
+                m_handler.init();
             }
 
             void call_after_and_before_handlers(osm_object_type_t current_object_type) {
                 if (current_object_type != m_last_object_type) {
                     switch (m_last_object_type) {
                         case NODE:
-                            m_handler.callback_after_nodes();
+                            m_handler.after_nodes();
                             break;
                         case WAY:
-                            m_handler.callback_after_ways();
+                            m_handler.after_ways();
                             break;
                         case RELATION:
-                            m_handler.callback_after_relations();
+                            m_handler.after_relations();
                             break;
                         default:
                             break;
                     }
                     switch (current_object_type) {
                         case NODE:
-                            m_handler.callback_before_nodes();
+                            m_handler.before_nodes();
                             break;
                         case WAY:
-                            m_handler.callback_before_ways();
+                            m_handler.before_ways();
                             break;
                         case RELATION:
-                            m_handler.callback_before_relations();
+                            m_handler.before_relations();
                             break;
                         default:
                             break;
@@ -163,33 +159,51 @@ namespace Osmium {
                 return m_file;
             }
 
-            void callback_node() {
-                m_handler.callback_node(node);
+            void handle_node() {
+                m_handler.node(m_node);
             }
 
-            void callback_way() {
-                m_handler.callback_way(way);
+            void handle_way() {
+                m_handler.way(m_way);
             }
 
-            void callback_relation() {
-                m_handler.callback_relation(relation);
+            void handle_relation() {
+                m_handler.relation(m_relation);
             }
 
-        public:
-
-            virtual ~Base() {
-                m_handler.callback_final();
-
-                delete relation;
-                delete way;
-                delete node;
+            Osmium::OSM::Node* node() {
+                return m_node;
             }
+
+            Osmium::OSM::Way* way() {
+                return m_way;
+            }
+
+            Osmium::OSM::Relation* relation() {
+                return m_relation;
+            }
+
+        private:
 
             /**
-             * Parse an OSM input file. This is a pure virtual function,
-             * it must be overwritten in a child class of Osmium::Input::Base.
+             * The last object type we read (before the current one).
+             * Used to properly call before and after methods.
              */
-            virtual void parse() = 0;
+            osm_object_type_t m_last_object_type;
+
+            /**
+             * The OSMFile we opened this file with.
+             */
+            Osmium::OSMFile m_file;
+
+            /**
+             * Handler we will call callbacks on.
+             */
+            THandler& m_handler;
+
+            Osmium::OSM::Node*     m_node;
+            Osmium::OSM::Way*      m_way;
+            Osmium::OSM::Relation* m_relation;
 
         };
 

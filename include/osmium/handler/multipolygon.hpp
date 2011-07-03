@@ -59,7 +59,7 @@ namespace Osmium {
             }
 
             // in pass 1
-            void callback_relation(Osmium::OSM::Relation* relation) {
+            void relation(Osmium::OSM::Relation* relation) {
                 const char *type = relation->get_tag_by_key("type");
 
                 // ignore relations without "type" tag
@@ -96,7 +96,7 @@ namespace Osmium {
             }
 
             // in pass 1
-            void callback_after_relations() {
+            void after_relations() {
                 if (Osmium::debug()) {
                     std::cerr << "found " << m_areas.size() << " areas (each needs "
                               << sizeof(Osmium::OSM::Area) << " bytes, thats together about "
@@ -108,7 +108,7 @@ namespace Osmium {
             }
 
             // in pass 2
-            void callback_way(Osmium::OSM::Way* way) {
+            void way(Osmium::OSM::Way* way) {
                 way2areaidx_t::const_iterator way2areaidx_iterator(m_way2areaidx.find(way->get_id()));
 
                 if (way2areaidx_iterator == m_way2areaidx.end()) { // not in any relation
@@ -154,17 +154,17 @@ namespace Osmium {
             }
 
             // in pass 2
-            void callback_after_ways() {
+            void after_ways() {
                 m_way2areaidx.clear();
             }
 
-            void callback_init() {
+            void init() {
 #ifdef OSMIUM_WITH_MULTIPOLYGON_PROFILING
                 Osmium::OSM::AreaFromRelation::init_timings();
 #endif // OSMIUM_WITH_MULTIPOLYGON_PROFILING
             }
 
-            void callback_final() {
+            void final() {
 #ifdef OSMIUM_WITH_MULTIPOLYGON_PROFILING
                 Osmium::OSM::AreaFromRelation::print_timings();
 #endif // OSMIUM_WITH_MULTIPOLYGON_PROFILING

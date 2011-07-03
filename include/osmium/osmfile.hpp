@@ -613,7 +613,7 @@ namespace Osmium {
         }
 
         /**
-         * Read OSM file and call callback functions.
+         * Read OSM file and call methods on handler object.
          */
         template <class T> void read(T& handler);
 

@@ -47,40 +47,40 @@ namespace Osmium {
             Base() {
             }
 
-            void callback_init() const {
+            void init() const {
             }
 
-            void callback_before_nodes() const {
+            void before_nodes() const {
             }
 
-            void callback_node(Osmium::OSM::Node*) const {
+            void node(Osmium::OSM::Node*) const {
             }
 
-            void callback_after_nodes() const {
+            void after_nodes() const {
             }
 
-            void callback_before_ways() const {
+            void before_ways() const {
             }
 
-            void callback_way(Osmium::OSM::Way*) const {
+            void way(Osmium::OSM::Way*) const {
             }
 
-            void callback_after_ways() const {
+            void after_ways() const {
             }
 
-            void callback_before_relations() const {
+            void before_relations() const {
             }
 
-            void callback_relation(Osmium::OSM::Relation*) const {
+            void relation(Osmium::OSM::Relation*) const {
             }
 
-            void callback_after_relations() const {
+            void after_relations() const {
             }
 
-            void callback_area(Osmium::OSM::Area*) const {
+            void area(Osmium::OSM::Area*) const {
             }
 
-            void callback_final() const {
+            void final() const {
             }
 
         }; // class Base

@@ -83,32 +83,32 @@ namespace Osmium {
                 std::cout << "\x1b[?25h";
             }
 
-            void callback_init() const {
+            void init() const {
                 if (is_a_tty) {
                     hide_cursor();
                     update_display();
                 }
             }
 
-            void callback_node(const Osmium::OSM::Node* /*object*/) {
+            void node(const Osmium::OSM::Node* /*object*/) {
                 if (is_a_tty && ++count_nodes % step == 0) {
                     update_display();
                 }
             }
 
-            void callback_way(const Osmium::OSM::Way* /*object*/) {
+            void way(const Osmium::OSM::Way* /*object*/) {
                 if (is_a_tty && ++count_ways % step == 0) {
                     update_display();
                 }
             }
 
-            void callback_relation(const Osmium::OSM::Relation* /*object*/) {
+            void relation(const Osmium::OSM::Relation* /*object*/) {
                 if (is_a_tty && ++count_relations % step == 0) {
                     update_display();
                 }
             }
 
-            void callback_final() const {
+            void final() const {
                 if (is_a_tty) {
                     update_display();
                     show_cursor();

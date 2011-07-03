@@ -45,24 +45,24 @@ public:
         delete m_outfile;
     }
 
-    void callback_init() {
+    void init() {
         output = m_outfile->create_output_file();
         output->write_init();
     }
 
-    void callback_node(Osmium::OSM::Node *node) {
+    void node(Osmium::OSM::Node *node) {
         output->write(node);
     }
 
-    void callback_way(Osmium::OSM::Way *way) {
+    void way(Osmium::OSM::Way *way) {
         output->write(way);
     }
 
-    void callback_relation(Osmium::OSM::Relation *relation) {
+    void relation(Osmium::OSM::Relation *relation) {
         output->write(relation);
     }
 
-    void callback_final() {
+    void final() {
         output->write_final();
         delete output;
     }

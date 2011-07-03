@@ -47,7 +47,7 @@ namespace Osmium {
             /**
              * Store the location of the node in the storage.
              */
-            void callback_node(const Osmium::OSM::Node *node) {
+            void node(const Osmium::OSM::Node *node) {
                 int64_t id = node->get_id();
                 if (id >= 0) {
                     m_storage_pos.set( id, node->position());
@@ -56,7 +56,7 @@ namespace Osmium {
                 }
             }
 
-            void callback_after_nodes() const {
+            void after_nodes() const {
                 if (Osmium::debug()) {
                     std::cerr << "Memory used for node coordinates storage (approximate):\n  for positive IDs: "
                               << m_storage_pos.used_memory() / (1024 * 1024)
@@ -70,7 +70,7 @@ namespace Osmium {
              * Retrieve locations of all nodes in the way from storage and add
              * them to the way object.
              */
-            void callback_way(Osmium::OSM::Way *way) {
+            void way(Osmium::OSM::Way *way) {
                 for (Osmium::OSM::WayNodeList::iterator it = way->way_node_list().begin(); it != way->way_node_list().end(); ++it) {
                     const int64_t id = it->ref();
                     it->position(id >= 0 ? m_storage_pos[id] : m_storage_neg[-id]);

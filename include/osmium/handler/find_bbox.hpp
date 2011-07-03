@@ -49,14 +49,14 @@ namespace Osmium {
                 return m_maxlat;
             }
 
-            void callback_node(Osmium::OSM::Node* node) {
+            void node(Osmium::OSM::Node* node) {
                 if (node->get_lon() < m_minlon) m_minlon = node->get_lon();
                 if (node->get_lon() > m_maxlon) m_maxlon = node->get_lon();
                 if (node->get_lat() < m_minlat) m_minlat = node->get_lat();
                 if (node->get_lat() > m_maxlat) m_maxlat = node->get_lat();
             }
 
-            void callback_after_nodes() const {
+            void after_nodes() const {
                 throw Osmium::Input::StopReading();
             }
 
