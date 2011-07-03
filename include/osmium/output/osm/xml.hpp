@@ -132,7 +132,7 @@ namespace Osmium {
                     for (Osmium::OSM::RelationMemberList::const_iterator it = relation->members().begin(); it != relation->members().end(); ++it) {
                         xmlTextWriterStartElement(xml_writer, BAD_CAST "member"); // <member>
 
-                        switch (it->get_type()) {
+                        switch (it->type()) {
                             case 'n':
                                 xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "type", BAD_CAST "node");
                                 break;
@@ -143,8 +143,8 @@ namespace Osmium {
                                 xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "type", BAD_CAST "relation");
                                 break;
                         }
-                        xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "ref", "%d", it->get_ref());
-                        xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "role", BAD_CAST it->get_role());
+                        xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "ref", "%d", it->ref());
+                        xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "role", BAD_CAST it->role());
 
                         xmlTextWriterEndElement(xml_writer); // </member>
                     }

@@ -79,8 +79,8 @@ namespace Osmium {
                 int num_ways = 0;
                 for (osm_sequence_id_t i=0; i < relation->members().size(); i++) {
                     const Osmium::OSM::RelationMember *member = relation->get_member(i);
-                    if (member->type == 'w') {
-                        m_way2areaidx[member->ref].push_back(m_areas.size());
+                    if (member->type() == 'w') {
+                        m_way2areaidx[member->ref()].push_back(m_areas.size());
                         num_ways++;
                     } else {
                         std::cerr << "warning: multipolygon/boundary relation "

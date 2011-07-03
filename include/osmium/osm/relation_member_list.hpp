@@ -77,11 +77,9 @@ namespace Osmium {
                 RelationMember *m = &m_list[m_list.size()-1];
                 /* ...so that we can directly write into the memory and avoid
                 a second copy */
-                m->type = type;
-                m->ref = ref;
-                if (! memccpy(m->role, role, 0, RelationMember::max_length_role)) {
-                    throw std::length_error("role too long");
-                }
+                m->type(type);
+                m->ref(ref);
+                m->role(role);
             }
 
 #ifdef OSMIUM_WITH_JAVASCRIPT

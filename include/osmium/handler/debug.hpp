@@ -57,7 +57,7 @@ namespace Osmium {
                 std::cout << "  members:\n";
                 for (osm_sequence_id_t i=0; i < relation->members().size(); ++i) {
                     const Osmium::OSM::RelationMember* m = relation->get_member(i);
-                    std::cout << "    type=" << m->type << " ref=" << m->ref << " role=|" << m->role << "|" << "\n";
+                    std::cout << "    type=" << m->type() << " ref=" << m->ref() << " role=|" << m->role() << "|" << "\n";
                 }
             }
 

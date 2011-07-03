@@ -680,13 +680,13 @@ namespace Osmium {
 
                         // record the relation-member role to the interim stringtable and copy the
                         // interim string-id to the pbf-object
-                        pbf_relation->add_roles_sid(string_table.record_string(mem->get_role()));
+                        pbf_relation->add_roles_sid(string_table.record_string(mem->role()));
 
                         // copy the relation-member-id, delta encoded
-                        pbf_relation->add_memids(delta_id.update(mem->get_ref()));
+                        pbf_relation->add_memids(delta_id.update(mem->ref()));
 
                         // copy the relation-member-type, mapped to the OSMPBF enum
-                        switch (mem->get_type()) {
+                        switch (mem->type()) {
                             case 'n':
                                 pbf_relation->add_types(OSMPBF::Relation::NODE);
                                 break;
@@ -697,7 +697,7 @@ namespace Osmium {
                                 pbf_relation->add_types(OSMPBF::Relation::RELATION);
                                 break;
                             default:
-                                throw std::runtime_error("Unknown relation member type: " + mem->get_type());
+                                throw std::runtime_error("Unknown relation member type: " + mem->type());
                         }
                     }
                 }

@@ -36,20 +36,33 @@ namespace Osmium {
 
             static const int max_length_role = 255 * 4 + 1; /* 255 UTF-8 characters + null byte */
 
-            osm_object_id_t ref;
-            char            type;
-            char            role[max_length_role];
-
-            osm_object_id_t get_ref() const {
-                return ref;
+            osm_object_id_t ref() const {
+                return m_ref;
             }
 
-            char get_type() const {
-                return type;
+            RelationMember& ref(osm_object_id_t ref) {
+                m_ref = ref;
+                return *this;
             }
 
-            const char *get_role() const {
-                return role;
+            char type() const {
+                return m_type;
+            }
+
+            RelationMember& type(char type) {
+                m_type = type;
+                return *this;
+            }
+
+            const char *role() const {
+                return m_role;
+            }
+
+            RelationMember& role(const char *role) {
+                if (! memccpy(m_role, role, 0, max_length_role)) {
+                    throw std::length_error("role too long");
+                }
+                return *this;
             }
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
@@ -57,31 +70,37 @@ namespace Osmium {
                 return JavascriptTemplate::get<JavascriptTemplate>().create_instance((void *)this);
             }
 
-            v8::Handle<v8::Value> js_get_ref() const {
-                return v8::Number::New(get_ref());
+            v8::Handle<v8::Value> js_ref() const {
+                return v8::Number::New(ref());
             }
 
-            v8::Handle<v8::Value> js_get_type() const {
-                char type[2];
-                type[0] = get_type();
-                type[1] = 0;
-                return v8::String::NewSymbol(type);
+            v8::Handle<v8::Value> js_type() const {
+                char t[2];
+                t[0] = type();
+                t[1] = 0;
+                return v8::String::NewSymbol(t);
             }
 
-            v8::Handle<v8::Value> js_get_role() const {
-                return utf8_to_v8_String<max_utf16_length_role>(get_role());
+            v8::Handle<v8::Value> js_role() const {
+                return utf8_to_v8_String<max_utf16_length_role>(role());
             }
 
             struct JavascriptTemplate : public Osmium::Javascript::Template {
 
                 JavascriptTemplate() : Osmium::Javascript::Template() {
-                    js_template->SetAccessor(v8::String::NewSymbol("type"), accessor_getter<Osmium::OSM::RelationMember, &Osmium::OSM::RelationMember::js_get_type>);
-                    js_template->SetAccessor(v8::String::NewSymbol("ref"),  accessor_getter<Osmium::OSM::RelationMember, &Osmium::OSM::RelationMember::js_get_ref>);
-                    js_template->SetAccessor(v8::String::NewSymbol("role"), accessor_getter<Osmium::OSM::RelationMember, &Osmium::OSM::RelationMember::js_get_role>);
+                    js_template->SetAccessor(v8::String::NewSymbol("type"), accessor_getter<Osmium::OSM::RelationMember, &Osmium::OSM::RelationMember::js_type>);
+                    js_template->SetAccessor(v8::String::NewSymbol("ref"),  accessor_getter<Osmium::OSM::RelationMember, &Osmium::OSM::RelationMember::js_ref>);
+                    js_template->SetAccessor(v8::String::NewSymbol("role"), accessor_getter<Osmium::OSM::RelationMember, &Osmium::OSM::RelationMember::js_role>);
                 }
 
             };
 #endif // OSMIUM_WITH_JAVASCRIPT
+
+        private:
+
+            osm_object_id_t m_ref;
+            char            m_type;
+            char            m_role[max_length_role];
 
         }; // class RelationMember
 
