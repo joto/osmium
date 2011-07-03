@@ -49,12 +49,28 @@ namespace Osmium {
                 return *this;
             }
 
+            bool defined() const {
+                return m_min_x != std::numeric_limits<int32_t>::max();
+            }
+
+            /**
+             * Bottom-left position.
+             */
             Position bl() const {
                 return Position(m_min_x, m_min_y);
             }
 
+            /**
+             * Top-right position.
+             */
             Position tr() const {
                 return Position(m_max_x, m_max_y);
+            }
+
+            friend std::ostream& operator<<(std::ostream& out, const Bounds& bounds) {
+                out << '(' << bounds.bl().lon() << ',' << bounds.bl().lat() << ','
+                           << bounds.tr().lon() << ',' << bounds.tr().lat() << ')';
+                return out;
             }
 
         private:
