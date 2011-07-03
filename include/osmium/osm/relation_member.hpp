@@ -49,6 +49,19 @@ namespace Osmium {
                 return m_type;
             }
 
+            const char *type_name() const {
+                switch (type()) {
+                    case 'n':
+                        return "node";
+                    case 'w':
+                        return "way";
+                    case 'r':
+                        return "relation";
+                    default:
+                        return "unknown";
+                }
+            }
+
             RelationMember& type(char type) {
                 m_type = type;
                 return *this;
