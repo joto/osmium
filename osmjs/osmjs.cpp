@@ -100,8 +100,9 @@ public:
 
     void init(Osmium::OSM::Meta& meta) {
         handler_multipolygon->init(meta);
-        if (handler_cfw)
+        if (handler_cfw) {
             handler_cfw->init(meta);
+        }
         handler_javascript->init(meta);
     }
 
@@ -143,18 +144,21 @@ public:
     }
 
     void node(Osmium::OSM::Node *node) {
-        if (handler_cfw)
+        if (handler_cfw) {
             handler_cfw->node(node);
+        }
     }
 
     void after_nodes() {
-        if (handler_cfw)
+        if (handler_cfw) {
             handler_cfw->after_nodes();
+        }
     }
 
     void way(Osmium::OSM::Way *way) {
-        if (handler_cfw)
+        if (handler_cfw) {
             handler_cfw->way(way);
+        }
         handler_multipolygon->way(way);
         handler_javascript->way(way);
     }
