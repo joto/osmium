@@ -83,7 +83,7 @@ namespace Osmium {
                 std::cout << "\x1b[?25h";
             }
 
-            void init() const {
+            void init(Osmium::OSM::Meta&) const {
                 if (is_a_tty) {
                     hide_cursor();
                     update_display();

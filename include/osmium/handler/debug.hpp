@@ -33,6 +33,13 @@ namespace Osmium {
             Debug() : Base() {
             }
 
+            void init(Osmium::OSM::Meta& meta) const {
+                std::cout << "meta:\n";
+                if (meta.bounds().defined()) {
+                    std::cout << "  bounds=" << meta.bounds() << "\n";
+                }
+            }
+
             void node(const Osmium::OSM::Node* node) const {
                 std::cout << "node:\n";
                 print_meta(node);

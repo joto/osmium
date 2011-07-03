@@ -45,9 +45,9 @@ public:
         delete m_outfile;
     }
 
-    void init() {
+    void init(Osmium::OSM::Meta& meta) {
         output = m_outfile->create_output_file();
-        output->init();
+        output->init(meta);
     }
 
     void node(Osmium::OSM::Node* node) {

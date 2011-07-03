@@ -36,8 +36,8 @@ class MyDebugHandler : public Osmium::Handler::Base {
 
 public:
 
-    void init() {
-        std::cout << "init" << std::endl;
+    void init(Osmium::OSM::Meta &meta) {
+        handler_debug.init(meta);
     }
 
     void before_nodes() {

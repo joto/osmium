@@ -158,7 +158,7 @@ namespace Osmium {
                 m_way2areaidx.clear();
             }
 
-            void init() {
+            void init(Osmium::OSM::Meta&) {
 #ifdef OSMIUM_WITH_MULTIPOLYGON_PROFILING
                 Osmium::OSM::AreaFromRelation::init_timings();
 #endif // OSMIUM_WITH_MULTIPOLYGON_PROFILING

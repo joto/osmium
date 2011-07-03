@@ -47,8 +47,7 @@ namespace Osmium {
                 virtual ~Base() {
                 }
 
-                virtual void init() = 0;
-                virtual void write_bounds(double minlon, double minlat, double maxlon, double maxlat) = 0;
+                virtual void init(Osmium::OSM::Meta&) = 0;
                 virtual void node(Osmium::OSM::Node*) = 0;
                 virtual void way(Osmium::OSM::Way*) = 0;
                 virtual void relation(Osmium::OSM::Relation*) = 0;

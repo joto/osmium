@@ -45,11 +45,11 @@ public:
           handler_javascript(js) {
     }
 
-    void init() {
+    void init(Osmium::OSM::Meta& meta) {
         if (handler_cfw) {
-            handler_cfw->init();
+            handler_cfw->init(meta);
         }
-        handler_javascript->init();
+        handler_javascript->init(meta);
     }
 
     void node(Osmium::OSM::Node *node) {
@@ -98,11 +98,11 @@ public:
           handler_javascript(js) {
     }
 
-    void init() {
-        handler_multipolygon->init();
+    void init(Osmium::OSM::Meta& meta) {
+        handler_multipolygon->init(meta);
         if (handler_cfw)
-            handler_cfw->init();
-        handler_javascript->init();
+            handler_cfw->init(meta);
+        handler_javascript->init(meta);
     }
 
     void node(Osmium::OSM::Node *node) {

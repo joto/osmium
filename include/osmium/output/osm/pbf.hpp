@@ -816,7 +816,7 @@ namespace Osmium {
                  * This initializes the header-block, sets the required-features and
                  * the writing-program and adds the obligatory StringTable-Index 0.
                  */
-                void init() {
+                void init(Osmium::OSM::Meta& meta) {
                     if (Osmium::debug()) {
                         std::cerr << "pbf write init" << std::endl;
                     }
@@ -837,6 +837,15 @@ namespace Osmium {
 
                     // set the writing program
                     pbf_header_block.set_writingprogram("Osmium (http://wiki.openstreetmap.org/wiki/Osmium)");
+
+                    if (meta.bounds().defined()) {
+                        OSMPBF::HeaderBBox* bbox = pbf_header_block.mutable_bbox();
+                        bbox->set_left(meta.bounds().bl().lon() * OSMPBF::lonlat_resolution);
+                        bbox->set_bottom(meta.bounds().bl().lat() * OSMPBF::lonlat_resolution);
+                        bbox->set_right(meta.bounds().tr().lon() * OSMPBF::lonlat_resolution);
+                        bbox->set_top(meta.bounds().tr().lat() * OSMPBF::lonlat_resolution);
+                    }
+
                     store_header_block();
 
                     // add empty StringTable entry at index 0
@@ -847,20 +856,6 @@ namespace Osmium {
                     // set the granularity
                     pbf_primitive_block.set_granularity(location_granularity());
                     pbf_primitive_block.set_date_granularity(date_granularity());
-                }
-
-                /**
-                 * write bbox-information to the HeaderBlock
-                 */
-                void write_bounds(double minlon, double minlat, double maxlon, double maxlat) {
-                    // add a HeaderBBox section to the HeaderBlock
-                    OSMPBF::HeaderBBox *bbox = pbf_header_block.mutable_bbox();
-
-                    // encode the bbox in nanodegrees
-                    bbox->set_left(  minlon * OSMPBF::lonlat_resolution);
-                    bbox->set_top(   minlat * OSMPBF::lonlat_resolution);
-                    bbox->set_right( maxlon * OSMPBF::lonlat_resolution);
-                    bbox->set_bottom(maxlat * OSMPBF::lonlat_resolution);
                 }
 
                 /**

@@ -262,7 +262,7 @@ namespace Osmium {
                 callbacks_object.Dispose();
             }
 
-            void init() const {
+            void init(Osmium::OSM::Meta&) {
                 if (!cb.init.IsEmpty()) {
                     (void) cb.init->Call(cb.init, 0, 0);
                 }

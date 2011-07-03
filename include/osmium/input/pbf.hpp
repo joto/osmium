@@ -113,6 +113,11 @@ namespace Osmium {
                             if (expected_file_type == Osmium::OSMFile::FileType::History() && !has_historical_information_feature) {
                                 throw Osmium::OSMFile::FileTypeHistoryExpected();
                             }
+                            if (pbf_header_block.has_bbox()) {
+                                OSMPBF::HeaderBBox bbox = pbf_header_block.bbox();
+                                this->meta().bounds().extend(Osmium::OSM::Position((double)bbox.left() / OSMPBF::lonlat_resolution, (double)bbox.bottom() / OSMPBF::lonlat_resolution));
+                                this->meta().bounds().extend(Osmium::OSM::Position((double)bbox.right() / OSMPBF::lonlat_resolution, (double)bbox.top() / OSMPBF::lonlat_resolution));
+                            }
                         } else {
                             if (Osmium::debug()) {
                                 std::cerr << "Ignoring unknown blob type (" << pbf_blob_header.type().data() << ")." << std::endl;

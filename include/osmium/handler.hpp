@@ -22,6 +22,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#include <osmium/osm/meta.hpp>
+
 namespace Osmium {
 
     /**
@@ -47,7 +49,7 @@ namespace Osmium {
             Base() {
             }
 
-            void init() const {
+            void init(Osmium::OSM::Meta&) const {
             }
 
             void before_nodes() const {

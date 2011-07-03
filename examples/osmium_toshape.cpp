@@ -65,8 +65,8 @@ public:
         delete shapefile_point;
     }
 
-    void init() {
-        handler_cfw->init();
+    void init(Osmium::OSM::Meta& meta) {
+        handler_cfw->init(meta);
     }
 
     void node(Osmium::OSM::Node *node) {

@@ -65,7 +65,7 @@ namespace Osmium {
             * Instantiate XML Parser.
             *
             * @param file OSMFile instance.
-            * @param handler Instance of THandler. If NULL an instance of class THandler is created internally.
+            * @param handler Instance of THandler.
             */
             XML(Osmium::OSMFile& file, THandler& handler) : Base<THandler>(file, handler) {
             }
@@ -177,6 +177,21 @@ namespace Osmium {
                 } else if (!strcmp(element, "relation")) {
                     this->call_after_and_before_handlers(RELATION);
                     init_object(this->relation(), attrs);
+                } else if (!strcmp(element, "bounds")) {
+                    Osmium::OSM::Position min;
+                    Osmium::OSM::Position max;
+                    for (int count = 0; attrs[count]; count += 2) {
+                        if (!strcmp(attrs[count], "minlon")) {
+                            min.lon(atof(attrs[count+1]));
+                        } else if (!strcmp(attrs[count], "minlat")) {
+                            min.lat(atof(attrs[count+1]));
+                        } else if (!strcmp(attrs[count], "maxlon")) {
+                            max.lon(atof(attrs[count+1]));
+                        } else if (!strcmp(attrs[count], "maxlat")) {
+                            max.lat(atof(attrs[count+1]));
+                        }
+                    }
+                    this->meta().bounds().extend(min).extend(max);
                 }
             }
 

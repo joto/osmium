@@ -45,7 +45,7 @@ namespace Osmium {
                 ~XML() {
                 }
 
-                void init() {
+                void init(Osmium::OSM::Meta& meta) {
                     xmlTextWriterSetIndent(xml_writer, 1);
                     xmlTextWriterSetIndentString(xml_writer, BAD_CAST "  ");
                     xmlTextWriterStartDocument(xml_writer, NULL, "utf-8", NULL); // <?xml .. ?>
@@ -53,17 +53,16 @@ namespace Osmium {
                     xmlTextWriterStartElement(xml_writer, BAD_CAST "osm");  // <osm>
                     xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "version", BAD_CAST "0.6");
                     xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "generator", BAD_CAST "Osmium (http://wiki.openstreetmap.org/wiki/Osmium)");
-                }
+                    if (meta.bounds().defined()) {
+                        xmlTextWriterStartElement(xml_writer, BAD_CAST "bounds"); // <bounds>
 
-                void write_bounds(double minlon, double minlat, double maxlon, double maxlat) {
-                    xmlTextWriterStartElement(xml_writer, BAD_CAST "bounds"); // <bounds>
+                        xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "minlon", "%.7f", meta.bounds().bl().lon());
+                        xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "minlat", "%.7f", meta.bounds().bl().lat());
+                        xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "maxlon", "%.7f", meta.bounds().tr().lon());
+                        xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "maxlat", "%.7f", meta.bounds().tr().lat());
 
-                    xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "minlon", "%.7f", minlon);
-                    xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "minlat", "%.7f", minlat);
-                    xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "maxlon", "%.7f", maxlon);
-                    xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "maxlat", "%.7f", maxlat);
-
-                    xmlTextWriterEndElement(xml_writer); // </bounds>
+                        xmlTextWriterEndElement(xml_writer); // </bounds>
+                    }
                 }
 
                 void node(Osmium::OSM::Node* node) {

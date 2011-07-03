@@ -51,7 +51,7 @@ namespace Osmium {
          * names a policy class on which methods will be called. The class
          * should implement one or more of the following functions:
          *
-         * - init()
+         * - init(Osmium::OSM::Meta&)
          * - before_nodes/ways/relations()
          * - node/way/relation(Osmium::OSM::Node/Way/Relation*)
          * - after_nodes/ways/relations()
@@ -108,15 +108,14 @@ namespace Osmium {
                  THandler& handler)
                 : m_last_object_type(UNKNOWN),
                   m_file(file),
-                  m_handler(handler)  {
+                  m_handler(handler),
+                  m_meta() {
 
                 m_file.open_for_input();
 
                 m_node     = new Osmium::OSM::Node;
                 m_way      = new Osmium::OSM::Way(2000); // create way object with space for 2000 nodes
                 m_relation = new Osmium::OSM::Relation;
-
-                m_handler.init();
             }
 
             void call_after_and_before_handlers(osm_object_type_t current_object_type) {
@@ -136,6 +135,9 @@ namespace Osmium {
                     }
                     switch (current_object_type) {
                         case NODE:
+                            if (m_last_object_type == UNKNOWN) {
+                                m_handler.init(m_meta);
+                            }
                             m_handler.before_nodes();
                             break;
                         case WAY:
@@ -149,6 +151,10 @@ namespace Osmium {
                     }
                     m_last_object_type = current_object_type;
                 }
+            }
+
+            Osmium::OSM::Meta& meta() {
+                return m_meta;
             }
 
             int get_fd() const {
@@ -200,6 +206,8 @@ namespace Osmium {
              * Handler we will call callbacks on.
              */
             THandler& m_handler;
+
+            Osmium::OSM::Meta m_meta;
 
             Osmium::OSM::Node*     m_node;
             Osmium::OSM::Way*      m_way;
