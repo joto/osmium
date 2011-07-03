@@ -1,5 +1,5 @@
-#ifndef OSMIUM_OUTPUT_OSM_XML_HPP
-#define OSMIUM_OUTPUT_OSM_XML_HPP
+#ifndef OSMIUM_OUTPUT_XML_HPP
+#define OSMIUM_OUTPUT_XML_HPP
 
 /*
 
@@ -31,8 +31,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 namespace Osmium {
 
     namespace Output {
-
-        namespace OSM {
 
             class XML : public Base {
 
@@ -156,10 +154,8 @@ namespace Osmium {
 
             }; // class XML
 
-        } // namespace OSM
-
     } // namespace Output
 
 } // namespace Osmium
 
-#endif // OSMIUM_OUTPUT_OSM_XML_HPP
+#endif // OSMIUM_OUTPUT_XML_HPP

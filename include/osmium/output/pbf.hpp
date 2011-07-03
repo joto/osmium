@@ -1,5 +1,5 @@
-#ifndef OSMIUM_OUTPUT_OSM_PBF_HPP
-#define OSMIUM_OUTPUT_OSM_PBF_HPP
+#ifndef OSMIUM_OUTPUT_PBF_HPP
+#define OSMIUM_OUTPUT_PBF_HPP
 
 /*
 
@@ -103,8 +103,6 @@ More complete outlines of real .osm.pbf files can be created using the osmpbf-ou
 namespace Osmium {
 
     namespace Output {
-
-        namespace OSM {
 
             class PBF : public Base {
 
@@ -953,10 +951,8 @@ namespace Osmium {
 
             }; // class PBF
 
-        } // namespace OSM
-
     } // namespace Output
 
 } // namespace Osmium
 
-#endif // OSMIUM_OUTPUT_OSM_PBF_HPP
+#endif // OSMIUM_OUTPUT_PBF_HPP

@@ -32,9 +32,7 @@ namespace Osmium {
 
     // forward declaration
     namespace Output {
-        namespace OSM {
-            class Base;
-        }
+        class Base;
     }
 
     /**
@@ -620,7 +618,7 @@ namespace Osmium {
         /**
          * Create output file from OSMFile.
          */
-        Osmium::Output::OSM::Base *create_output_file();
+        Osmium::Output::Base *create_output_file();
 
     };
 

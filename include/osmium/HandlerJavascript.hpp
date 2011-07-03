@@ -138,7 +138,7 @@ namespace Osmium {
                     return v8::Undefined();
                 } else {
                     v8::String::Utf8Value str(args[0]);
-                    Osmium::Output::CSV *oc = new Osmium::Output::CSV(*str);
+                    Osmium::Export::CSV *oc = new Osmium::Export::CSV(*str);
                     return oc->js_instance();
                 }
             }
@@ -151,13 +151,13 @@ namespace Osmium {
                     v8::String::Utf8Value str(args[0]);
                     v8::String::AsciiValue type(args[1]);
                     std::string filename(*str);
-                    Osmium::Output::Shapefile *oc;
+                    Osmium::Export::Shapefile *oc;
                     if (!strcmp(*type, "point")) {
-                        oc = new Osmium::Output::PointShapefile(filename);
+                        oc = new Osmium::Export::PointShapefile(filename);
                     } else if (!strcmp(*type, "line")) {
-                        oc = new Osmium::Output::LineStringShapefile(filename);
+                        oc = new Osmium::Export::LineStringShapefile(filename);
                     } else if (!strcmp(*type, "polygon")) {
-                        oc = new Osmium::Output::PolygonShapefile(filename);
+                        oc = new Osmium::Export::PolygonShapefile(filename);
                     } else {
                         throw std::runtime_error("unkown shapefile type");
                     }

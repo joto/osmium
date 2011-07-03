@@ -31,7 +31,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <osmium/storage/byid.hpp>
 #include <osmium/handler/coordinates_for_ways.hpp>
 #include <osmium/geometry/point.hpp>
-#include <osmium/output/shapefile.hpp>
+#include <osmium/export/shapefile.hpp>
 
 typedef Osmium::Storage::SparseTable<Osmium::OSM::Position> storage_sparsetable_t;
 typedef Osmium::Storage::Mmap<Osmium::OSM::Position> storage_mmap_t;
@@ -39,8 +39,8 @@ typedef Osmium::Handler::CoordinatesForWays<storage_sparsetable_t, storage_mmap_
 
 class MyShapeHandler : public Osmium::Handler::Base {
 
-    Osmium::Output::PointShapefile *shapefile_point;
-    Osmium::Output::LineStringShapefile *shapefile_linestring;
+    Osmium::Export::PointShapefile *shapefile_point;
+    Osmium::Export::LineStringShapefile *shapefile_linestring;
 
     storage_sparsetable_t store_pos;
     storage_mmap_t store_neg;
@@ -51,11 +51,11 @@ public:
     MyShapeHandler() {
         handler_cfw = new cfw_handler_t(store_pos, store_neg);
         std::string filename("postboxes");
-        shapefile_point = new Osmium::Output::PointShapefile(filename);
+        shapefile_point = new Osmium::Export::PointShapefile(filename);
         shapefile_point->add_field("id", FTInteger, 10);
         shapefile_point->add_field("operator", FTString, 30);
         filename = "roads";
-        shapefile_linestring = new Osmium::Output::LineStringShapefile(filename);
+        shapefile_linestring = new Osmium::Export::LineStringShapefile(filename);
         shapefile_linestring->add_field("id", FTInteger, 10);
         shapefile_linestring->add_field("type", FTString, 30);
     }

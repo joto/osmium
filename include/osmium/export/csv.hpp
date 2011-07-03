@@ -1,5 +1,5 @@
-#ifndef OSMIUM_OUTPUT_CSV_HPP
-#define OSMIUM_OUTPUT_CSV_HPP
+#ifndef OSMIUM_EXPORT_CSV_HPP
+#define OSMIUM_EXPORT_CSV_HPP
 
 /*
 
@@ -26,7 +26,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 namespace Osmium {
 
-    namespace Output {
+    namespace Export {
 
         class CSV {
 
@@ -75,8 +75,8 @@ namespace Osmium {
 
         }; // class CSV
 
-    } // namespace Output
+    } // namespace Export
 
 } // namespace Osmium
 
-#endif // OSMIUM_OUTPUT_CSV_HPP
+#endif // OSMIUM_EXPORT_CSV_HPP

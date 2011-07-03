@@ -1,5 +1,5 @@
-#ifndef OSMIUM_OUTPUT_HPP
-#define OSMIUM_OUTPUT_HPP
+#ifndef OSMIUM_EXPORT_HPP
+#define OSMIUM_EXPORT_HPP
 
 /*
 
@@ -24,42 +24,17 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 namespace Osmium {
 
-    namespace Output {
-
-        class Base {
-
-        protected:
-
-            Osmium::OSMFile m_file;
-
-            int get_fd() {
-                return m_file.get_fd();
-            }
-
-        public:
-
-            Base(Osmium::OSMFile& file) : m_file(file) {
-                m_file.open_for_output();
-            }
-
-            virtual ~Base() {
-            }
-
-            virtual void init(Osmium::OSM::Meta&) = 0;
-            virtual void node(Osmium::OSM::Node*) = 0;
-            virtual void way(Osmium::OSM::Way*) = 0;
-            virtual void relation(Osmium::OSM::Relation*) = 0;
-            virtual void final() = 0;
-
-        }; // class Base
-
-    } // namespace Output
+    /**
+     * @brief Namespace for classes implementing export into non-OSM formats.
+     */
+    namespace Export {
+    } // namespace Export
 
 } // namespace Osmium
 
-#include <osmium/output/pbf.hpp>
-#ifdef OSMIUM_WITH_OUTPUT_OSM_XML
-# include <osmium/output/xml.hpp>
+#ifdef OSMIUM_WITH_JAVASCRIPT
+# include <osmium/export/csv.hpp>
+# include <osmium/export/shapefile.hpp>
 #endif
 
-#endif // OSMIUM_OUTPUT_HPP
+#endif // OSMIUM_EXPORT_HPP

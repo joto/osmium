@@ -112,6 +112,7 @@ namespace Osmium {
 #include <osmium/osmfile.hpp>
 #include <osmium/input.hpp>
 #include <osmium/output.hpp>
+#include <osmium/export.hpp>
 #include <osmium/osmfile_impl.hpp>
 
 #ifdef OSMIUM_WITH_JAVASCRIPT

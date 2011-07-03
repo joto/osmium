@@ -1,5 +1,5 @@
-#ifndef OSMIUM_OUTPUT_SHAPEFILE_HPP
-#define OSMIUM_OUTPUT_SHAPEFILE_HPP
+#ifndef OSMIUM_EXPORT_SHAPEFILE_HPP
+#define OSMIUM_EXPORT_SHAPEFILE_HPP
 
 /*
 
@@ -29,7 +29,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 namespace Osmium {
 
-    namespace Output {
+    namespace Export {
 
         class Shapefile {
 
@@ -451,10 +451,10 @@ namespace Osmium {
 
         };
 
-    } // namespace Output
+    } // namespace Export
 
 } // namespace Osmium
 
 #endif // OSMIUM_WITH_SHPLIB
 
-#endif // OSMIUM_OUTPUT_SHAPEFILE_HPP
+#endif // OSMIUM_EXPORT_SHAPEFILE_HPP

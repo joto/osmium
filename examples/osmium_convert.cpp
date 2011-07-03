@@ -34,7 +34,7 @@ class ConvertHandler : public Osmium::Handler::Base {
 
     Osmium::OSMFile* m_outfile;
 
-    Osmium::Output::OSM::Base* output;
+    Osmium::Output::Base* output;
 
 public:
 
