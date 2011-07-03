@@ -36,8 +36,9 @@ namespace Osmium {
             void node(const Osmium::OSM::Node* node) const {
                 std::cout << "node:\n";
                 print_meta(node);
-                std::cout << "  lon=" << std::fixed << std::setprecision(7) << node->get_lon() << "\n";
-                std::cout << "  lat=" << std::fixed << std::setprecision(7) << node->get_lat() << "\n";
+                const Osmium::OSM::Position position = node->position();
+                std::cout << "  lon=" << std::fixed << std::setprecision(7) << position.lon() << "\n";
+                std::cout << "  lat=" << std::fixed << std::setprecision(7) << position.lat() << "\n";
             }
 
             void way(const Osmium::OSM::Way* way) const {
@@ -45,8 +46,9 @@ namespace Osmium {
                 print_meta(way);
                 std::cout << "  node_count=" << way->node_count() << "\n";
                 std::cout << "  nodes:\n";
-                for (osm_sequence_id_t i=0; i < way->node_count(); ++i) {
-                    std::cout << "    ref=" << way->get_node_id(i) << "\n";
+                Osmium::OSM::WayNodeList::const_iterator end = way->nodes().end();
+                for (Osmium::OSM::WayNodeList::const_iterator it = way->nodes().begin(); it != end; ++it) {
+                    std::cout << "    ref=" << it->ref() << "\n";
                 }
             }
 
@@ -55,9 +57,9 @@ namespace Osmium {
                 print_meta(relation);
                 std::cout << "  members.size=" << relation->members().size() << "\n";
                 std::cout << "  members:\n";
-                for (osm_sequence_id_t i=0; i < relation->members().size(); ++i) {
-                    const Osmium::OSM::RelationMember* m = relation->get_member(i);
-                    std::cout << "    type=" << m->type() << " ref=" << m->ref() << " role=|" << m->role() << "|" << "\n";
+                Osmium::OSM::RelationMemberList::const_iterator end = relation->members().end();
+                for (Osmium::OSM::RelationMemberList::const_iterator it = relation->members().begin(); it != end; ++it) {
+                    std::cout << "    type=" << it->type() << " ref=" << it->ref() << " role=|" << it->role() << "|" << "\n";
                 }
             }
 
@@ -71,8 +73,9 @@ namespace Osmium {
                 std::cout << "  changeset=" << object->get_changeset() << "\n";
                 std::cout << "  timestamp=" << object->get_timestamp_as_string() << "\n";
                 std::cout << "  tags:" << "\n";
-                for (int i=0; i < object->tag_count(); ++i) {
-                    std::cout << "    k=|" << object->get_tag_key(i) << "| v=|" << object->get_tag_value(i) << "|" << "\n";
+                Osmium::OSM::TagList::const_iterator end = object->tags().end();
+                for (Osmium::OSM::TagList::const_iterator it = object->tags().begin(); it != end; ++it) {
+                    std::cout << "    k=|" << it->key() << "| v=|" << it->value() << "|" << "\n";
                 }
             }
 

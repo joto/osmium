@@ -36,34 +36,6 @@ namespace Osmium {
 
             class XML : public Base {
 
-                xmlTextWriterPtr xml_writer;
-
-                void write_meta(const Osmium::OSM::Object* object) {
-                    xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "id",        "%d", object->get_id());
-                    xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "version",   "%d", object->get_version());
-                    xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "changeset", "%d", object->get_changeset());
-                    xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "timestamp", BAD_CAST object->get_timestamp_as_string().c_str());
-
-                    // uid == 0 -> anonymous
-                    if (object->get_uid() > 0) {
-                        xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "uid", "%d", object->get_uid());
-                        xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "user", BAD_CAST object->get_user());
-                    }
-
-                    if (m_file.get_type() == Osmium::OSMFile::FileType::History()) {
-                        xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "visible", object->get_visible() ? BAD_CAST "true" : BAD_CAST "false");
-                    }
-                }
-
-                void write_tags(const Osmium::OSM::TagList& tags) {
-                    for (Osmium::OSM::TagList::const_iterator it = tags.begin(); it != tags.end(); ++it) {
-                        xmlTextWriterStartElement(xml_writer, BAD_CAST "tag"); // <tag>
-                        xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "k", BAD_CAST it->key());
-                        xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "v", BAD_CAST it->value());
-                        xmlTextWriterEndElement(xml_writer); // </tag>
-                    }
-                }
-
             public:
 
                 XML(Osmium::OSMFile& file) : Base(file) {
@@ -113,7 +85,8 @@ namespace Osmium {
 
                     write_meta(way);
 
-                    for (Osmium::OSM::WayNodeList::const_iterator it = way->nodes().begin(); it != way->nodes().end(); ++it) {
+                    Osmium::OSM::WayNodeList::const_iterator end = way->nodes().end();
+                    for (Osmium::OSM::WayNodeList::const_iterator it = way->nodes().begin(); it != end; ++it) {
                         xmlTextWriterStartElement(xml_writer, BAD_CAST "nd"); // <nd>
                         xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "ref", "%d", it->ref());
                         xmlTextWriterEndElement(xml_writer); // </nd>
@@ -129,7 +102,8 @@ namespace Osmium {
 
                     write_meta(relation);
 
-                    for (Osmium::OSM::RelationMemberList::const_iterator it = relation->members().begin(); it != relation->members().end(); ++it) {
+                    Osmium::OSM::RelationMemberList::const_iterator end = relation->members().end();
+                    for (Osmium::OSM::RelationMemberList::const_iterator it = relation->members().begin(); it != end; ++it) {
                         xmlTextWriterStartElement(xml_writer, BAD_CAST "member"); // <member>
 
                         xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "type", BAD_CAST it->type_name());
@@ -148,6 +122,37 @@ namespace Osmium {
                     xmlTextWriterEndElement(xml_writer); // </osm>
                     xmlFreeTextWriter(xml_writer);
                     m_file.close();
+                }
+
+            private:
+
+                xmlTextWriterPtr xml_writer;
+
+                void write_meta(const Osmium::OSM::Object* object) {
+                    xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "id",        "%d", object->get_id());
+                    xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "version",   "%d", object->get_version());
+                    xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "changeset", "%d", object->get_changeset());
+                    xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "timestamp", BAD_CAST object->get_timestamp_as_string().c_str());
+
+                    // uid == 0 -> anonymous
+                    if (object->get_uid() > 0) {
+                        xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "uid", "%d", object->get_uid());
+                        xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "user", BAD_CAST object->get_user());
+                    }
+
+                    if (m_file.get_type() == Osmium::OSMFile::FileType::History()) {
+                        xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "visible", object->get_visible() ? BAD_CAST "true" : BAD_CAST "false");
+                    }
+                }
+
+                void write_tags(const Osmium::OSM::TagList& tags) {
+                    Osmium::OSM::TagList::const_iterator end = tags.end();
+                    for (Osmium::OSM::TagList::const_iterator it = tags.begin(); it != end; ++it) {
+                        xmlTextWriterStartElement(xml_writer, BAD_CAST "tag"); // <tag>
+                        xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "k", BAD_CAST it->key());
+                        xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "v", BAD_CAST it->value());
+                        xmlTextWriterEndElement(xml_writer); // </tag>
+                    }
                 }
 
             }; // class XML
