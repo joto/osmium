@@ -46,7 +46,7 @@ namespace Osmium {
             char buffer[OSMPBF::max_uncompressed_blob_size];
             char unpack_buffer[OSMPBF::max_uncompressed_blob_size];
 
-            typedef std::pair<const void *, size_t> array_t;
+            typedef std::pair<const void*, size_t> array_t;
 
             OSMPBF::BlobHeader pbf_blob_header;
             OSMPBF::PrimitiveBlock pbf_primitive_block;
@@ -385,7 +385,7 @@ namespace Osmium {
             * Read a (possibly compressed) blob of data. If the blob is compressed, it is uncompressed.
             */
             array_t read_blob(int size) {
-                OSMPBF::Blob blob;
+                static OSMPBF::Blob blob;
                 if (size < 0 || size > OSMPBF::max_uncompressed_blob_size) {
                     std::ostringstream errmsg;
                     errmsg << "invalid blob size: " << size;
