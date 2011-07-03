@@ -55,7 +55,7 @@ namespace Osmium {
             }
 
             bool defined() const {
-                return m_x != std::numeric_limits<int32_t>::max();
+                return m_x != std::numeric_limits<int32_t>::max() && m_x != std::numeric_limits<int32_t>::min();
             }
 
             int32_t x() const {

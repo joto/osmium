@@ -22,6 +22,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#include <osmium/osm/bounds.hpp>
+
 namespace Osmium {
 
     namespace Handler {
@@ -30,30 +32,15 @@ namespace Osmium {
 
         public:
 
-            FindBbox() : Base(), m_minlon(1000), m_maxlon(-1000), m_minlat(1000), m_maxlat(-1000) {
+            FindBbox() : Base(), m_bounds() {
             }
 
-            double minlon() const {
-                return m_minlon;
-            }
-
-            double maxlon() const {
-                return m_maxlon;
-            }
-
-            double minlat() const {
-                return m_minlat;
-            }
-
-            double maxlat() const {
-                return m_maxlat;
+            const Osmium::OSM::Bounds bounds() const {
+                return m_bounds;
             }
 
             void node(Osmium::OSM::Node* node) {
-                if (node->get_lon() < m_minlon) m_minlon = node->get_lon();
-                if (node->get_lon() > m_maxlon) m_maxlon = node->get_lon();
-                if (node->get_lat() < m_minlat) m_minlat = node->get_lat();
-                if (node->get_lat() > m_maxlat) m_maxlat = node->get_lat();
+                m_bounds.extend(node->position());
             }
 
             void after_nodes() const {
@@ -62,10 +49,7 @@ namespace Osmium {
 
         private:
 
-            double m_minlon;
-            double m_maxlon;
-            double m_minlat;
-            double m_maxlat;
+            Osmium::OSM::Bounds m_bounds;
 
         }; // class FindBbox
 
