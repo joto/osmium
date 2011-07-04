@@ -43,9 +43,7 @@ namespace Osmium {
     namespace OSM {
 
         /**
-        *
         * Parent class for nodes, ways, and relations.
-        *
         */
         class Object {
 
@@ -264,10 +262,6 @@ namespace Osmium {
 
             void tags(TagList& tags) {
                 m_tags = tags;
-            }
-
-            void add_tag(const char *key, const char *value) {
-                m_tags.add(key, value);
             }
 
             const char *get_tag_by_key(const char *key) const {

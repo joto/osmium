@@ -347,7 +347,7 @@ namespace Osmium {
                     if (aTags.find(b->get_tag_key(i)) != aTags.end()) {
                         if (aTags[b->get_tag_key(i)] != b->get_tag_value(i)) rv = false;
                     } else {
-                        a->add_tag(b->get_tag_key(i), b->get_tag_value(i));
+                        a->tags().add(b->get_tag_key(i), b->get_tag_value(i));
                         aTags[b->get_tag_key(i)] = b->get_tag_value(i);
                     }
                 }

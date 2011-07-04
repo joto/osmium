@@ -154,7 +154,7 @@ namespace Osmium {
                     }
                     // XXX assert key, value exist
                     if (current_object) {
-                        current_object->add_tag(key, value);
+                        current_object->tags().add(key, value);
                     }
                 } else if (!strcmp(element, "way")) {
                     this->call_after_and_before_handlers(WAY);

@@ -196,9 +196,10 @@ namespace Osmium {
                         }
                     }
 
+                    Osmium::OSM::TagList& tags = this->node()->tags();
                     for (int tag=0; tag < pbf_node.keys_size(); tag++) {
-                        this->node()->add_tag(stringtable.s( pbf_node.keys( tag ) ).data(),
-                                              stringtable.s( pbf_node.vals( tag ) ).data());
+                        tags.add(stringtable.s( pbf_node.keys( tag ) ).data(),
+                                 stringtable.s( pbf_node.vals( tag ) ).data());
                     }
 
                     this->node()->position(Osmium::OSM::Position(
@@ -227,9 +228,10 @@ namespace Osmium {
                         }
                     }
 
+                    Osmium::OSM::TagList& tags = this->way()->tags();
                     for (int tag=0; tag < pbf_way.keys_size(); tag++) {
-                        this->way()->add_tag(stringtable.s( pbf_way.keys( tag ) ).data(),
-                                             stringtable.s( pbf_way.vals( tag ) ).data());
+                        tags.add(stringtable.s( pbf_way.keys( tag ) ).data(),
+                                 stringtable.s( pbf_way.vals( tag ) ).data());
                     }
 
                     uint64_t ref = 0;
@@ -260,10 +262,11 @@ namespace Osmium {
                             this->node()->visible(pbf_relation.info().visible());
                         }
                     }
-
+ 
+                    Osmium::OSM::TagList& tags = this->relation()->tags();
                     for (int tag=0; tag < pbf_relation.keys_size(); tag++) {
-                        this->relation()->add_tag(stringtable.s( pbf_relation.keys(tag) ).data(),
-                                                  stringtable.s( pbf_relation.vals(tag) ).data());
+                        tags.add(stringtable.s( pbf_relation.keys(tag) ).data(),
+                                 stringtable.s( pbf_relation.vals(tag) ).data());
                     }
 
                     uint64_t ref = 0;
@@ -336,9 +339,10 @@ namespace Osmium {
                             last_dense_tag++;
                             break;
                         }
-
-                        this->node()->add_tag(stringtable.s(tag_key_pos).data(),
-                                              stringtable.s(dense.keys_vals(last_dense_tag+1)).data());
+ 
+                        Osmium::OSM::TagList& tags = this->node()->tags();
+                        tags.add(stringtable.s(tag_key_pos).data(),
+                                 stringtable.s(dense.keys_vals(last_dense_tag+1)).data());
 
                         last_dense_tag += 2;
                     }
