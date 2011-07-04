@@ -264,10 +264,6 @@ namespace Osmium {
                 m_tags = tags;
             }
 
-            const char *get_tag_by_key(const char *key) const {
-                return tags().get_tag_by_key(key);
-            }
-
             const char *get_tag_key(int n) const {
                 return tags().get_tag_key(n);
             }

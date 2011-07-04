@@ -61,7 +61,7 @@ namespace Osmium {
 
             // in pass 1
             void relation(Osmium::OSM::Relation* relation) {
-                const char *type = relation->get_tag_by_key("type");
+                const char* type = relation->tags().get_tag_by_key("type");
 
                 // ignore relations without "type" tag
                 if (!type) {
