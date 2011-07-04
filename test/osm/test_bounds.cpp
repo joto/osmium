@@ -3,6 +3,8 @@
 # define BOOST_TEST_MODULE Main
 #endif
 #include <boost/test/unit_test.hpp>
+#include <boost/test/output_test_stream.hpp> 
+using boost::test_tools::output_test_stream;
 
 #include <osmium/osm/bounds.hpp>
 
@@ -31,9 +33,9 @@ BOOST_AUTO_TEST_CASE(output) {
     Osmium::OSM::Bounds b;
     b.extend(Osmium::OSM::Position(1.2, 3.4));
     b.extend(Osmium::OSM::Position(5.6, 7.8));
-    std::ostringstream out;
+    output_test_stream out;
     out << b;
-    BOOST_CHECK_EQUAL(out.str(), "(1.2,3.4,5.6,7.8)");
+    BOOST_CHECK(out.is_equal("(1.2,3.4,5.6,7.8)"));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

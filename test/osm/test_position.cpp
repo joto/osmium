@@ -3,10 +3,8 @@
 # define BOOST_TEST_MODULE Main
 #endif
 #include <boost/test/unit_test.hpp>
-
-#include <iostream>
-#include <sstream>
-#include <string>
+#include <boost/test/output_test_stream.hpp> 
+using boost::test_tools::output_test_stream;
 
 #include <osmium/osm/position.hpp>
 
@@ -40,9 +38,9 @@ BOOST_AUTO_TEST_CASE(equality) {
 
 BOOST_AUTO_TEST_CASE(output) {
     Osmium::OSM::Position p(-3.2, 47.3);
-    std::ostringstream out;
+    output_test_stream out;
     out << p;
-    BOOST_CHECK_EQUAL(out.str(), "(-3.2,47.3)");
+    BOOST_CHECK(out.is_equal("(-3.2,47.3)"));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
