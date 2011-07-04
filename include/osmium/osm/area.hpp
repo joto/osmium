@@ -320,15 +320,20 @@ namespace Osmium {
 
             bool same_tags(const Object *a, const Object *b) {
                 if ((a == NULL) || (b == NULL)) return false;
+                const TagList& at = a->tags();
+                const TagList& bt = b->tags();
                 std::map<std::string, std::string> aTags;
-                for (int i = 0; i < a->tags().size(); i++) {
-                    if (ignore_tag(a->get_tag_key(i))) continue;
-                    aTags[a->get_tag_key(i)] = a->get_tag_value(i);
+
+                TagList::const_iterator end = at.end();
+                for (TagList::const_iterator it = at.begin(); it != end; ++it) {
+                    if (ignore_tag(it->key())) continue;
+                    aTags[it->key()] = it->value();
                 }
-                for (int i = 0; i < b->tags().size(); i++) {
-                    if (ignore_tag(b->get_tag_key(i))) continue;
-                    if (aTags[b->get_tag_key(i)] != b->get_tag_value(i)) return false;
-                    aTags.erase(b->get_tag_key(i));
+                end = bt.end();
+                for (TagList::const_iterator it = bt.begin(); it != end; ++it) {
+                    if (ignore_tag(it->key())) continue;
+                    if (aTags[it->key()] != it->value()) return false;
+                    aTags.erase(it->key());
                 }
                 if (!aTags.empty()) return false;
                 return true;
@@ -337,18 +342,22 @@ namespace Osmium {
             /** returns false if there was a collision, true otherwise */
             bool merge_tags(Object *a, const Object *b) {
                 bool rv = true;
+                TagList& at = a->tags();
+                const TagList& bt = b->tags();
                 std::map<std::string, std::string> aTags;
-                for (int i = 0; i < a->tags().size(); i++) {
-                    if (ignore_tag(a->get_tag_key(i))) continue;
-                    aTags[a->get_tag_key(i)] = a->get_tag_value(i);
+                TagList::const_iterator end = at.end();
+                for (TagList::const_iterator it = at.begin(); it != end; ++it) {
+                    if (ignore_tag(it->key())) continue;
+                    aTags[it->key()] = it->value();
                 }
-                for (int i = 0; i < b->tags().size(); i++) {
-                    if (ignore_tag(b->get_tag_key(i))) continue;
-                    if (aTags.find(b->get_tag_key(i)) != aTags.end()) {
-                        if (aTags[b->get_tag_key(i)] != b->get_tag_value(i)) rv = false;
+                end = bt.end();
+                for (TagList::const_iterator it = bt.begin(); it != end; ++it) {
+                    if (ignore_tag(it->key())) continue;
+                    if (aTags.find(it->key()) != aTags.end()) {
+                        if (aTags[it->key()] != it->value()) rv = false;
                     } else {
-                        a->tags().add(b->get_tag_key(i), b->get_tag_value(i));
-                        aTags[b->get_tag_key(i)] = b->get_tag_value(i);
+                        at.add(it->key(), it->value());
+                        aTags[it->key()] = it->value();
                     }
                 }
                 return rv;
@@ -356,9 +365,11 @@ namespace Osmium {
 
             bool untagged(const Object *r) {
                 if (r == NULL) return true;
-                if (r->tags().empty()) return true;
-                for (int i=0; i < r->tags().size(); i++) {
-                    if (! ignore_tag(r->get_tag_key(i)) ) {
+                const TagList& tags = r->tags();
+                if (tags.empty()) return true;
+                TagList::const_iterator end = tags.end();
+                for (TagList::const_iterator it = tags.begin(); it != end; ++it) {
+                    if (! ignore_tag(it->key()) ) {
                         return false;
                     }
                 }

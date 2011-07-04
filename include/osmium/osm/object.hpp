@@ -264,14 +264,6 @@ namespace Osmium {
                 m_tags = tags;
             }
 
-            const char *get_tag_key(int n) const {
-                return tags().get_tag_key(n);
-            }
-
-            const char *get_tag_value(int n) const {
-                return tags().get_tag_value(n);
-            }
-
 #ifdef OSMIUM_WITH_JAVASCRIPT
             v8::Local<v8::Object> js_object_instance;
 

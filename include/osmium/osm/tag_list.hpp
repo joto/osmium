@@ -132,8 +132,10 @@ namespace Osmium {
                 v8::HandleScope scope;
                 v8::Local<v8::Array> array = v8::Array::New(m_tags.size());
 
-                for (unsigned int i=0; i < m_tags.size(); i++) {
-                    array->Set(i, utf8_to_v8_String<Osmium::OSM::Tag::max_utf16_length_key>(get_tag_key(i)));
+                const_iterator end = this->end();
+                int i = 0;
+                for (const_iterator it = begin(); it != end; ++it) {
+                    array->Set(i++, utf8_to_v8_String<Osmium::OSM::Tag::max_utf16_length_key>(it->key()));
                 }
 
                 return scope.Close(array);
