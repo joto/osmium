@@ -25,6 +25,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <vector>
 #include <cstring>
 
+#include <osmium/osm/tag.hpp>
+
 namespace Osmium {
 
     namespace OSM {

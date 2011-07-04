@@ -11,7 +11,7 @@
 #include <osmium/osm.hpp>
 #include <osmium/geometry/point.hpp>
 
-#include "../utils.hpp"
+#include <test_utils.hpp>
 
 BOOST_AUTO_TEST_SUITE(PointGeometry)
 

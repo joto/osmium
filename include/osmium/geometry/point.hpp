@@ -24,10 +24,15 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <vector>
 #include <sstream>
+#include <iomanip>
 
 #ifdef OSMIUM_WITH_SHPLIB
 # include <shapefil.h>
 #endif // OSMIUM_WITH_SHPLIB
+
+#ifdef OSMIUM_WITH_GEOS
+# include <geos/geom/Point.h>
+#endif // OSMIUM_WITH_GEOS
 
 #include <osmium/geometry.hpp>
 #include <osmium/osm/node.hpp>
