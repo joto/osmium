@@ -28,7 +28,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <osmium/geometry.hpp>
 #include <osmium/osm/way.hpp>
-#include <osmium/osm/way_node_list.hpp>
 
 namespace Osmium {
 

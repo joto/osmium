@@ -93,6 +93,8 @@ More complete outlines of real .osm.pbf files can be created using the osmpbf-ou
 // math is used for round() in lonlat2int
 #include <math.h>
 
+#include <zlib.h>
+
 #include <osmpbf/osmpbf.h>
 
 // StringTable management

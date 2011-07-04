@@ -23,6 +23,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 */
 
 #include <fstream>
+#include <iostream>
+#include <v8.h>
 
 extern v8::Persistent<v8::Context> global_context;
 

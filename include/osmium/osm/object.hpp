@@ -35,6 +35,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 # include <shapefil.h>
 #endif // OSMIUM_WITH_SHPLIB
 
+#include <osmium/osm/types.hpp>
 #include <osmium/osm/tag_list.hpp>
 
 namespace Osmium {

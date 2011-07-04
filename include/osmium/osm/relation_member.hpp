@@ -22,6 +22,11 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#include <cstring>
+#include <stdexcept>
+
+#include <osmium/osm/types.hpp>
+
 namespace Osmium {
 
     namespace OSM {

@@ -24,6 +24,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <vector>
 
+#include <osmium/osm/relation_member.hpp>
+
 namespace Osmium {
 
     namespace OSM {

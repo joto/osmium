@@ -22,6 +22,9 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#include <osmium/osmfile.hpp>
+#include <osmium/output.hpp>
+
 namespace Osmium {
 
     template <class T>

@@ -22,6 +22,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#include <osmium/handler.hpp>
 #include <osmium/osm/bounds.hpp>
 
 namespace Osmium {

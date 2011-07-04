@@ -24,6 +24,10 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <fstream>
 
+#ifdef OSMIUM_WITH_JAVASCRIPT
+# include <v8.h>
+#endif // OSMIUM_WITH_JAVASCRIPT
+
 namespace Osmium {
 
     namespace Export {
@@ -43,6 +47,7 @@ namespace Osmium {
                 out.close();
             }
 
+#ifdef OSMIUM_WITH_JAVASCRIPT
             v8::Local<v8::Object> js_instance() const {
                 return JavascriptTemplate::get<JavascriptTemplate>().create_instance((void *)this);
             }
@@ -72,6 +77,7 @@ namespace Osmium {
                 }
 
             };
+#endif // OSMIUM_WITH_JAVASCRIPT
 
         }; // class CSV
 

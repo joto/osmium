@@ -27,6 +27,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <sys/wait.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <stdexcept>
 
 namespace Osmium {
 

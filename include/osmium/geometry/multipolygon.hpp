@@ -30,6 +30,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 # include <geos/io/WKBWriter.h>
 #endif // OSMIUM_WITH_GEOS
 
+#include <osmium/osm/area.hpp>
 #include <osmium/geometry.hpp>
 
 namespace Osmium {

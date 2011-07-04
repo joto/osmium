@@ -25,6 +25,9 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <cstdlib>
 #include <fstream>
 
+#include <v8.h>
+#include <unicode/ustring.h>
+
 /* These unicode conversion functions are used to convert UTF-8 to UTF-16 and then into
    a v8::String and back, because the functions that v8 has for this do not handle
    characters outside the Basic Multilingual Plane (>16bit) properly. */
