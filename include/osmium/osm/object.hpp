@@ -49,26 +49,12 @@ namespace Osmium {
         */
         class Object {
 
-            static const int timestamp_length = 20 + 1; // length of ISO timestamp string yyyy-mm-ddThh:mm:ssZ\0
-
         public:
 
             static const int max_characters_username = 255;
             static const int max_utf16_length_username = 2 * (max_characters_username + 1); ///< maximum number of UTF-16 units
 
             static const int max_length_username = 255 * 4 + 1; ///< maximum length of OSM user name (255 UTF-8 characters + null byte)
-
-        private:
-
-            osm_object_id_t    id;          ///< object id
-            osm_version_t      version;     ///< object version
-            osm_changeset_id_t changeset;   ///< id of last changeset that changed this object
-            time_t             timestamp;   ///< when this object changed last
-            osm_user_id_t      uid;         ///< user id of user who last changed this object
-            char user[max_length_username]; ///< name of user who last changed this object
-            bool               visible;     ///< object visible (only when working with history data)
-
-        public:
 
             /**
              * Get the object id.
@@ -284,30 +270,6 @@ namespace Osmium {
                 return *this;
             }
 
-        protected:
-
-            Object() : m_tags() {
-                reset();
-            }
-
-            Object(const Object &o) {
-                id        = o.id;
-                version   = o.version;
-                uid       = o.uid;
-                changeset = o.changeset;
-                timestamp = o.timestamp;
-                m_tags    = o.tags();
-                visible   = o.visible;
-                strncpy(user, o.user, max_length_username);
-            }
-
-            virtual ~Object() {
-            }
-
-        public:
-
-            TagList m_tags;
-
             virtual osm_object_type_t get_type() const = 0;
 
             virtual void reset() {
@@ -350,6 +312,10 @@ namespace Osmium {
 
             TagList& tags() {
                 return m_tags;
+            }
+
+            void tags(TagList& tags) {
+                m_tags = tags;
             }
 
             void add_tag(const char *key, const char *value) {
@@ -426,6 +392,40 @@ namespace Osmium {
 
             };
 #endif // OSMIUM_WITH_JAVASCRIPT
+
+        protected:
+
+            Object() : m_tags() {
+                reset();
+            }
+
+            Object(const Object &o) {
+                id        = o.id;
+                version   = o.version;
+                uid       = o.uid;
+                changeset = o.changeset;
+                timestamp = o.timestamp;
+                m_tags    = o.tags();
+                visible   = o.visible;
+                strncpy(user, o.user, max_length_username);
+            }
+
+            virtual ~Object() {
+            }
+
+        private:
+
+            static const int timestamp_length = 20 + 1; // length of ISO timestamp string yyyy-mm-ddThh:mm:ssZ\0
+
+            osm_object_id_t    id;          ///< object id
+            osm_version_t      version;     ///< object version
+            osm_changeset_id_t changeset;   ///< id of last changeset that changed this object
+            time_t             timestamp;   ///< when this object changed last
+            osm_user_id_t      uid;         ///< user id of user who last changed this object
+            char user[max_length_username]; ///< name of user who last changed this object
+            bool               visible;     ///< object visible (only when working with history data)
+
+            TagList m_tags;
 
         }; // class Object
 

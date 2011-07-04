@@ -33,7 +33,10 @@ namespace Osmium {
     namespace OSM {
 
         /**
-        *  A collection of Tags.
+        * An ordered container for Tags.
+        *
+        * Tag keys are assumed to be unique in a TagList, but this is not
+        * checked.
         */
         class TagList {
 
@@ -42,10 +45,12 @@ namespace Osmium {
             TagList() : m_tags() {
             }
 
+            /// Return the number of tags in this tag list.
             int size() const {
                 return m_tags.size();
             }
 
+            /// Remove all tags from the tag list.
             void clear() {
                 m_tags.clear();
             }
@@ -77,6 +82,7 @@ namespace Osmium {
                 return m_tags.end();
             }
 
+            /// Add new tag with given key and value to list.
             void add(const char *key, const char *value) {
                 m_tags.push_back(Tag(key, value));
             }

@@ -214,7 +214,7 @@ namespace Osmium {
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
             v8::Handle<v8::Value> js_from() const {
-                const char *value = (get_type() == MULTIPOLYGON_FROM_WAY) ? "way" : "relation";
+                const char *value = (get_type() == AREA_FROM_WAY) ? "way" : "relation";
                 return v8::String::NewSymbol(value);
             }
 
@@ -258,7 +258,7 @@ namespace Osmium {
                 set_uid(way->get_uid());
                 set_user(way->get_user());
 
-                m_tags = way->tags();
+                tags(way->tags());
 
                 num_nodes = way->node_count();
                 lon = (double *) malloc(sizeof(double) * num_nodes);
@@ -278,7 +278,7 @@ namespace Osmium {
             }
 
             osm_object_type_t get_type() const {
-                return MULTIPOLYGON_FROM_WAY;
+                return AREA_FROM_WAY;
             }
 
         }; // class AreaFromWay
@@ -423,7 +423,7 @@ namespace Osmium {
             }
 
             osm_object_type_t get_type() const {
-                return MULTIPOLYGON_FROM_RELATION;
+                return AREA_FROM_RELATION;
             }
 
             /// Add way to list of member ways. This will create a copy of the way.
@@ -1063,7 +1063,7 @@ namespace Osmium {
                             }
                         }
                         // copy tags from relation into area
-                        m_tags = relation->tags();
+                        tags(relation->tags());
                     }
                     // later delete ringlist[i];
                     // ringlist[i] = NULL;

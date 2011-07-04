@@ -30,8 +30,10 @@ namespace Osmium {
     namespace OSM {
 
         /**
-        *  An OSM tag. Has static allocation with enough memory to hold key and
-        *  value strings.
+        * An OSM tag.
+        * 
+        * Tag keys and values are not allowed to be longer than 255 characters
+        * each, but this is not checked by this class.
         */
         class Tag {
 
