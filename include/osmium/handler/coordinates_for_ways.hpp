@@ -50,7 +50,7 @@ namespace Osmium {
              * Store the location of the node in the storage.
              */
             void node(const Osmium::OSM::Node* node) {
-                int64_t id = node->get_id();
+                int64_t id = node->id();
                 if (id >= 0) {
                     m_storage_pos.set( id, node->position());
                 } else {

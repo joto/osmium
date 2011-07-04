@@ -85,7 +85,7 @@ namespace Osmium {
                         num_ways++;
                     } else {
                         std::cerr << "warning: multipolygon/boundary relation "
-                                  << relation->get_id()
+                                  << relation->id()
                                   << " has a non-way member which was ignored\n";
                     }
                 }
@@ -110,7 +110,7 @@ namespace Osmium {
 
             // in pass 2
             void way(Osmium::OSM::Way* way) {
-                way2areaidx_t::const_iterator way2areaidx_iterator(m_way2areaidx.find(way->get_id()));
+                way2areaidx_t::const_iterator way2areaidx_iterator(m_way2areaidx.find(way->id()));
 
                 if (way2areaidx_iterator == m_way2areaidx.end()) { // not in any relation
                     if (way->is_closed() && way->node_count() >= 4) { // way is closed and has enough nodes, build simple multipolygon
@@ -120,7 +120,7 @@ namespace Osmium {
                         Osmium::OSM::AreaFromWay* area = new Osmium::OSM::AreaFromWay(way);
 #endif // OSMIUM_WITH_GEOS
                         if (Osmium::debug()) {
-                            std::cerr << "MP simple way_id=" << way->get_id() << "\n";
+                            std::cerr << "MP simple way_id=" << way->id() << "\n";
                         }
                         m_callback_area(area);
                         delete area;
@@ -131,7 +131,7 @@ namespace Osmium {
                 // is in at least one multipolygon relation
 
                 std::vector<osm_object_id_t> v = way2areaidx_iterator->second;
-                if (Osmium::debug()) std::cerr << "MP way_id=" << way->get_id() << " is in " << v.size() << " areas\n";
+                if (Osmium::debug()) std::cerr << "MP way_id=" << way->id() << " is in " << v.size() << " areas\n";
 
                 // go through all the areas this way is in
                 for (unsigned int i=0; i < v.size(); i++) {
@@ -140,7 +140,7 @@ namespace Osmium {
                         throw std::runtime_error("Zero multipolygon. This should not happen. Reason can be a way appearing more than once in your input file.");
                     }
                     if (Osmium::debug()) {
-                        std::cerr << "MP multi way_id=" << way->get_id() << " is in relation_id=" << area->get_id() << "\n";
+                        std::cerr << "MP multi way_id=" << way->id() << " is in relation_id=" << area->id() << "\n";
                     }
 
                     // store copy of current way in multipolygon

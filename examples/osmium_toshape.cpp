@@ -76,13 +76,13 @@ public:
             try {
                 Osmium::Geometry::Point point(*node);
                 shapefile_point->add_geometry(point.create_shp_object());
-                shapefile_point->add_attribute(0, node->get_id());
+                shapefile_point->add_attribute(0, node->id());
                 const char *op = node->get_tag_by_key("operator");
                 if (op) {
                     shapefile_point->add_attribute(1, std::string(op));
                 }
             } catch (Osmium::Exception::IllegalGeometry) {
-                std::cerr << "Ignoring illegal geometry for node " << node->get_id() << ".\n";
+                std::cerr << "Ignoring illegal geometry for node " << node->id() << ".\n";
             }
         }
     }
@@ -98,13 +98,13 @@ public:
             try {
                 Osmium::Geometry::LineString linestring(*way);
                 shapefile_linestring->add_geometry(linestring.create_shp_object());
-                shapefile_linestring->add_attribute(0, way->get_id());
+                shapefile_linestring->add_attribute(0, way->id());
                 const char *type = way->get_tag_by_key("highway");
                 if (type) {
                     shapefile_linestring->add_attribute(1, std::string(type));
                 }
             } catch (Osmium::Exception::IllegalGeometry) {
-                std::cerr << "Ignoring illegal geometry for way " << way->get_id() << ".\n";
+                std::cerr << "Ignoring illegal geometry for way " << way->id() << ".\n";
             }
         }
     }

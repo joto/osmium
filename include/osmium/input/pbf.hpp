@@ -184,15 +184,15 @@ namespace Osmium {
 
                     const OSMPBF::Node& pbf_node = group.nodes(entity);
 
-                    this->node()->set_id(pbf_node.id());
+                    this->node()->id(pbf_node.id());
                     if (pbf_node.has_info()) {
-                        this->node()->set_version(pbf_node.info().version())
-                        .set_changeset(pbf_node.info().changeset())
-                        .set_timestamp(pbf_node.info().timestamp() * date_factor)
-                        .set_uid(pbf_node.info().uid())
-                        .set_user(stringtable.s(pbf_node.info().user_sid()).data());
+                        this->node()->version(pbf_node.info().version())
+                        .changeset(pbf_node.info().changeset())
+                        .timestamp(pbf_node.info().timestamp() * date_factor)
+                        .uid(pbf_node.info().uid())
+                        .user(stringtable.s(pbf_node.info().user_sid()).data());
                         if (pbf_node.info().has_visible()) {
-                            this->node()->set_visible(pbf_node.info().visible());
+                            this->node()->visible(pbf_node.info().visible());
                         }
                     }
 
@@ -215,15 +215,15 @@ namespace Osmium {
 
                     const OSMPBF::Way& pbf_way = group.ways(entity);
 
-                    this->way()->set_id(pbf_way.id());
+                    this->way()->id(pbf_way.id());
                     if (pbf_way.has_info()) {
-                        this->way()->set_version(pbf_way.info().version())
-                        .set_changeset(pbf_way.info().changeset())
-                        .set_timestamp(pbf_way.info().timestamp() * date_factor)
-                        .set_uid(pbf_way.info().uid())
-                        .set_user(stringtable.s(pbf_way.info().user_sid()).data());
+                        this->way()->version(pbf_way.info().version())
+                        .changeset(pbf_way.info().changeset())
+                        .timestamp(pbf_way.info().timestamp() * date_factor)
+                        .uid(pbf_way.info().uid())
+                        .user(stringtable.s(pbf_way.info().user_sid()).data());
                         if (pbf_way.info().has_visible()) {
-                            this->node()->set_visible(pbf_way.info().visible());
+                            this->node()->visible(pbf_way.info().visible());
                         }
                     }
 
@@ -249,15 +249,15 @@ namespace Osmium {
 
                     const OSMPBF::Relation& pbf_relation = group.relations(entity);
 
-                    this->relation()->set_id(pbf_relation.id());
+                    this->relation()->id(pbf_relation.id());
                     if (pbf_relation.has_info()) {
-                        this->relation()->set_version(pbf_relation.info().version())
-                        .set_changeset(pbf_relation.info().changeset())
-                        .set_timestamp(pbf_relation.info().timestamp() * date_factor)
-                        .set_uid(pbf_relation.info().uid())
-                        .set_user(stringtable.s(pbf_relation.info().user_sid()).data());
+                        this->relation()->version(pbf_relation.info().version())
+                        .changeset(pbf_relation.info().changeset())
+                        .timestamp(pbf_relation.info().timestamp() * date_factor)
+                        .uid(pbf_relation.info().uid())
+                        .user(stringtable.s(pbf_relation.info().user_sid()).data());
                         if (pbf_relation.info().has_visible()) {
-                            this->node()->set_visible(pbf_relation.info().visible());
+                            this->node()->visible(pbf_relation.info().visible());
                         }
                     }
 
@@ -304,7 +304,7 @@ namespace Osmium {
                     this->node()->reset();
 
                     last_dense_id += dense.id(entity);
-                    this->node()->set_id(last_dense_id);
+                    this->node()->id(last_dense_id);
 
                     if (dense.has_denseinfo()) {
                         last_dense_changeset += dense.denseinfo().changeset(entity);
@@ -312,14 +312,14 @@ namespace Osmium {
                         last_dense_uid       += dense.denseinfo().uid(entity);
                         last_dense_user_sid  += dense.denseinfo().user_sid(entity);
 
-                        this->node()->set_version(dense.denseinfo().version(entity));
-                        this->node()->set_changeset(last_dense_changeset);
-                        this->node()->set_timestamp(last_dense_timestamp * date_factor);
-                        this->node()->set_uid(last_dense_uid);
-                        this->node()->set_user(stringtable.s(last_dense_user_sid).data());
+                        this->node()->version(dense.denseinfo().version(entity));
+                        this->node()->changeset(last_dense_changeset);
+                        this->node()->timestamp(last_dense_timestamp * date_factor);
+                        this->node()->uid(last_dense_uid);
+                        this->node()->user(stringtable.s(last_dense_user_sid).data());
 
                         if (dense.denseinfo().visible_size() > 0) {
-                            this->node()->set_visible(dense.denseinfo().visible(entity));
+                            this->node()->visible(dense.denseinfo().visible(entity));
                         }
                     }
 

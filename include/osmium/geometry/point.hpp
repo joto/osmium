@@ -58,7 +58,7 @@ namespace Osmium {
              * Create point geometry from position of a node.
              */
             Point(const Osmium::OSM::Node& node)
-                : Geometry(node.get_id()),
+                : Geometry(node.id()),
                   m_position(Osmium::OSM::Position(node.get_lon(), node.get_lat())) {
             }
 

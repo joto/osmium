@@ -213,11 +213,11 @@ namespace Osmium {
             int             m_tag_count;
 
             void update_common_stats(const Osmium::OSM::Object* object) {
-                m_id        = object->get_id();
-                m_version   = object->get_version();
-                m_tag_count = object->tag_count();
+                m_id        = object->id();
+                m_version   = object->version();
+                m_tag_count = object->tags().size();
 
-                osm_user_id_t uid = object->get_uid();
+                osm_user_id_t uid = object->uid();
                 if (uid == 0) {
                     m_stats.anon_user_objects++;
                 }
@@ -225,7 +225,7 @@ namespace Osmium {
                     m_stats.max_user_id = uid;
                 }
 
-                osm_changeset_id_t changeset = object->get_changeset();
+                osm_changeset_id_t changeset = object->changeset();
                 if (changeset > (int64_t) m_stats.max_changeset_id) {
                     m_stats.max_changeset_id = changeset;
                 }

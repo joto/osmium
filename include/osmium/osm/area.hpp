@@ -251,12 +251,12 @@ namespace Osmium {
 #else
             AreaFromWay(Way *way) : Area() {
 #endif // OSMIUM_WITH_GEOS
-                set_id(way->get_id());
-                set_version(way->get_version());
-                set_changeset(way->get_changeset());
-                set_timestamp(way->get_timestamp());
-                set_uid(way->get_uid());
-                set_user(way->get_user());
+                id(way->id());
+                version(way->version());
+                changeset(way->changeset());
+                timestamp(way->timestamp());
+                uid(way->uid());
+                user(way->user());
 
                 tags(way->tags());
 
@@ -321,11 +321,11 @@ namespace Osmium {
             bool same_tags(const Object *a, const Object *b) {
                 if ((a == NULL) || (b == NULL)) return false;
                 std::map<std::string, std::string> aTags;
-                for (int i = 0; i < a->tag_count(); i++) {
+                for (int i = 0; i < a->tags().size(); i++) {
                     if (ignore_tag(a->get_tag_key(i))) continue;
                     aTags[a->get_tag_key(i)] = a->get_tag_value(i);
                 }
-                for (int i = 0; i < b->tag_count(); i++) {
+                for (int i = 0; i < b->tags().size(); i++) {
                     if (ignore_tag(b->get_tag_key(i))) continue;
                     if (aTags[b->get_tag_key(i)] != b->get_tag_value(i)) return false;
                     aTags.erase(b->get_tag_key(i));
@@ -338,11 +338,11 @@ namespace Osmium {
             bool merge_tags(Object *a, const Object *b) {
                 bool rv = true;
                 std::map<std::string, std::string> aTags;
-                for (int i = 0; i < a->tag_count(); i++) {
+                for (int i = 0; i < a->tags().size(); i++) {
                     if (ignore_tag(a->get_tag_key(i))) continue;
                     aTags[a->get_tag_key(i)] = a->get_tag_value(i);
                 }
-                for (int i = 0; i < b->tag_count(); i++) {
+                for (int i = 0; i < b->tags().size(); i++) {
                     if (ignore_tag(b->get_tag_key(i))) continue;
                     if (aTags.find(b->get_tag_key(i)) != aTags.end()) {
                         if (aTags[b->get_tag_key(i)] != b->get_tag_value(i)) rv = false;
@@ -356,8 +356,8 @@ namespace Osmium {
 
             bool untagged(const Object *r) {
                 if (r == NULL) return true;
-                if (r->tag_count() == 0) return true;
-                for (int i=0; i < r->tag_count(); i++) {
+                if (r->tags().empty()) return true;
+                for (int i=0; i < r->tags().size(); i++) {
                     if (! ignore_tag(r->get_tag_key(i)) ) {
                         return false;
                     }
@@ -373,7 +373,7 @@ namespace Osmium {
 #ifdef OSMIUM_WITH_GEOS
                 geometry = NULL;
 #endif // OSMIUM_WITH_GEOS
-                set_id(r->get_id());
+                id(r->id());
                 attempt_repair = repair;
             }
 
@@ -749,7 +749,7 @@ namespace Osmium {
                 std::vector<WayInfo *> ways;
 
                 // the timestamp of the multipolygon will be the maximum of the timestamp from the relation and from all member ways
-                set_timestamp(relation->get_timestamp());
+                timestamp(relation->timestamp());
 
                 // assemble all ways which are members of this relation into a
                 // vector of WayInfo elements. this holds room for the way pointer
@@ -757,7 +757,9 @@ namespace Osmium {
 
                 START_TIMER(assemble_ways);
                 for (std::vector<Way>::iterator i(member_ways.begin()); i != member_ways.end(); i++) {
-                    if (i->get_timestamp() > get_timestamp()) set_timestamp(i->get_timestamp());
+                    if (i->timestamp() > timestamp()) {
+                        timestamp(i->timestamp());
+                    }
                     WayInfo *wi = new WayInfo(&(*i), UNSET);
                     if (wi->way_geom) {
                         geos::io::WKTWriter wkt;
@@ -1032,7 +1034,7 @@ namespace Osmium {
                     } catch (const geos::util::GEOSException& exc) {
                         // nop
                         if (Osmium::debug())
-                            std::cerr << "Exception during creation of polygon for relation #" << relation->get_id() << ": " << exc.what() << " (treating as invalid polygon)" << std::endl;
+                            std::cerr << "Exception during creation of polygon for relation #" << relation->id() << ": " << exc.what() << " (treating as invalid polygon)" << std::endl;
                     }
                     if (!valid) {
                         // polygon is invalid.

@@ -73,13 +73,13 @@ namespace Osmium {
         private:
 
             void print_meta(const Osmium::OSM::Object* object) const {
-                std::cout << "  id="   << object->get_id() << "\n";
-                std::cout << "  version="   << object->get_version() << "\n";
-                std::cout << "  uid="       << object->get_uid() << "\n";
-                std::cout << "  user=|"      << object->get_user() << "|\n";
-                std::cout << "  changeset=" << object->get_changeset() << "\n";
-                std::cout << "  timestamp=" << object->get_timestamp_as_string() << "\n";
-                std::cout << "  tags:" << "\n";
+                std::cout <<   "  id="        << object->id()
+                          << "\n  version="   << object->version()
+                          << "\n  uid="       << object->uid()
+                          << "\n  user=|"     << object->user() << "|"
+                          << "\n  changeset=" << object->changeset()
+                          << "\n  timestamp=" << object->timestamp_as_string()
+                          << "\n  tags:" << "\n";
                 Osmium::OSM::TagList::const_iterator end = object->tags().end();
                 for (Osmium::OSM::TagList::const_iterator it = object->tags().begin(); it != end; ++it) {
                     std::cout << "    k=|" << it->key() << "| v=|" << it->value() << "|" << "\n";

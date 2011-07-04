@@ -126,19 +126,19 @@ namespace Osmium {
                 xmlTextWriterPtr xml_writer;
 
                 void write_meta(const Osmium::OSM::Object* object) {
-                    xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "id",        "%d", object->get_id());
-                    xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "version",   "%d", object->get_version());
-                    xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "changeset", "%d", object->get_changeset());
-                    xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "timestamp", BAD_CAST object->get_timestamp_as_string().c_str());
+                    xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "id",        "%d", object->id());
+                    xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "version",   "%d", object->version());
+                    xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "changeset", "%d", object->changeset());
+                    xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "timestamp", BAD_CAST object->timestamp_as_string().c_str());
 
                     // uid == 0 -> anonymous
-                    if (object->get_uid() > 0) {
-                        xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "uid", "%d", object->get_uid());
-                        xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "user", BAD_CAST object->get_user());
+                    if (object->uid() > 0) {
+                        xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "uid", "%d", object->uid());
+                        xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "user", BAD_CAST object->user());
                     }
 
                     if (m_file.get_type() == Osmium::OSMFile::FileType::History()) {
-                        xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "visible", object->get_visible() ? BAD_CAST "true" : BAD_CAST "false");
+                        xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "visible", object->visible() ? BAD_CAST "true" : BAD_CAST "false");
                     }
                 }
 

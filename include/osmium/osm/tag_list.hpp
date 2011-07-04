@@ -50,6 +50,10 @@ namespace Osmium {
                 return m_tags.size();
             }
 
+            bool empty() const {
+                return m_tags.empty();
+            }
+
             /// Remove all tags from the tag list.
             void clear() {
                 m_tags.clear();

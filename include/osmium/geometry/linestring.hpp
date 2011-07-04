@@ -55,7 +55,7 @@ namespace Osmium {
              */
             LineString(const Osmium::OSM::Way& way, ///< Way this geometry should be created from
                        bool reverse=false)          ///< Create reverse geometry
-                : FromWay(way.nodes(), reverse, way.get_id()) {
+                : FromWay(way.nodes(), reverse, way.id()) {
             }
 
             std::ostream& write_to_stream(std::ostream& out, AsWKT, bool with_srid=false) const {

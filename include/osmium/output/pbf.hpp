@@ -467,11 +467,11 @@ namespace Osmium {
                  */
                 template <class pbf_object_t> void apply_common_info(const Osmium::OSM::Object *in, pbf_object_t *out) {
                     // set the object-id
-                    out->set_id(in->get_id());
+                    out->set_id(in->id());
 
                     // iterate over all tags and set the keys and vals, recording the strings in the
                     // interim StringTable and storing the interim ids
-                    for (int i=0, l=in->tag_count(); i<l; i++) {
+                    for (int i=0, l=in->tags().size(); i<l; i++) {
                         out->add_keys(string_table.record_string(in->get_tag_key(i)));
                         out->add_vals(string_table.record_string(in->get_tag_value(i)));
                     }
@@ -479,11 +479,11 @@ namespace Osmium {
                     if (should_add_metadata()) {
                         // add an info-section to the pbf object and set the meta-info on it
                         OSMPBF::Info *out_info = out->mutable_info();
-                        out_info->set_version(in->get_version());
-                        out_info->set_timestamp(timestamp2int(in->get_timestamp()));
-                        out_info->set_changeset(in->get_changeset());
-                        out_info->set_uid(in->get_uid());
-                        out_info->set_user_sid(string_table.record_string(in->get_user()));
+                        out_info->set_version(in->version());
+                        out_info->set_timestamp(timestamp2int(in->timestamp()));
+                        out_info->set_changeset(in->changeset());
+                        out_info->set_uid(in->uid());
+                        out_info->set_user_sid(string_table.record_string(in->user()));
                     }
                 }
 
@@ -595,7 +595,7 @@ namespace Osmium {
                     OSMPBF::DenseNodes *dense = pbf_nodes->mutable_dense();
 
                     // copy the id, delta encoded
-                    dense->add_id(m_delta_id.update(node->get_id()));
+                    dense->add_id(m_delta_id.update(node->id()));
 
                     // copy the longitude, delta encoded
                     dense->add_lon(m_delta_lon.update(lonlat2int(node->get_lon())));
@@ -609,7 +609,7 @@ namespace Osmium {
                     // so for three nodes the keys_vals array may look like this: 3 5 2 1 0 0 8 5
                     // the first node has two tags (3=>5 and 2=>1), the second node has does not
                     // have any tags and the third node has a single tag (8=>5)
-                    for (int i=0, l=node->tag_count(); i<l; i++) {
+                    for (int i=0, l=node->tags().size(); i<l; i++) {
                         dense->add_keys_vals(string_table.record_string(node->get_tag_key(i)));
                         dense->add_keys_vals(string_table.record_string(node->get_tag_value(i)));
                     }
@@ -620,20 +620,20 @@ namespace Osmium {
                         OSMPBF::DenseInfo *denseinfo = dense->mutable_denseinfo();
 
                         // copy the version
-                        denseinfo->add_version(node->get_version());
+                        denseinfo->add_version(node->version());
 
                         // copy the timestamp, delta encoded
-                        denseinfo->add_timestamp(m_delta_timestamp.update(timestamp2int(node->get_timestamp())));
+                        denseinfo->add_timestamp(m_delta_timestamp.update(timestamp2int(node->timestamp())));
 
                         // copy the changeset, delta encoded
-                        denseinfo->add_changeset(m_delta_changeset.update(node->get_changeset()));
+                        denseinfo->add_changeset(m_delta_changeset.update(node->changeset()));
 
                         // copy the user id, delta encoded
-                        denseinfo->add_uid(m_delta_uid.update(node->get_uid()));
+                        denseinfo->add_uid(m_delta_uid.update(node->uid()));
 
                         // record the user-name to the interim stringtable and copy the
                         // interim string-id to the pbf-object
-                        denseinfo->add_user_sid(string_table.record_string(node->get_user()));
+                        denseinfo->add_user_sid(string_table.record_string(node->user()));
                     }
                 }
 
@@ -871,7 +871,7 @@ namespace Osmium {
                     check_block_contents_counter();
 
                     if (Osmium::debug()) {
-                        std::cerr << "node " << node->get_id() << " v" << node->get_version() << std::endl;
+                        std::cerr << "node " << node->id() << " v" << node->version() << std::endl;
                     }
 
                     // if no PrimitiveGroup for nodes has been added, add one and save the pointer
@@ -899,7 +899,7 @@ namespace Osmium {
                     check_block_contents_counter();
 
                     if (Osmium::debug()) {
-                        std::cerr << "way " << way->get_id() << " v" << way->get_version() << " with " << way->node_count() << " nodes" << std::endl;
+                        std::cerr << "way " << way->id() << " v" << way->version() << " with " << way->node_count() << " nodes" << std::endl;
                     }
 
                     // if no PrimitiveGroup for nodes has been added, add one and save the pointer
@@ -923,7 +923,7 @@ namespace Osmium {
                     check_block_contents_counter();
 
                     if (Osmium::debug()) {
-                        std::cerr << "relation " << relation->get_id() << " v" << relation->get_version() << " with " << relation->members().size() << " members" << std::endl;
+                        std::cerr << "relation " << relation->id() << " v" << relation->version() << " with " << relation->members().size() << " members" << std::endl;
                     }
 
                     // if no PrimitiveGroup for relations has been added, add one and save the pointer
