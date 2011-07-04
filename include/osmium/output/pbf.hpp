@@ -471,9 +471,10 @@ namespace Osmium {
 
                     // iterate over all tags and set the keys and vals, recording the strings in the
                     // interim StringTable and storing the interim ids
-                    for (int i=0, l=in->tags().size(); i<l; i++) {
-                        out->add_keys(string_table.record_string(in->get_tag_key(i)));
-                        out->add_vals(string_table.record_string(in->get_tag_value(i)));
+                    Osmium::OSM::TagList::const_iterator end = in->tags().end();
+                    for (Osmium::OSM::TagList::const_iterator it = in->tags().begin(); it != end; ++it) {
+                        out->add_keys(string_table.record_string(it->key()));
+                        out->add_vals(string_table.record_string(it->value()));
                     }
 
                     if (should_add_metadata()) {
@@ -609,9 +610,10 @@ namespace Osmium {
                     // so for three nodes the keys_vals array may look like this: 3 5 2 1 0 0 8 5
                     // the first node has two tags (3=>5 and 2=>1), the second node has does not
                     // have any tags and the third node has a single tag (8=>5)
-                    for (int i=0, l=node->tags().size(); i<l; i++) {
-                        dense->add_keys_vals(string_table.record_string(node->get_tag_key(i)));
-                        dense->add_keys_vals(string_table.record_string(node->get_tag_value(i)));
+                    Osmium::OSM::TagList::const_iterator end = node->tags().end();
+                    for (Osmium::OSM::TagList::const_iterator it = node->tags().begin(); it != end; ++it) {
+                        dense->add_keys_vals(string_table.record_string(it->key()));
+                        dense->add_keys_vals(string_table.record_string(it->value()));
                     }
                     dense->add_keys_vals(0);
 
