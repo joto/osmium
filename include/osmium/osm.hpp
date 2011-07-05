@@ -25,7 +25,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 namespace Osmium {
 
     /**
-    *  @brief Contains basic OSM objects such as Tag, Node, ...
+    *  @brief Basic classes for tags, nodes, ways, etc.
     */
     namespace OSM {
     } // namespace OSM

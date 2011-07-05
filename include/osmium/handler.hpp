@@ -31,7 +31,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 namespace Osmium {
 
     /**
-     * @brief Handlers operate on OSM data through callbacks.
+     * @brief Handlers operate on %OSM data through callbacks.
      *
      * All handlers should use Osmium::Handler::Base as a public
      * base class. See its documentation for details.

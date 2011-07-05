@@ -25,7 +25,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 namespace Osmium {
 
     /**
-     * @brief Namespace for classes implementing export into non-OSM formats.
+     * @brief Classes implementing export into non-OSM formats such as to shapefiles.
      */
     namespace Export {
     } // namespace Export

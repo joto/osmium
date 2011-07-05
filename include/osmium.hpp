@@ -25,13 +25,15 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 /**
  * @mainpage
  *
- * Osmium is a flexible C++ toolkit and framework for processing OSM data.
- * It includes optional Javascript support for some of its functionality.
+ * %Osmium is a fast and flexible C++ and Javascript toolkit and framework for
+ * working with OSM data.
  *
- * For more information see http://wiki.openstreetmap.org/wiki/Osmium .
+ * This is the API documentation that was automatically created from the
+ * source code. For more general information see
+ * http://wiki.openstreetmap.org/wiki/Osmium .
  *
- * The source code is at https://github.com/joto/osmium .
- *
+ * %Osmium is free software and available under the LGPLv3 or GPLv3. The
+ * source code is at https://github.com/joto/osmium .
  */
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
@@ -43,7 +45,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <osmpbf/osmpbf.h>
 
 /**
- * @brief All Osmium code is in this namespace.
+ * @brief All %Osmium code is in this namespace.
  */
 namespace Osmium {
 

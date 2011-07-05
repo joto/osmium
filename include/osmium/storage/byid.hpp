@@ -34,7 +34,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 namespace Osmium {
 
     /**
-     * @brief For classes handling efficient storage of data.
+     * @brief Classes handling storage of data.
      */
     namespace Storage {
 

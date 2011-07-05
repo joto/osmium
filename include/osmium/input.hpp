@@ -28,7 +28,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 namespace Osmium {
 
     /**
-     * @brief Input classes parse OSM files and call a handler on the data they read.
+     * @brief %Input classes parse %OSM files and call a handler on the data they read.
      */
     namespace Input {
 
