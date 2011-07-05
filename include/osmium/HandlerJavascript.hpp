@@ -101,7 +101,7 @@ namespace Osmium {
                 v8::HandleScope handle_scope;
 
                 for (int i = 0; i < args.Length(); i++) {
-                    v8_String_to_ostream(args[i]->ToString(), std::cout);
+                    Osmium::v8_String_to_ostream(args[i]->ToString(), std::cout);
                     std::cout << std::endl;
                 }
 

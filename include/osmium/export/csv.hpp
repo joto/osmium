@@ -57,7 +57,7 @@ namespace Osmium {
                     if (i != 0) {
                         out << '\t';
                     }
-                    v8_String_to_ostream(args[i]->ToString(), out);
+                    Osmium::v8_String_to_ostream(args[i]->ToString(), out);
                 }
                 out << std::endl;
                 return v8::Integer::New(1);

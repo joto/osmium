@@ -120,10 +120,10 @@ namespace Osmium {
             }
 
             v8::Handle<v8::Value> js_get_tag_value_by_key(v8::Local<v8::String> property) const {
-                const char *key = v8_String_to_utf8<Osmium::OSM::Tag::max_utf16_length_key>(property);
+                const char *key = Osmium::v8_String_to_utf8<Osmium::OSM::Tag::max_utf16_length_key>(property);
                 const char *value = get_tag_by_key(key);
                 if (value) {
-                    return utf8_to_v8_String<Osmium::OSM::Tag::max_utf16_length_value>(value);
+                    return Osmium::utf8_to_v8_String<Osmium::OSM::Tag::max_utf16_length_value>(value);
                 }
                 return v8::Undefined();
             }
@@ -135,7 +135,7 @@ namespace Osmium {
                 const_iterator end = this->end();
                 int i = 0;
                 for (const_iterator it = begin(); it != end; ++it) {
-                    array->Set(i++, utf8_to_v8_String<Osmium::OSM::Tag::max_utf16_length_key>(it->key()));
+                    array->Set(i++, Osmium::utf8_to_v8_String<Osmium::OSM::Tag::max_utf16_length_key>(it->key()));
                 }
 
                 return scope.Close(array);

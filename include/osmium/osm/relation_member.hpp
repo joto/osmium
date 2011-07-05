@@ -100,7 +100,7 @@ namespace Osmium {
             }
 
             v8::Handle<v8::Value> js_role() const {
-                return utf8_to_v8_String<max_utf16_length_role>(role());
+                return Osmium::utf8_to_v8_String<max_utf16_length_role>(role());
             }
 
             struct JavascriptTemplate : public Osmium::Javascript::Template {

@@ -288,7 +288,7 @@ namespace Osmium {
             }
 
             v8::Handle<v8::Value> js_user() const {
-                return utf8_to_v8_String<max_utf16_length_username>(user());
+                return Osmium::utf8_to_v8_String<max_utf16_length_username>(user());
             }
 
             v8::Handle<v8::Value> js_changeset() const {
