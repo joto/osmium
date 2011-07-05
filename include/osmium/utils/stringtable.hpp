@@ -1,5 +1,5 @@
-#ifndef OSMIUM_STRINGTABLE_HPP
-#define OSMIUM_STRINGTABLE_HPP
+#ifndef OSMIUM_UTILS_STRINGTABLE_HPP
+#define OSMIUM_UTILS_STRINGTABLE_HPP
 
 /*
 
@@ -192,4 +192,4 @@ namespace Osmium {
 
 } // namespace Osmium
 
-#endif // OSMIUM_STRINGTABLE_HPP
+#endif // OSMIUM_UTILS_STRINGTABLE_HPP

@@ -131,7 +131,7 @@ namespace Osmium {
                 JavascriptTemplate() : Osmium::Geometry::Geometry::JavascriptTemplate() {
                     js_template->SetAccessor(v8::String::NewSymbol("lon"), accessor_getter<Point, &Point::js_lon>);
                     js_template->SetAccessor(v8::String::NewSymbol("lat"), accessor_getter<Point, &Point::js_lat>);
-                    js_template->Set("toArray",  v8::FunctionTemplate::New(function_template<Point, &Point::js_to_array>));
+                    js_template->Set("toArray", v8::FunctionTemplate::New(function_template<Point, &Point::js_to_array>));
                 }
 
             };

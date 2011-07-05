@@ -37,7 +37,7 @@ namespace Osmium {
             /***
             * Load Javascript file into string
             */
-            static std::string load_file(const char *filename) {
+            static std::string load_file(const char* filename) {
                 std::ifstream javascript_file(filename, std::ifstream::in);
                 if (javascript_file.fail()) {
                     std::cerr << "Can't open file " << filename << std::endl;
@@ -270,37 +270,40 @@ namespace Osmium {
                 }
             }
 
-            void node(Osmium::OSM::Node *object) {
+            void node(Osmium::OSM::Node* node) {
                 if (!cb.node.IsEmpty()) {
-                    (void) cb.node->Call(object->get_instance(), 0, 0);
+                    (void) cb.node->Call(node->get_instance(), 0, 0);
                 }
 #ifdef OSMIUM_V8_FORCE_GC
                 while (!v8::V8::IdleNotification()) { };
 #endif // OSMIUM_V8_FORCE_GC
             }
 
-            void way(Osmium::OSM::Way *object) {
+            void way(Osmium::OSM::Way* way) {
                 if (!cb.way.IsEmpty()) {
-                    (void) cb.way->Call(object->get_instance(), 0, 0);
+                    (void) cb.way->Call(way->get_instance(), 0, 0);
                 }
 #ifdef OSMIUM_V8_FORCE_GC
                 while (!v8::V8::IdleNotification()) { };
 #endif // OSMIUM_V8_FORCE_GC
             }
 
-            void relation(Osmium::OSM::Relation *object) {
+            void relation(Osmium::OSM::Relation* relation) {
                 if (!cb.relation.IsEmpty()) {
-                    (void) cb.relation->Call(object->get_instance(), 0, 0);
+                    (void) cb.relation->Call(relation->get_instance(), 0, 0);
                 }
 #ifdef OSMIUM_V8_FORCE_GC
                 while (!v8::V8::IdleNotification()) { };
 #endif // OSMIUM_V8_FORCE_GC
             }
 
-            void area(Osmium::OSM::Area *object) {
+            void area(Osmium::OSM::Area* area) {
                 if (!cb.area.IsEmpty()) {
-                    (void) cb.area->Call(object->get_instance(), 0, 0);
+                    (void) cb.area->Call(area->get_instance(), 0, 0);
                 }
+#ifdef OSMIUM_V8_FORCE_GC
+                while (!v8::V8::IdleNotification()) { };
+#endif // OSMIUM_V8_FORCE_GC
             }
 
             void final() {
