@@ -43,5 +43,16 @@ BOOST_AUTO_TEST_CASE(output) {
     BOOST_CHECK(out.is_equal("(-3.2,47.3)"));
 }
 
+BOOST_AUTO_TEST_CASE(conversion_to_uint32_t) {
+    Osmium::OSM::Position p1(-180.0, -90.0);
+    Osmium::OSM::Position p2(-180.0,  90.0);
+    Osmium::OSM::Position p3( 180.0,  90.0);
+    Osmium::OSM::Position p4( 180.0, -90.0);
+    BOOST_CHECK_EQUAL(64440, static_cast<uint32_t>(p1));
+    BOOST_CHECK_EQUAL(    0, static_cast<uint32_t>(p2));
+    BOOST_CHECK_EQUAL(  359, static_cast<uint32_t>(p3));
+    BOOST_CHECK_EQUAL(64799, static_cast<uint32_t>(p4));
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 

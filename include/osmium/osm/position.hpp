@@ -107,6 +107,19 @@ namespace Osmium {
                 return out;
             }
 
+            /// conversion to uint32_t
+            operator uint32_t() const {
+                int32_t x = 180 + m_x / precision;
+                int32_t y =  90 - m_y / precision;
+
+                if (x < 0) x = 0;
+                if (y < 0) y = 0;
+                if (x >= 360) x = 359;
+                if (y >= 180) y = 179;
+
+                return 360 * y + x;
+            }
+
 #ifdef OSMIUM_WITH_GEOS
             /**
              * Conversion of Position to GEOS Coordinate.
