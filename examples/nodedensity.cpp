@@ -28,7 +28,12 @@ int main(int argc, char *argv[]) {
     Osmium::init();
 
     if (argc != 5) {
-        std::cerr << "Usage: " << argv[0] << " OSMFILE SIZE MIN MAX" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " OSMFILE SIZE MIN MAX\n\n";
+        std::cerr << "  OSMFILE - OSM file of any type.\n";
+        std::cerr << "  SIZE    - Y-size of resulting image (X-size will be double).\n";
+        std::cerr << "  MIN     - Node counts smaller than this will be black.\n";
+        std::cerr << "  MAX     - Node counts larger than this will be white.\n\n";
+        std::cerr << "Output will be a PNG file on STDOUT. Make sure to redirect.\n";
         exit(1);
     }
 
