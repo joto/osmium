@@ -29,10 +29,12 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <getopt.h>
 
 #include <osmium.hpp>
+#include <osmium/handler/progress.hpp>
 
 class ConvertHandler : public Osmium::Handler::Base {
 
     Osmium::OSMFile* m_outfile;
+    Osmium::Handler::Progress m_pg;
 
     Osmium::Output::Base* output;
 
@@ -48,22 +50,27 @@ public:
     void init(Osmium::OSM::Meta& meta) {
         output = m_outfile->create_output_file();
         output->init(meta);
+        m_pg.init(meta);
     }
 
     void node(Osmium::OSM::Node* node) {
         output->node(node);
+        m_pg.node(node);
     }
 
     void way(Osmium::OSM::Way* way) {
         output->way(way);
+        m_pg.way(way);
     }
 
     void relation(Osmium::OSM::Relation* relation) {
         output->relation(relation);
+        m_pg.relation(relation);
     }
 
     void final() {
         output->final();
+        m_pg.final();
         delete output;
     }
 
