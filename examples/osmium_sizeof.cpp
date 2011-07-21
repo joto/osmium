@@ -28,30 +28,30 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <cstdlib>
 
-#define OSMIUM_MAIN
 #include <osmium.hpp>
 
 int main() {
-    Osmium::Framework osmium;
-    std::cout << "sizeof(Osmium::OSM::Object)="                   << sizeof(Osmium::OSM::Object) << std::endl;
-    std::cout << "sizeof(Osmium::OSM::Node)="                     << sizeof(Osmium::OSM::Node)                     << "  (Object+" << sizeof(Osmium::OSM::Node)                     - sizeof(Osmium::OSM::Object) << ")" << std::endl;
-    std::cout << "sizeof(Osmium::OSM::Way)="                      << sizeof(Osmium::OSM::Way)                      << "  (Object+" << sizeof(Osmium::OSM::Way)                      - sizeof(Osmium::OSM::Object) << ")" << std::endl;
-    std::cout << "sizeof(Osmium::OSM::Relation)="                 << sizeof(Osmium::OSM::Relation)                 << "  (Object+" << sizeof(Osmium::OSM::Relation)                 - sizeof(Osmium::OSM::Object) << ")" << std::endl;
-    std::cout << "sizeof(Osmium::OSM::Multipolygon)="             << sizeof(Osmium::OSM::Multipolygon)             << "  (Object+" << sizeof(Osmium::OSM::Multipolygon)             - sizeof(Osmium::OSM::Object) << ")" << std::endl;
-    std::cout << "sizeof(Osmium::OSM::MultipolygonFromWay)="      << sizeof(Osmium::OSM::MultipolygonFromWay)      << "  (Object+" << sizeof(Osmium::OSM::MultipolygonFromWay)      - sizeof(Osmium::OSM::Object) << ")" << std::endl;
-    std::cout << "sizeof(Osmium::OSM::MultipolygonFromRelation)=" << sizeof(Osmium::OSM::MultipolygonFromRelation) << "  (Object+" << sizeof(Osmium::OSM::MultipolygonFromRelation) - sizeof(Osmium::OSM::Object) << ")" << std::endl;
-//    std::cout << "sizeof(Osmium::OSM::WayInfo)="                  << sizeof(Osmium::OSM::WayInfo) << std::endl;
-//    std::cout << "sizeof(Osmium::OSM::RingInfo)="                 << sizeof(Osmium::OSM::RingInfo) << std::endl;
+    Osmium::init();
 
-    std::cout << "sizeof(OSMPBF::BlobHeader)="     << sizeof(OSMPBF::BlobHeader)     << std::endl;
-    std::cout << "sizeof(OSMPBF::Blob)="           << sizeof(OSMPBF::Blob)           << std::endl;
-    std::cout << "sizeof(OSMPBF::HeaderBlock)="    << sizeof(OSMPBF::HeaderBlock)    << std::endl;
-    std::cout << "sizeof(OSMPBF::PrimitiveBlock)=" << sizeof(OSMPBF::PrimitiveBlock) << std::endl;
-    std::cout << "sizeof(OSMPBF::PrimitiveGroup)=" << sizeof(OSMPBF::PrimitiveGroup) << std::endl;
-    std::cout << "sizeof(OSMPBF::Node)="           << sizeof(OSMPBF::Node)           << std::endl;
-    std::cout << "sizeof(OSMPBF::Way)="            << sizeof(OSMPBF::Way)            << std::endl;
-    std::cout << "sizeof(OSMPBF::Relation)="       << sizeof(OSMPBF::Relation)       << std::endl;
-    std::cout << "sizeof(OSMPBF::DenseNodes)="     << sizeof(OSMPBF::DenseNodes)     << std::endl;
-    std::cout << "sizeof(OSMPBF::StringTable)="    << sizeof(OSMPBF::StringTable)    << std::endl;
+    std::cout << "sizeof(Osmium::OSM::Object)="           << sizeof(Osmium::OSM::Object) << "\n";
+    std::cout << "sizeof(Osmium::OSM::Node)="             << sizeof(Osmium::OSM::Node)             << "  (Object+" << sizeof(Osmium::OSM::Node)             - sizeof(Osmium::OSM::Object) << ")\n";
+    std::cout << "sizeof(Osmium::OSM::Way)="              << sizeof(Osmium::OSM::Way)              << "  (Object+" << sizeof(Osmium::OSM::Way)              - sizeof(Osmium::OSM::Object) << ")\n";
+    std::cout << "sizeof(Osmium::OSM::Relation)="         << sizeof(Osmium::OSM::Relation)         << "  (Object+" << sizeof(Osmium::OSM::Relation)         - sizeof(Osmium::OSM::Object) << ")\n";
+    std::cout << "sizeof(Osmium::OSM::Area)="             << sizeof(Osmium::OSM::Area)             << "  (Object+" << sizeof(Osmium::OSM::Area)             - sizeof(Osmium::OSM::Object) << ")\n";
+    std::cout << "sizeof(Osmium::OSM::AreaFromWay)="      << sizeof(Osmium::OSM::AreaFromWay)      << "  (Object+" << sizeof(Osmium::OSM::AreaFromWay)      - sizeof(Osmium::OSM::Object) << ")\n";
+    std::cout << "sizeof(Osmium::OSM::AreaFromRelation)=" << sizeof(Osmium::OSM::AreaFromRelation) << "  (Object+" << sizeof(Osmium::OSM::AreaFromRelation) - sizeof(Osmium::OSM::Object) << ")\n";
+//    std::cout << "sizeof(Osmium::OSM::WayInfo)="                  << sizeof(Osmium::OSM::WayInfo) << "\n";
+//    std::cout << "sizeof(Osmium::OSM::RingInfo)="                 << sizeof(Osmium::OSM::RingInfo) << "\n";
+
+    std::cout << "sizeof(OSMPBF::BlobHeader)="     << sizeof(OSMPBF::BlobHeader)     << "\n";
+    std::cout << "sizeof(OSMPBF::Blob)="           << sizeof(OSMPBF::Blob)           << "\n";
+    std::cout << "sizeof(OSMPBF::HeaderBlock)="    << sizeof(OSMPBF::HeaderBlock)    << "\n";
+    std::cout << "sizeof(OSMPBF::PrimitiveBlock)=" << sizeof(OSMPBF::PrimitiveBlock) << "\n";
+    std::cout << "sizeof(OSMPBF::PrimitiveGroup)=" << sizeof(OSMPBF::PrimitiveGroup) << "\n";
+    std::cout << "sizeof(OSMPBF::Node)="           << sizeof(OSMPBF::Node)           << "\n";
+    std::cout << "sizeof(OSMPBF::Way)="            << sizeof(OSMPBF::Way)            << "\n";
+    std::cout << "sizeof(OSMPBF::Relation)="       << sizeof(OSMPBF::Relation)       << "\n";
+    std::cout << "sizeof(OSMPBF::DenseNodes)="     << sizeof(OSMPBF::DenseNodes)     << "\n";
+    std::cout << "sizeof(OSMPBF::StringTable)="    << sizeof(OSMPBF::StringTable)    << "\n";
 }
 

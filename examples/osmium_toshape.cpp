@@ -27,39 +27,84 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <cstdlib>
 
-#define OSMIUM_MAIN
 #include <osmium.hpp>
-#include <osmium/output/shapefile.hpp>
+#include <osmium/storage/byid.hpp>
+#include <osmium/handler/coordinates_for_ways.hpp>
+#include <osmium/geometry/point.hpp>
+#include <osmium/export/shapefile.hpp>
+
+typedef Osmium::Storage::SparseTable<Osmium::OSM::Position> storage_sparsetable_t;
+typedef Osmium::Storage::Mmap<Osmium::OSM::Position> storage_mmap_t;
+typedef Osmium::Handler::CoordinatesForWays<storage_sparsetable_t, storage_mmap_t> cfw_handler_t;
 
 class MyShapeHandler : public Osmium::Handler::Base {
 
-    Osmium::Output::PointShapefile *shapefile;
+    Osmium::Export::PointShapefile *shapefile_point;
+    Osmium::Export::LineStringShapefile *shapefile_linestring;
+
+    storage_sparsetable_t store_pos;
+    storage_mmap_t store_neg;
+    cfw_handler_t* handler_cfw;
 
 public:
 
     MyShapeHandler() {
+        handler_cfw = new cfw_handler_t(store_pos, store_neg);
         std::string filename("postboxes");
-        shapefile = new Osmium::Output::PointShapefile(filename);
-        shapefile->add_field("id", FTInteger, 10);
-        shapefile->add_field("operator", FTString, 30);
+        shapefile_point = new Osmium::Export::PointShapefile(filename);
+        shapefile_point->add_field("id", FTInteger, 10);
+        shapefile_point->add_field("operator", FTString, 30);
+        filename = "roads";
+        shapefile_linestring = new Osmium::Export::LineStringShapefile(filename);
+        shapefile_linestring->add_field("id", FTInteger, 10);
+        shapefile_linestring->add_field("type", FTString, 30);
     }
 
     ~MyShapeHandler() {
-        delete shapefile;
+        delete shapefile_linestring;
+        delete shapefile_point;
     }
 
-    void callback_node(Osmium::OSM::Node *node) {
-        const char *amenity = node->get_tag_by_key("amenity");
+    void init(Osmium::OSM::Meta& meta) {
+        handler_cfw->init(meta);
+    }
+
+    void node(Osmium::OSM::Node *node) {
+        handler_cfw->node(node);
+        const char *amenity = node->tags().get_tag_by_key("amenity");
         if (amenity && !strcmp(amenity, "post_box")) {
             try {
-                shapefile->add_geometry(shapefile->get_geometry(node));
-                shapefile->add_attribute(0, node->get_id());
-                const char *op = node->get_tag_by_key("operator");
+                Osmium::Geometry::Point point(*node);
+                shapefile_point->add_geometry(point.create_shp_object());
+                shapefile_point->add_attribute(0, node->id());
+                const char *op = node->tags().get_tag_by_key("operator");
                 if (op) {
-                    shapefile->add_attribute(1, std::string(op));
+                    shapefile_point->add_attribute(1, std::string(op));
                 }
             } catch (Osmium::Exception::IllegalGeometry) {
-                std::cerr << "Ignoring illegal geometry for node " << node->get_id() << ".\n";
+                std::cerr << "Ignoring illegal geometry for node " << node->id() << ".\n";
+            }
+        }
+    }
+
+    void after_nodes() {
+        handler_cfw->after_nodes();
+    }
+
+    void way(Osmium::OSM::Way *way) {
+        handler_cfw->way(way);
+        const char *highway = way->tags().get_tag_by_key("highway");
+        if (highway) {
+            try {
+                Osmium::Geometry::LineString linestring(*way);
+                shapefile_linestring->add_geometry(linestring.create_shp_object());
+                shapefile_linestring->add_attribute(0, way->id());
+                const char *type = way->tags().get_tag_by_key("highway");
+                if (type) {
+                    shapefile_linestring->add_attribute(1, std::string(type));
+                }
+            } catch (Osmium::Exception::IllegalGeometry) {
+                std::cerr << "Ignoring illegal geometry for way " << way->id() << ".\n";
             }
         }
     }
@@ -68,7 +113,7 @@ public:
 /* ================================================== */
 
 int main(int argc, char *argv[]) {
-    Osmium::Framework osmium(true);
+    Osmium::init(true);
 
     if (argc != 2) {
         std::cerr << "Usage: " << argv[0] << " OSMFILE" << std::endl;

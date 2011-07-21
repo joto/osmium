@@ -27,18 +27,17 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <sys/wait.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <stdexcept>
 
 namespace Osmium {
 
     // forward declaration
     namespace Output {
-        namespace OSM {
-            class Base;
-        }
+        class Base;
     }
 
     /**
-     * This class describes an OSM file in one of several different formats.
+     * This class describes an %OSM file in one of several different formats.
      * It can be used as factory class for generating input and output OSM files.
      *
      * If the filename is empty, this means stdin or stdout is used. If you set
@@ -54,7 +53,10 @@ namespace Osmium {
 
         public:
 
-            SystemError(const std::string& whatarg, int e) : std::runtime_error(whatarg), m_errno(e) {
+            SystemError(const std::string& whatarg,
+                        int e)
+                : std::runtime_error(whatarg),
+                  m_errno(e) {
             }
 
             int system_errno() const throw() {
@@ -70,7 +72,12 @@ namespace Osmium {
 
         public:
 
-            IOError(const std::string& whatarg, const std::string& filename, int e) : std::runtime_error(whatarg), m_filename(filename), m_errno(e) {
+            IOError(const std::string& whatarg,
+                    const std::string& filename,
+                    int e)
+                : std::runtime_error(whatarg),
+                  m_filename(filename),
+                  m_errno(e) {
             }
 
             ~IOError() throw() {
@@ -92,7 +99,10 @@ namespace Osmium {
 
         public:
 
-            ArgumentError(const std::string& whatarg, const std::string& value="") : std::runtime_error(whatarg), m_value(value) {
+            ArgumentError(const std::string& whatarg,
+                          const std::string& value="")
+                : std::runtime_error(whatarg),
+                  m_value(value) {
             }
 
             ~ArgumentError() throw() {
@@ -351,14 +361,19 @@ namespace Osmium {
     public:
 
         /**
-         * Create OSMFile using type and encoding from filename.
-         * If you want to overwrite these settings you can change them later.
+         * Create OSMFile using type and encoding from filename. If you want
+         * to overwrite these settings you can change them later.
          *
-         * @param filename Filename including suffix. The type and encoding of the file will be taken from the suffix.
+         * @param filename Filename including suffix. The type and encoding
+         *                 of the file will be taken from the suffix.
          *                 An empty filename or "-" means stdin or stdout.
          */
         OSMFile(const std::string& filename = "")
-            : m_type(FileType::OSM()), m_encoding(FileEncoding::PBF()), m_filename(filename), m_fd(-1), m_childpid(0) {
+            : m_type(FileType::OSM()),
+              m_encoding(FileEncoding::PBF()),
+              m_filename(filename),
+              m_fd(-1),
+              m_childpid(0) {
 
             // stdin/stdout
             if (filename == "" || filename == "-") {
@@ -374,8 +389,15 @@ namespace Osmium {
                 return;
             }
 
-            // set type depending on suffix
-            std::string suffix(filename.substr(filename.find_first_of('.')+1));
+            // isolate filename suffix
+            size_t n = filename.find_last_of('/');
+            if (n == std::string::npos) {
+                n = 0;
+            } else {
+                ++n;
+            }
+            std::string suffix(filename.substr(filename.find_first_of('.', n)+1));
+
             set_type_and_encoding(suffix);
         }
 
@@ -420,7 +442,7 @@ namespace Osmium {
                 m_encoding = FileEncoding::XMLgz();
 #endif
             } else {
-                throw ArgumentError("Unknown suffix", suffix);
+                default_settings_for_file();
             }
         }
 
@@ -477,10 +499,20 @@ namespace Osmium {
 
         /**
          * Set default settings for type and encoding when the filename is
-         * empty or "-".  If you want to have a different default setting
+         * empty or "-". If you want to have a different default setting
          * override this in a subclass.
          */
         void default_settings_for_stdinout() {
+            m_type     = FileType::OSM();
+            m_encoding = FileEncoding::PBF();
+        }
+
+        /**
+         * Set default settings for type and encoding when the filename is
+         * a normal file. If you want to have a different default setting
+         * override this in a subclass.
+         */
+        void default_settings_for_file() {
             m_type     = FileType::OSM();
             m_encoding = FileEncoding::PBF();
         }
@@ -580,14 +612,14 @@ namespace Osmium {
         }
 
         /**
-         * Read OSM file and call callback functions.
+         * Read OSM file and call methods on handler object.
          */
         template <class T> void read(T& handler);
 
         /**
          * Create output file from OSMFile.
          */
-        Osmium::Output::OSM::Base *create_output_file();
+        Osmium::Output::Base *create_output_file();
 
     };
 

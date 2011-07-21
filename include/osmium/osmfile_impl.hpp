@@ -22,6 +22,9 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#include <osmium/osmfile.hpp>
+#include <osmium/output.hpp>
+
 namespace Osmium {
 
     template <class T>
@@ -33,14 +36,14 @@ namespace Osmium {
         delete input;
     }
 
-    Osmium::Output::OSM::Base *OSMFile::create_output_file() {
-        Osmium::Output::OSM::Base *output;
+    Osmium::Output::Base *OSMFile::create_output_file() {
+        Osmium::Output::Base *output;
 
         if (m_encoding->is_pbf()) {
-            output = new Osmium::Output::OSM::PBF(*this);
+            output = new Osmium::Output::PBF(*this);
         } else {
 #ifdef OSMIUM_WITH_OUTPUT_OSM_XML
-            output = new Osmium::Output::OSM::XML(*this);
+            output = new Osmium::Output::XML(*this);
 #endif
         }
 

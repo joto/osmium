@@ -35,7 +35,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <geos/io/WKTWriter.h>
 
 int main(int argc, char *argv[]) {
-    Osmium::Framework osmium(true);
+    Osmium::init(true);
 
     if (argc != 2) {
         std::cerr << "Usage: " << argv[0] << " INFILE" << std::endl;
@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
     std::string wkt = w->write(geom);
     std::cout << wkt << std::endl;
 
-    Osmium::global.geos_geometry_factory->destroyGeometry(geom);
+    Osmium::Geometry::geos_geometry_factory()->destroyGeometry(geom);
     delete w;
 
     return 0;

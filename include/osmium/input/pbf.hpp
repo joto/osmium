@@ -46,7 +46,7 @@ namespace Osmium {
             char buffer[OSMPBF::max_uncompressed_blob_size];
             char unpack_buffer[OSMPBF::max_uncompressed_blob_size];
 
-            typedef std::pair<const void *, size_t> array_t;
+            typedef std::pair<const void*, size_t> array_t;
 
             OSMPBF::BlobHeader pbf_blob_header;
             OSMPBF::PrimitiveBlock pbf_primitive_block;
@@ -113,8 +113,13 @@ namespace Osmium {
                             if (expected_file_type == Osmium::OSMFile::FileType::History() && !has_historical_information_feature) {
                                 throw Osmium::OSMFile::FileTypeHistoryExpected();
                             }
+                            if (pbf_header_block.has_bbox()) {
+                                OSMPBF::HeaderBBox bbox = pbf_header_block.bbox();
+                                this->meta().bounds().extend(Osmium::OSM::Position((double)bbox.left() / OSMPBF::lonlat_resolution, (double)bbox.bottom() / OSMPBF::lonlat_resolution));
+                                this->meta().bounds().extend(Osmium::OSM::Position((double)bbox.right() / OSMPBF::lonlat_resolution, (double)bbox.top() / OSMPBF::lonlat_resolution));
+                            }
                         } else {
-                            if (Osmium::global.debug) {
+                            if (Osmium::debug()) {
                                 std::cerr << "Ignoring unknown blob type (" << pbf_blob_header.type().data() << ")." << std::endl;
                             }
                         }
@@ -131,7 +136,7 @@ namespace Osmium {
             * Parse one PrimitiveGroup inside a PrimitiveBlock. This function will check what
             * type of data the group contains (nodes, dense nodes, ways, or relations) and
             * call the proper parsing function. It will also make sure the right before_*
-            * and after_* callbacks are called.
+            * and after_* methods are called.
             *
             * @param group The PrimitiveGroup to parse.
             * @param stringtable The string table inside the PrimitiveBlock with tags and usernames.
@@ -140,31 +145,31 @@ namespace Osmium {
                 if (group.has_dense())  {
                     this->call_after_and_before_handlers(NODE);
 
-                    // MAGIC: This bit of magic checks whether the empty callback_node function in the
+                    // MAGIC: This bit of magic checks whether the empty node function in the
                     // handler base class was overwritten. If it was we parse the nodes from the input
                     // file, if not we skip parsing them because they will not be used anyway.
-                    if (typeid(&THandler::callback_node) != typeid(&Osmium::Handler::Base::callback_node)) {
+                    if (typeid(&THandler::node) != typeid(&Osmium::Handler::Base::node)) {
                         parse_dense_node_group(group, stringtable);
                     }
                 } else if (group.ways_size() != 0) {
                     this->call_after_and_before_handlers(WAY);
 
                     // MAGIC: see above
-                    if (typeid(&THandler::callback_way) != typeid(&Osmium::Handler::Base::callback_way)) {
+                    if (typeid(&THandler::way) != typeid(&Osmium::Handler::Base::way)) {
                         parse_way_group(group, stringtable);
                     }
                 } else if (group.relations_size() != 0) {
                     this->call_after_and_before_handlers(RELATION);
 
                     // MAGIC: see above
-                    if (typeid(&THandler::callback_relation) != typeid(&Osmium::Handler::Base::callback_relation)) {
+                    if (typeid(&THandler::relation) != typeid(&Osmium::Handler::Base::relation)) {
                         parse_relation_group(group, stringtable);
                     }
                 } else if (group.nodes_size() != 0) {
                     this->call_after_and_before_handlers(NODE);
 
                     // MAGIC: see above
-                    if (typeid(&THandler::callback_node) != typeid(&Osmium::Handler::Base::callback_node)) {
+                    if (typeid(&THandler::node) != typeid(&Osmium::Handler::Base::node)) {
                         parse_node_group(group, stringtable);
                     }
                 } else {
@@ -175,93 +180,96 @@ namespace Osmium {
             void parse_node_group(const OSMPBF::PrimitiveGroup& group, const OSMPBF::StringTable& stringtable) {
                 int max_entity = group.nodes_size();
                 for (int entity=0; entity < max_entity; entity++) {
-                    this->node->reset();
+                    this->node()->reset();
 
                     const OSMPBF::Node& pbf_node = group.nodes(entity);
 
-                    this->node->set_id(pbf_node.id());
+                    this->node()->id(pbf_node.id());
                     if (pbf_node.has_info()) {
-                        this->node->set_version(pbf_node.info().version())
-                        .set_changeset(pbf_node.info().changeset())
-                        .set_timestamp(pbf_node.info().timestamp() * date_factor)
-                        .set_uid(pbf_node.info().uid())
-                        .set_user(stringtable.s(pbf_node.info().user_sid()).data());
+                        this->node()->version(pbf_node.info().version())
+                        .changeset(pbf_node.info().changeset())
+                        .timestamp(pbf_node.info().timestamp() * date_factor)
+                        .uid(pbf_node.info().uid())
+                        .user(stringtable.s(pbf_node.info().user_sid()).data());
                         if (pbf_node.info().has_visible()) {
-                            this->node->set_visible(pbf_node.info().visible());
+                            this->node()->visible(pbf_node.info().visible());
                         }
                     }
 
+                    Osmium::OSM::TagList& tags = this->node()->tags();
                     for (int tag=0; tag < pbf_node.keys_size(); tag++) {
-                        this->node->add_tag(stringtable.s( pbf_node.keys( tag ) ).data(),
-                                            stringtable.s( pbf_node.vals( tag ) ).data());
+                        tags.add(stringtable.s( pbf_node.keys( tag ) ).data(),
+                                 stringtable.s( pbf_node.vals( tag ) ).data());
                     }
 
-                    this->node->set_coordinates(( ( double ) pbf_node.lon() * pbf_primitive_block.granularity() + pbf_primitive_block.lon_offset() ) / OSMPBF::lonlat_resolution,
-                                                ( ( double ) pbf_node.lat() * pbf_primitive_block.granularity() + pbf_primitive_block.lat_offset() ) / OSMPBF::lonlat_resolution);
-
-                    this->callback_node();
+                    this->node()->position(Osmium::OSM::Position(
+                                             ( (double) pbf_node.lon() * pbf_primitive_block.granularity() + pbf_primitive_block.lon_offset() ) / OSMPBF::lonlat_resolution,
+                                             ( (double) pbf_node.lat() * pbf_primitive_block.granularity() + pbf_primitive_block.lat_offset() ) / OSMPBF::lonlat_resolution));
+                    this->handle_node();
                 }
             }
 
             void parse_way_group(const OSMPBF::PrimitiveGroup& group, const OSMPBF::StringTable& stringtable) {
                 int max_entity = group.ways_size();
                 for (int entity=0; entity < max_entity; entity++) {
-                    this->way->reset();
+                    this->way()->reset();
 
                     const OSMPBF::Way& pbf_way = group.ways(entity);
 
-                    this->way->set_id(pbf_way.id());
+                    this->way()->id(pbf_way.id());
                     if (pbf_way.has_info()) {
-                        this->way->set_version(pbf_way.info().version())
-                        .set_changeset(pbf_way.info().changeset())
-                        .set_timestamp(pbf_way.info().timestamp() * date_factor)
-                        .set_uid(pbf_way.info().uid())
-                        .set_user(stringtable.s(pbf_way.info().user_sid()).data());
+                        this->way()->version(pbf_way.info().version())
+                        .changeset(pbf_way.info().changeset())
+                        .timestamp(pbf_way.info().timestamp() * date_factor)
+                        .uid(pbf_way.info().uid())
+                        .user(stringtable.s(pbf_way.info().user_sid()).data());
                         if (pbf_way.info().has_visible()) {
-                            this->node->set_visible(pbf_way.info().visible());
+                            this->node()->visible(pbf_way.info().visible());
                         }
                     }
 
+                    Osmium::OSM::TagList& tags = this->way()->tags();
                     for (int tag=0; tag < pbf_way.keys_size(); tag++) {
-                        this->way->add_tag(stringtable.s( pbf_way.keys( tag ) ).data(),
-                                           stringtable.s( pbf_way.vals( tag ) ).data());
+                        tags.add(stringtable.s( pbf_way.keys( tag ) ).data(),
+                                 stringtable.s( pbf_way.vals( tag ) ).data());
                     }
 
-                    uint64_t lastRef = 0;
+                    uint64_t ref = 0;
                     for (int i=0; i < pbf_way.refs_size(); i++) {
-                        lastRef += pbf_way.refs(i);
-                        this->way->add_node(lastRef);
+                        ref += pbf_way.refs(i);
+                        this->way()->add_node(ref);
                     }
 
-                    this->callback_way();
+                    this->handle_way();
                 }
             }
 
             void parse_relation_group(const OSMPBF::PrimitiveGroup& group, const OSMPBF::StringTable& stringtable) {
                 int max_entity = group.relations_size();
                 for (int entity=0; entity < max_entity; entity++) {
-                    this->relation->reset();
+                    this->relation()->reset();
 
                     const OSMPBF::Relation& pbf_relation = group.relations(entity);
 
-                    this->relation->set_id(pbf_relation.id());
+                    this->relation()->id(pbf_relation.id());
                     if (pbf_relation.has_info()) {
-                        this->relation->set_version(pbf_relation.info().version())
-                        .set_changeset(pbf_relation.info().changeset())
-                        .set_timestamp(pbf_relation.info().timestamp() * date_factor)
-                        .set_uid(pbf_relation.info().uid())
-                        .set_user(stringtable.s(pbf_relation.info().user_sid()).data());
+                        this->relation()->version(pbf_relation.info().version())
+                        .changeset(pbf_relation.info().changeset())
+                        .timestamp(pbf_relation.info().timestamp() * date_factor)
+                        .uid(pbf_relation.info().uid())
+                        .user(stringtable.s(pbf_relation.info().user_sid()).data());
                         if (pbf_relation.info().has_visible()) {
-                            this->node->set_visible(pbf_relation.info().visible());
+                            this->node()->visible(pbf_relation.info().visible());
                         }
                     }
-
+ 
+                    Osmium::OSM::TagList& tags = this->relation()->tags();
                     for (int tag=0; tag < pbf_relation.keys_size(); tag++) {
-                        this->relation->add_tag(stringtable.s( pbf_relation.keys(tag) ).data(),
-                                                stringtable.s( pbf_relation.vals(tag) ).data());
+                        tags.add(stringtable.s( pbf_relation.keys(tag) ).data(),
+                                 stringtable.s( pbf_relation.vals(tag) ).data());
                     }
 
-                    uint64_t lastRef = 0;
+                    uint64_t ref = 0;
                     for (int i=0; i < pbf_relation.types_size(); i++) {
                         char type = 'x';
                         switch (pbf_relation.types(i)) {
@@ -275,11 +283,11 @@ namespace Osmium {
                                 type = 'r';
                                 break;
                         }
-                        lastRef += pbf_relation.memids(i);
-                        this->relation->add_member(type, lastRef, stringtable.s( pbf_relation.roles_sid( i ) ).data());
+                        ref += pbf_relation.memids(i);
+                        this->relation()->add_member(type, ref, stringtable.s( pbf_relation.roles_sid( i ) ).data());
                     }
 
-                    this->callback_relation();
+                    this->handle_relation();
                 }
             }
 
@@ -293,13 +301,13 @@ namespace Osmium {
                 int64_t last_dense_timestamp = 0;
                 int     last_dense_tag       = 0;
 
-                int max_entity = group.dense().id_size();
-                for (int entity=0; entity < max_entity; entity++) {
-                    this->node->reset();
+                const OSMPBF::DenseNodes& dense = group.dense();
+                int max_entity = dense.id_size();
+                for (int entity=0; entity < max_entity; ++entity) {
+                    this->node()->reset();
 
-                    const OSMPBF::DenseNodes& dense = group.dense();
                     last_dense_id += dense.id(entity);
-                    this->node->set_id(last_dense_id);
+                    this->node()->id(last_dense_id);
 
                     if (dense.has_denseinfo()) {
                         last_dense_changeset += dense.denseinfo().changeset(entity);
@@ -307,37 +315,39 @@ namespace Osmium {
                         last_dense_uid       += dense.denseinfo().uid(entity);
                         last_dense_user_sid  += dense.denseinfo().user_sid(entity);
 
-                        this->node->set_version(dense.denseinfo().version(entity));
-                        this->node->set_changeset(last_dense_changeset);
-                        this->node->set_timestamp(last_dense_timestamp * date_factor);
-                        this->node->set_uid(last_dense_uid);
-                        this->node->set_user(stringtable.s(last_dense_user_sid).data());
+                        this->node()->version(dense.denseinfo().version(entity));
+                        this->node()->changeset(last_dense_changeset);
+                        this->node()->timestamp(last_dense_timestamp * date_factor);
+                        this->node()->uid(last_dense_uid);
+                        this->node()->user(stringtable.s(last_dense_user_sid).data());
 
                         if (dense.denseinfo().visible_size() > 0) {
-                            this->node->set_visible(dense.denseinfo().visible(entity));
+                            this->node()->visible(dense.denseinfo().visible(entity));
                         }
                     }
 
                     last_dense_latitude  += dense.lat(entity);
                     last_dense_longitude += dense.lon(entity);
-                    this->node->set_coordinates(( ( double ) last_dense_longitude * pbf_primitive_block.granularity() + pbf_primitive_block.lon_offset() ) / OSMPBF::lonlat_resolution,
-                                                ( ( double ) last_dense_latitude  * pbf_primitive_block.granularity() + pbf_primitive_block.lat_offset() ) / OSMPBF::lonlat_resolution);
+                    this->node()->position(Osmium::OSM::Position(
+                                             ( (double) last_dense_longitude * pbf_primitive_block.granularity() + pbf_primitive_block.lon_offset() ) / OSMPBF::lonlat_resolution,
+                                             ( (double) last_dense_latitude  * pbf_primitive_block.granularity() + pbf_primitive_block.lat_offset() ) / OSMPBF::lonlat_resolution));
 
                     while (last_dense_tag < dense.keys_vals_size()) {
-                        int tagValue = dense.keys_vals(last_dense_tag);
+                        int tag_key_pos = dense.keys_vals(last_dense_tag);
 
-                        if (tagValue == 0) {
+                        if (tag_key_pos == 0) {
                             last_dense_tag++;
                             break;
                         }
-
-                        this->node->add_tag(stringtable.s( dense.keys_vals(last_dense_tag  ) ).data(),
-                                            stringtable.s( dense.keys_vals(last_dense_tag+1) ).data());
+ 
+                        Osmium::OSM::TagList& tags = this->node()->tags();
+                        tags.add(stringtable.s(tag_key_pos).data(),
+                                 stringtable.s(dense.keys_vals(last_dense_tag+1)).data());
 
                         last_dense_tag += 2;
                     }
 
-                    this->callback_node();
+                    this->handle_node();
                 }
             }
 

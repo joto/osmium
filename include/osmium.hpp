@@ -25,17 +25,16 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 /**
  * @mainpage
  *
- * Osmium is a C++/Javascript framework for processing OSM files.
+ * %Osmium is a fast and flexible C++ and Javascript toolkit and framework for
+ * working with OSM data.
  *
- * For more information see http://wiki.openstreetmap.org/wiki/Osmium .
+ * This is the API documentation that was automatically created from the
+ * source code. For more general information see
+ * http://wiki.openstreetmap.org/wiki/Osmium .
  *
- * The source code is at https://github.com/joto/osmium .
- *
+ * %Osmium is free software and available under the LGPLv3 or GPLv3. The
+ * source code is at https://github.com/joto/osmium .
  */
-
-#ifdef OSMIUM_WITH_GEOS
-# include <geos/geom/GeometryFactory.h>
-#endif // OSMIUM_WITH_GEOS
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
 # include <v8.h>
@@ -43,28 +42,60 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 # include <osmium/utils/unicode.hpp>
 #endif // OSMIUM_WITH_JAVASCRIPT
 
+#include <osmpbf/osmpbf.h>
+
 /**
- * @brief All Osmium code should be in this namespace.
+ * @brief All %Osmium code is in this namespace.
  */
 namespace Osmium {
 
-    class Framework;
+    /**
+     * Internal class to manage global state.
+     */
+    class Framework {
 
-    struct global {
-        Framework *framework;
+        Framework(bool d) : debug(d) {
+        }
+
+        ~Framework() {
+            // this is needed even if the protobuf lib was never used so that valgrind doesn't report any errors
+            google::protobuf::ShutdownProtobufLibrary();
+        }
+
         bool debug;
-#ifdef OSMIUM_WITH_GEOS
-        geos::geom::GeometryFactory *geos_geometry_factory;
-#endif // OSMIUM_WITH_GEOS
-    };
 
-    extern struct global global;
+        friend Framework& init(bool debug);
+        friend void set_debug(bool d);
+        friend bool debug();
+
+    }; // class Framework
+
+    /**
+     * Initialize the Osmium library. Call this before using any of the Osmium
+     * functions.
+     *
+     * @param debug Enable or disable the debugging output.
+     */
+    Framework& init(bool debug=false) {
+        static Framework f(debug);
+        return f;
+    }
+
+    /**
+     * Enable or disable the debugging output.
+     */
+    void set_debug(bool d) {
+        init().debug = d;
+    }
+
+    /**
+     * Is debugging output set?
+     */
+    bool debug() {
+        return init().debug;
+    }
 
 } // namespace Osmium
-
-#ifdef OSMIUM_MAIN
-struct Osmium::global Osmium::global;
-#endif // OSMIUM_MAIN
 
 // check way geometry before making a shplib object from it
 // normally this should be defined, otherwise you will generate invalid linestring geometries
@@ -76,126 +107,18 @@ struct Osmium::global Osmium::global;
 
 #include <osmium/exceptions.hpp>
 #include <osmium/osm.hpp>
+#include <osmium/geometry/null.hpp>
+#include <osmium/geometry/point.hpp>
+#include <osmium/geometry/linestring.hpp>
+#include <osmium/geometry/multipolygon.hpp>
 #include <osmium/osmfile.hpp>
 #include <osmium/input.hpp>
-#include <osmium/framework.hpp>
 #include <osmium/output.hpp>
+#include <osmium/export.hpp>
 #include <osmium/osmfile_impl.hpp>
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
-# include <osmium/javascript/object_templates.hpp>
 # include <osmium/HandlerJavascript.hpp>
-# ifdef OSMIUM_MAIN
-namespace Osmium {
-
-    namespace Javascript {
-
-        namespace Template {
-
-            Tags             *js_template_tags;
-            NodeGeom         *js_template_nodegeom;
-            Node             *js_template_node;
-            Nodes            *js_template_nodes;
-            WayGeom          *js_template_waygeom;
-            Way              *js_template_way;
-            Member           *js_template_member;
-            Members          *js_template_members;
-            Relation         *js_template_relation;
-            Multipolygon     *js_template_multipolygon;
-            MultipolygonGeom *js_template_multipolygongeom;
-            OutputCSV        *js_template_output_csv;
-            OutputShapefile  *js_template_output_shapefile;
-
-            v8::Local<v8::Object> create_tags_instance(void *wrapper) {
-                return js_template_tags->create_instance(wrapper);
-            }
-
-            v8::Local<v8::Object> create_node_geom_instance(void *wrapper) {
-                return js_template_nodegeom->create_instance(wrapper);
-            }
-
-            v8::Local<v8::Object> create_node_instance(void *wrapper) {
-                return js_template_node->create_instance(wrapper);
-            }
-
-            v8::Local<v8::Object> create_way_nodes_instance(void *wrapper) {
-                return js_template_nodes->create_instance(wrapper);
-            }
-
-            v8::Local<v8::Object> create_way_geom_instance(void *wrapper) {
-                return js_template_waygeom->create_instance(wrapper);
-            }
-
-            v8::Local<v8::Object> create_way_instance(void *wrapper) {
-                return js_template_way->create_instance(wrapper);
-            }
-
-            v8::Local<v8::Object> create_relation_member_instance(void *wrapper) {
-                return js_template_member->create_instance(wrapper);
-            }
-
-            v8::Local<v8::Object> create_relation_members_instance(void *wrapper) {
-                return js_template_members->create_instance(wrapper);
-            }
-
-            v8::Local<v8::Object> create_relation_instance(void *wrapper) {
-                return js_template_relation->create_instance(wrapper);
-            }
-
-            v8::Local<v8::Object> create_multipolygon_instance(void *wrapper) {
-                return js_template_multipolygon->create_instance(wrapper);
-            }
-
-            v8::Local<v8::Object> create_multipolygon_geom_instance(void *wrapper) {
-                return js_template_multipolygongeom->create_instance(wrapper);
-            }
-
-            v8::Local<v8::Object> create_output_csv_instance(void *wrapper) {
-                return js_template_output_csv->create_instance(wrapper);
-            }
-
-            v8::Local<v8::Object> create_output_shapefile_instance(void *wrapper) {
-                return js_template_output_shapefile->create_instance(wrapper);
-            }
-
-            void init() {
-                js_template_tags             = new Osmium::Javascript::Template::Tags;
-                js_template_nodegeom         = new Osmium::Javascript::Template::NodeGeom;
-                js_template_node             = new Osmium::Javascript::Template::Node;
-                js_template_nodes            = new Osmium::Javascript::Template::Nodes;
-                js_template_waygeom          = new Osmium::Javascript::Template::WayGeom;
-                js_template_way              = new Osmium::Javascript::Template::Way;
-                js_template_member           = new Osmium::Javascript::Template::Member;
-                js_template_members          = new Osmium::Javascript::Template::Members;
-                js_template_relation         = new Osmium::Javascript::Template::Relation;
-                js_template_multipolygon     = new Osmium::Javascript::Template::Multipolygon;
-                js_template_multipolygongeom = new Osmium::Javascript::Template::MultipolygonGeom;
-                js_template_output_csv       = new Osmium::Javascript::Template::OutputCSV;
-                js_template_output_shapefile = new Osmium::Javascript::Template::OutputShapefile;
-            }
-
-            void cleanup() {
-                delete js_template_output_shapefile;
-                delete js_template_output_csv;
-                delete js_template_multipolygongeom;
-                delete js_template_multipolygon;
-                delete js_template_relation;
-                delete js_template_members;
-                delete js_template_member;
-                delete js_template_way;
-                delete js_template_waygeom;
-                delete js_template_nodes;
-                delete js_template_node;
-                delete js_template_nodegeom;
-                delete js_template_tags;
-            }
-
-        } // namespace Template
-
-    } // namespace Javascript
-
-} // namespace Osmium
-# endif // OSMIUM_MAIN
 #endif // OSMIUM_WITH_JAVASCRIPT
 
 #endif // OSMIUM_OSMIUM_HPP

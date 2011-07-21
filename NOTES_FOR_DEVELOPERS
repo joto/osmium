@@ -70,6 +70,14 @@ cppcheck which finds some bugs that gcc doesn't. But take the result with
 a grain of salt, it also sometimes produces wrong warnings.
 
 
+Testing
+=======
+
+There are a unit tests using the Boost Unit Test Framework in the 'test'
+directory. Go there and type "./run_tests.sh" to compile and run the tests.
+Many more tests are needed.
+
+
 Documenting the code
 ====================
 

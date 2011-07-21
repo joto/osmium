@@ -1,5 +1,5 @@
-#ifndef OSMIUM_STRINGTABLE_HPP
-#define OSMIUM_STRINGTABLE_HPP
+#ifndef OSMIUM_UTILS_STRINGTABLE_HPP
+#define OSMIUM_UTILS_STRINGTABLE_HPP
 
 /*
 
@@ -21,6 +21,11 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 <http://www.gnu.org/licenses/>.
 
 */
+
+#include <stdint.h>
+#include <string>
+#include <map>
+#include <iostream>
 
 namespace Osmium {
 
@@ -106,7 +111,7 @@ namespace Osmium {
                 info_p->count++;
 
                 // return the associated interim-id
-                //if (Osmium::global.debug) fprintf(stderr, "found string %s at interim-id %u\n", string.c_str(), info_p->interim_id);
+                //if (Osmium::debug()) fprintf(stderr, "found string %s at interim-id %u\n", string.c_str(), info_p->interim_id);
                 return info_p->interim_id;
             } else {
                 // not found, initialize a new string_info struct with the count set to 0 and the
@@ -117,7 +122,7 @@ namespace Osmium {
                 strings[string] = info;
 
                 // debug-print and return the associated interim-id
-                if (Osmium::global.debug) {
+                if (Osmium::debug()) {
                     std::cerr << "record string " << string << " at interim-id " << info.interim_id << std::endl;
                 }
                 return info.interim_id;
@@ -141,7 +146,7 @@ namespace Osmium {
 
             // iterate over the items of our vector
             for (int i=0, l=strvec.size(); i<l; i++) {
-                if (Osmium::global.debug) {
+                if (Osmium::debug()) {
                     std::cerr << "store stringtable: " << strvec[i].first << " (cnt=" << strvec[i].second.count+1 << ") with interim-id " << strvec[i].second.interim_id << " at stringtable-id " << i+1 << std::endl;
                 }
 
@@ -167,7 +172,7 @@ namespace Osmium {
             // if there was a hit
             if (it != string_ids_map.end()) {
                 // return the real-id stored in the second part of the pair
-                //if (Osmium::global.debug) fprintf(stderr, "mapping interim-id %u to stringtable-id %u\n", interim_id, it->second);
+                //if (Osmium::debug()) fprintf(stderr, "mapping interim-id %u to stringtable-id %u\n", interim_id, it->second);
                 return it->second;
             }
 
@@ -187,4 +192,4 @@ namespace Osmium {
 
 } // namespace Osmium
 
-#endif // OSMIUM_STRINGTABLE_HPP
+#endif // OSMIUM_UTILS_STRINGTABLE_HPP

@@ -65,9 +65,9 @@ namespace Osmium {
             * Instantiate XML Parser.
             *
             * @param file OSMFile instance.
-            * @param handler Instance of THandler. If NULL an instance of class THandler is created internally.
+            * @param handler Instance of THandler.
             */
-            XML(OSMFile& file, THandler& handler) : Base<THandler>(file, handler) {
+            XML(Osmium::OSMFile& file, THandler& handler) : Base<THandler>(file, handler) {
             }
 
             void parse() {
@@ -117,7 +117,7 @@ namespace Osmium {
 
         private:
 
-            void init_object(OSM::Object *obj, const XML_Char **attrs) {
+            void init_object(Osmium::OSM::Object *obj, const XML_Char **attrs) {
                 current_object = obj;
                 current_object->reset();
                 for (int count = 0; attrs[count]; count += 2) {
@@ -136,12 +136,12 @@ namespace Osmium {
                 if (!strcmp(element, "nd")) {
                     for (int count = 0; attrs[count]; count += 2) {
                         if (!strcmp(attrs[count], "ref")) {
-                            this->way->add_node(atoll(attrs[count+1]));
+                            this->way()->add_node(atoll(attrs[count+1]));
                         }
                     }
                 } else if (!strcmp(element, "node")) {
                     this->call_after_and_before_handlers(NODE);
-                    init_object(this->node, attrs);
+                    init_object(this->node(), attrs);
                 } else if (!strcmp(element, "tag")) {
                     const char *key = "", *value = "";
                     for (int count = 0; attrs[count]; count += 2) {
@@ -154,11 +154,11 @@ namespace Osmium {
                     }
                     // XXX assert key, value exist
                     if (current_object) {
-                        current_object->add_tag(key, value);
+                        current_object->tags().add(key, value);
                     }
                 } else if (!strcmp(element, "way")) {
                     this->call_after_and_before_handlers(WAY);
-                    init_object(this->way, attrs);
+                    init_object(this->way(), attrs);
                 } else if (!strcmp(element, "member")) {
                     char        type = 'x';
                     uint64_t    ref  = 0;
@@ -173,24 +173,39 @@ namespace Osmium {
                         }
                     }
                     // XXX assert type, ref, role are set
-                    this->relation->add_member(type, ref, role);
+                    this->relation()->add_member(type, ref, role);
                 } else if (!strcmp(element, "relation")) {
                     this->call_after_and_before_handlers(RELATION);
-                    init_object(this->relation, attrs);
+                    init_object(this->relation(), attrs);
+                } else if (!strcmp(element, "bounds")) {
+                    Osmium::OSM::Position min;
+                    Osmium::OSM::Position max;
+                    for (int count = 0; attrs[count]; count += 2) {
+                        if (!strcmp(attrs[count], "minlon")) {
+                            min.lon(atof(attrs[count+1]));
+                        } else if (!strcmp(attrs[count], "minlat")) {
+                            min.lat(atof(attrs[count+1]));
+                        } else if (!strcmp(attrs[count], "maxlon")) {
+                            max.lon(atof(attrs[count+1]));
+                        } else if (!strcmp(attrs[count], "maxlat")) {
+                            max.lat(atof(attrs[count+1]));
+                        }
+                    }
+                    this->meta().bounds().extend(min).extend(max);
                 }
             }
 
             void end_element(const XML_Char* element) {
                 if (!strcmp(element, "node")) {
-                    this->callback_node();
+                    this->handle_node();
                     current_object = 0;
                 }
                 if (!strcmp(element, "way")) {
-                    this->callback_way();
+                    this->handle_way();
                     current_object = 0;
                 }
                 if (!strcmp(element, "relation")) {
-                    this->callback_relation();
+                    this->handle_relation();
                     current_object = 0;
                 }
             }

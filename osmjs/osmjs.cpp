@@ -3,260 +3,173 @@
 #include <getopt.h>
 #include <unistd.h>
 
-#define OSMIUM_MAIN
 #include <osmium.hpp>
-#include <osmium/handler/node_location_store.hpp>
+#include <osmium/storage/byid.hpp>
+#include <osmium/handler/coordinates_for_ways.hpp>
 #include <osmium/handler/multipolygon.hpp>
-#include <osmium/handler/progress.hpp>
 
 #ifdef OSMIUM_WITH_MULTIPOLYGON_PROFILING
-std::vector<std::pair<std::string, timer *> > Osmium::OSM::MultipolygonFromRelation::timers;
+std::vector<std::pair<std::string, timer *> > Osmium::OSM::AreaFromRelation::timers;
 
-timer Osmium::OSM::MultipolygonFromRelation::write_complex_poly_timer;
-timer Osmium::OSM::MultipolygonFromRelation::assemble_ways_timer;
-timer Osmium::OSM::MultipolygonFromRelation::assemble_nodes_timer;
-timer Osmium::OSM::MultipolygonFromRelation::make_one_ring_timer;
-timer Osmium::OSM::MultipolygonFromRelation::mor_polygonizer_timer;
-timer Osmium::OSM::MultipolygonFromRelation::mor_union_timer;
-timer Osmium::OSM::MultipolygonFromRelation::contains_timer;
-timer Osmium::OSM::MultipolygonFromRelation::extra_polygons_timer;
-timer Osmium::OSM::MultipolygonFromRelation::polygon_build_timer;
-timer Osmium::OSM::MultipolygonFromRelation::inner_ring_touch_timer;
-timer Osmium::OSM::MultipolygonFromRelation::polygon_intersection_timer;
-timer Osmium::OSM::MultipolygonFromRelation::multipolygon_build_timer;
-timer Osmium::OSM::MultipolygonFromRelation::multipolygon_write_timer;
-timer Osmium::OSM::MultipolygonFromRelation::error_write_timer;
+timer Osmium::OSM::AreaFromRelation::write_complex_poly_timer;
+timer Osmium::OSM::AreaFromRelation::assemble_ways_timer;
+timer Osmium::OSM::AreaFromRelation::assemble_nodes_timer;
+timer Osmium::OSM::AreaFromRelation::make_one_ring_timer;
+timer Osmium::OSM::AreaFromRelation::mor_polygonizer_timer;
+timer Osmium::OSM::AreaFromRelation::mor_union_timer;
+timer Osmium::OSM::AreaFromRelation::contains_timer;
+timer Osmium::OSM::AreaFromRelation::extra_polygons_timer;
+timer Osmium::OSM::AreaFromRelation::polygon_build_timer;
+timer Osmium::OSM::AreaFromRelation::inner_ring_touch_timer;
+timer Osmium::OSM::AreaFromRelation::polygon_intersection_timer;
+timer Osmium::OSM::AreaFromRelation::multipolygon_build_timer;
+timer Osmium::OSM::AreaFromRelation::multipolygon_write_timer;
+timer Osmium::OSM::AreaFromRelation::error_write_timer;
 #endif // OSMIUM_WITH_MULTIPOLYGON_PROFILING
+
+typedef Osmium::Storage::ById<Osmium::OSM::Position> storage_byid_t;
+typedef Osmium::Storage::Mmap<Osmium::OSM::Position> storage_mmap_t;
+typedef Osmium::Handler::CoordinatesForWays<storage_byid_t, storage_mmap_t> cfw_handler_t;
 
 class SinglePass : public Osmium::Handler::Base {
 
-    Osmium::Handler::NodeLocationStore *handler_node_location_store;
-    Osmium::Handler::Javascript        *handler_javascript;
-
-    Osmium::Handler::Progress          *pg;
+    cfw_handler_t* handler_cfw;
+    Osmium::Handler::Javascript* handler_javascript;
 
 public:
 
-    SinglePass(Osmium::Handler::NodeLocationStore *nls = NULL,
-               Osmium::Handler::Javascript        *js  = NULL,
-               bool progress = false)
+    SinglePass(cfw_handler_t* cfw = NULL,
+               Osmium::Handler::Javascript* js  = NULL)
         : Base(),
-          handler_node_location_store(nls),
+          handler_cfw(cfw),
           handler_javascript(js) {
-
-        if (progress) {
-            pg = new Osmium::Handler::Progress();
-        } else {
-            pg = NULL;
-        }
     }
 
-    void callback_init() {
-        if (handler_node_location_store) {
-            handler_node_location_store->callback_init();
+    void init(Osmium::OSM::Meta& meta) {
+        if (handler_cfw) {
+            handler_cfw->init(meta);
         }
-        handler_javascript->callback_init();
-
-        if (pg) {
-            pg->callback_init();
-        }
+        handler_javascript->init(meta);
     }
 
-    void callback_node(Osmium::OSM::Node *node) {
-        if (handler_node_location_store) {
-            handler_node_location_store->callback_node(node);
+    void node(Osmium::OSM::Node *node) {
+        if (handler_cfw) {
+            handler_cfw->node(node);
         }
-
-        handler_javascript->callback_node(node);
-
-        if (pg) {
-            pg->callback_node(node);
-        }
+        handler_javascript->node(node);
     }
 
-    void callback_way(Osmium::OSM::Way *way) {
-        if (handler_node_location_store) {
-            handler_node_location_store->callback_way(way);
-        }
-
-        handler_javascript->callback_way(way);
-
-        if (pg) {
-            pg->callback_way(way);
-        }
+    void after_nodes() {
+        if (handler_cfw)
+            handler_cfw->after_nodes();
     }
 
-    void callback_relation(Osmium::OSM::Relation *relation) {
-        handler_javascript->callback_relation(relation);
-
-        if (pg) {
-            pg->callback_relation(relation);
+    void way(Osmium::OSM::Way *way) {
+        if (handler_cfw) {
+            handler_cfw->way(way);
         }
+        handler_javascript->way(way);
     }
 
-    void callback_final() {
-        if (pg) {
-            pg->callback_final();
-            delete pg;
-        }
-        handler_javascript->callback_final();
+    void relation(Osmium::OSM::Relation *relation) {
+        handler_javascript->relation(relation);
+    }
+
+    void final() {
+        handler_javascript->final();
     }
 
 };
 
 class DualPass1 : public Osmium::Handler::Base {
 
-    Osmium::Handler::NodeLocationStore *handler_node_location_store;
-    Osmium::Handler::Multipolygon      *handler_multipolygon;
-    Osmium::Handler::Javascript        *handler_javascript;
-
-    Osmium::Handler::Progress          *pg;
+    cfw_handler_t* handler_cfw;
+    Osmium::Handler::Multipolygon* handler_multipolygon;
+    Osmium::Handler::Javascript* handler_javascript;
 
 public:
 
-    DualPass1(Osmium::Handler::NodeLocationStore *nls = NULL,
-              Osmium::Handler::Multipolygon      *mp  = NULL,
-              Osmium::Handler::Javascript        *js  = NULL,
-              bool progress = false)
+    DualPass1(cfw_handler_t* cfw = NULL,
+              Osmium::Handler::Multipolygon* mp  = NULL,
+              Osmium::Handler::Javascript* js  = NULL)
         : Base(),
-          handler_node_location_store(nls),
+          handler_cfw(cfw),
           handler_multipolygon(mp),
           handler_javascript(js) {
-
-        if (progress) {
-            pg = new Osmium::Handler::Progress();
-        } else {
-            pg = NULL;
-        }
     }
 
-    void callback_init() {
-        handler_multipolygon->callback_init();
-        if (handler_node_location_store) {
-            handler_node_location_store->callback_init();
+    void init(Osmium::OSM::Meta& meta) {
+        handler_multipolygon->init(meta);
+        if (handler_cfw) {
+            handler_cfw->init(meta);
         }
-
-        handler_javascript->callback_init();
-
-        if (pg) {
-            pg = new Osmium::Handler::Progress();
-            pg->callback_init();
-        }
+        handler_javascript->init(meta);
     }
 
-    void callback_node(Osmium::OSM::Node *node) {
-        handler_javascript->callback_node(node);
-
-        if (pg) {
-            pg->callback_node(node);
-        }
+    void node(Osmium::OSM::Node *node) {
+        handler_javascript->node(node);
     }
 
-    void callback_way(Osmium::OSM::Way *way) {
-        if (pg) {
-            pg->callback_way(way);
-        }
+    void before_relations() {
+        handler_multipolygon->before_relations();
     }
 
-    void callback_before_relations() {
-        handler_multipolygon->callback_before_relations();
+    void relation(Osmium::OSM::Relation *relation) {
+        handler_multipolygon->relation(relation);
+        handler_javascript->relation(relation);
     }
 
-    void callback_relation(Osmium::OSM::Relation *relation) {
-        handler_multipolygon->callback_relation(relation);
-        handler_javascript->callback_relation(relation);
-
-        if (pg) {
-            pg->callback_relation(relation);
-        }
-    }
-
-    void callback_after_relations() {
-        handler_multipolygon->callback_after_relations();
+    void after_relations() {
+        handler_multipolygon->after_relations();
         std::cerr << "1st pass finished" << std::endl;
     }
 
-    void callback_final() {
-        if (pg) {
-            pg->callback_final();
-            delete pg;
-        }
-    }
 };
 
 class DualPass2 : public Osmium::Handler::Base {
 
-    Osmium::Handler::NodeLocationStore *handler_node_location_store;
-    Osmium::Handler::Multipolygon      *handler_multipolygon;
-    Osmium::Handler::Javascript        *handler_javascript;
-
-    Osmium::Handler::Progress          *pg;
+    cfw_handler_t* handler_cfw;
+    Osmium::Handler::Multipolygon* handler_multipolygon;
+    Osmium::Handler::Javascript* handler_javascript;
 
 public:
 
-    DualPass2(Osmium::Handler::NodeLocationStore *nls = NULL,
-              Osmium::Handler::Multipolygon      *mp  = NULL,
-              Osmium::Handler::Javascript        *js  = NULL,
-              bool progress = false)
+    DualPass2(cfw_handler_t* cfw = NULL,
+              Osmium::Handler::Multipolygon* mp  = NULL,
+              Osmium::Handler::Javascript* js  = NULL)
         : Base(),
-          handler_node_location_store(nls),
+          handler_cfw(cfw),
           handler_multipolygon(mp),
           handler_javascript(js) {
+    }
 
-        if (progress) {
-            pg = new Osmium::Handler::Progress();
-        } else {
-            pg = NULL;
+    void node(Osmium::OSM::Node *node) {
+        if (handler_cfw) {
+            handler_cfw->node(node);
         }
     }
 
-    void callback_init() {
-        if (pg) {
-            pg = new Osmium::Handler::Progress();
-            pg->callback_init();
+    void after_nodes() {
+        if (handler_cfw) {
+            handler_cfw->after_nodes();
         }
     }
 
-    void callback_node(Osmium::OSM::Node *node) {
-        if (handler_node_location_store) {
-            handler_node_location_store->callback_node(node);
+    void way(Osmium::OSM::Way *way) {
+        if (handler_cfw) {
+            handler_cfw->way(way);
         }
-
-        if (pg) {
-            pg->callback_node(node);
-        }
+        handler_multipolygon->way(way);
+        handler_javascript->way(way);
     }
 
-    void callback_after_nodes() {
-        if (handler_node_location_store) {
-            handler_node_location_store->callback_after_nodes();
-        }
+    void after_ways() {
+        handler_multipolygon->after_ways();
     }
 
-    void callback_way(Osmium::OSM::Way *way) {
-        if (handler_node_location_store) {
-            handler_node_location_store->callback_way(way);
-        }
-
-        handler_multipolygon->callback_way(way);
-        handler_javascript->callback_way(way);
-
-        if (pg) {
-            pg->callback_way(way);
-        }
-    }
-
-    void callback_after_ways() {
-        handler_multipolygon->callback_after_ways();
-    }
-
-    void callback_final() {
-        if (pg) {
-            pg->callback_final();
-            delete pg;
-        }
-        handler_javascript->callback_final();
-        handler_multipolygon->callback_final();
+    void final() {
+        handler_javascript->final();
+        handler_multipolygon->final();
     }
 };
 
@@ -274,7 +187,6 @@ void print_help() {
               << "  --location-store=STORE, -l STORE - Set location store (default: 'none')" << std::endl \
               << "  --no-repair, -r                  - Do not attempt to repair broken multipolygons" << std::endl \
               << "  --2pass, -2                      - Read OSMFILE twice and build multipolygons" << std::endl \
-              << "  --progress, -p                   - Show progress" << std::endl \
               << "Location stores:" << std::endl \
               << "  none        - Do not store node locations (you will have no way or polygon geometries)" << std::endl \
               << "  array       - Store node locations in large array (use for large OSM files)" << std::endl \
@@ -313,15 +225,14 @@ std::string find_include_file(std::string filename) {
     exit(1);
 }
 
-Osmium::Handler::Javascript *handler_javascript;
+Osmium::Handler::Javascript* handler_javascript;
 
-void cbmp(Osmium::OSM::Multipolygon *multipolygon) {
-    handler_javascript->callback_multipolygon(multipolygon);
+void cbmp(Osmium::OSM::Area* area) {
+    handler_javascript->area(area);
 }
 
 int main(int argc, char *argv[]) {
     bool two_passes = false;
-    bool progress = false;
     bool attempt_repair = true;
     std::string javascript_filename;
     std::string osm_filename;
@@ -341,14 +252,13 @@ int main(int argc, char *argv[]) {
         {"location-store", required_argument, 0, 'l'},
         {"no-repair",            no_argument, 0, 'r'},
         {"2pass",                no_argument, 0, '2'},
-        {"progress",             no_argument, 0, 'p'},
         {0, 0, 0, 0}
     };
 
     bool debug = false;
 
     while (1) {
-        int c = getopt_long(argc, argv, "dhi:j:l:r2p", long_options, 0);
+        int c = getopt_long(argc, argv, "dhi:j:l:r2", long_options, 0);
         if (c == -1)
             break;
 
@@ -387,9 +297,6 @@ int main(int argc, char *argv[]) {
             case '2':
                 two_passes = true;
                 break;
-            case 'p':
-                progress = true;
-                break;
             default:
                 exit(1);
         }
@@ -412,7 +319,7 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    Osmium::Framework osmium(debug);
+    Osmium::init(debug);
     Osmium::OSMFile infile(osm_filename);
 
     v8::HandleScope handle_scope;
@@ -433,33 +340,33 @@ int main(int argc, char *argv[]) {
     }
     global_context->Global()->Set(v8::String::New("argv"), js_argv);
 
-    Osmium::Javascript::Template::init();
-
-    Osmium::Handler::NodeLocationStore *handler_node_location_store;
+    storage_byid_t* store_pos = NULL;
     if (location_store == ARRAY) {
-        handler_node_location_store = new Osmium::Handler::NLS_Array();
+        store_pos = new Osmium::Storage::Mmap<Osmium::OSM::Position>();
     } else if (location_store == DISK) {
-        handler_node_location_store = new Osmium::Handler::NLS_Disk();
+        std::string filename("");
+        store_pos = new Osmium::Storage::Mmap<Osmium::OSM::Position>(filename);
     } else if (location_store == SPARSETABLE) {
-        handler_node_location_store = new Osmium::Handler::NLS_Sparsetable();
-    } else {
-        handler_node_location_store = NULL;
+        store_pos = new Osmium::Storage::SparseTable<Osmium::OSM::Position>();
     }
+    Osmium::Storage::Mmap<Osmium::OSM::Position> store_neg;
+    cfw_handler_t* handler_cfw = (store_pos == NULL) ? NULL : new cfw_handler_t(*store_pos, store_neg);
     handler_javascript = new Osmium::Handler::Javascript(include_files, javascript_filename.c_str());
 
     if (two_passes) {
-        Osmium::Handler::Multipolygon *handler_multipolygon = new Osmium::Handler::Multipolygon(attempt_repair, cbmp);
-        DualPass1 handler1(handler_node_location_store, handler_multipolygon, handler_javascript, progress);
+        Osmium::Handler::Multipolygon handler_multipolygon(attempt_repair, cbmp);
+        DualPass1 handler1(handler_cfw, &handler_multipolygon, handler_javascript);
         infile.read(handler1);
-        DualPass2 handler2(handler_node_location_store, handler_multipolygon, handler_javascript, progress);
+        DualPass2 handler2(handler_cfw, &handler_multipolygon, handler_javascript);
         infile.read(handler2);
-        delete handler_multipolygon;
     } else {
-        SinglePass handler(handler_node_location_store, handler_javascript, progress);
+        SinglePass handler(handler_cfw, handler_javascript);
         infile.read(handler);
     }
+
     delete handler_javascript;
-    delete handler_node_location_store;
+    delete handler_cfw;
+    delete store_pos;
 
     global_context.Dispose();
 }

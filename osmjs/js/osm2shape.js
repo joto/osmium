@@ -1,4 +1,15 @@
-// framework for exporting OSM data to shapefiles
+/*
+
+  Osmium Javascript Example
+
+  Framework for exporting OSM data to shapefiles.
+  osm2shape.js
+
+  (see also config.js)
+
+  run with: osmjs -2 -l sparsetable -i osm2shape.js -j config.js OSMFILE
+
+*/
 
 // shapefile geometry types
 var POINT   = 'point';
@@ -196,7 +207,7 @@ function check(type, osm_object) {
         var rule = rules[type][i];
         if (rule.match(osm_object)) {
             var a = tags2attributes(osm_object.id, osm_object.tags, rule.attrs);
-            files[rule.file].shp.add(osm_object, a);
+            files[rule.file].shp.add(osm_object.geom, a);
         }
     }
 }
@@ -209,7 +220,7 @@ Osmium.Callbacks.way = function() {
     check('way', this);
 }
 
-Osmium.Callbacks.multipolygon = function() {
+Osmium.Callbacks.area = function() {
     check('area', this);
 }
 

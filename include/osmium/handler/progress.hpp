@@ -105,14 +105,14 @@ namespace Osmium {
                 std::cout << "\x1b[?25h";
             }
 
-            void callback_init() const {
+            void init(Osmium::OSM::Meta&) const {
                 if (is_a_tty) {
                     hide_cursor();
                     update_display();
                 }
             }
 
-            void callback_node(const OSM::Node * /*object*/) {
+            void node(const Osmium::OSM::Node* /*object*/) {
                 if(first_node.tv_sec == 0) {
                     gettimeofday(&first_node, 0);
                 }
@@ -121,7 +121,7 @@ namespace Osmium {
                 }
             }
 
-            void callback_way(const OSM::Way * /*object*/) {
+            void way(const Osmium::OSM::Way* /*object*/) {
                 if(first_way.tv_sec == 0) {
                     gettimeofday(&first_way, 0);
                 }
@@ -130,7 +130,7 @@ namespace Osmium {
                 }
             }
 
-            void callback_relation(OSM::Relation * /*object*/) {
+            void relation(const Osmium::OSM::Relation* /*object*/) {
                 if(first_relation.tv_sec == 0) {
                     gettimeofday(&first_relation, 0);
                 }
@@ -139,7 +139,7 @@ namespace Osmium {
                 }
             }
 
-            void callback_final() const {
+            void final() const {
                 if (is_a_tty) {
                     update_display();
                     std::cout << std::endl;

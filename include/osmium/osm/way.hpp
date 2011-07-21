@@ -25,10 +25,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <stdexcept>
 #include <iostream>
 
-#ifdef OSMIUM_WITH_SHPLIB
-# include <shapefil.h>
-# include <algorithm>
-#endif // OSMIUM_WITH_SHPLIB
+#include <osmium/osm/object.hpp>
+#include <osmium/osm/way_node_list.hpp>
 
 /** @file
 *   @brief Contains the Osmium::OSM::Way class.
@@ -42,53 +40,48 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 # include <geos/util/GEOSException.h>
 #endif // OSMIUM_WITH_GEOS
 
+#include <osmium/geometry.hpp>
+
 namespace Osmium {
 
     namespace OSM {
 
         class Way : public Object {
 
-            /**
-             * If a way object is created and the number of nodes is not given
-             * to the constructor, space for this many nodes is reserved.
-             * 99.9% of all ways have 500 or less nodes.
-             */
-            static const int default_nodes_in_way = 500;
-
-            std::vector<osm_object_id_t> nodes;
-            std::vector<double> lon;
-            std::vector<double> lat;
+            WayNodeList m_node_list;
 
         public:
 
-#ifdef OSMIUM_WITH_JAVASCRIPT
-            v8::Local<v8::Object> js_nodes_instance;
-            v8::Local<v8::Object> js_geom_instance;
-#endif // OSMIUM_WITH_JAVASCRIPT
-
             /// Construct a Way object.
-            Way(int num_nodes = default_nodes_in_way) : Object(), nodes(), lon(), lat() {
+            Way() : Object(), m_node_list() {
                 init();
                 reset();
-                nodes.reserve(num_nodes);
+            }
+
+            Way(int size_of_node_list) : Object(), m_node_list(size_of_node_list) {
+                init();
+                reset();
             }
 
             /// Copy a Way object.
             Way(const Way& w) : Object(w) {
                 init();
-                nodes = w.nodes;
-                lon = w.lon;
-                lat = w.lat;
+                m_node_list = w.m_node_list;
+            }
+
+            const WayNodeList& nodes() const {
+                return m_node_list;
+            }
+
+            WayNodeList& nodes() {
+                return m_node_list;
             }
 
         private:
 
             void init() {
 #ifdef OSMIUM_WITH_JAVASCRIPT
-                js_tags_instance   = Osmium::Javascript::Template::create_tags_instance(this);
-                js_object_instance = Osmium::Javascript::Template::create_way_instance(this);
-                js_nodes_instance  = Osmium::Javascript::Template::create_way_nodes_instance(this);
-                js_geom_instance   = Osmium::Javascript::Template::create_way_geom_instance(this);
+                js_object_instance = JavascriptTemplate::get<JavascriptTemplate>().create_instance(this);
 #endif // OSMIUM_WITH_JAVASCRIPT
             }
 
@@ -100,21 +93,19 @@ namespace Osmium {
 
             void reset() {
                 Object::reset();
-                nodes.clear();
-                lon.clear();
-                lat.clear();
+                m_node_list.clear();
             }
 
             osm_object_id_t get_node_id(osm_sequence_id_t n) const {
-                return nodes[n];
+                return m_node_list[n].ref();
             }
 
             double get_lon(osm_sequence_id_t n) const {
-                return lon[n];
+                return m_node_list[n].position().lon();
             }
 
             double get_lat(osm_sequence_id_t n) const {
-                return lat[n];
+                return m_node_list[n].position().lat();
             }
 
             /**
@@ -123,28 +114,35 @@ namespace Osmium {
             * Will throw a range error if the way already has max_nodes_in_way nodes.
             */
             void add_node(osm_object_id_t ref) {
-                nodes.push_back(ref);
+                m_node_list.add(ref);
             }
 
             /**
             * Returns the number of nodes in this way.
             */
             osm_sequence_id_t node_count() const {
-                return nodes.size();
+                return m_node_list.size();
             }
 
             /**
              * Returns the id of the first node.
              */
             osm_object_id_t get_first_node_id() const {
-                return nodes.front();
+                return m_node_list.front().ref();
             }
 
             /**
              * Returns the id of the last node.
              */
             osm_object_id_t get_last_node_id() const {
-                return nodes.back();
+                return m_node_list.back().ref();
+            }
+
+            /**
+            * Check whether this way is closed. A way is closed if the first and last node have the same id.
+            */
+            bool is_closed() const {
+                return m_node_list.is_closed();
             }
 
 #ifdef OSMIUM_WITH_GEOS
@@ -152,73 +150,38 @@ namespace Osmium {
              * Returns the GEOS geometry of the first node.
              * Caller takes ownership of the pointer.
              */
-            geos::geom::Point *get_first_node_geometry() const {
-                if (lon.empty())
+            geos::geom::Point* get_first_node_geometry() const {
+                if (!m_node_list.front().has_position()) {
                     throw std::range_error("geometry for nodes not available");
-                geos::geom::Coordinate c;
-                c.x = lon.front();
-                c.y = lat.front();
-                return Osmium::global.geos_geometry_factory->createPoint(c);
+                }
+                return Osmium::Geometry::geos_geometry_factory()->createPoint(m_node_list.front().position());
             }
 
             /**
              * Returns the GEOS geometry of the last node.
              * Caller takes ownership of the pointer.
              */
-            geos::geom::Point *get_last_node_geometry() const {
-                if (lon.empty())
+            geos::geom::Point* get_last_node_geometry() const {
+                if (!m_node_list.back().has_position()) {
                     throw std::range_error("geometry for nodes not available");
-                geos::geom::Coordinate c;
-                c.x = lon.back();
-                c.y = lat.back();
-                return Osmium::global.geos_geometry_factory->createPoint(c);
-            }
-#endif // OSMIUM_WITH_GEOS
-
-            /**
-            * Check whether this way is closed. A way is closed if the first and last node have the same id.
-            */
-            bool is_closed() const {
-                return nodes.front() == nodes.back();
+                }
+                return Osmium::Geometry::geos_geometry_factory()->createPoint(m_node_list.back().position());
             }
 
-            /**
-            * Set coordinates for the nth node in this way.
-            */
-            void set_node_coordinates(osm_sequence_id_t n, double nlon, double nlat) {
-                if (n >= nodes.size())
-                    throw std::range_error("trying to set coordinate for unknown node");
-                lon.resize(nodes.size());
-                lat.resize(nodes.size());
-                lon[n] = nlon;
-                lat[n] = nlat;
-            }
-
-            /**
-             * Are the node coordinates set for this way?
-             * This will return true after the first call to set_node_coordinates(),
-             * which strictly speaking only means that one coordinate has been set.
-             * XXX should probably be done in some other way.
-             */
-            bool node_coordinates_set() const {
-                return lon.size() == nodes.size();
-            }
-
-#ifdef OSMIUM_WITH_GEOS
             /**
              * Returns the GEOS geometry of the way.
              * Caller takes ownership of the pointer.
              */
-            geos::geom::Geometry *create_geos_geometry() const {
+            geos::geom::Geometry* create_geos_geometry() const {
                 try {
                     std::vector<geos::geom::Coordinate> *c = new std::vector<geos::geom::Coordinate>;
-                    for (osm_sequence_id_t i=0; i < lon.size(); i++) {
-                        c->push_back(geos::geom::Coordinate(lon[i], lat[i], DoubleNotANumber));
+                    for (osm_sequence_id_t i=0; i < m_node_list.size(); ++i) {
+                        c->push_back(m_node_list[i].position());
                     }
-                    geos::geom::CoordinateSequence *cs = Osmium::global.geos_geometry_factory->getCoordinateSequenceFactory()->create(c);
-                    return (geos::geom::Geometry *) Osmium::global.geos_geometry_factory->createLineString(cs);
+                    geos::geom::CoordinateSequence *cs = Osmium::Geometry::geos_geometry_factory()->getCoordinateSequenceFactory()->create(c);
+                    return (geos::geom::Geometry *) Osmium::Geometry::geos_geometry_factory()->createLineString(cs);
                 } catch (const geos::util::GEOSException& exc) {
-                    std::cerr << "error building way geometry, leave it as NULL" << std::endl;
+                    std::cerr << "error building way geometry, leave it as NULL\n";
                     return NULL;
                 }
             }
@@ -234,12 +197,12 @@ namespace Osmium {
                 }
                 try {
                     std::vector<geos::geom::Coordinate> *c = new std::vector<geos::geom::Coordinate>;
-                    for (osm_sequence_id_t i=0; i < lon.size(); i++) {
-                        c->push_back(geos::geom::Coordinate(lon[i], lat[i], DoubleNotANumber));
+                    for (osm_sequence_id_t i=0; i < m_node_list.size(); ++i) {
+                        c->push_back(m_node_list[i].position());
                     }
-                    geos::geom::CoordinateSequence *cs = Osmium::global.geos_geometry_factory->getCoordinateSequenceFactory()->create(c);
-                    geos::geom::LinearRing *ring = Osmium::global.geos_geometry_factory->createLinearRing(cs);
-                    return (geos::geom::Geometry *) Osmium::global.geos_geometry_factory->createPolygon(ring, NULL);
+                    geos::geom::CoordinateSequence *cs = Osmium::Geometry::geos_geometry_factory()->getCoordinateSequenceFactory()->create(c);
+                    geos::geom::LinearRing *ring = Osmium::Geometry::geos_geometry_factory()->createLinearRing(cs);
+                    return (geos::geom::Geometry *) Osmium::Geometry::geos_geometry_factory()->createPolygon(ring, NULL);
                 } catch (const geos::util::GEOSException& exc) {
                     std::cerr << "error building way geometry, leave it as NULL" << std::endl;
                     return NULL;
@@ -247,145 +210,24 @@ namespace Osmium {
             }
 #endif // OSMIUM_WITH_GEOS
 
-
-#ifdef OSMIUM_WITH_SHPLIB
-            /**
-            * Create a SHPObject for this way and return it. You have to call
-            * SHPDestroyObject() with this object when you are done.
-            */
-            SHPObject *create_shpobject(int shp_type, bool reverse_way) {
-                if (lon.empty()) {
-                    throw std::runtime_error("node coordinates not available for building way geometry");
-                }
-#ifdef OSMIUM_CHECK_WAY_GEOMETRY
-                if (nodes.size() == 0 || nodes.size() == 1) {
-                    if (Osmium::global.debug) std::cerr << "error building way geometry for way " << get_id() << ": must at least contain two nodes" << std::endl;
-                    throw Osmium::Exception::IllegalGeometry();
-                }
-
-                std::vector<double> lon_checked;
-                lon_checked.reserve(lon.size());
-                lon_checked.push_back(lon[0]);
-
-                std::vector<double> lat_checked;
-                lat_checked.reserve(lat.size());
-                lat_checked.push_back(lat[0]);
-
-                for (osm_sequence_id_t i=1; i < lon.size(); i++) {
-                    if (nodes[i] == nodes[i-1]) {
-                        if (Osmium::global.debug) std::cerr << "warning building way geometry for way " << get_id() << ": contains node " << nodes[i] << " twice" << std::endl;
-                    } else if (lon[i] == lon[i-1] && lat[i] == lat[i-1]) {
-                        if (Osmium::global.debug) std::cerr << "warning building way geometry for way " << get_id() << ": contains location " << lon[i] << ", " << lat[i] << " twice" << std::endl;
-                    } else {
-                        lon_checked.push_back(lon[i]);
-                        lat_checked.push_back(lat[i]);
-                    }
-                }
-                if (lon_checked.size() == 1) {
-                    if (Osmium::global.debug) std::cerr << "error building way geometry for way " << get_id() << ": must at least contain two different points" << std::endl;
-                    throw Osmium::Exception::IllegalGeometry();
-                }
-                if (reverse_way) {
-                    reverse(lon_checked.begin(), lon_checked.end());
-                    reverse(lat_checked.begin(), lat_checked.end());
-                }
-                return SHPCreateSimpleObject(shp_type, lon_checked.size(), &(lon_checked[0]), &(lat_checked[0]), NULL);
-#else
-                return SHPCreateSimpleObject(shp_type, lon.size(), &(lon[0]), &(lat[0]), NULL);
-#endif // OSMIUM_CHECK_WAY_GEOMETRY
-            }
-
-            SHPObject *create_shp_line(std::string& transformation) {
-                return create_shpobject(SHPT_ARC, transformation == "reverse" ? 1 : 0);
-            }
-
-            SHPObject *create_shp_polygon(std::string& transformation) {
-                return create_shpobject(SHPT_POLYGON, transformation == "reverse" ? 1 : 0);
-            }
-#endif // OSMIUM_WITH_SHPLIB
-
 #ifdef OSMIUM_WITH_JAVASCRIPT
-            v8::Handle<v8::Value> js_get_nodes() const {
-                return js_nodes_instance;
+            v8::Handle<v8::Value> js_nodes() const {
+                return m_node_list.js_instance();
             }
 
-            v8::Handle<v8::Value> js_get_geom() const {
-                return js_geom_instance;
-            }
+            v8::Handle<v8::Value> js_geom() const;
 
-            v8::Handle<v8::Value> js_get_nodes_length() const {
-                return v8::Number::New(nodes.size());
-            }
+            v8::Handle<v8::Value> js_reverse_geom() const;
 
-            v8::Handle<v8::Value> js_get_node_id(uint32_t index) const {
-                if (sizeof(osm_object_id_t) <= 4)
-                    return v8::Integer::New(nodes[index]);
-                else
-                    return v8::Number::New(nodes[index]);
-            }
+            struct JavascriptTemplate : public Osmium::OSM::Object::JavascriptTemplate {
 
-            v8::Handle<v8::Array> js_enumerate_nodes() const {
-                v8::Local<v8::Array> array = v8::Array::New(nodes.size());
-
-                for (osm_sequence_id_t i=0; i < nodes.size(); i++) {
-                    v8::Local<v8::Integer> ii = v8::Integer::New(i);
-                    array->Set(ii, ii);
+                JavascriptTemplate() : Osmium::OSM::Object::JavascriptTemplate() {
+                    js_template->SetAccessor(v8::String::NewSymbol("nodes"),        accessor_getter<Way, &Way::js_nodes>);
+                    js_template->SetAccessor(v8::String::NewSymbol("geom"),         accessor_getter<Way, &Way::js_geom>);
+                    js_template->SetAccessor(v8::String::NewSymbol("reverse_geom"), accessor_getter<Way, &Way::js_reverse_geom>);
                 }
 
-                return array;
-            }
-
-            std::ostream& geom_as_wkt(std::ostream& s) const {
-                s << "LINESTRING(";
-                for (osm_sequence_id_t i=0; i < lon.size(); i++) {
-                    if (i != 0) {
-                        s << ',';
-                    }
-                    s << lon[i] << ' ' << lat[i];
-                }
-                return s << ')';
-            }
-
-            v8::Handle<v8::Value> js_get_geom_property(v8::Local<v8::String> property) const {
-                v8::String::Utf8Value key(property);
-
-                if (!node_coordinates_set()) {
-                    return v8::Undefined();
-                }
-
-                if (!strcmp(*key, "as_wkt")) {
-                    std::ostringstream oss;
-                    geom_as_wkt(oss);
-                    return v8::String::New(oss.str().c_str());
-                } else if (!strcmp(*key, "as_ewkt")) {
-                    std::ostringstream oss;
-                    oss << "SRID=4326;";
-                    geom_as_wkt(oss);
-                    return v8::String::New(oss.str().c_str());
-                } else if (!strcmp(*key, "as_array")) {
-                    v8::Local<v8::Array> linestring = v8::Array::New(nodes.size());
-                    for (osm_sequence_id_t i=0; i < nodes.size(); i++) {
-                        v8::Local<v8::Array> coord = v8::Array::New(2);
-                        coord->Set(v8::Integer::New(0), v8::Number::New(lon[i]));
-                        coord->Set(v8::Integer::New(1), v8::Number::New(lat[i]));
-                        linestring->Set(v8::Integer::New(i), coord);
-                    }
-                    return linestring;
-                } else if (!strcmp(*key, "as_polygon_array") && is_closed()) {
-                    v8::Local<v8::Array> polygon = v8::Array::New(1);
-                    v8::Local<v8::Array> ring = v8::Array::New(nodes.size());
-                    for (osm_sequence_id_t i=0; i < nodes.size(); i++) {
-                        v8::Local<v8::Array> coord = v8::Array::New(2);
-                        coord->Set(v8::Integer::New(0), v8::Number::New(lon[i]));
-                        coord->Set(v8::Integer::New(1), v8::Number::New(lat[i]));
-                        ring->Set(v8::Integer::New(i), coord);
-                    }
-                    polygon->Set(v8::Integer::New(0), ring);
-                    return polygon;
-                } else {
-                    return v8::Undefined();
-                }
-            }
+            };
 #endif // OSMIUM_WITH_JAVASCRIPT
 
         }; // class Way

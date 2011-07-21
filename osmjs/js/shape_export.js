@@ -1,4 +1,12 @@
-/* shape_export.js (2-pass version) */
+/*
+
+  Osmium Javascript Example
+
+  shape_export.js
+
+  run with: osmjs -2 -l sparsetable -j shape_export.js OSMFILE
+
+*/
 
 var shp_pois = Osmium.Output.Shapefile.open('./pois', 'point');
 shp_pois.add_field('id', 'integer', 10);
@@ -26,11 +34,11 @@ Osmium.Callbacks.init = function() {
 }
 
 Osmium.Callbacks.node = function() {
-    for (key in this.tags) {
+    for (var key in this.tags) {
         if (node_tags[key]) {
             var type = node_tags[key][this.tags[key]];
             if (type) {
-                shp_pois.add(this, { id: this.id, type: type, name: this.tags.name });
+                shp_pois.add(this.geom, { id: this.id, type: type, name: this.tags.name });
             }
         }
     }
@@ -38,7 +46,8 @@ Osmium.Callbacks.node = function() {
 
 Osmium.Callbacks.way = function() {
     if (this.tags.highway) {
-        var oneway = 0, maxspeed = 0;
+        var oneway = 0;
+        var maxspeed = 0;
         if (this.tags.oneway == '1' || this.tags.oneway == 'yes' || this.tags.oneway == 'true') {
             oneway = 1;
         } else if (this.tags.oneway == '-1') {
@@ -47,13 +56,13 @@ Osmium.Callbacks.way = function() {
         if (this.tags.maxspeed && this.tags.maxspeed.match(/^([0-9]+) ?(km\/?h)?$/)) {
             maxspeed = RegExp.$1;
         }
-        shp_roads.add(this, { id: this.id, type: this.tags.highway, name: this.tags.name, oneway: oneway, maxspeed: maxspeed });
+        shp_roads.add(this.geom, { id: this.id, type: this.tags.highway, name: this.tags.name, oneway: oneway, maxspeed: maxspeed });
     }
 }
 
-Osmium.Callbacks.multipolygon = function() {
+Osmium.Callbacks.area = function() {
     if (this.tags.landuse) {
-        shp_landuse.add(this, { id: this.id, type: this.tags.landuse });
+        shp_landuse.add(this.geom, { id: this.id, type: this.tags.landuse });
     }
 }
 

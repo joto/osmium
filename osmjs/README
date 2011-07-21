@@ -39,20 +39,22 @@ Calling osmjs
 
 osmjs [OPTIONS] OSMFILE
 
-OSMFILE can be an OSM XML (suffix .osm) or PBF (suffix .osm.pbf) file. In
-single-pass mode it can also be '-' to read an XML file from stdin.
+OSMFILE can be an OSM XML (suffix .osm) (optionally packed with bz2 or gz) or
+PBF (suffix .osm.pbf) file. In single-pass mode it can also be '-' to read a
+PBF file from stdin.
 
 See osmjs --help for the options. You must at least give the --javascript/-j
 option with a javascript filename.
 
-You need to use the --location-store/-l option if you want way geometries.
-This can take a lot of memory! See "osmjs --help" for more info.
+You need to use the --location-store/-l option if you want way and/or
+multipolygon geometries. This can take a lot of memory! See "osmjs --help" for
+more info.
 
 
 Note for 32 bit systems
 -----------------------
 
-Osmjs has not been tested on 32 bit systems.
+Osmjs has not been fully tested on 32 bit systems.
 The -l array and -l disk options will not work on 32bit systems, because
 the memory range they can address is just too small.
 
@@ -155,8 +157,8 @@ Define a shapefile named "example" with point geometries:
 Field types are integer, string, double, and bool. Bools are always of length
 1, other need the length in characters and doubles also need a precision.
 
-You can now add objects to the Shapefile:
-    shp.add(some_node, { id: some_node.id, some_node.tags.name });
+You can now add gemetries to the Shapefile:
+    shp.add(some_node.geom, { id: some_node.id, some_node.tags.name });
 
 The geometry of the object (in this case 'some_node') will be put into the
 shapefile. The second argument to add() is a hash which must contain all

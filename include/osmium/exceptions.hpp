@@ -26,8 +26,15 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 namespace Osmium {
 
+    /**
+     * @brief Exceptions used in different parts of %Osmium.
+     */
     namespace Exception {
 
+        /**
+         * This exception is thrown when OSM data can't be assembled
+         * into proper geometries.
+         */
         class IllegalGeometry {
         };
 

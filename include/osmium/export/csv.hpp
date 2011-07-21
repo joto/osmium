@@ -1,5 +1,5 @@
-#ifndef OSMIUM_OUTPUT_CSV_HPP
-#define OSMIUM_OUTPUT_CSV_HPP
+#ifndef OSMIUM_EXPORT_CSV_HPP
+#define OSMIUM_EXPORT_CSV_HPP
 
 /*
 
@@ -24,9 +24,13 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <fstream>
 
+#ifdef OSMIUM_WITH_JAVASCRIPT
+# include <v8.h>
+#endif // OSMIUM_WITH_JAVASCRIPT
+
 namespace Osmium {
 
-    namespace Output {
+    namespace Export {
 
         class CSV {
 
@@ -34,11 +38,8 @@ namespace Osmium {
 
             std::ofstream out;
 
-            v8::Persistent<v8::Object> js_object;
-
             CSV(const char *filename) {
                 out.open(filename);
-                js_object = v8::Persistent<v8::Object>::New( Osmium::Javascript::Template::create_output_csv_instance(this) );
             }
 
             ~CSV() {
@@ -46,8 +47,9 @@ namespace Osmium {
                 out.close();
             }
 
-            v8::Handle<v8::Object> get_js_object() const {
-                return js_object;
+#ifdef OSMIUM_WITH_JAVASCRIPT
+            v8::Local<v8::Object> js_instance() const {
+                return JavascriptTemplate::get<JavascriptTemplate>().create_instance((void *)this);
             }
 
             v8::Handle<v8::Value> js_print(const v8::Arguments& args) {
@@ -55,7 +57,7 @@ namespace Osmium {
                     if (i != 0) {
                         out << '\t';
                     }
-                    v8_String_to_ostream(args[i]->ToString(), out);
+                    Osmium::v8_String_to_ostream(args[i]->ToString(), out);
                 }
                 out << std::endl;
                 return v8::Integer::New(1);
@@ -67,10 +69,20 @@ namespace Osmium {
                 return v8::Undefined();
             }
 
+            struct JavascriptTemplate : public Osmium::Javascript::Template {
+
+                JavascriptTemplate() : Osmium::Javascript::Template() {
+                    js_template->Set("print", v8::FunctionTemplate::New(function_template<CSV, &CSV::js_print>));
+                    js_template->Set("close", v8::FunctionTemplate::New(function_template<CSV, &CSV::js_close>));
+                }
+
+            };
+#endif // OSMIUM_WITH_JAVASCRIPT
+
         }; // class CSV
 
-    } // namespace Output
+    } // namespace Export
 
 } // namespace Osmium
 
-#endif // OSMIUM_OUTPUT_CSV_HPP
+#endif // OSMIUM_EXPORT_CSV_HPP

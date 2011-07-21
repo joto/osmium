@@ -28,49 +28,61 @@ namespace Osmium {
 
         class Debug : public Base {
 
-            void print_meta(const OSM::Object *object) const {
-                std::cout << "  id="   << object->get_id() << std::endl;
-                std::cout << "  version="   << object->get_version() << std::endl;
-                std::cout << "  uid="       << object->get_uid() << std::endl;
-                std::cout << "  user=|"      << object->get_user() << "|" << std::endl;
-                std::cout << "  changeset=" << object->get_changeset() << std::endl;
-                std::cout << "  timestamp=" << object->get_timestamp_as_string() << std::endl;
-                std::cout << "  tags:" << std::endl;
-                for (int i=0; i < object->tag_count(); i++) {
-                    std::cout << "    k=|" << object->get_tag_key(i) << "| v=|" << object->get_tag_value(i) << "|" << std::endl;
-                }
-            }
-
         public:
 
             Debug() : Base() {
             }
 
-            void callback_node(const OSM::Node *node) const {
-                std::cout << "node:" << std::endl;
-                print_meta(node);
-                std::cout << "  lon=" << std::fixed << std::setprecision(7) << node->get_lon() << std::endl;
-                std::cout << "  lat=" << std::fixed << std::setprecision(7) << node->get_lat() << std::endl;
-            }
-
-            void callback_way(const OSM::Way *way) const {
-                std::cout << "way:" << std::endl;
-                print_meta(way);
-                std::cout << "  node_count=" << way->node_count() << std::endl;
-                std::cout << "  nodes:" << std::endl;
-                for (osm_sequence_id_t i=0; i < way->node_count(); i++) {
-                    std::cout << "    ref=" << way->get_node_id(i) << std::endl;
+            void init(Osmium::OSM::Meta& meta) const {
+                std::cout << "meta:\n";
+                if (meta.bounds().defined()) {
+                    std::cout << "  bounds=" << meta.bounds() << "\n";
                 }
             }
 
-            void callback_relation(OSM::Relation *relation) const {
-                std::cout << "relation:" << std::endl;
+            void node(const Osmium::OSM::Node* node) const {
+                std::cout << "node:\n";
+                print_meta(node);
+                const Osmium::OSM::Position position = node->position();
+                std::cout << "  lon=" << std::fixed << std::setprecision(7) << position.lon() << "\n";
+                std::cout << "  lat=" << std::fixed << std::setprecision(7) << position.lat() << "\n";
+            }
+
+            void way(const Osmium::OSM::Way* way) const {
+                std::cout << "way:\n";
+                print_meta(way);
+                std::cout << "  node_count=" << way->node_count() << "\n";
+                std::cout << "  nodes:\n";
+                Osmium::OSM::WayNodeList::const_iterator end = way->nodes().end();
+                for (Osmium::OSM::WayNodeList::const_iterator it = way->nodes().begin(); it != end; ++it) {
+                    std::cout << "    ref=" << it->ref() << "\n";
+                }
+            }
+
+            void relation(Osmium::OSM::Relation* relation) const {
+                std::cout << "relation:\n";
                 print_meta(relation);
-                std::cout << "  member_count=" << relation->member_count() << std::endl;
-                std::cout << "  members:" << std::endl;
-                for (osm_sequence_id_t i=0; i < relation->member_count(); i++) {
-                    const Osmium::OSM::RelationMember *m = relation->get_member(i);
-                    std::cout << "    type=" << m->type << " ref=" << m->ref << " role=|" << m->role << "|" << std::endl;
+                std::cout << "  members.size=" << relation->members().size() << "\n";
+                std::cout << "  members:\n";
+                Osmium::OSM::RelationMemberList::const_iterator end = relation->members().end();
+                for (Osmium::OSM::RelationMemberList::const_iterator it = relation->members().begin(); it != end; ++it) {
+                    std::cout << "    type=" << it->type() << " ref=" << it->ref() << " role=|" << it->role() << "|" << "\n";
+                }
+            }
+
+        private:
+
+            void print_meta(const Osmium::OSM::Object* object) const {
+                std::cout <<   "  id="        << object->id()
+                          << "\n  version="   << object->version()
+                          << "\n  uid="       << object->uid()
+                          << "\n  user=|"     << object->user() << "|"
+                          << "\n  changeset=" << object->changeset()
+                          << "\n  timestamp=" << object->timestamp_as_string()
+                          << "\n  tags:" << "\n";
+                Osmium::OSM::TagList::const_iterator end = object->tags().end();
+                for (Osmium::OSM::TagList::const_iterator it = object->tags().begin(); it != end; ++it) {
+                    std::cout << "    k=|" << it->key() << "| v=|" << it->value() << "|" << "\n";
                 }
             }
 

@@ -23,12 +23,11 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 */
 
 #include <string>
-
-#include <stdio.h>
+#include <limits>
+#include <cstdio>
 #include <gd.h>
 
 typedef uint16_t node_count_t;
-#define MAX_NODE_COUNT 0xfffe
 
 namespace Osmium {
 
@@ -36,58 +35,69 @@ namespace Osmium {
 
         class NodeDensity : public Base {
 
-            node_count_t *node_count;
-            int xsize;
-            int ysize;
-            double factor;
-            int min, max;
-            int max_count;
+            node_count_t* m_node_count;
+            int m_xsize;
+            int m_ysize;
+            double m_factor;
+            int m_min;
+            int m_max;
+            int m_diff;
+            int m_max_count;
 
         public:
 
-            NodeDensity(int _size = 1024, int _min = 0, int _max = 99999) : Base(), xsize(_size*2), ysize(_size), min(_min), max(_max) {
-                factor = ysize / 180;
-                node_count = (node_count_t *) calloc(xsize * ysize, sizeof(uint16_t));
-                max_count = 0;
+            NodeDensity(int size = 1024,
+                    int min = 0,
+                    int max = 99999)
+                  : Base(),
+                    m_xsize(size*2),
+                    m_ysize(size),
+                    m_min(min),
+                    m_max(max) {
+                m_factor = m_ysize / 180;
+                m_node_count = static_cast<node_count_t*>(calloc(m_xsize * m_ysize, sizeof(node_count_t)));
+                m_max_count = 0;
+                m_diff = m_max - m_min;
             }
 
             ~NodeDensity() {
-                free(node_count);
+                free(m_node_count);
             }
 
-            void callback_node(Osmium::OSM::Node *node) {
-                int x = int( (180 + node->get_lon()) * factor );
-                int y = int( ( 90 - node->get_lat()) * factor );
-                if (x <      0) x =       0;
-                if (x >= xsize) x = xsize-1;
-                if (y <      0) y =       0;
-                if (y >= ysize) y = ysize-1;
-                int n = y * xsize + x;
-                if (node_count[n] < MAX_NODE_COUNT) {
-                    node_count[n]++;
+            void node(Osmium::OSM::Node* node) {
+                int x = int( (180 + node->position().lon()) * m_factor );
+                int y = int( ( 90 - node->position().lat()) * m_factor );
+                if (x <        0) x =         0;
+                if (x >= m_xsize) x = m_xsize-1;
+                if (y <        0) y =         0;
+                if (y >= m_ysize) y = m_ysize-1;
+                int n = y * m_xsize + x;
+                if (m_node_count[n] < std::numeric_limits<node_count_t>::max() - 1) {
+                    m_node_count[n]++;
                 }
-                if (node_count[n] > max_count) {
-                    max_count = node_count[n];
+                if (m_node_count[n] > m_max_count) {
+                    m_max_count = m_node_count[n];
                 }
             }
 
-            void callback_after_nodes() {
-                std::cerr << "max_count=" << max_count << "\n";
-                gdImagePtr im = gdImageCreate(xsize, ysize);
+            void after_nodes() {
+                std::cerr << "max_count=" << m_max_count << "\n";
+                gdImagePtr im = gdImageCreate(m_xsize, m_ysize);
 
-                for (int i=0; i <= 255; i++) {
+                for (int i=0; i <= 255; ++i) {
                     gdImageColorAllocate(im, i, i, i);
                 }
 
                 int n=0;
-                for (int y=0; y < ysize; y++) {
-                    for (int x=0; x < xsize; x++) {
-                        int val = node_count[n++];
-                        if (val < min) val = min;
-                        if (val > max) val = max;
-                        gdImageSetPixel(im, x, y, uint8_t((val-min) * 255 / (max-min)));
+                for (int y=0; y < m_ysize; ++y) {
+                    for (int x=0; x < m_xsize; ++x) {
+                        int val = m_node_count[n++];
+                        if (val < m_min) val = m_min;
+                        if (val > m_max) val = m_max;
+                        gdImageSetPixel(im, x, y, static_cast<uint8_t>((val - m_min) * 255 / m_diff));
                     }
                 }
+
                 gdImagePng(im, stdout);
                 gdImageDestroy(im);
                 throw Osmium::Input::StopReading();

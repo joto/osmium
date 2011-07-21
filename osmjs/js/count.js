@@ -1,10 +1,22 @@
-/* count.js (single pass) */
+/*
+
+  Osmium Javascript Example
+
+  count.js
+
+  run with: osmjs -j count.js OSMFILE
+
+*/
 
 var tags_counter = {};
 var keys_counter = {};
 
+Osmium.Callbacks.init = function() {
+    print('Start!');
+}
+
 Osmium.Callbacks.node = function() {
-    for (key in this.tags) {
+    for (var key in this.tags) {
 
         if (keys_counter[key]) {
             keys_counter[key]++;
@@ -23,13 +35,9 @@ Osmium.Callbacks.node = function() {
     }
 }
 
-Osmium.Callbacks.init = function() {
-    print('Start!');
-}
-
 Osmium.Callbacks.end = function() {
     var out_keys_nodes = Osmium.Output.CSV.open('stats-keys-nodes.csv');
-    for (key in keys_counter) {
+    for (var key in keys_counter) {
         out_keys_nodes.print(key, keys_counter[key]);
     }
     out_keys_nodes.close();

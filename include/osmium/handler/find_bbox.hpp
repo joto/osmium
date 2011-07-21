@@ -22,49 +22,35 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#include <osmium/handler.hpp>
+#include <osmium/osm/bounds.hpp>
+
 namespace Osmium {
 
     namespace Handler {
 
         class FindBbox : public Base {
 
-            double minlon, maxlon, minlat, maxlat;
-
         public:
 
-            FindBbox() : Base() {
-                minlon =  1000;
-                maxlon = -1000;
-                minlat =  1000;
-                maxlat = -1000;
+            FindBbox() : Base(), m_bounds() {
             }
 
-            double get_minlon() {
-                return minlon;
+            const Osmium::OSM::Bounds bounds() const {
+                return m_bounds;
             }
 
-            double get_maxlon() {
-                return maxlon;
+            void node(Osmium::OSM::Node* node) {
+                m_bounds.extend(node->position());
             }
 
-            double get_minlat() {
-                return minlat;
-            }
-
-            double get_maxlat() {
-                return maxlat;
-            }
-
-            void callback_node(OSM::Node *node) {
-                if (node->get_lon() < minlon) minlon = node->get_lon();
-                if (node->get_lon() > maxlon) maxlon = node->get_lon();
-                if (node->get_lat() < minlat) minlat = node->get_lat();
-                if (node->get_lat() > maxlat) maxlat = node->get_lat();
-            }
-
-            void callback_after_nodes() const {
+            void after_nodes() const {
                 throw Osmium::Input::StopReading();
             }
+
+        private:
+
+            Osmium::OSM::Bounds m_bounds;
 
         }; // class FindBbox
 

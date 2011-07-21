@@ -24,42 +24,50 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <string.h>
 #include <geos/geom/MultiPolygon.h>
-#include <osmium/handler/node_location_store.hpp>
+#include <osmium/storage/byid.hpp>
+#include <osmium/handler/coordinates_for_ways.hpp>
+#include <osmium/geometry/point.hpp>
+
+
+typedef Osmium::Storage::Mmap<Osmium::OSM::Position> storage_mmap_t;
+typedef Osmium::Handler::CoordinatesForWays<storage_mmap_t, storage_mmap_t> cfw_handler_t;
 
 namespace Osmium {
 
     class OsmGeometryReader : public Osmium::Handler::Base {
         std::vector<geos::geom::Geometry*> outer;
-        Osmium::Handler::NodeLocationStore *nls;
+        storage_mmap_t store_pos;
+        storage_mmap_t store_neg;
+        cfw_handler_t* handler_cfw;
 
     public:
         OsmGeometryReader() : Base() {
-            nls = new Osmium::Handler::NLS_Sparsetable();
+            handler_cfw = new cfw_handler_t(store_pos, store_neg);
         }
 
         virtual ~OsmGeometryReader() {
-            delete nls;
+            delete handler_cfw;
 
-            geos::geom::GeometryFactory *f = Osmium::global.geos_geometry_factory;
+            geos::geom::GeometryFactory *f = Osmium::Geometry::geos_geometry_factory();
             for (uint32_t i=0; i < outer.size(); i++) {
                 f->destroyGeometry(outer[i]);
             }
             outer.clear();
         }
 
-        void callback_init() {
-            nls->callback_init();
+        void init(Osmium::OSM::Meta& meta) {
+            handler_cfw->init(meta);
         }
 
-        void callback_node(Osmium::OSM::Node *node) {
-            nls->callback_node(node);
+        void node(Osmium::OSM::Node *node) {
+            handler_cfw->node(node);
         }
 
-        void callback_way(Osmium::OSM::Way *way) {
-            nls->callback_way(way);
+        void way(Osmium::OSM::Way *way) {
+            handler_cfw->way(way);
 
             if (!way->is_closed()) {
-                std::cerr << "open way " << way->get_id() << " in osm-input" << std::endl;
+                std::cerr << "open way " << way->id() << " in osm-input" << std::endl;
                 return;
             }
 
@@ -67,13 +75,17 @@ namespace Osmium {
             outer.push_back(geom);
         }
 
-        void callback_final() {
-            nls->callback_final();
+        void after_nodes() {
+            handler_cfw->after_nodes();
+        }
+
+        void final() {
+            handler_cfw->final();
         }
 
         geos::geom::Geometry *buildGeom() const {
             // shorthand to the geometry factory
-            geos::geom::GeometryFactory *f = Osmium::global.geos_geometry_factory;
+            geos::geom::GeometryFactory *f = Osmium::Geometry::geos_geometry_factory();
             geos::geom::MultiPolygon *outerPoly = f->createMultiPolygon(outer);
             return outerPoly;
         }
@@ -105,7 +117,7 @@ namespace Osmium {
          */
         static geos::geom::Geometry *fromPolyFile(const std::string &file) {
             // shorthand to the geometry factory
-            geos::geom::GeometryFactory *f = Osmium::global.geos_geometry_factory;
+            geos::geom::GeometryFactory *f = Osmium::Geometry::geos_geometry_factory();
 
             // pointer to coordinate vector
             std::vector<geos::geom::Coordinate> *c = NULL;
@@ -229,11 +241,10 @@ namespace Osmium {
 
         static geos::geom::Geometry *fromOsmFile(const std::string &file) {
             Osmium::OSMFile infile(file);
-            Osmium::OsmGeometryReader *reader = new OsmGeometryReader();
-            infile.read<Osmium::OsmGeometryReader>(reader);
-            geos::geom::Geometry *geom = reader->buildGeom();
+            Osmium::OsmGeometryReader reader;
+            infile.read(reader);
+            geos::geom::Geometry *geom = reader.buildGeom();
 
-            delete reader;
             return geom;
         }
 
@@ -256,7 +267,7 @@ namespace Osmium {
         static geos::geom::Geometry *fromBBox(double minlon, double minlat, double maxlon, double maxlat) {
             // create an Envelope and convert it to a polygon
             geos::geom::Envelope *e = new geos::geom::Envelope(minlon, maxlon, minlat, maxlat);
-            geos::geom::Geometry *p = Osmium::global.geos_geometry_factory->toGeometry(e);
+            geos::geom::Geometry *p = Osmium::Geometry::geos_geometry_factory()->toGeometry(e);
 
             delete e;
             return p;

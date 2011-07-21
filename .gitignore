@@ -11,3 +11,5 @@ examples/osmium_time
 examples/osmium_toshape
 osmjs/osmjs
 test/tmp/
+test/tests
+check-includes-report

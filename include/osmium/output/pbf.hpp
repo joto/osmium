@@ -1,5 +1,5 @@
-#ifndef OSMIUM_OUTPUT_OSM_PBF_HPP
-#define OSMIUM_OUTPUT_OSM_PBF_HPP
+#ifndef OSMIUM_OUTPUT_PBF_HPP
+#define OSMIUM_OUTPUT_PBF_HPP
 
 /*
 
@@ -93,6 +93,8 @@ More complete outlines of real .osm.pbf files can be created using the osmpbf-ou
 // math is used for round() in lonlat2int
 #include <math.h>
 
+#include <zlib.h>
+
 #include <osmpbf/osmpbf.h>
 
 // StringTable management
@@ -103,8 +105,6 @@ More complete outlines of real .osm.pbf files can be created using the osmpbf-ou
 namespace Osmium {
 
     namespace Output {
-
-        namespace OSM {
 
             class PBF : public Base {
 
@@ -268,7 +268,7 @@ namespace Osmium {
                     }
 
                     // print debug info about the compression
-                    if (Osmium::global.debug) {
+                    if (Osmium::debug()) {
                         std::cerr << "pack " << in.size() << " bytes to " << z.total_out << " bytes (1:" << (double)in.size() / z.total_out << ")" << std::endl;
                     }
 
@@ -298,7 +298,7 @@ namespace Osmium {
                         pbf_blob.set_zlib_data(m_compression_buffer, out);
                     } else { // no compression
                         // print debug info about the raw data
-                        if (Osmium::global.debug) {
+                        if (Osmium::debug()) {
                             std::cerr << "store uncompressed " << data.size() << " bytes" << std::endl;
                         }
 
@@ -465,25 +465,26 @@ namespace Osmium {
                  *
                  * pbf_object_t is either OSMPBF::Node, OSMPBF::Way or OSMPBF::Relation.
                  */
-                template <class pbf_object_t> void apply_common_info(Osmium::OSM::Object *in, pbf_object_t *out) {
+                template <class pbf_object_t> void apply_common_info(const Osmium::OSM::Object *in, pbf_object_t *out) {
                     // set the object-id
-                    out->set_id(in->get_id());
+                    out->set_id(in->id());
 
                     // iterate over all tags and set the keys and vals, recording the strings in the
                     // interim StringTable and storing the interim ids
-                    for (int i=0, l=in->tag_count(); i<l; i++) {
-                        out->add_keys(string_table.record_string(in->get_tag_key(i)));
-                        out->add_vals(string_table.record_string(in->get_tag_value(i)));
+                    Osmium::OSM::TagList::const_iterator end = in->tags().end();
+                    for (Osmium::OSM::TagList::const_iterator it = in->tags().begin(); it != end; ++it) {
+                        out->add_keys(string_table.record_string(it->key()));
+                        out->add_vals(string_table.record_string(it->value()));
                     }
 
                     if (should_add_metadata()) {
                         // add an info-section to the pbf object and set the meta-info on it
                         OSMPBF::Info *out_info = out->mutable_info();
-                        out_info->set_version(in->get_version());
-                        out_info->set_timestamp(timestamp2int(in->get_timestamp()));
-                        out_info->set_changeset(in->get_changeset());
-                        out_info->set_uid(in->get_uid());
-                        out_info->set_user_sid(string_table.record_string(in->get_user()));
+                        out_info->set_version(in->version());
+                        out_info->set_timestamp(timestamp2int(in->timestamp()));
+                        out_info->set_changeset(in->changeset());
+                        out_info->set_uid(in->uid());
+                        out_info->set_user_sid(string_table.record_string(in->user()));
                     }
                 }
 
@@ -494,7 +495,7 @@ namespace Osmium {
                  * store the current pbf_header_block into a Blob and clear this struct afterwards.
                  */
                 void store_header_block() {
-                    if (Osmium::global.debug) {
+                    if (Osmium::debug()) {
                         std::cerr << "storing header block" << std::endl;
                     }
                     store_blob("OSMHeader", pbf_header_block);
@@ -507,7 +508,7 @@ namespace Osmium {
                  * this struct and all related pointers and maps afterwards.
                  */
                 void store_primitive_block() {
-                    if (Osmium::global.debug) {
+                    if (Osmium::debug()) {
                         std::cerr << "storing primitive block with " << primitive_block_contents << " items" << std::endl;
                     }
 
@@ -573,7 +574,7 @@ namespace Osmium {
                  *
                  * @param node The node to add.
                  */
-                void write_node(Osmium::OSM::Node *node) {
+                void write_node(const Osmium::OSM::Node* node) {
                     OSMPBF::Node *pbf_node = pbf_nodes->add_nodes();
 
                     // copy the common meta-info from the osmium-object to the pbf-object
@@ -590,12 +591,12 @@ namespace Osmium {
                  *
                  * @param node The node to add.
                  */
-                void write_dense_node(Osmium::OSM::Node *node) {
+                void write_dense_node(const Osmium::OSM::Node* node) {
                     // add a DenseNodes-Section to the PrimitiveGroup
                     OSMPBF::DenseNodes *dense = pbf_nodes->mutable_dense();
 
                     // copy the id, delta encoded
-                    dense->add_id(m_delta_id.update(node->get_id()));
+                    dense->add_id(m_delta_id.update(node->id()));
 
                     // copy the longitude, delta encoded
                     dense->add_lon(m_delta_lon.update(lonlat2int(node->get_lon())));
@@ -609,9 +610,10 @@ namespace Osmium {
                     // so for three nodes the keys_vals array may look like this: 3 5 2 1 0 0 8 5
                     // the first node has two tags (3=>5 and 2=>1), the second node has does not
                     // have any tags and the third node has a single tag (8=>5)
-                    for (int i=0, l=node->tag_count(); i<l; i++) {
-                        dense->add_keys_vals(string_table.record_string(node->get_tag_key(i)));
-                        dense->add_keys_vals(string_table.record_string(node->get_tag_value(i)));
+                    Osmium::OSM::TagList::const_iterator end = node->tags().end();
+                    for (Osmium::OSM::TagList::const_iterator it = node->tags().begin(); it != end; ++it) {
+                        dense->add_keys_vals(string_table.record_string(it->key()));
+                        dense->add_keys_vals(string_table.record_string(it->value()));
                     }
                     dense->add_keys_vals(0);
 
@@ -620,20 +622,20 @@ namespace Osmium {
                         OSMPBF::DenseInfo *denseinfo = dense->mutable_denseinfo();
 
                         // copy the version
-                        denseinfo->add_version(node->get_version());
+                        denseinfo->add_version(node->version());
 
                         // copy the timestamp, delta encoded
-                        denseinfo->add_timestamp(m_delta_timestamp.update(timestamp2int(node->get_timestamp())));
+                        denseinfo->add_timestamp(m_delta_timestamp.update(timestamp2int(node->timestamp())));
 
                         // copy the changeset, delta encoded
-                        denseinfo->add_changeset(m_delta_changeset.update(node->get_changeset()));
+                        denseinfo->add_changeset(m_delta_changeset.update(node->changeset()));
 
                         // copy the user id, delta encoded
-                        denseinfo->add_uid(m_delta_uid.update(node->get_uid()));
+                        denseinfo->add_uid(m_delta_uid.update(node->uid()));
 
                         // record the user-name to the interim stringtable and copy the
                         // interim string-id to the pbf-object
-                        denseinfo->add_user_sid(string_table.record_string(node->get_user()));
+                        denseinfo->add_user_sid(string_table.record_string(node->user()));
                     }
                 }
 
@@ -642,7 +644,7 @@ namespace Osmium {
                  *
                  * @param way The way to add.
                  */
-                void write_way(Osmium::OSM::Way *way) {
+                void write_way(const Osmium::OSM::Way* way) {
                     // add a way to the group
                     OSMPBF::Way *pbf_way = pbf_ways->add_ways();
 
@@ -664,7 +666,7 @@ namespace Osmium {
                  *
                  * @param relation The relation to add.
                  */
-                void write_relation(Osmium::OSM::Relation *relation) {
+                void write_relation(const Osmium::OSM::Relation* relation) {
                     // add a relation to the group
                     OSMPBF::Relation *pbf_relation = pbf_relations->add_relations();
 
@@ -674,19 +676,19 @@ namespace Osmium {
                     Delta<int64_t> delta_id;
 
                     // iterate over all relation-members
-                    for (int i=0, l=relation->member_count(); i<l; i++) {
+                    for (int i=0, l=relation->members().size(); i<l; i++) {
                         // save a pointer to the osmium-object representing the relation-member
                         const Osmium::OSM::RelationMember *mem = relation->get_member(i);
 
                         // record the relation-member role to the interim stringtable and copy the
                         // interim string-id to the pbf-object
-                        pbf_relation->add_roles_sid(string_table.record_string(mem->get_role()));
+                        pbf_relation->add_roles_sid(string_table.record_string(mem->role()));
 
                         // copy the relation-member-id, delta encoded
-                        pbf_relation->add_memids(delta_id.update(mem->get_ref()));
+                        pbf_relation->add_memids(delta_id.update(mem->ref()));
 
                         // copy the relation-member-type, mapped to the OSMPBF enum
-                        switch (mem->get_type()) {
+                        switch (mem->type()) {
                             case 'n':
                                 pbf_relation->add_types(OSMPBF::Relation::NODE);
                                 break;
@@ -697,7 +699,7 @@ namespace Osmium {
                                 pbf_relation->add_types(OSMPBF::Relation::RELATION);
                                 break;
                             default:
-                                throw std::runtime_error("Unknown relation member type: " + mem->get_type());
+                                throw std::runtime_error("Unknown relation member type: " + mem->type());
                         }
                     }
                 }
@@ -707,7 +709,7 @@ namespace Osmium {
                 /**
                  * Create PBF output object from OSMFile.
                  */
-                PBF(OSMFile& file) : Base(file),
+                PBF(Osmium::OSMFile& file) : Base(file),
                     pbf_nodes(NULL),
                     pbf_ways(NULL),
                     pbf_relations(NULL),
@@ -718,6 +720,7 @@ namespace Osmium {
                     m_should_add_metadata(true),
                     primitive_block_contents(0),
                     string_table(),
+                    m_compression_buffer(),
                     m_delta_id(),
                     m_delta_lat(),
                     m_delta_lon(),
@@ -815,8 +818,8 @@ namespace Osmium {
                  * This initializes the header-block, sets the required-features and
                  * the writing-program and adds the obligatory StringTable-Index 0.
                  */
-                void write_init() {
-                    if (Osmium::global.debug) {
+                void init(Osmium::OSM::Meta& meta) {
+                    if (Osmium::debug()) {
                         std::cerr << "pbf write init" << std::endl;
                     }
 
@@ -830,12 +833,21 @@ namespace Osmium {
 
                     // when the resulting file will carry history information, add
                     // HistoricalInformation as required feature
-                    if (m_file.get_type() == OSMFile::FileType::History()) {
+                    if (m_file.get_type() == Osmium::OSMFile::FileType::History()) {
                         pbf_header_block.add_required_features("HistoricalInformation");
                     }
 
                     // set the writing program
                     pbf_header_block.set_writingprogram("Osmium (http://wiki.openstreetmap.org/wiki/Osmium)");
+
+                    if (meta.bounds().defined()) {
+                        OSMPBF::HeaderBBox* bbox = pbf_header_block.mutable_bbox();
+                        bbox->set_left(meta.bounds().bl().lon() * OSMPBF::lonlat_resolution);
+                        bbox->set_bottom(meta.bounds().bl().lat() * OSMPBF::lonlat_resolution);
+                        bbox->set_right(meta.bounds().tr().lon() * OSMPBF::lonlat_resolution);
+                        bbox->set_top(meta.bounds().tr().lat() * OSMPBF::lonlat_resolution);
+                    }
+
                     store_header_block();
 
                     // add empty StringTable entry at index 0
@@ -849,33 +861,19 @@ namespace Osmium {
                 }
 
                 /**
-                 * write bbox-information to the HeaderBlock
-                 */
-                void write_bounds(double minlon, double minlat, double maxlon, double maxlat) {
-                    // add a HeaderBBox section to the HeaderBlock
-                    OSMPBF::HeaderBBox *bbox = pbf_header_block.mutable_bbox();
-
-                    // encode the bbox in nanodegrees
-                    bbox->set_left(  minlon * OSMPBF::lonlat_resolution);
-                    bbox->set_top(   minlat * OSMPBF::lonlat_resolution);
-                    bbox->set_right( maxlon * OSMPBF::lonlat_resolution);
-                    bbox->set_bottom(maxlat * OSMPBF::lonlat_resolution);
-                }
-
-                /**
                  * Add a node to the pbf.
                  *
                  * A call to this method won't write the node to the file directly but
                  * cache it for later bulk-writing. Calling write_final ensures that everything
                  * gets written and every file pointer is closed.
                  */
-                void write(Osmium::OSM::Node *node) {
+                void node(Osmium::OSM::Node* node) {
                     // first of we check the contents-counter which may flush the cached nodes to
                     // disk if the limit is reached. This call also increases the contents-counter
                     check_block_contents_counter();
 
-                    if (Osmium::global.debug) {
-                        std::cerr << "node " << node->get_id() << " v" << node->get_version() << std::endl;
+                    if (Osmium::debug()) {
+                        std::cerr << "node " << node->id() << " v" << node->version() << std::endl;
                     }
 
                     // if no PrimitiveGroup for nodes has been added, add one and save the pointer
@@ -897,13 +895,13 @@ namespace Osmium {
                  * cache it for later bulk-writing. Calling write_final ensures that everything
                  * gets written and every file pointer is closed.
                  */
-                void write(Osmium::OSM::Way *way) {
+                void way(Osmium::OSM::Way* way) {
                     // first of we check the contents-counter which may flush the cached nodes to
                     // disk if the limit is reached. This call also increases the contents-counter
                     check_block_contents_counter();
 
-                    if (Osmium::global.debug) {
-                        std::cerr << "way " << way->get_id() << " v" << way->get_version() << " with " << way->node_count() << " nodes" << std::endl;
+                    if (Osmium::debug()) {
+                        std::cerr << "way " << way->id() << " v" << way->version() << " with " << way->node_count() << " nodes" << std::endl;
                     }
 
                     // if no PrimitiveGroup for nodes has been added, add one and save the pointer
@@ -921,13 +919,13 @@ namespace Osmium {
                  * cache it for later bulk-writing. Calling write_final ensures that everything
                  * gets written and every file pointer is closed.
                  */
-                void write(Osmium::OSM::Relation *relation) {
+                void relation(Osmium::OSM::Relation* relation) {
                     // first of we check the contents-counter which may flush the cached nodes to
                     // disk if the limit is reached. This call also increases the contents-counter
                     check_block_contents_counter();
 
-                    if (Osmium::global.debug) {
-                        std::cerr << "relation " << relation->get_id() << " v" << relation->get_version() << " with " << relation->member_count() << " members" << std::endl;
+                    if (Osmium::debug()) {
+                        std::cerr << "relation " << relation->id() << " v" << relation->version() << " with " << relation->members().size() << " members" << std::endl;
                     }
 
                     // if no PrimitiveGroup for relations has been added, add one and save the pointer
@@ -942,8 +940,8 @@ namespace Osmium {
                  * Finalize the writing process, flush any open primitive blocks to the file and
                  * close the file.
                  */
-                void write_final() {
-                    if (Osmium::global.debug) {
+                void final() {
+                    if (Osmium::debug()) {
                         std::cerr << "finishing" << std::endl;
                     }
 
@@ -957,10 +955,8 @@ namespace Osmium {
 
             }; // class PBF
 
-        } // namespace OSM
-
     } // namespace Output
 
 } // namespace Osmium
 
-#endif // OSMIUM_OUTPUT_OSM_PBF_HPP
+#endif // OSMIUM_OUTPUT_PBF_HPP

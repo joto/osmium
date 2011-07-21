@@ -10,7 +10,7 @@ object.
 
 Available handlers include:
 * Javascript handler (calls Javascript callbacks you provide)
-* Multipolygon handler (assembles multipolygons from relations and ways)
+* Multipolygon handler (assembles areas(multipolygons) from relations and ways)
 * NodeLocationStore handler (stores node locations and builds way geometries from them)
 * Statistics handler (does some general statistics)
 * (others...)
@@ -36,27 +36,27 @@ different libraries:
 
 zlib (for PBF support)
     http://www.zlib.net/
-    Debian/Ubuntu: zlib1g zlib1g-dev
+    Debian/Ubuntu: zlib1g-dev
 
 shapelib (for shapefile support in osmjs)
     http://shapelib.maptools.org/
-    Debian/Ubuntu: libshp1 libshp-dev
+    Debian/Ubuntu: libshp-dev
 
 libsqlite3 (for some applications only)
     http://sqlite.org/
-    Debian/Ubuntu: libsqlite3-0 libsqlite3-dev
+    Debian/Ubuntu: libsqlite3-dev
 
 libgd (for tagstats and nodedensity applications only)
     http://www.libgd.org/
-    Debian/Ubuntu: libgd2-xpm libgd2-xpm-dev
+    Debian/Ubuntu: libgd2-xpm-dev
 
 Expat (for parsing XML files)
     http://expat.sourceforge.net/
-    Debian/Ubuntu: libexpat1 libexpat1-dev
+    Debian/Ubuntu: libexpat1-dev
 
 GEOS (for assembling multipolygons etc.)
     http://trac.osgeo.org/geos/
-    Debian/Ubuntu: libgeos-3.2.0 (older versions might work) libgeos-dev
+    Debian/Ubuntu: libgeos-dev
 
 Google sparsehash
     http://code.google.com/p/google-sparsehash/
@@ -64,16 +64,20 @@ Google sparsehash
 
 Google V8 Javascript engine (for Javascript support)
     http://code.google.com/apis/v8/
-    Debian/Ubuntu: libv8-2.2.18 libv8-dev
+    Debian/Ubuntu: libv8-dev
 
 LibICU (for UTF-8/UTF-16 conversion, only for Javascript support)
     http://site.icu-project.org/
-    Debian/Ubuntu: libicu42 libicu-dev
+    Debian/Ubuntu: libicu-dev
 
 Google protocol buffers (for PBF support)
     http://code.google.com/p/protobuf/ (at least Version 2.3.0 needed)
-    Debian/Ubuntu: libprotobuf6 libprotobuf-dev protobuf-compiler
+    Debian/Ubuntu: libprotobuf-dev protobuf-compiler
     Also see http://wiki.openstreetmap.org/wiki/PBF_Format
+
+Doxygen (to build API documentation)
+    http://www.stack.nl/~dimitri/doxygen/
+    Debian/Ubuntu: doxygen
 
 OSMPBF (for PBF support)
     https://github.com/joto/OSM-binary
@@ -114,6 +118,14 @@ call "make".
 See "osmjs/README" for build instructions of osmjs.
 
 Call "make clean" in any of those places to clean up.
+
+
+TESTING
+-------
+
+There are a few tests using the Boost Unit Test Framework in the 'test'
+directory. Go there and type "./run_tests.sh" to compile and run the tests.
+Many more tests are needed, any help appreciated.
 
 
 LICENSE

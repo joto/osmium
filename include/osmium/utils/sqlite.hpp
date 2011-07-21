@@ -1,5 +1,5 @@
-#ifndef OSMIUM_SQLITE_HPP
-#define OSMIUM_SQLITE_HPP
+#ifndef OSMIUM_UTILS_SQLITE_HPP
+#define OSMIUM_UTILS_SQLITE_HPP
 
 /*
 
@@ -24,33 +24,33 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <stdexcept>
 #include <string>
+#include <iostream>
 
 #include <sqlite3.h>
 
 namespace Osmium {
 
     /**
-    *  Namespace for Sqlite wrapper classes
+    *  @brief The %Sqlite classes wrap the %Sqlite C library.
     */
     namespace Sqlite {
 
         /**
-        *
         *  Exception returned by Sqlite wrapper classes when there are errors in the Sqlite3 lib
-        *
         */
         class Exception : public std::runtime_error {
+
         public:
+
             Exception(const std::string &msg, const std::string &error) : std::runtime_error(msg + ": " + error + '\n') {
             }
+
         };
 
         class Statement;
 
         /**
-        *
         *  Wrapper class for Sqlite database
-        *
         */
         class Database {
 
@@ -101,9 +101,7 @@ namespace Osmium {
         }; // class Database
 
         /**
-        *
         * Wrapper class for Sqlite prepared statement.
-        *
         */
         class Statement {
 
@@ -180,4 +178,4 @@ namespace Osmium {
 
 } // namespace Osmium
 
-#endif // OSMIUM_SQLITE_HPP
+#endif // OSMIUM_UTILS_SQLITE_HPP

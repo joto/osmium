@@ -22,29 +22,41 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#include <cstring>
+#include <string>
+
 namespace Osmium {
 
     namespace OSM {
 
         /**
-        *  An OSM tag. Has static allocation with enough memory to hold key and
-        *  value strings.
+        * An OSM tag.
+        * 
+        * Tag keys and values are not allowed to be longer than 255 characters
+        * each, but this is not checked by this class.
         */
         class Tag {
 
         public:
 
-            static const int max_characters_key   = 255;
-            static const int max_characters_value = 255;
+            static const int max_utf16_length_key   = 2 * (255 + 1); ///< maximum number of UTF-16 units
+            static const int max_utf16_length_value = 2 * (255 + 1);
 
-            static const int max_utf16_length_key   = 2 * (max_characters_key   + 1); ///< maximum number of UTF-16 units
-            static const int max_utf16_length_value = 2 * (max_characters_value + 1);
+            Tag(const char* key, const char* value) : m_key(key), m_value(value) {
+            }
 
-            static const int max_length_key   = 4 * max_characters_key   + 1; ///< 255 UTF-8 characters + null byte
-            static const int max_length_value = 4 * max_characters_value + 1; ///< 255 UTF-8 characters + null byte
+            const char* key() const {
+                return m_key.c_str();
+            }
 
-            char key[max_length_key];     ///< Tag key
-            char value[max_length_value]; ///< Tag value
+            const char* value() const {
+                return m_value.c_str();
+            }
+
+        private:
+
+            std::string m_key;
+            std::string m_value;
 
         };
 

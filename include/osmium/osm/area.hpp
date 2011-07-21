@@ -1,5 +1,5 @@
-#ifndef OSMIUM_OSM_MULTIPOLYGON_HPP
-#define OSMIUM_OSM_MULTIPOLYGON_HPP
+#ifndef OSMIUM_OSM_AREA_HPP
+#define OSMIUM_OSM_AREA_HPP
 
 /*
 
@@ -54,6 +54,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 # include <geos/geom/Polygon.h>
 # include <geos/geom/MultiPolygon.h>
 # include <geos/geom/MultiLineString.h>
+# include <geos/geom/prep/PreparedPolygon.h>
 # include <geos/io/WKTWriter.h>
 # include <geos/util/GEOSException.h>
 # include <geos/opLinemerge.h>
@@ -72,6 +73,10 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 # include <shapefil.h>
 #endif // OSMIUM_WITH_SHPLIB
 
+#include <osmium/osm/way.hpp>
+#include <osmium/osm/relation.hpp>
+#include <osmium/geometry.hpp>
+
 namespace Osmium {
 
     namespace OSM {
@@ -82,7 +87,7 @@ namespace Osmium {
 #ifdef OSMIUM_WITH_GEOS
         class WayInfo {
 
-            friend class MultipolygonFromRelation;
+            friend class AreaFromRelation;
 
             Osmium::OSM::Way *way;
             int used;
@@ -156,7 +161,7 @@ namespace Osmium {
 
         class RingInfo {
 
-            friend class MultipolygonFromRelation;
+            friend class AreaFromRelation;
 
             geos::geom::Polygon *polygon;
             direction_t direction;
@@ -176,30 +181,24 @@ namespace Osmium {
         };
 #endif // OSMIUM_WITH_GEOS
 
-        /// virtual parent class for MultipolygonFromWay and MultipolygonFromRelation
-        class Multipolygon : public Object {
+        /// virtual parent class for AreaFromWay and AreaFromRelation
+        class Area : public Object {
 
         protected:
-
-#ifdef OSMIUM_WITH_JAVASCRIPT
-            v8::Local<v8::Object> js_geom_instance;
-#endif // OSMIUM_WITH_JAVASCRIPT
 
 #ifdef OSMIUM_WITH_GEOS
             geos::geom::Geometry *geometry;
 
-            Multipolygon(geos::geom::Geometry *geom = NULL) : geometry(geom) {
+            Area(geos::geom::Geometry *geom = NULL) : geometry(geom) {
 #else
-            Multipolygon() {
+            Area() {
 #endif // OSMIUM_WITH_GEOS
 # ifdef OSMIUM_WITH_JAVASCRIPT
-                js_tags_instance    = Osmium::Javascript::Template::create_tags_instance(this);
-                js_object_instance  = Osmium::Javascript::Template::create_multipolygon_instance(this);
-                js_geom_instance    = Osmium::Javascript::Template::create_multipolygon_geom_instance(this);
+                js_object_instance = JavascriptTemplate::get<JavascriptTemplate>().create_instance(this);
 # endif // OSMIUM_WITH_JAVASCRIPT
             }
 
-            ~Multipolygon() {
+            ~Area() {
 #ifdef OSMIUM_WITH_GEOS
                 delete(geometry);
 #endif // OSMIUM_WITH_GEOS
@@ -207,50 +206,59 @@ namespace Osmium {
 
         public:
 
+#ifdef OSMIUM_WITH_GEOS
+            geos::geom::Geometry* get_geometry() const {
+                return geometry;
+            }
+#endif // OSMIUM_WITH_GEOS
+
 #ifdef OSMIUM_WITH_JAVASCRIPT
-            v8::Handle<v8::Value> js_get_from() const {
-                const char *value = (get_type() == MULTIPOLYGON_FROM_WAY) ? "way" : "relation";
-                return v8::String::New(value);
+            v8::Handle<v8::Value> js_from() const {
+                const char *value = (get_type() == AREA_FROM_WAY) ? "way" : "relation";
+                return v8::String::NewSymbol(value);
             }
 
-            v8::Handle<v8::Value> js_get_geom() const {
-                return js_geom_instance;
-            }
+            v8::Handle<v8::Value> js_geom() const;
 
-            virtual v8::Handle<v8::Value> js_get_geom_property(v8::Local<v8::String> property) const = 0;
+            struct JavascriptTemplate : public Osmium::OSM::Object::JavascriptTemplate {
+
+                JavascriptTemplate() : Osmium::OSM::Object::JavascriptTemplate() {
+                    js_template->SetAccessor(v8::String::NewSymbol("from"), accessor_getter<Area, &Area::js_from>);
+                    js_template->SetAccessor(v8::String::NewSymbol("geom"), accessor_getter<Area, &Area::js_geom>);
+                }
+
+            };
 
 #endif // OSMIUM_WITH_JAVASCRIPT
 
-        }; // class Multipolygon
+        }; // class Area
 
         /***
-        * Multipolygon created from a way (so strictly speaking this will
-        * always be a simple polygon).
+        * Area created from a way.
         * The way pointer given to the constructor will not be stored, all
         * needed attributes are copied.
         */
-        class MultipolygonFromWay : public Multipolygon {
+        class AreaFromWay : public Area {
+
+        public:
 
             osm_sequence_id_t num_nodes;
             double           *lon; // XXX should this be a vector?
             double           *lat;
 
-        public:
-
 #ifdef OSMIUM_WITH_GEOS
-            MultipolygonFromWay(Way *way, geos::geom::Geometry *geom) : Multipolygon(geom) {
+            AreaFromWay(Way *way, geos::geom::Geometry *geom) : Area(geom) {
 #else
-            MultipolygonFromWay(Way *way) : Multipolygon() {
+            AreaFromWay(Way *way) : Area() {
 #endif // OSMIUM_WITH_GEOS
-                set_id(way->get_id());
-                set_version(way->get_version());
-                set_changeset(way->get_changeset());
-                set_timestamp(way->get_timestamp());
-                set_uid(way->get_uid());
-                set_user(way->get_user());
+                id(way->id());
+                version(way->version());
+                changeset(way->changeset());
+                timestamp(way->timestamp());
+                uid(way->uid());
+                user(way->user());
 
-                num_tags  = way->tag_count();
-                tags      = way->tags;
+                tags(way->tags());
 
                 num_nodes = way->node_count();
                 lon = (double *) malloc(sizeof(double) * num_nodes);
@@ -264,73 +272,40 @@ namespace Osmium {
                 }
             }
 
-            ~MultipolygonFromWay() {
+            ~AreaFromWay() {
                 free(lat);
                 free(lon);
             }
 
             osm_object_type_t get_type() const {
-                return MULTIPOLYGON_FROM_WAY;
+                return AREA_FROM_WAY;
             }
 
-#ifdef OSMIUM_WITH_SHPLIB
-            /**
-            * Create a SHPObject for this multipolygon and return it. You have to call
-            * SHPDestroyObject() with this object when you are done.
-            */
-            SHPObject *create_shp_polygon(std::string& /*transformation*/) {
-                return SHPCreateSimpleObject(SHPT_POLYGON, num_nodes, lon, lat, NULL);
-            }
-#endif // OSMIUM_WITH_SHPLIB
-
-#ifdef OSMIUM_WITH_JAVASCRIPT
-            v8::Handle<v8::Value> js_get_geom_property(v8::Local<v8::String> property) const {
-                v8::String::Utf8Value key(property);
-
-/*                if (!strcmp(*key, "as_wkt")) {
-                } else if (!strcmp(*key, "as_ewkt")) {
-                } else*/ if (!strcmp(*key, "as_array")) {
-                    v8::Local<v8::Array> polygon = v8::Array::New(1);
-                    v8::Local<v8::Array> ring = v8::Array::New(num_nodes);
-                    for (osm_sequence_id_t i=0; i < num_nodes; i++) {
-                        v8::Local<v8::Array> coord = v8::Array::New(2);
-                        coord->Set(v8::Integer::New(0), v8::Number::New(lon[i]));
-                        coord->Set(v8::Integer::New(1), v8::Number::New(lat[i]));
-                        ring->Set(v8::Integer::New(i), coord);
-                    }
-                    polygon->Set(v8::Integer::New(0), ring);
-                    return polygon;
-                } else {
-                    return v8::Undefined();
-                }
-            }
-#endif // OSMIUM_WITH_JAVASCRIPT
-
-        }; // class MultipolygonFromWay
+        }; // class AreaFromWay
 
         /***
-        * multipolygon created from a relation with tag type=multipolygon or type=boundary
+        * Area created from a relation with tag type=multipolygon or type=boundary
         */
-        class MultipolygonFromRelation : public Multipolygon {
+        class AreaFromRelation : public Area {
 
-            bool boundary; ///< was this multipolygon created from relation with tag type=boundary?
+            bool boundary; ///< was this area created from relation with tag type=boundary?
 
-            /// the relation this multipolygon was build from
+            /// the relation this area was build from
             Relation *relation;
 
-            /// the member ways of this multipolygon
+            /// the member ways of this area
             std::vector<Osmium::OSM::Way> member_ways;
 
-            /// number of ways in this multipolygon
+            /// number of ways in this area
             int num_ways;
 
-            /// how many ways are missing before we can build this multipolygon
+            /// how many ways are missing before we can build the multipolygon
             int missing_ways;
 
             std::string geometry_error_message;
 
             /// callback we should call when a multipolygon was completed
-            void (*callback)(Osmium::OSM::Multipolygon *);
+            void (*callback)(Osmium::OSM::Area *);
 
             /// whether we want to repair a broken geometry
             bool attempt_repair;
@@ -345,15 +320,20 @@ namespace Osmium {
 
             bool same_tags(const Object *a, const Object *b) {
                 if ((a == NULL) || (b == NULL)) return false;
+                const TagList& at = a->tags();
+                const TagList& bt = b->tags();
                 std::map<std::string, std::string> aTags;
-                for (int i = 0; i < a->tag_count(); i++) {
-                    if (ignore_tag(a->get_tag_key(i))) continue;
-                    aTags[a->get_tag_key(i)] = a->get_tag_value(i);
+
+                TagList::const_iterator end = at.end();
+                for (TagList::const_iterator it = at.begin(); it != end; ++it) {
+                    if (ignore_tag(it->key())) continue;
+                    aTags[it->key()] = it->value();
                 }
-                for (int i = 0; i < b->tag_count(); i++) {
-                    if (ignore_tag(b->get_tag_key(i))) continue;
-                    if (aTags[b->get_tag_key(i)] != b->get_tag_value(i)) return false;
-                    aTags.erase(b->get_tag_key(i));
+                end = bt.end();
+                for (TagList::const_iterator it = bt.begin(); it != end; ++it) {
+                    if (ignore_tag(it->key())) continue;
+                    if (aTags[it->key()] != it->value()) return false;
+                    aTags.erase(it->key());
                 }
                 if (!aTags.empty()) return false;
                 return true;
@@ -362,18 +342,22 @@ namespace Osmium {
             /** returns false if there was a collision, true otherwise */
             bool merge_tags(Object *a, const Object *b) {
                 bool rv = true;
+                TagList& at = a->tags();
+                const TagList& bt = b->tags();
                 std::map<std::string, std::string> aTags;
-                for (int i = 0; i < a->tag_count(); i++) {
-                    if (ignore_tag(a->get_tag_key(i))) continue;
-                    aTags[a->get_tag_key(i)] = a->get_tag_value(i);
+                TagList::const_iterator end = at.end();
+                for (TagList::const_iterator it = at.begin(); it != end; ++it) {
+                    if (ignore_tag(it->key())) continue;
+                    aTags[it->key()] = it->value();
                 }
-                for (int i = 0; i < b->tag_count(); i++) {
-                    if (ignore_tag(b->get_tag_key(i))) continue;
-                    if (aTags.find(b->get_tag_key(i)) != aTags.end()) {
-                        if (aTags[b->get_tag_key(i)] != b->get_tag_value(i)) rv = false;
+                end = bt.end();
+                for (TagList::const_iterator it = bt.begin(); it != end; ++it) {
+                    if (ignore_tag(it->key())) continue;
+                    if (aTags.find(it->key()) != aTags.end()) {
+                        if (aTags[it->key()] != it->value()) rv = false;
                     } else {
-                        a->add_tag(b->get_tag_key(i), b->get_tag_value(i));
-                        aTags[b->get_tag_key(i)] = b->get_tag_value(i);
+                        at.add(it->key(), it->value());
+                        aTags[it->key()] = it->value();
                     }
                 }
                 return rv;
@@ -381,9 +365,11 @@ namespace Osmium {
 
             bool untagged(const Object *r) {
                 if (r == NULL) return true;
-                if (r->tag_count() == 0) return true;
-                for (int i=0; i < r->tag_count(); i++) {
-                    if (! ignore_tag(r->get_tag_key(i)) ) {
+                const TagList& tags = r->tags();
+                if (tags.empty()) return true;
+                TagList::const_iterator end = tags.end();
+                for (TagList::const_iterator it = tags.begin(); it != end; ++it) {
+                    if (! ignore_tag(it->key()) ) {
                         return false;
                     }
                 }
@@ -392,13 +378,13 @@ namespace Osmium {
 
         public:
 
-            MultipolygonFromRelation(Relation *r, bool b, int n, void (*callback)(Osmium::OSM::Multipolygon *), bool repair) : Multipolygon(), boundary(b), relation(r), callback(callback) {
+            AreaFromRelation(Relation *r, bool b, int n, void (*callback)(Osmium::OSM::Area *), bool repair) : Area(), boundary(b), relation(r), callback(callback) {
                 num_ways = n;
                 missing_ways = n;
 #ifdef OSMIUM_WITH_GEOS
                 geometry = NULL;
 #endif // OSMIUM_WITH_GEOS
-                set_id(r->get_id());
+                id(r->id());
                 attempt_repair = repair;
             }
 
@@ -442,13 +428,13 @@ namespace Osmium {
             }
 #endif // OSMIUM_WITH_MULTIPOLYGON_PROFILING
 
-            ~MultipolygonFromRelation() {
+            ~AreaFromRelation() {
                 delete relation;
                 member_ways.erase(member_ways.begin(), member_ways.end());
             }
 
             osm_object_type_t get_type() const {
-                return MULTIPOLYGON_FROM_RELATION;
+                return AREA_FROM_RELATION;
             }
 
             /// Add way to list of member ways. This will create a copy of the way.
@@ -457,7 +443,7 @@ namespace Osmium {
                 missing_ways--;
             }
 
-            /// Do we have all the ways we need to build this multipolygon?
+            /// Do we have all the ways we need to build the multipolygon?
             bool is_complete() {
                 return missing_ways == 0;
             }
@@ -471,88 +457,7 @@ namespace Osmium {
                 callback(this);
             }
 
-            /**
-            * Create a SHPObject for this multipolygon and return it. You have to call
-            * SHPDestroyObject() with this object when you are done.
-            * Returns NULL if a valid SHPObject could not be created.
-            */
-#ifdef OSMIUM_WITH_SHPLIB
-            SHPObject *create_shp_polygon(std::string& /*transformation*/) {
-                if (!geometry) {
-                    throw Osmium::Exception::IllegalGeometry();
-                }
-
-                std::vector<double> x;
-                std::vector<double> y;
-                std::vector<int> partStart;
-
-                dump_geometry(geometry, partStart, x, y);
-
-                int *ps = new int[partStart.size()];
-                for (size_t i=0; i<partStart.size(); i++) ps[i]=partStart[i];
-                double *xx = new double[x.size()];
-                for (size_t i=0; i<x.size(); i++) xx[i]=x[i];
-                double *yy = new double[y.size()];
-                for (size_t i=0; i<y.size(); i++) yy[i]=y[i];
-
-                SHPObject *o = SHPCreateObject(
-                                   SHPT_POLYGON,       // type
-                                   -1,                 // id
-                                   partStart.size(),   // nParts
-                                   ps,                 // panPartStart
-                                   NULL,               // panPartType
-                                   x.size(),           // nVertices,
-                                   xx,
-                                   yy,
-                                   NULL,
-                                   NULL);
-
-                delete[] ps;
-                delete[] xx;
-                delete[] yy;
-
-                return o;
-            }
-#endif // OSMIUM_WITH_SHPLIB
-
         private:
-
-#ifdef OSMIUM_WITH_SHPLIB
-# ifdef OSMIUM_WITH_GEOS
-            bool dump_geometry(const geos::geom::Geometry *g, std::vector<int>& partStart, std::vector<double>& x, std::vector<double>& y) {
-                switch (g->getGeometryTypeId()) {
-                    case geos::geom::GEOS_MULTIPOLYGON:
-                    case geos::geom::GEOS_MULTILINESTRING: {
-                        for (size_t i=0; i<g->getNumGeometries(); i++) {
-                            if (!dump_geometry(g->getGeometryN(i), partStart, x, y)) return false;
-                        }
-                        break;
-                    }
-                    case geos::geom::GEOS_POLYGON: {
-                        geos::geom::Polygon *p = (geos::geom::Polygon *) g;
-                        if (!dump_geometry(p->getExteriorRing(), partStart, x, y)) return false;
-                        for (size_t i=0; i<p->getNumInteriorRing(); i++) {
-                            if (!dump_geometry(p->getInteriorRingN(i), partStart, x, y)) return false;
-                        }
-                        break;
-                    }
-                    case geos::geom::GEOS_LINESTRING:
-                    case geos::geom::GEOS_LINEARRING: {
-                        partStart.push_back(x.size());
-                        const geos::geom::CoordinateSequence *cs = ((geos::geom::LineString *) g)->getCoordinatesRO();
-                        for (size_t i = 0; i < cs->getSize(); i++) {
-                            x.push_back(cs->getX(i));
-                            y.push_back(cs->getY(i));
-                        }
-                        break;
-                    }
-                    default:
-                        throw std::runtime_error("invalid geometry type encountered");
-                }
-                return true;
-            }
-# endif // OSMIUM_WITH_GEOS
-#endif // OSMIUM_WITH_SHPLIB
 
             /**
             * This helper gets called when we find a ring that is not valid -
@@ -578,7 +483,7 @@ namespace Osmium {
                 while (1) {
                     std::vector<geos::geom::Coordinate> *vv = new std::vector<geos::geom::Coordinate>(coords->begin(), coords->begin() + current);
                     geos::geom::CoordinateSequence *cs = geos::geom::CoordinateArraySequenceFactory::instance()->create(vv);
-                    geos::geom::LineString *a = Osmium::global.geos_geometry_factory->createLineString(cs);
+                    geos::geom::LineString *a = Osmium::Geometry::geos_geometry_factory()->createLineString(cs);
                     if (!(simple = a->isSimple())) {
                         inv = current;
                     } else {
@@ -606,7 +511,7 @@ namespace Osmium {
                 while (1) {
                     std::vector<geos::geom::Coordinate> *vv = new std::vector<geos::geom::Coordinate>(coords->begin() + current, coords->end());
                     geos::geom::CoordinateSequence *cs = geos::geom::CoordinateArraySequenceFactory::instance()->create(vv);
-                    geos::geom::LineString *a = Osmium::global.geos_geometry_factory->createLineString(cs);
+                    geos::geom::LineString *a = Osmium::Geometry::geos_geometry_factory()->createLineString(cs);
                     if (!(simple = a->isSimple())) {
                         inv = current;
                     } else {
@@ -637,7 +542,7 @@ namespace Osmium {
                     vv->insert(vv->end(), coords->begin() + cutoutstart, coords->end());
                 }
                 geos::geom::CoordinateSequence *cs = geos::geom::CoordinateArraySequenceFactory::instance()->create(vv);
-                geos::geom::LinearRing *a = Osmium::global.geos_geometry_factory->createLinearRing(cs);
+                geos::geom::LinearRing *a = Osmium::Geometry::geos_geometry_factory()->createLinearRing(cs);
 
                 // if this results in a valid ring, return it; else return NULL.
 
@@ -672,7 +577,7 @@ namespace Osmium {
                             cs->add(((geos::geom::LineString *)sorted_ways[i]->way_geom)->getCoordinatesRO(), false, !sorted_ways[i]->invert);
                         }
                         delete[] sorted_ways;
-                        lr = Osmium::global.geos_geometry_factory->createLinearRing(cs);
+                        lr = Osmium::Geometry::geos_geometry_factory()->createLinearRing(cs);
                         STOP_TIMER(mor_polygonizer);
                         if (!lr->isSimple() || !lr->isValid()) {
                             //delete lr;
@@ -680,7 +585,7 @@ namespace Osmium {
                             if (attempt_repair) {
                                 lr = create_non_intersecting_linear_ring(cs);
                                 if (lr) {
-                                    if (Osmium::global.debug)
+                                    if (Osmium::debug())
                                         std::cerr << "successfully repaired an invalid ring" << std::endl;
                                 }
                             }
@@ -689,10 +594,10 @@ namespace Osmium {
                         bool ccw = geos::algorithm::CGAlgorithms::isCCW(lr->getCoordinatesRO());
                         RingInfo *rl = new RingInfo();
                         rl->direction = ccw ? COUNTERCLOCKWISE : CLOCKWISE;
-                        rl->polygon = Osmium::global.geos_geometry_factory->createPolygon(lr, NULL);
+                        rl->polygon = Osmium::Geometry::geos_geometry_factory()->createPolygon(lr, NULL);
                         return rl;
                     } catch (const geos::util::GEOSException& exc) {
-                        if (Osmium::global.debug)
+                        if (Osmium::debug())
                             std::cerr << "Exception: " << exc.what() << std::endl;
                         return NULL;
                     }
@@ -833,10 +738,10 @@ namespace Osmium {
                         std::vector<geos::geom::Coordinate> *c = new std::vector<geos::geom::Coordinate>;
                         c->push_back(*(node1->getCoordinate()));
                         c->push_back(*(node2->getCoordinate()));
-                        geos::geom::CoordinateSequence *cs = Osmium::global.geos_geometry_factory->getCoordinateSequenceFactory()->create(c);
-                        geos::geom::Geometry *geometry = (geos::geom::Geometry *) Osmium::global.geos_geometry_factory->createLineString(cs);
+                        geos::geom::CoordinateSequence *cs = Osmium::Geometry::geos_geometry_factory()->getCoordinateSequenceFactory()->create(c);
+                        geos::geom::Geometry *geometry = (geos::geom::Geometry *) Osmium::Geometry::geos_geometry_factory()->createLineString(cs);
                         ways->push_back(new WayInfo(geometry, node1_id, mindist_id, UNSET));
-                        if (Osmium::global.debug)
+                        if (Osmium::debug())
                             std::cerr << "fill gap between nodes " << node1_id << " and " << mindist_id << std::endl;
                     } else {
                         break;
@@ -855,7 +760,7 @@ namespace Osmium {
                 std::vector<WayInfo *> ways;
 
                 // the timestamp of the multipolygon will be the maximum of the timestamp from the relation and from all member ways
-                set_timestamp(relation->get_timestamp());
+                timestamp(relation->timestamp());
 
                 // assemble all ways which are members of this relation into a
                 // vector of WayInfo elements. this holds room for the way pointer
@@ -863,7 +768,9 @@ namespace Osmium {
 
                 START_TIMER(assemble_ways);
                 for (std::vector<Way>::iterator i(member_ways.begin()); i != member_ways.end(); i++) {
-                    if (i->get_timestamp() > get_timestamp()) set_timestamp(i->get_timestamp());
+                    if (i->timestamp() > timestamp()) {
+                        timestamp(i->timestamp());
+                    }
                     WayInfo *wi = new WayInfo(&(*i), UNSET);
                     if (wi->way_geom) {
                         geos::io::WKTWriter wkt;
@@ -952,12 +859,14 @@ namespace Osmium {
                 // whether something is an inner (false) or outer (true) ring.
 
                 for (unsigned int i=0; i<ringlist.size(); i++) {
+                    const geos::geom::prep::PreparedPolygon *pp = new geos::geom::prep::PreparedPolygon(ringlist[i]->polygon);
                     for (unsigned int j=0; j<ringlist.size(); j++) {
                         if (i==j) continue;
                         if (contains[j][i]) continue;
-                        contains[i][j] = ringlist[i]->polygon->contains(ringlist[j]->polygon);
+                        contains[i][j] = pp->contains(ringlist[j]->polygon);
                         contained_by_even_number[j] ^= contains[i][j];
                     }
+                    delete pp;
                 }
 
                 // we now have an array that has a true value whenever something is
@@ -1020,12 +929,12 @@ namespace Osmium {
                             } else {
                                 geos::geom::LineString *tmp = (geos::geom::LineString *) ringlist[i]->polygon->getExteriorRing()->reverse();
                                 geos::geom::LinearRing *reversed_ring =
-                                    Osmium::global.geos_geometry_factory->createLinearRing(tmp->getCoordinates());
+                                    Osmium::Geometry::geos_geometry_factory()->createLinearRing(tmp->getCoordinates());
                                 delete tmp;
-                                g->push_back(Osmium::global.geos_geometry_factory->createPolygon(reversed_ring, NULL));
+                                g->push_back(Osmium::Geometry::geos_geometry_factory()->createPolygon(reversed_ring, NULL));
                             }
 
-                            geos::geom::MultiPolygon *special_mp = Osmium::global.geos_geometry_factory->createMultiPolygon(g);
+                            geos::geom::MultiPolygon *special_mp = Osmium::Geometry::geos_geometry_factory()->createMultiPolygon(g);
 
                             if (same_tags(ringlist[i]->ways[0]->way, relation)) {
                                 // warning
@@ -1034,11 +943,11 @@ namespace Osmium {
                                 // warning
                                 // warnings.insert("duplicate_tags_on_inner");
                             } else {
-                                Osmium::OSM::MultipolygonFromWay *internal_mp =
-                                    new Osmium::OSM::MultipolygonFromWay(ringlist[i]->ways[0]->way, special_mp);
+                                Osmium::OSM::AreaFromWay *internal_mp =
+                                    new Osmium::OSM::AreaFromWay(ringlist[i]->ways[0]->way, special_mp);
                                 callback(internal_mp);
                                 delete internal_mp;
-                                // MultipolygonFromWay destructor deletes the
+                                // AreaFromWay destructor deletes the
                                 // geometry, so avoid to delete it again.
                                 special_mp = NULL;
                             }
@@ -1108,7 +1017,7 @@ namespace Osmium {
                             // reverse ring
                             geos::geom::LineString *tmp = (geos::geom::LineString *) ring->reverse();
                             geos::geom::LinearRing *reversed_ring =
-                                Osmium::global.geos_geometry_factory->createLinearRing(tmp->getCoordinates());
+                                Osmium::Geometry::geos_geometry_factory()->createLinearRing(tmp->getCoordinates());
                             delete tmp;
                             holes->push_back(reversed_ring);
                         } else {
@@ -1119,7 +1028,7 @@ namespace Osmium {
                     geos::geom::LinearRing *ring = (geos::geom::LinearRing *) ringlist[i]->polygon->getExteriorRing();
                     if (ringlist[i]->direction == COUNTERCLOCKWISE) {
                         geos::geom::LineString *tmp = (geos::geom::LineString *) ring->reverse();
-                        geos::geom::LinearRing *reversed_ring = Osmium::global.geos_geometry_factory->createLinearRing(tmp->getCoordinates());
+                        geos::geom::LinearRing *reversed_ring = Osmium::Geometry::geos_geometry_factory()->createLinearRing(tmp->getCoordinates());
                         ring = reversed_ring;
                         delete tmp;
                     } else {
@@ -1131,12 +1040,12 @@ namespace Osmium {
                     bool valid = false;
 
                     try {
-                        p = Osmium::global.geos_geometry_factory->createPolygon(ring, holes);
+                        p = Osmium::Geometry::geos_geometry_factory()->createPolygon(ring, holes);
                         if (p) valid = p->isValid();
                     } catch (const geos::util::GEOSException& exc) {
                         // nop
-                        if (Osmium::global.debug)
-                            std::cerr << "Exception during creation of polygon for relation #" << relation->get_id() << ": " << exc.what() << " (treating as invalid polygon)" << std::endl;
+                        if (Osmium::debug())
+                            std::cerr << "Exception during creation of polygon for relation #" << relation->id() << ": " << exc.what() << " (treating as invalid polygon)" << std::endl;
                     }
                     if (!valid) {
                         // polygon is invalid.
@@ -1166,9 +1075,8 @@ namespace Osmium {
                                 // warning: inner/outer mismatch
                             }
                         }
-                        // copy tags from relation into multipolygon
-                        num_tags = relation->tag_count();
-                        tags = relation->tags;
+                        // copy tags from relation into area
+                        tags(relation->tags());
                     }
                     // later delete ringlist[i];
                     // ringlist[i] = NULL;
@@ -1184,7 +1092,7 @@ namespace Osmium {
                 START_TIMER(multipolygon_build);
                 bool valid = false;
                 try {
-                    mp = Osmium::global.geos_geometry_factory->createMultiPolygon(polygons);
+                    mp = Osmium::Geometry::geos_geometry_factory()->createMultiPolygon(polygons);
                     valid = mp->isValid();
                 } catch (const geos::util::GEOSException& exc) {
                     // nop
@@ -1199,62 +1107,19 @@ namespace Osmium {
 
             bool geometry_error(const char *message) {
                 geometry_error_message = message;
-                if (Osmium::global.debug)
+                if (Osmium::debug()) {
                     std::cerr << "building mp failed: " << geometry_error_message << std::endl;
+                }
                 geometry = NULL;
                 return false;
             }
 
-# ifdef OSMIUM_WITH_JAVASCRIPT
-            v8::Handle<v8::Array> js_ring_as_array(const geos::geom::LineString *ring) const {
-                const geos::geom::CoordinateSequence *cs = ring->getCoordinatesRO();
-                v8::Local<v8::Array> ring_array = v8::Array::New(cs->getSize());
-                for (size_t i = 0; i < cs->getSize(); i++) {
-                    v8::Local<v8::Array> coord = v8::Array::New(2);
-                    coord->Set(v8::Integer::New(0), v8::Number::New(cs->getX(i)));
-                    coord->Set(v8::Integer::New(1), v8::Number::New(cs->getY(i)));
-                    ring_array->Set(v8::Integer::New(i), coord);
-                }
-
-                return ring_array;
-            }
-
-            v8::Handle<v8::Value> js_get_geom_property(v8::Local<v8::String> property) const {
-                if (!geometry) {
-                    return v8::Undefined();
-                }
-
-                v8::String::Utf8Value key(property);
-/*                if (!strcmp(*key, "as_wkt")) {
-                } else if (!strcmp(*key, "as_ewkt")) {
-                } else*/ if (!strcmp(*key, "as_array")) {
-                    if (geometry->getGeometryTypeId() == geos::geom::GEOS_MULTIPOLYGON) {
-                        v8::Local<v8::Array> multipolygon_array = v8::Array::New(geometry->getNumGeometries());
-
-                        for (size_t i=0; i < geometry->getNumGeometries(); i++) {
-                            geos::geom::Polygon *polygon = (geos::geom::Polygon *) geometry->getGeometryN(i);
-                            v8::Local<v8::Array> polygon_array = v8::Array::New(polygon->getNumInteriorRing());
-                            multipolygon_array->Set(v8::Integer::New(i), polygon_array);
-                            polygon_array->Set(v8::Integer::New(0), js_ring_as_array(polygon->getExteriorRing()));
-                            for (size_t j=0; j < polygon->getNumInteriorRing(); j++) {
-                                polygon_array->Set(v8::Integer::New(j+1), js_ring_as_array(polygon->getInteriorRingN(j)));
-                            }
-                        }
-                        return multipolygon_array;
-                    } else {
-                        return v8::Undefined();
-                    }
-                } else {
-                    return v8::Undefined();
-                }
-            }
-# endif // OSMIUM_WITH_JAVASCRIPT
 #endif // OSMIUM_WITH_GEOS
 
-        }; // class MultipolygonFromRelation
+        }; // class AreaFromRelation
 
     } // namespace OSM
 
 } // namespace Osmium
 
-#endif // OSMIUM_OSM_MULTIPOLYGON_HPP
+#endif // OSMIUM_OSM_AREA_HPP

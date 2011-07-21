@@ -27,14 +27,13 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <cstdlib>
 
-#define OSMIUM_MAIN
 #include <osmium.hpp>
 #include <osmium/handler/progress.hpp>
 
 /* ================================================== */
 
 int main(int argc, char *argv[]) {
-    Osmium::Framework osmium(true);
+    Osmium::init(true);
 
     if (argc != 2) {
         std::cerr << "Usage: " << argv[0] << " OSMFILE" << std::endl;

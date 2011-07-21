@@ -1,3 +1,15 @@
+/*
+
+  Osmium Javascript Example
+
+  config.js
+
+  Uses osm2shape framework for exporting OSM data to shapefiles.
+  (see also osm2shape.js)
+
+  run with: osmjs -2 -l sparsetable -i osm2shape.js -j config.js OSMFILE
+
+*/
 
 // ---- shapefiles ----
 

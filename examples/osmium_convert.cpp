@@ -28,52 +28,49 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <cstdlib>
 #include <getopt.h>
 
-#define OSMIUM_MAIN
 #include <osmium.hpp>
 #include <osmium/handler/progress.hpp>
 
 class ConvertHandler : public Osmium::Handler::Base {
 
-    Osmium::OSMFile *m_outfile;
-    Osmium::Handler::Progress *m_pg;
+    Osmium::OSMFile* m_outfile;
+    Osmium::Handler::Progress m_pg;
 
-    Osmium::Output::OSM::Base *output;
+    Osmium::Output::Base* output;
 
 public:
 
     ConvertHandler(Osmium::OSMFile *osmfile = new Osmium::OSMFile("")) : m_outfile(osmfile) {
-        m_pg = new Osmium::Handler::Progress();
     }
 
     ~ConvertHandler() {
         delete m_outfile;
-        delete m_pg;
     }
 
-    void callback_init() {
+    void init(Osmium::OSM::Meta& meta) {
         output = m_outfile->create_output_file();
-        output->write_init();
-        m_pg->callback_init();
+        output->init(meta);
+        m_pg.init(meta);
     }
 
-    void callback_node(Osmium::OSM::Node *node) {
-        output->write(node);
-        m_pg->callback_node(node);
+    void node(Osmium::OSM::Node* node) {
+        output->node(node);
+        m_pg.node(node);
     }
 
-    void callback_way(Osmium::OSM::Way *way) {
-        output->write(way);
-        m_pg->callback_way(way);
+    void way(Osmium::OSM::Way* way) {
+        output->way(way);
+        m_pg.way(way);
     }
 
-    void callback_relation(Osmium::OSM::Relation *relation) {
-        output->write(relation);
-        m_pg->callback_relation(relation);
+    void relation(Osmium::OSM::Relation* relation) {
+        output->relation(relation);
+        m_pg.relation(relation);
     }
 
-    void callback_final() {
-        output->write_final();
-        m_pg->callback_final();
+    void final() {
+        output->final();
+        m_pg.final();
         delete output;
     }
 
@@ -152,7 +149,7 @@ int main(int argc, char *argv[]) {
         input =  argv[optind];
     }
 
-    Osmium::Framework osmium(debug);
+    Osmium::init(debug);
 
     Osmium::OSMFile infile(input);
     if (!input_format.empty()) {

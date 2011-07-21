@@ -27,14 +27,13 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <cstdlib>
 
-#define OSMIUM_MAIN
 #include <osmium.hpp>
 #include <osmium/handler/find_bbox.hpp>
 
 /* ================================================== */
 
 int main(int argc, char *argv[]) {
-    Osmium::Framework osmium;
+    Osmium::init();
 
     if (argc != 2) {
         std::cerr << "Usage: " << argv[0] << " OSMFILE" << std::endl;
@@ -45,9 +44,10 @@ int main(int argc, char *argv[]) {
     Osmium::Handler::FindBbox handler;
     infile.read(handler);
 
-    std::cout <<  "minlon=" << handler.get_minlon()
-              << " minlat=" << handler.get_minlat()
-              << " maxlon=" << handler.get_maxlon()
-              << " maxlat=" << handler.get_maxlat() << std::endl;
+    Osmium::OSM::Bounds b = handler.bounds();
+    std::cout <<  "minlon=" << b.bl().lon()
+              << " minlat=" << b.bl().lat()
+              << " maxlon=" << b.tr().lon()
+              << " maxlat=" << b.tr().lat() << std::endl;
 }
 

@@ -1,5 +1,5 @@
-#ifndef OSMIUM_OUTPUT_SHAPEFILE_HPP
-#define OSMIUM_OUTPUT_SHAPEFILE_HPP
+#ifndef OSMIUM_EXPORT_SHAPEFILE_HPP
+#define OSMIUM_EXPORT_SHAPEFILE_HPP
 
 /*
 
@@ -29,21 +29,21 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 namespace Osmium {
 
-    namespace Output {
+    namespace Export {
 
         class Shapefile {
 
             // the following limits are defined by the shapefile spec
-            static const unsigned int max_dbf_fields = 16;
-            static const unsigned int max_field_name_length = 11;
-            static const int max_dbf_field_length = 255;
+            static const unsigned int max_dbf_fields            =  16;
+            static const unsigned int max_dbf_field_name_length =  11;
+            static const          int max_dbf_field_length      = 255;
 
             class Field {
 
             public:
 
                 Field(const std::string& name, DBFFieldType type, int width=1, int decimals=0) : m_name(name), m_type(type), m_width(width), m_decimals(decimals) {
-                    if (name == "" || name.size() > max_field_name_length) {
+                    if (name == "" || name.size() > max_dbf_field_name_length) {
                         throw std::invalid_argument("field name must be between 1 and 11 characters long");
                     }
                 }
@@ -79,12 +79,8 @@ namespace Osmium {
             SHPHandle m_shp_handle;
             DBFHandle m_dbf_handle;
 
-            /// entity number of the shape we care currently writing
+            /// entity number of the shape we are currently writing
             int m_current_shape;
-
-#ifdef OSMIUM_WITH_JAVASCRIPT
-            v8::Persistent<v8::Object> js_object;
-#endif // OSMIUM_WITH_JAVASCRIPT
 
             // define copy constructor and assignment operator as private
             Shapefile(const Shapefile&);
@@ -120,20 +116,9 @@ namespace Osmium {
                 }
                 file << "UTF-8" << std::endl;
                 file.close();
-
-#ifdef OSMIUM_WITH_JAVASCRIPT
-                js_object = v8::Persistent<v8::Object>::New( Osmium::Javascript::Template::create_output_shapefile_instance(this) );
-#endif // OSMIUM_WITH_JAVASCRIPT
             }
-
-            virtual SHPObject* get_geometry_with_transformation(Osmium::OSM::Object *object, std::string& transformation) = 0;
 
         public:
-
-            SHPObject* get_geometry(Osmium::OSM::Object *object) {
-                std::string transformation;
-                return get_geometry_with_transformation(object, transformation);
-            }
 
             virtual ~Shapefile() {
                 close();
@@ -213,9 +198,18 @@ namespace Osmium {
              *
              * @param shp_object A pointer to the shape object to be added. The object
              *                   will be freed for you by calling SHPDestroyObject()!
+             * @exception Osmium::Exception::IllegalGeometry If shp_object is NULL or
+             *                   the type of geometry does not fit the type of the
+             *                   shapefile.
              */
             void add_geometry(SHPObject *shp_object) {
+                if (!shp_object || shp_object->nSHPType != m_shp_handle->nShapeType) {
+                    throw Osmium::Exception::IllegalGeometry();
+                }
                 m_current_shape = SHPWriteObject(m_shp_handle, -1, shp_object);
+                if (m_current_shape == -1) {
+                    throw std::runtime_error("error writing to shapefile. too large?");
+                }
                 SHPDestroyObject(shp_object);
             }
 
@@ -278,18 +272,16 @@ namespace Osmium {
             }
 
             /**
-            * Add an %OSM object to the shapefile.
+            * Add a geometry to the shapefile.
             */
-            void add(Osmium::OSM::Object *object,      ///< the %OSM object (Node, Way, or Relation)
-                     v8::Local<v8::Object> attributes, ///< a %Javascript object (hash) with the attributes
-                     std::string& transformation
-                    ) {
+            bool add(Osmium::Geometry::Geometry* geometry, ///< the geometry
+                     v8::Local<v8::Object> attributes) {   ///< a %Javascript object (hash) with the attributes
 
-                SHPObject *shp_object = 0;
-
-                shp_object = get_geometry_with_transformation(object, transformation);
-                if (!shp_object) return; // XXX return if the shape is invalid
-                add_geometry(shp_object);
+                try {
+                    add_geometry(geometry->create_shp_object());
+                } catch (Osmium::Exception::IllegalGeometry) {
+                    return false;
+                }
 
                 int ok = 0;
                 for (size_t n=0; n < m_fields.size(); n++) {
@@ -327,10 +319,11 @@ namespace Osmium {
                         DBFWriteNULLAttribute(m_dbf_handle, m_current_shape, n);
                     }
                 }
+                return true;
             }
 
-            v8::Handle<v8::Object> get_js_object() {
-                return js_object;
+            v8::Local<v8::Object> js_instance() const {
+                return JavascriptTemplate::get<JavascriptTemplate>().create_instance((void *)this);
             }
 
             v8::Handle<v8::Value> js_add_field(const v8::Arguments& args) {
@@ -353,24 +346,19 @@ namespace Osmium {
             }
 
             v8::Handle<v8::Value> js_add(const v8::Arguments& args) {
-                if (args.Length() < 2 || args.Length() > 3) {
+                if (args.Length() != 2) {
                     throw std::runtime_error("Wrong number of arguments to add method.");
                 }
 
                 v8::Local<v8::Object> xxx = v8::Local<v8::Object>::Cast(args[0]);
-                Osmium::OSM::Object *object = (Osmium::OSM::Object *) v8::Local<v8::External>::Cast(xxx->GetInternalField(0))->Value();
+                Osmium::Geometry::Geometry* geometry = (Osmium::Geometry::Geometry *) v8::Local<v8::External>::Cast(xxx->GetInternalField(0))->Value();
 
-                std::string transformation;
-                if (args.Length() == 3) {
-                    v8::String::AsciiValue gt(args[2]);
-                    transformation = *gt;
-                }
                 try {
-                    add(object, v8::Local<v8::Object>::Cast(args[1]), transformation);
+                    add(geometry, v8::Local<v8::Object>::Cast(args[1]));
                 } catch (Osmium::Exception::IllegalGeometry) {
                     std::cerr << "Ignoring object with illegal geometry." << std::endl;
                     return v8::Integer::New(0);
-                } 
+                }
 
                 return v8::Integer::New(1);
             }
@@ -379,6 +367,17 @@ namespace Osmium {
                 close();
                 return v8::Undefined();
             }
+
+            struct JavascriptTemplate : public Osmium::Javascript::Template {
+
+                JavascriptTemplate() : Osmium::Javascript::Template() {
+                    js_template->Set("add_field", v8::FunctionTemplate::New(function_template<Shapefile, &Shapefile::js_add_field>));
+                    js_template->Set("add",       v8::FunctionTemplate::New(function_template<Shapefile, &Shapefile::js_add>));
+                    js_template->Set("close",     v8::FunctionTemplate::New(function_template<Shapefile, &Shapefile::js_close>));
+                }
+
+            };
+
 #endif // OSMIUM_WITH_JAVASCRIPT
 
         }; // class Shapefile
@@ -404,16 +403,12 @@ namespace Osmium {
             PointShapefile(const PointShapefile&);
             PointShapefile& operator=(const PointShapefile&);
 
-            SHPObject* get_geometry_with_transformation(Osmium::OSM::Object *object, std::string& transformation) {
-                return object->create_shp_point(transformation);
-            }
-
         };
 
         /**
          * Shapefile containing line geometries.
          */
-        class LineShapefile : public Shapefile {
+        class LineStringShapefile : public Shapefile {
 
         public:
 
@@ -422,18 +417,14 @@ namespace Osmium {
              *
              * @param filename Filename (optionally including path) without any suffix.
              */
-            LineShapefile(std::string& filename) : Shapefile(filename, SHPT_ARC) {
+            LineStringShapefile(std::string& filename) : Shapefile(filename, SHPT_ARC) {
             }
 
         private:
 
             // define copy constructor and assignment operator as private
-            LineShapefile(const LineShapefile&);
-            LineShapefile& operator=(const LineShapefile&);
-
-            SHPObject* get_geometry_with_transformation(Osmium::OSM::Object *object, std::string& transformation) {
-                return object->create_shp_line(transformation);
-            }
+            LineStringShapefile(const LineStringShapefile&);
+            LineStringShapefile& operator=(const LineStringShapefile&);
 
         };
 
@@ -458,16 +449,12 @@ namespace Osmium {
             PolygonShapefile(const PolygonShapefile&);
             PolygonShapefile& operator=(const PolygonShapefile&);
 
-            SHPObject* get_geometry_with_transformation(Osmium::OSM::Object *object, std::string& transformation) {
-                return object->create_shp_polygon(transformation);
-            }
-
         };
 
-    } // namespace Output
+    } // namespace Export
 
 } // namespace Osmium
 
 #endif // OSMIUM_WITH_SHPLIB
 
-#endif // OSMIUM_OUTPUT_SHAPEFILE_HPP
+#endif // OSMIUM_EXPORT_SHAPEFILE_HPP
