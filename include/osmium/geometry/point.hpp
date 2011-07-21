@@ -51,7 +51,7 @@ namespace Osmium {
             /**
              * Create point geometry from a position.
              */
-            Point(Osmium::OSM::Position& position, osm_object_id_t id=0) : Geometry(id), m_position(position) {
+            Point(const Osmium::OSM::Position& position, osm_object_id_t id=0) : Geometry(id), m_position(position) {
             }
 
             /**
@@ -139,7 +139,7 @@ namespace Osmium {
 
         private:
 
-            Osmium::OSM::Position m_position;
+            const Osmium::OSM::Position m_position;
 
         }; // class Point
 
