@@ -126,7 +126,10 @@ namespace Osmium {
                     geos::geom::CoordinateSequence* cs = Osmium::Geometry::geos_geometry_factory()->getCoordinateSequenceFactory()->create(c);
                     return static_cast<geos::geom::Geometry*>(Osmium::Geometry::geos_geometry_factory()->createLineString(cs));
                 } catch (const geos::util::GEOSException& exc) {
-                    std::cerr << "error building way geometry, leave it as NULL\n";
+                    if (Osmium::debug()) {
+                        std::cerr << "error building geometry for way #" << m_id << 
+                            " (returning NULL): " << exc.what();
+                    }
                     return NULL;
                 }
             }
