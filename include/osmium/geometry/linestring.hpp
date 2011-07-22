@@ -76,14 +76,12 @@ namespace Osmium {
                 write_binary_wkb_header(out, with_srid, wkbLineString);
                 write_binary<uint32_t>(out, m_way_node_list->size());
                 if (m_reverse) {
-                    for (Osmium::OSM::WayNodeList::const_reverse_iterator it = m_way_node_list->rbegin(); 
-                        it != m_way_node_list->rend(); ++it) {
+                    for (Osmium::OSM::WayNodeList::const_reverse_iterator it = m_way_node_list->rbegin(); it != m_way_node_list->rend(); ++it) {
                         write_binary<double>(out, it->lon());
                         write_binary<double>(out, it->lat());
                     }
                 } else {
-                    for (Osmium::OSM::WayNodeList::const_iterator it = m_way_node_list->begin(); 
-                        it != m_way_node_list->end(); ++it) {
+                    for (Osmium::OSM::WayNodeList::const_iterator it = m_way_node_list->begin(); it != m_way_node_list->end(); ++it) {
                         write_binary<double>(out, it->lon());
                         write_binary<double>(out, it->lat());
                     }
@@ -95,14 +93,12 @@ namespace Osmium {
                 write_hex_wkb_header(out, with_srid, wkbLineString);
                 write_hex<uint32_t>(out, m_way_node_list->size());
                 if (m_reverse) {
-                    for (Osmium::OSM::WayNodeList::const_reverse_iterator it = m_way_node_list->rbegin(); 
-                        it != m_way_node_list->rend(); ++it) {
+                    for (Osmium::OSM::WayNodeList::const_reverse_iterator it = m_way_node_list->rbegin(); it != m_way_node_list->rend(); ++it) {
                         write_hex<double>(out, it->lon());
                         write_hex<double>(out, it->lat());
                     }
                 } else {
-                    for (Osmium::OSM::WayNodeList::const_iterator it = m_way_node_list->begin(); 
-                        it != m_way_node_list->end(); ++it) {
+                    for (Osmium::OSM::WayNodeList::const_iterator it = m_way_node_list->begin(); it != m_way_node_list->end(); ++it) {
                         write_hex<double>(out, it->lon());
                         write_hex<double>(out, it->lat());
                     }
@@ -112,23 +108,23 @@ namespace Osmium {
 
 #ifdef OSMIUM_WITH_GEOS
             /**
-             * Returns the GEOS geometry of the way.
+             * Returns the GEOS geometry of the LineString.
              * Caller takes ownership of the pointer.
              */
             geos::geom::Geometry *create_geos_geometry() const {
                 try {
                     std::vector<geos::geom::Coordinate>* c = new std::vector<geos::geom::Coordinate>;
                     if (m_reverse) {
-                        for (osm_sequence_id_t i=m_way_node_list->size(); i > 0; --i) {
-                            c->push_back((*m_way_node_list)[i].position());
+                        for (Osmium::OSM::WayNodeList::const_reverse_iterator it = m_way_node_list->rbegin(); it != m_way_node_list->rend(); ++it) {
+                            c->push_back(it->position());
                         }
                     } else {
-                        for (osm_sequence_id_t i=0; i < m_way_node_list->size(); ++i) {
-                            c->push_back((*m_way_node_list)[i].position());
+                        for (Osmium::OSM::WayNodeList::const_iterator it = m_way_node_list->begin(); it != m_way_node_list->end(); ++it) {
+                            c->push_back(it->position());
                         }
                     }
-                    geos::geom::CoordinateSequence *cs = Osmium::Geometry::geos_geometry_factory()->getCoordinateSequenceFactory()->create(c);
-                    return (geos::geom::Geometry *) Osmium::Geometry::geos_geometry_factory()->createLineString(cs);
+                    geos::geom::CoordinateSequence* cs = Osmium::Geometry::geos_geometry_factory()->getCoordinateSequenceFactory()->create(c);
+                    return static_cast<geos::geom::Geometry*>(Osmium::Geometry::geos_geometry_factory()->createLineString(cs));
                 } catch (const geos::util::GEOSException& exc) {
                     std::cerr << "error building way geometry, leave it as NULL\n";
                     return NULL;
@@ -166,7 +162,7 @@ namespace Osmium {
             struct JavascriptTemplate : public Osmium::Geometry::Geometry::JavascriptTemplate {
 
                 JavascriptTemplate() : Osmium::Geometry::Geometry::JavascriptTemplate() {
-                    js_template->Set("toArray",  v8::FunctionTemplate::New(function_template<LineString, &LineString::js_to_array>));
+                    js_template->Set("toArray", v8::FunctionTemplate::New(function_template<LineString, &LineString::js_to_array>));
                 }
 
             };

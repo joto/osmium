@@ -28,6 +28,7 @@ Osmium.Callbacks.way = function() {
     print("geom.toHexWKB():      " + this.geom.toHexWKB());
     print("geom.toHexWKB(true):  " + this.geom.toHexWKB(true));
     print("reverse_geom.toWKT(): " + this.reverse_geom.toWKT());
+    print("polygon_geom.toWKT(): " + this.polygon_geom.toWKT());
     print("");
 }
 
