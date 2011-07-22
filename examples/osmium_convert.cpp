@@ -34,7 +34,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 class ConvertHandler : public Osmium::Handler::Base {
 
     Osmium::OSMFile* m_outfile;
-    Osmium::Handler::Progress m_pg;
+    Osmium::Handler::Progress m_progress_handler;
 
     Osmium::Output::Base* output;
 
@@ -50,27 +50,27 @@ public:
     void init(Osmium::OSM::Meta& meta) {
         output = m_outfile->create_output_file();
         output->init(meta);
-        m_pg.init(meta);
+        m_progress_handler.init(meta);
     }
 
     void node(Osmium::OSM::Node* node) {
         output->node(node);
-        m_pg.node(node);
+        m_progress_handler.node(node);
     }
 
     void way(Osmium::OSM::Way* way) {
         output->way(way);
-        m_pg.way(way);
+        m_progress_handler.way(way);
     }
 
     void relation(Osmium::OSM::Relation* relation) {
         output->relation(relation);
-        m_pg.relation(relation);
+        m_progress_handler.relation(relation);
     }
 
     void final() {
         output->final();
-        m_pg.final();
+        m_progress_handler.final();
         delete output;
     }
 

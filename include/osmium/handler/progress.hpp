@@ -51,9 +51,11 @@ namespace Osmium {
 
             bool is_a_tty;
 
-            timeval first_node, first_way, first_relation;
+            timeval first_node;
+            timeval first_way;
+            timeval first_relation;
 
-            void update_display() const {
+            void update_display(bool show_per_second=true) const {
                 std::cout << "[" << count_nodes << "]";
                 if (count_ways > 0 || count_relations > 0) {
                     std::cout << " [" << count_ways << "]";
@@ -62,23 +64,27 @@ namespace Osmium {
                     }
                 }
 
-                timeval now;
-                gettimeofday(&now, 0);
+                if (show_per_second) {
+                    timeval now;
+                    gettimeofday(&now, 0);
 
-                if (count_relations > 0) {
-                    float relation_diff = (now.tv_sec - first_relation.tv_sec) * 1000000 + (now.tv_usec - first_relation.tv_usec);
-                    int relations_per_sec = (float)count_relations / relation_diff * 1000000;
-                    std::cout << " (" << relations_per_sec << " Relations per second)   ";
-                }
-                else if (count_ways > 0) {
-                    float way_diff = (now.tv_sec - first_way.tv_sec) * 1000000 + (now.tv_usec - first_way.tv_usec);
-                    int ways_per_sec = (float)count_ways / way_diff * 1000000;
-                    std::cout << " (" << ways_per_sec << " Ways per second)   ";
-                }
-                else if (count_nodes > 0) {
-                    float node_diff = (now.tv_sec - first_node.tv_sec) * 1000000 + (now.tv_usec - first_node.tv_usec);
-                    int nodes_per_sec = (float)count_nodes / node_diff * 1000000;
-                    std::cout << " (" << nodes_per_sec << " Nodes per second)   ";
+                    if (count_relations > 0) {
+                        float relation_diff = (now.tv_sec - first_relation.tv_sec) * 1000000 + (now.tv_usec - first_relation.tv_usec);
+                        int relations_per_sec = (float)count_relations / relation_diff * 1000000;
+                        std::cout << " (" << relations_per_sec << " Relations per second)   ";
+                    }
+                    else if (count_ways > 0) {
+                        float way_diff = (now.tv_sec - first_way.tv_sec) * 1000000 + (now.tv_usec - first_way.tv_usec);
+                        int ways_per_sec = (float)count_ways / way_diff * 1000000;
+                        std::cout << " (" << ways_per_sec << " Ways per second)   ";
+                    }
+                    else if (count_nodes > 0) {
+                        float node_diff = (now.tv_sec - first_node.tv_sec) * 1000000 + (now.tv_usec - first_node.tv_usec);
+                        int nodes_per_sec = (float)count_nodes / node_diff * 1000000;
+                        std::cout << " (" << nodes_per_sec << " Nodes per second)   ";
+                    }
+                } else {
+                    std::cout << "                                   ";
                 }
 
                 std::cout << "\r";
@@ -142,7 +148,7 @@ namespace Osmium {
 
             void final() const {
                 if (is_a_tty) {
-                    update_display();
+                    update_display(false);
                     std::cout << std::endl;
 
                     std::cout << "  Average: ";
