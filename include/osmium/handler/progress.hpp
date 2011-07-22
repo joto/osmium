@@ -23,6 +23,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 */
 
 #include <unistd.h>
+#include <sys/time.h>
 
 namespace Osmium {
 
@@ -50,14 +51,36 @@ namespace Osmium {
 
             bool is_a_tty;
 
+            timeval first_node, first_way, first_relation;
+
             void update_display() const {
                 std::cout << "[" << count_nodes << "]";
-                if (count_ways > 0) {
+                if (count_ways > 0 || count_relations > 0) {
                     std::cout << " [" << count_ways << "]";
                     if (count_relations > 0) {
                         std::cout << " [" << count_relations << "]";
                     }
                 }
+
+                timeval now;
+                gettimeofday(&now, 0);
+
+                if (count_relations > 0) {
+                    float relation_diff = (now.tv_sec - first_relation.tv_sec) * 1000000 + (now.tv_usec - first_relation.tv_usec);
+                    int relations_per_sec = (float)count_relations / relation_diff * 1000000;
+                    std::cout << " (" << relations_per_sec << " Relations per second)   ";
+                }
+                else if (count_ways > 0) {
+                    float way_diff = (now.tv_sec - first_way.tv_sec) * 1000000 + (now.tv_usec - first_way.tv_usec);
+                    int ways_per_sec = (float)count_ways / way_diff * 1000000;
+                    std::cout << " (" << ways_per_sec << " Ways per second)   ";
+                }
+                else if (count_nodes > 0) {
+                    float node_diff = (now.tv_sec - first_node.tv_sec) * 1000000 + (now.tv_usec - first_node.tv_usec);
+                    int nodes_per_sec = (float)count_nodes / node_diff * 1000000;
+                    std::cout << " (" << nodes_per_sec << " Nodes per second)   ";
+                }
+
                 std::cout << "\r";
                 std::cout.flush();
             }
@@ -69,7 +92,7 @@ namespace Osmium {
              * @param s Step, after how many nodes/ways/relations the display
              *          should be updated. (default 1000).
              */
-            Progress(int s=1000) : Base(), count_nodes(0), count_ways(0), count_relations(0), step(s), is_a_tty(false) {
+            Progress(int s=1000) : Base(), count_nodes(0), count_ways(0), count_relations(0), step(s), is_a_tty(false), first_node(), first_way(), first_relation() {
                 if (isatty(1)) {
                     is_a_tty = true;
                 }
@@ -91,18 +114,27 @@ namespace Osmium {
             }
 
             void node(const Osmium::OSM::Node* /*object*/) {
+                if(first_node.tv_sec == 0) {
+                    gettimeofday(&first_node, 0);
+                }
                 if (is_a_tty && ++count_nodes % step == 0) {
                     update_display();
                 }
             }
 
             void way(const Osmium::OSM::Way* /*object*/) {
+                if(first_way.tv_sec == 0) {
+                    gettimeofday(&first_way, 0);
+                }
                 if (is_a_tty && ++count_ways % step == 0) {
                     update_display();
                 }
             }
 
             void relation(const Osmium::OSM::Relation* /*object*/) {
+                if(first_relation.tv_sec == 0) {
+                    gettimeofday(&first_relation, 0);
+                }
                 if (is_a_tty && ++count_relations % step == 0) {
                     update_display();
                 }
@@ -111,6 +143,25 @@ namespace Osmium {
             void final() const {
                 if (is_a_tty) {
                     update_display();
+                    std::cout << std::endl;
+
+                    std::cout << "  Average: ";
+
+                    timeval now;
+                    gettimeofday(&now, 0);
+
+                    float node_diff = (first_way.tv_sec - first_node.tv_sec) * 1000000 + (first_way.tv_usec - first_node.tv_usec);
+                    int nodes_per_sec = (float)count_nodes / node_diff * 1000000;
+                    std::cout << nodes_per_sec << " Nodes, ";
+
+                    float way_diff = (first_relation.tv_sec - first_way.tv_sec) * 1000000 + (first_relation.tv_usec - first_way.tv_usec);
+                    int ways_per_sec = (float)count_ways / way_diff * 1000000;
+                    std::cout << ways_per_sec << " Ways and ";
+
+                    float relation_diff = (now.tv_sec - first_relation.tv_sec) * 1000000 + (now.tv_usec - first_relation.tv_usec);
+                    int relations_per_sec = (float)count_relations / relation_diff * 1000000;
+                    std::cout << relations_per_sec << " Relations per second";
+
                     show_cursor();
                     std::cout << std::endl;
                     std::cout.flush();
