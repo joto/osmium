@@ -75,9 +75,18 @@ namespace Osmium {
             std::ostream& write_to_stream(std::ostream& out, AsWKB, bool with_srid=false) const {
                 write_binary_wkb_header(out, with_srid, wkbLineString);
                 write_binary<uint32_t>(out, m_way_node_list->size());
-                for (Osmium::OSM::WayNodeList::const_iterator it = m_way_node_list->begin(); it != m_way_node_list->end(); ++it) {
-                    write_binary<double>(out, it->lon());
-                    write_binary<double>(out, it->lat());
+                if (m_reverse) {
+                    for (Osmium::OSM::WayNodeList::const_reverse_iterator it = m_way_node_list->rbegin(); 
+                        it != m_way_node_list->rend(); ++it) {
+                        write_binary<double>(out, it->lon());
+                        write_binary<double>(out, it->lat());
+                    }
+                } else {
+                    for (Osmium::OSM::WayNodeList::const_iterator it = m_way_node_list->begin(); 
+                        it != m_way_node_list->end(); ++it) {
+                        write_binary<double>(out, it->lon());
+                        write_binary<double>(out, it->lat());
+                    }
                 }
                 return out;
             }
@@ -85,9 +94,18 @@ namespace Osmium {
             std::ostream& write_to_stream(std::ostream& out, AsHexWKB, bool with_srid=false) const {
                 write_hex_wkb_header(out, with_srid, wkbLineString);
                 write_hex<uint32_t>(out, m_way_node_list->size());
-                for (Osmium::OSM::WayNodeList::const_iterator it = m_way_node_list->begin(); it != m_way_node_list->end(); ++it) {
-                    write_hex<double>(out, it->lon());
-                    write_hex<double>(out, it->lat());
+                if (m_reverse) {
+                    for (Osmium::OSM::WayNodeList::const_reverse_iterator it = m_way_node_list->rbegin(); 
+                        it != m_way_node_list->rend(); ++it) {
+                        write_hex<double>(out, it->lon());
+                        write_hex<double>(out, it->lat());
+                    }
+                } else {
+                    for (Osmium::OSM::WayNodeList::const_iterator it = m_way_node_list->begin(); 
+                        it != m_way_node_list->end(); ++it) {
+                        write_hex<double>(out, it->lon());
+                        write_hex<double>(out, it->lat());
+                    }
                 }
                 return out;
             }
