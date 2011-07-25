@@ -125,6 +125,23 @@ namespace Osmium {
             }
 #endif // OSMIUM_WITH_SHPLIB
 
+#ifdef OSMIUM_WITH_OGR
+            /**
+             * Create OGR geometry of this Polygon.
+             *
+             * Caller takes ownership.
+             */
+            OGRPolygon* create_ogr_geometry() const {
+                OGRPolygon* p = new OGRPolygon();
+                OGRLinearRing* r = new OGRLinearRing();
+                for (Osmium::OSM::WayNodeList::const_reverse_iterator it = m_way_node_list->rbegin(); it != m_way_node_list->rend(); ++it) {
+                    r->addPoint(it->lon(), it->lat());
+                }
+                p->addRingDirectly(r);
+                return p;
+            }
+#endif // OSMIUM_WITH_OGR
+
 #ifdef OSMIUM_WITH_JAVASCRIPT
             v8::Local<v8::Object> js_instance() const {
                 return JavascriptTemplate::get<JavascriptTemplate>().create_instance((void *)this);

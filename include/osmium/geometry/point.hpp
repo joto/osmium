@@ -112,6 +112,18 @@ namespace Osmium {
             }
 #endif // OSMIUM_WITH_SHPLIB
 
+#ifdef OSMIUM_WITH_OGR
+            /**
+             * Create OGR geometry of this Point.
+             *
+             * Caller takes ownership.
+             */
+            OGRPoint* create_ogr_geometry() const {
+                OGRPoint* p = new OGRPoint(lon(), lat());
+                return p;
+            }
+#endif // OSMIUM_WITH_OGR
+
 #ifdef OSMIUM_WITH_JAVASCRIPT
             v8::Local<v8::Object> js_instance() const {
                 return JavascriptTemplate::get<JavascriptTemplate>().create_instance((void *)this);
