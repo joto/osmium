@@ -15,9 +15,9 @@ CXXFLAGS += -Wall -Wextra -Wredundant-decls -Wdisabled-optimization -pedantic -W
 # uncomment this if you want information on how long it took to build the multipolygons
 #CXXFLAGS += -DOSMIUM_WITH_MULTIPOLYGON_PROFILING
 
-CXXFLAGS_LIBXML2 = -DOSMIUM_WITH_OUTPUT_OSM_XML `xml2-config --cflags`
-
-CXXFLAGS_SHAPE = -DOSMIUM_WITH_SHPLIB -DOSMIUM_WITH_GEOS $(shell geos-config --cflags)
+CXXFLAGS_SHAPE   = -DOSMIUM_WITH_SHPLIB -DOSMIUM_WITH_GEOS $(shell geos-config --cflags)
+CXXFLAGS_LIBXML2 = -DOSMIUM_WITH_OUTPUT_OSM_XML $(shell xml2-config --cflags)
+CXXFLAGS_OGR     = -DOSMIUM_WITH_OGR $(shell gdal-config --cflags)
 
 CXXFLAGS += -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 
@@ -30,9 +30,10 @@ LIB_SQLITE   = -lsqlite3
 LIB_V8       = -lv8
 LIB_SHAPE    = -lshp $(shell geos-config --libs)
 LIB_PROTOBUF = -lz -lprotobuf-lite -losmpbf
-LIB_XML2     = `xml2-config --libs`
+LIB_XML2     = $(shell xml2-config --libs)
+LIB_OGR      = $(shell gdal-config --libs)
 
-PROGRAMS = osmium_sizeof osmium_debug osmium_stats osmium_find_bbox osmium_time osmium_progress osmium_convert osmium_toshape nodedensity
+PROGRAMS = osmium_sizeof osmium_debug osmium_stats osmium_find_bbox osmium_time osmium_progress osmium_convert osmium_toogr osmium_toshape nodedensity
 
 .PHONY: all clean
 
@@ -46,6 +47,9 @@ osmium_debug: osmium_debug.cpp
 
 osmium_toshape: osmium_toshape.cpp
 	$(CXX) $(CXXFLAGS) $(CXXFLAGS_SHAPE) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_SHAPE)
+
+osmium_toogr: osmium_toogr.cpp
+	$(CXX) $(CXXFLAGS) $(CXXFLAGS_OGR) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_OGR)
 
 osmium_stats: osmium_stats.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_SQLITE)
