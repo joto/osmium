@@ -26,10 +26,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <sstream>
 #include <iomanip>
 
-#ifdef OSMIUM_WITH_SHPLIB
-# include <shapefil.h>
-#endif // OSMIUM_WITH_SHPLIB
-
 #ifdef OSMIUM_WITH_GEOS
 # include <geos/geom/Point.h>
 #endif // OSMIUM_WITH_GEOS
@@ -93,8 +89,9 @@ namespace Osmium {
 
 #ifdef OSMIUM_WITH_GEOS
             /**
-             * Returns the GEOS geometry of the point.
-             * Caller takes ownership of the pointer.
+             * Creates GEOS geometry of this Point.
+             *
+             * Caller takes ownership.
              */
             geos::geom::Point* create_geos_geometry() const {
                 return Osmium::Geometry::geos_geometry_factory()->createPoint(m_position);
@@ -102,7 +99,13 @@ namespace Osmium {
 #endif // OSMIUM_WITH_GEOS
 
 #ifdef OSMIUM_WITH_SHPLIB
-            SHPObject *create_shp_object() const {
+            /**
+             * Create Shapelib geometry of this Point.
+             *
+             * Caller takes ownership. You have to call
+             * SHPDestroyObject() with this geometry when you are done.
+             */
+            SHPObject* create_shp_object() const {
                 double x = lon();
                 double y = lat();
                 return SHPCreateSimpleObject(SHPT_POINT, 1, &x, &y, NULL);

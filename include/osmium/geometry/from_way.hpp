@@ -22,10 +22,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
-#ifdef OSMIUM_WITH_SHPLIB
-# include <shapefil.h>
-#endif // OSMIUM_WITH_SHPLIB
-
 #include <osmium/geometry.hpp>
 #include <osmium/osm/way.hpp>
 
@@ -35,7 +31,7 @@ namespace Osmium {
 
         class FromWay : public Geometry {
 
-        public:
+        protected:
 
             FromWay(const Osmium::OSM::WayNodeList& way_node_list,
                     bool reverse=false,
@@ -47,10 +43,12 @@ namespace Osmium {
 
 #ifdef OSMIUM_WITH_SHPLIB
             /**
-            * Create a SHPObject for this way and return it. You have to call
-            * SHPDestroyObject() with this object when you are done.
-            */
-            SHPObject *create_line_or_polygon(int shp_type) const {
+             * Create a SHPObject for this way and return it.
+             *
+             * Caller takes ownership. You have to call
+             * SHPDestroyObject() with this geometry when you are done.
+             */
+            SHPObject* create_line_or_polygon(int shp_type) const {
                 if (!m_way_node_list->has_position()) {
                     throw std::runtime_error("node coordinates not available for building way geometry");
                 }
@@ -97,8 +95,6 @@ namespace Osmium {
                 return SHPCreateSimpleObject(shp_type, lon_checked.size(), &(lon_checked[0]), &(lat_checked[0]), NULL);
             }
 #endif // OSMIUM_WITH_SHPLIB
-
-        protected:
 
             const Osmium::OSM::WayNodeList* m_way_node_list;
             const bool m_reverse;

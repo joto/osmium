@@ -24,10 +24,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <algorithm>
 
-#ifdef OSMIUM_WITH_SHPLIB
-# include <shapefil.h>
-#endif // OSMIUM_WITH_SHPLIB
-
 #include <osmium/geometry/from_way.hpp>
 
 namespace Osmium {
@@ -108,10 +104,11 @@ namespace Osmium {
 
 #ifdef OSMIUM_WITH_GEOS
             /**
-             * Returns the GEOS geometry of the LineString.
-             * Caller takes ownership of the pointer.
+             * Create GEOS geometry of this LineString.
+             *
+             * Caller takes ownership.
              */
-            geos::geom::Geometry *create_geos_geometry() const {
+            geos::geom::Geometry* create_geos_geometry() const {
                 try {
                     std::vector<geos::geom::Coordinate>* c = new std::vector<geos::geom::Coordinate>;
                     if (m_reverse) {
@@ -136,7 +133,13 @@ namespace Osmium {
 #endif // OSMIUM_WITH_GEOS
 
 #ifdef OSMIUM_WITH_SHPLIB
-            SHPObject *create_shp_object() const {
+            /**
+             * Create Shapelib geometry of this LineString.
+             *
+             * Caller takes ownership. You have to call
+             * SHPDestroyObject() with this geometry when you are done.
+             */
+            SHPObject* create_shp_object() const {
                 return create_line_or_polygon(SHPT_ARC);
             }
 #endif // OSMIUM_WITH_SHPLIB

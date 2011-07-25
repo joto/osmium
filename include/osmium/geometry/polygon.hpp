@@ -24,10 +24,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <algorithm>
 
-#ifdef OSMIUM_WITH_SHPLIB
-# include <shapefil.h>
-#endif // OSMIUM_WITH_SHPLIB
-
 #include <osmium/geometry/from_way.hpp>
 #include <osmium/exceptions.hpp>
 
@@ -97,10 +93,11 @@ namespace Osmium {
 
 #ifdef OSMIUM_WITH_GEOS
             /**
-             * Returns the GEOS geometry of the Polygon.
-             * Caller takes ownership of the pointer.
+             * Creates GEOS geometry of this Polygon.
+             *
+             * Caller takes ownership.
              */
-            geos::geom::Geometry *create_geos_geometry() const {
+            geos::geom::Geometry* create_geos_geometry() const {
                 try {
                     std::vector<geos::geom::Coordinate>* c = new std::vector<geos::geom::Coordinate>;
                     for (Osmium::OSM::WayNodeList::const_iterator it = m_way_node_list->begin(); it != m_way_node_list->end(); ++it) {
@@ -117,7 +114,13 @@ namespace Osmium {
 #endif // OSMIUM_WITH_GEOS
 
 #ifdef OSMIUM_WITH_SHPLIB
-            SHPObject *create_shp_object() const {
+            /**
+             * Create Shapelib geometry of this Polygon.
+             *
+             * Caller takes ownership. You have to call
+             * SHPDestroyObject() with this geometry when you are done.
+             */
+            SHPObject* create_shp_object() const {
                 return create_line_or_polygon(SHPT_POLYGON);
             }
 #endif // OSMIUM_WITH_SHPLIB
