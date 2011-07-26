@@ -110,6 +110,7 @@ namespace Osmium {
 #include <osmium/geometry/null.hpp>
 #include <osmium/geometry/point.hpp>
 #include <osmium/geometry/linestring.hpp>
+#include <osmium/geometry/polygon.hpp>
 #include <osmium/geometry/multipolygon.hpp>
 #include <osmium/osmfile.hpp>
 #include <osmium/input.hpp>

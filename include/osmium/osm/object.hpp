@@ -221,7 +221,7 @@ namespace Osmium {
             virtual void reset() {
                 m_id        = 0;
                 m_version   = 0;
-                m_uid       = 0;
+                m_uid       = -1; // to be compatible with Osmosis we use -1 for unknown user id
                 m_changeset = 0;
                 m_timestamp = 0;
                 m_user[0]   = '\0';

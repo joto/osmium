@@ -22,10 +22,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
-#ifdef OSMIUM_WITH_SHPLIB
-# include <shapefil.h>
-#endif // OSMIUM_WITH_SHPLIB
-
 #ifdef OSMIUM_WITH_GEOS
 # include <geos/io/WKBWriter.h>
 #endif // OSMIUM_WITH_GEOS
@@ -46,7 +42,10 @@ namespace Osmium {
 
 #ifdef OSMIUM_WITH_GEOS
 # ifdef OSMIUM_WITH_SHPLIB
-            void dump_geometry(const geos::geom::Geometry *g, std::vector<int>& part_start_list, std::vector<double>& x_list, std::vector<double>& y_list) const {
+
+        private:
+
+            void dump_geometry(const geos::geom::Geometry* g, std::vector<int>& part_start_list, std::vector<double>& x_list, std::vector<double>& y_list) const {
                 switch (g->getGeometryTypeId()) {
                     case geos::geom::GEOS_MULTIPOLYGON:
                     case geos::geom::GEOS_MULTILINESTRING: {
@@ -79,6 +78,14 @@ namespace Osmium {
                 }
             }
 
+        public:
+
+            /**
+             * Create Shapelib geometry of this MultiPolygon.
+             *
+             * Caller takes ownership. You have to call
+             * SHPDestroyObject() with this geometry when you are done.
+             */
             SHPObject *create_shp_object() const {
                 if (!m_area->get_geometry()) {
                     throw Osmium::Exception::IllegalGeometry();

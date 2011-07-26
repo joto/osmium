@@ -25,6 +25,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #ifdef OSMIUM_WITH_SHPLIB
 
 #include <fstream>
+#include <sstream>
 #include <shapefil.h>
 
 namespace Osmium {
@@ -72,51 +73,6 @@ namespace Osmium {
                 int m_decimals;
 
             };
-
-            std::vector<Field> m_fields;
-
-            // handles to the shapelib objects
-            SHPHandle m_shp_handle;
-            DBFHandle m_dbf_handle;
-
-            /// entity number of the shape we are currently writing
-            int m_current_shape;
-
-            // define copy constructor and assignment operator as private
-            Shapefile(const Shapefile&);
-            Shapefile& operator=(const Shapefile&);
-
-        protected:
-
-            /**
-             * The constructor for Shapefile is proteced. Use one of
-             * PointShapefile, LineShapefile, or PolygonShapefile.
-             */
-            Shapefile(std::string& filename, int type) : m_fields(), m_current_shape(0) {
-                m_shp_handle = SHPCreate(filename.c_str(), type);
-                if (m_shp_handle == 0) {
-                    throw std::runtime_error("Can't open shapefile: " + filename + ".shp/shx");
-                }
-                m_dbf_handle = DBFCreate(filename.c_str());
-                if (m_dbf_handle == 0) {
-                    throw std::runtime_error("Can't open shapefile: " + filename + ".dbf");
-                }
-
-                std::ofstream file;
-                file.open((filename + ".prj").c_str());
-                if (file.fail()) {
-                    throw std::runtime_error("Can't open shapefile: " + filename + ".prj");
-                }
-                file << "GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"Degree\",0.017453292519943295]]" << std::endl;
-                file.close();
-
-                file.open((filename + ".cpg").c_str());
-                if (file.fail()) {
-                    throw std::runtime_error("Can't open shapefile: " + filename + ".cpg");
-                }
-                file << "UTF-8" << std::endl;
-                file.close();
-            }
 
         public:
 
@@ -207,8 +163,15 @@ namespace Osmium {
                     throw Osmium::Exception::IllegalGeometry();
                 }
                 m_current_shape = SHPWriteObject(m_shp_handle, -1, shp_object);
+                if (m_current_shape == -1 && errno == EINVAL) {
+                    // second chance if likely cause is having reached the 2GB limit
+                    close();
+                    m_sequence_number++;
+                    open();
+                    m_current_shape = SHPWriteObject(m_shp_handle, -1, shp_object);
+                }
                 if (m_current_shape == -1) {
-                    throw std::runtime_error("error writing to shapefile. too large?");
+                    throw std::runtime_error("error writing to shapefile");
                 }
                 SHPDestroyObject(shp_object);
             }
@@ -379,6 +342,83 @@ namespace Osmium {
             };
 
 #endif // OSMIUM_WITH_JAVASCRIPT
+
+        protected:
+
+            /**
+             * The constructor for Shapefile is protected. Use one of
+             * PointShapefile, LineShapefile, or PolygonShapefile.
+             */
+            Shapefile(std::string& filename, int type) : m_filename_base(filename), m_fields(), m_type(type), m_sequence_number(0) {
+                open();
+            }
+
+        private:
+
+            /// base filename
+            std::string m_filename_base;
+
+            /// fields in DBF
+            std::vector<Field> m_fields;
+
+            // handles to the shapelib objects
+            SHPHandle m_shp_handle;
+            DBFHandle m_dbf_handle;
+
+            /// entity number of the shape we are currently writing
+            int m_current_shape;
+
+            /// shapefile type
+            int m_type;
+
+            /// shapefile sequence number for auto-overflow (0=first)
+            int m_sequence_number;
+
+            // define copy constructor and assignment operator as private
+            Shapefile(const Shapefile&);
+            Shapefile& operator=(const Shapefile&);
+
+            /**
+             * Open and initialize all files belonging to shapefile (.shp/shx/dbf/prj/cpg).
+             * Uses m_filename_base and m_sequence_number plus suffix to build filename.
+             */
+            void open() {
+                std::ostringstream filename;
+                filename << m_filename_base;
+                if (m_sequence_number) {
+                    filename << "_" << m_sequence_number;
+                }
+
+                m_shp_handle = SHPCreate(filename.str().c_str(), m_type);
+                if (m_shp_handle == 0) {
+                    throw std::runtime_error("Can't open shapefile: " + filename.str() + ".shp/shx");
+                }
+                m_dbf_handle = DBFCreate(filename.str().c_str());
+                if (m_dbf_handle == 0) {
+                    throw std::runtime_error("Can't open shapefile: " + filename.str() + ".dbf");
+                }
+
+                std::ofstream file;
+                file.open((filename.str() + ".prj").c_str());
+                if (file.fail()) {
+                    throw std::runtime_error("Can't open shapefile: " + filename.str() + ".prj");
+                }
+                file << "GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"Degree\",0.017453292519943295]]" << std::endl;
+                file.close();
+
+                file.open((filename.str() + ".cpg").c_str());
+                if (file.fail()) {
+                    throw std::runtime_error("Can't open shapefile: " + filename.str() + ".cpg");
+                }
+                file << "UTF-8" << std::endl;
+                file.close();
+
+                // If any fields are defined already, add them here. This will do nothing if
+                // called from the constructor.
+                for (std::vector<Field>::const_iterator it = m_fields.begin(); it != m_fields.end(); ++it) {
+                    DBFAddField(m_dbf_handle, it->name().c_str(), it->type(), it->width(), it->decimals());
+                }
+            }
 
         }; // class Shapefile
 

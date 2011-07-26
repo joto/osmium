@@ -219,12 +219,15 @@ namespace Osmium {
 
             v8::Handle<v8::Value> js_reverse_geom() const;
 
+            v8::Handle<v8::Value> js_polygon_geom() const;
+
             struct JavascriptTemplate : public Osmium::OSM::Object::JavascriptTemplate {
 
                 JavascriptTemplate() : Osmium::OSM::Object::JavascriptTemplate() {
                     js_template->SetAccessor(v8::String::NewSymbol("nodes"),        accessor_getter<Way, &Way::js_nodes>);
                     js_template->SetAccessor(v8::String::NewSymbol("geom"),         accessor_getter<Way, &Way::js_geom>);
                     js_template->SetAccessor(v8::String::NewSymbol("reverse_geom"), accessor_getter<Way, &Way::js_reverse_geom>);
+                    js_template->SetAccessor(v8::String::NewSymbol("polygon_geom"), accessor_getter<Way, &Way::js_polygon_geom>);
                 }
 
             };

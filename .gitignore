@@ -1,15 +1,3 @@
 core
 doc
-examples/nodedensity
-examples/osmium_convert
-examples/osmium_debug
-examples/osmium_find_bbox
-examples/osmium_progress
-examples/osmium_sizeof
-examples/osmium_stats
-examples/osmium_time
-examples/osmium_toshape
-osmjs/osmjs
-test/tmp/
-test/tests
 check-includes-report
