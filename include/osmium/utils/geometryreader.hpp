@@ -29,19 +29,19 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <osmium/geometry/point.hpp>
 
 
-typedef Osmium::Storage::Mmap<Osmium::OSM::Position> storage_mmap_t;
-typedef Osmium::Handler::CoordinatesForWays<storage_mmap_t, storage_mmap_t> cfw_handler_t;
+typedef Osmium::Storage::FixedArray<Osmium::OSM::Position> storage_array_t;
+typedef Osmium::Handler::CoordinatesForWays<storage_array_t, storage_array_t> cfw_handler_t;
 
 namespace Osmium {
 
     class OsmGeometryReader : public Osmium::Handler::Base {
         std::vector<geos::geom::Geometry*> outer;
-        storage_mmap_t store_pos;
-        storage_mmap_t store_neg;
+        storage_array_t store_pos;
+        storage_array_t store_neg;
         cfw_handler_t* handler_cfw;
 
     public:
-        OsmGeometryReader() : Base() {
+        OsmGeometryReader() : Base(), store_pos(5000), store_neg(1000) {
             handler_cfw = new cfw_handler_t(store_pos, store_neg);
         }
 
