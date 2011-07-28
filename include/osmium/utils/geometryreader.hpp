@@ -193,7 +193,13 @@ namespace Osmium {
                 } else {
                     // if this is an end-line
                     if(0 == strncmp(line, "END", 3)) {
-                        // build a polygon from the coordniate vector
+                        // check if the polygon is closed
+                        if(c->front() != c->back()) {
+                            std::cerr << "auto-closing unclosed polygon" << std::endl;
+                            c->push_back(c->front());
+                        }
+
+                        // build a polygon from the coordinate vector
                         geos::geom::Geometry* poly;
                         try {
                             poly = f->createPolygon(
