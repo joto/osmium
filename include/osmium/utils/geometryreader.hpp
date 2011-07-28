@@ -90,8 +90,9 @@ namespace Osmium {
         geos::geom::Geometry *buildGeom() const {
             // shorthand to the geometry factory
             geos::geom::GeometryFactory *f = Osmium::Geometry::geos_geometry_factory();
+            geos::geom::MultiPolygon *outerPoly;
             try {
-                geos::geom::MultiPolygon *outerPoly = f->createMultiPolygon(outer);
+                outerPoly = f->createMultiPolygon(outer);
             } catch(geos::util::GEOSException e) {
                 std::cerr << "error creating multipolygon: " << e.what() << std::endl;
                 return NULL;
@@ -240,21 +241,21 @@ namespace Osmium {
             fclose(fp);
 
             // build MultiPolygons from the vectors of outer and inner polygons
+            geos::geom::Geometry *poly;
             try {
                 geos::geom::MultiPolygon *outerPoly = f->createMultiPolygon(outer);
                 geos::geom::MultiPolygon *innerPoly = f->createMultiPolygon(inner);
 
                 // generate a MultiPolygon containing the difference of those two
-                geos::geom::Geometry *poly = outerPoly->difference(innerPoly);
-                );
+                poly = outerPoly->difference(innerPoly);
+
+                // destroy the both MultiPolygons
+                f->destroyGeometry(outerPoly);
+                f->destroyGeometry(innerPoly);
             } catch(geos::util::GEOSException e) {
                 std::cerr << "error creating differential multipolygon: " << e.what() << std::endl;
                 return NULL;
             }
-
-            // destroy the both MultiPolygons
-            f->destroyGeometry(outerPoly);
-            f->destroyGeometry(innerPoly);
 
             // and return their difference
             return poly;
