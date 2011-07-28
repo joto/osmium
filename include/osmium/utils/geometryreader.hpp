@@ -72,6 +72,10 @@ namespace Osmium {
             }
 
             geos::geom::Geometry *geom = way->create_geos_polygon_geometry();
+            if(!geom) {
+                std::cerr << "error creating polygon from way" << std::endl;
+                return;
+            }
             outer.push_back(geom);
         }
 
@@ -86,7 +90,12 @@ namespace Osmium {
         geos::geom::Geometry *buildGeom() const {
             // shorthand to the geometry factory
             geos::geom::GeometryFactory *f = Osmium::Geometry::geos_geometry_factory();
-            geos::geom::MultiPolygon *outerPoly = f->createMultiPolygon(outer);
+            try {
+                geos::geom::MultiPolygon *outerPoly = f->createMultiPolygon(outer);
+            } catch(geos::util::GEOSException e) {
+                std::cerr << "error creating multipolygon: " << e.what() << std::endl;
+                return NULL;
+            }
             return outerPoly;
         }
     };
@@ -184,12 +193,18 @@ namespace Osmium {
                     // if this is an end-line
                     if(0 == strncmp(line, "END", 3)) {
                         // build a polygon from the coordniate vector
-                        geos::geom::Geometry* poly = f->createPolygon(
-                            f->createLinearRing(
-                                f->getCoordinateSequenceFactory()->create(c)
-                            ),
-                            NULL
-                        );
+                        geos::geom::Geometry* poly;
+                        try {
+                            poly = f->createPolygon(
+                                f->createLinearRing(
+                                    f->getCoordinateSequenceFactory()->create(c)
+                                ),
+                                NULL
+                            );
+                        } catch(geos::util::GEOSException e) {
+                            std::cerr << "error creating polygon: " << e.what() << std::endl;
+                            return NULL;
+                        }
 
                         // add it to the appropriate polygon vector
                         if(isinner) {
@@ -225,11 +240,17 @@ namespace Osmium {
             fclose(fp);
 
             // build MultiPolygons from the vectors of outer and inner polygons
-            geos::geom::MultiPolygon *outerPoly = f->createMultiPolygon(outer);
-            geos::geom::MultiPolygon *innerPoly = f->createMultiPolygon(inner);
+            try {
+                geos::geom::MultiPolygon *outerPoly = f->createMultiPolygon(outer);
+                geos::geom::MultiPolygon *innerPoly = f->createMultiPolygon(inner);
 
-            // generate a MultiPolygon containing the difference of those two
-            geos::geom::Geometry *poly = outerPoly->difference(innerPoly);
+                // generate a MultiPolygon containing the difference of those two
+                geos::geom::Geometry *poly = outerPoly->difference(innerPoly);
+                );
+            } catch(geos::util::GEOSException e) {
+                std::cerr << "error creating differential multipolygon: " << e.what() << std::endl;
+                return NULL;
+            }
 
             // destroy the both MultiPolygons
             f->destroyGeometry(outerPoly);
