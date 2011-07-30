@@ -193,6 +193,11 @@ namespace Osmium {
                 } else {
                     // if this is an end-line
                     if(0 == strncmp(line, "END", 3)) {
+                        if(!c) {
+                            std::cerr << "empty polygon file" << std::endl;
+                            return NULL;
+                        }
+
                         // check if the polygon is closed
                         if(c->front() != c->back()) {
                             std::cerr << "auto-closing unclosed polygon" << std::endl;
