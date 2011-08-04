@@ -365,23 +365,32 @@ namespace Osmium {
             */
             bool read_blob_header() {
                 unsigned char size_in_network_byte_order[4];
-                ssize_t bytes_read = read(this->get_fd(), size_in_network_byte_order, sizeof(size_in_network_byte_order));
-                if (bytes_read != sizeof(size_in_network_byte_order)) {
-                    if (bytes_read == 0) {
+                int size = sizeof(size_in_network_byte_order);
+                int offset = 0;
+                while(offset < size) {
+                    int nread = read(this->get_fd(), size_in_network_byte_order + offset, size - offset);
+                    if (nread == -1) {
+                        throw std::runtime_error("read error");
+                    } else if (nread == 0) {
                         return false; // EOF
                     }
-                    throw std::runtime_error("read error");
+                    offset += nread;
                 }
 
-                int size = convert_from_network_byte_order(size_in_network_byte_order);
+                size = convert_from_network_byte_order(size_in_network_byte_order);
                 if (size > OSMPBF::max_blob_header_size || size < 0) {
                     std::ostringstream errmsg;
                     errmsg << "BlobHeader size invalid:" << size;
                     throw std::runtime_error(errmsg.str());
                 }
 
-                if (read(this->get_fd(), buffer, size) != size) {
-                    throw std::runtime_error("failed to read BlobHeader");
+                offset = 0;
+                while(offset < size) {
+                    int nread = read(this->get_fd(), buffer + offset, size - offset);
+                    if (nread < 1) {
+                        throw std::runtime_error("failed to read BlobHeader");
+                    }
+                    offset += nread;
                 }
 
                 if (!pbf_blob_header.ParseFromArray(buffer, size)) {
@@ -400,8 +409,13 @@ namespace Osmium {
                     errmsg << "invalid blob size: " << size;
                     throw std::runtime_error(errmsg.str());
                 }
-                if (read(this->get_fd(), buffer, size) != size) {
-                    throw std::runtime_error("failed to read blob");
+                int offset = 0;
+                while(offset < size) {
+                    int nread = read(this->get_fd(), buffer + offset, size - offset);
+                    if (nread < 1) { 
+                        throw std::runtime_error("failed to read blob");
+                    }
+                    offset += nread;
                 }
                 if (!blob.ParseFromArray(buffer, size)) {
                     throw std::runtime_error("failed to parse blob");

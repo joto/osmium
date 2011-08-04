@@ -37,7 +37,7 @@ namespace Osmium {
     }
 
     Osmium::Output::Base *OSMFile::create_output_file() {
-        Osmium::Output::Base *output;
+        Osmium::Output::Base *output = NULL;
 
         if (m_encoding->is_pbf()) {
             output = new Osmium::Output::PBF(*this);
