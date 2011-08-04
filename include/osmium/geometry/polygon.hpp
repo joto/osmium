@@ -43,7 +43,7 @@ namespace Osmium {
              */
             Polygon(const Osmium::OSM::WayNodeList& way_node_list,
                     osm_object_id_t id=0)
-                  : FromWay(way_node_list, false, id) {
+                : FromWay(way_node_list, false, id) {
                 if (!way_node_list.is_closed()) {
                     throw Osmium::Exception::IllegalGeometry();
                 }

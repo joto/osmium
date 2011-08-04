@@ -31,7 +31,7 @@ namespace Osmium {
 
         /**
         * An OSM tag.
-        * 
+        *
         * Tag keys and values are not allowed to be longer than 255 characters
         * each, but this is not checked by this class.
         */

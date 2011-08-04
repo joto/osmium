@@ -124,8 +124,8 @@ namespace Osmium {
                     return static_cast<geos::geom::Geometry*>(Osmium::Geometry::geos_geometry_factory()->createLineString(cs));
                 } catch (const geos::util::GEOSException& exc) {
                     if (Osmium::debug()) {
-                        std::cerr << "error building geometry for way #" << id() << 
-                            " (returning NULL): " << exc.what();
+                        std::cerr << "error building geometry for way #" << id() <<
+                                  " (returning NULL): " << exc.what();
                     }
                     return NULL;
                 }
