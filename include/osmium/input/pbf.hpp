@@ -203,8 +203,8 @@ namespace Osmium {
                     }
 
                     this->node()->position(Osmium::OSM::Position(
-                                             ( (double) pbf_node.lon() * pbf_primitive_block.granularity() + pbf_primitive_block.lon_offset() ) / OSMPBF::lonlat_resolution,
-                                             ( (double) pbf_node.lat() * pbf_primitive_block.granularity() + pbf_primitive_block.lat_offset() ) / OSMPBF::lonlat_resolution));
+                                               ( (double) pbf_node.lon() * pbf_primitive_block.granularity() + pbf_primitive_block.lon_offset() ) / OSMPBF::lonlat_resolution,
+                                               ( (double) pbf_node.lat() * pbf_primitive_block.granularity() + pbf_primitive_block.lat_offset() ) / OSMPBF::lonlat_resolution));
                     this->handle_node();
                 }
             }
@@ -262,7 +262,7 @@ namespace Osmium {
                             this->node()->visible(pbf_relation.info().visible());
                         }
                     }
- 
+
                     Osmium::OSM::TagList& tags = this->relation()->tags();
                     for (int tag=0; tag < pbf_relation.keys_size(); tag++) {
                         tags.add(stringtable.s( pbf_relation.keys(tag) ).data(),
@@ -329,8 +329,8 @@ namespace Osmium {
                     last_dense_latitude  += dense.lat(entity);
                     last_dense_longitude += dense.lon(entity);
                     this->node()->position(Osmium::OSM::Position(
-                                             ( (double) last_dense_longitude * pbf_primitive_block.granularity() + pbf_primitive_block.lon_offset() ) / OSMPBF::lonlat_resolution,
-                                             ( (double) last_dense_latitude  * pbf_primitive_block.granularity() + pbf_primitive_block.lat_offset() ) / OSMPBF::lonlat_resolution));
+                                               ( (double) last_dense_longitude * pbf_primitive_block.granularity() + pbf_primitive_block.lon_offset() ) / OSMPBF::lonlat_resolution,
+                                               ( (double) last_dense_latitude  * pbf_primitive_block.granularity() + pbf_primitive_block.lat_offset() ) / OSMPBF::lonlat_resolution));
 
                     while (last_dense_tag < dense.keys_vals_size()) {
                         int tag_key_pos = dense.keys_vals(last_dense_tag);
@@ -339,7 +339,7 @@ namespace Osmium {
                             last_dense_tag++;
                             break;
                         }
- 
+
                         Osmium::OSM::TagList& tags = this->node()->tags();
                         tags.add(stringtable.s(tag_key_pos).data(),
                                  stringtable.s(dense.keys_vals(last_dense_tag+1)).data());
@@ -365,23 +365,32 @@ namespace Osmium {
             */
             bool read_blob_header() {
                 unsigned char size_in_network_byte_order[4];
-                ssize_t bytes_read = read(this->get_fd(), size_in_network_byte_order, sizeof(size_in_network_byte_order));
-                if (bytes_read != sizeof(size_in_network_byte_order)) {
-                    if (bytes_read == 0) {
+                int size = sizeof(size_in_network_byte_order);
+                int offset = 0;
+                while (offset < size) {
+                    int nread = read(this->get_fd(), size_in_network_byte_order + offset, size - offset);
+                    if (nread == -1) {
+                        throw std::runtime_error("read error");
+                    } else if (nread == 0) {
                         return false; // EOF
                     }
-                    throw std::runtime_error("read error");
+                    offset += nread;
                 }
 
-                int size = convert_from_network_byte_order(size_in_network_byte_order);
+                size = convert_from_network_byte_order(size_in_network_byte_order);
                 if (size > OSMPBF::max_blob_header_size || size < 0) {
                     std::ostringstream errmsg;
                     errmsg << "BlobHeader size invalid:" << size;
                     throw std::runtime_error(errmsg.str());
                 }
 
-                if (read(this->get_fd(), buffer, size) != size) {
-                    throw std::runtime_error("failed to read BlobHeader");
+                offset = 0;
+                while (offset < size) {
+                    int nread = read(this->get_fd(), buffer + offset, size - offset);
+                    if (nread < 1) {
+                        throw std::runtime_error("failed to read BlobHeader");
+                    }
+                    offset += nread;
                 }
 
                 if (!pbf_blob_header.ParseFromArray(buffer, size)) {
@@ -400,8 +409,13 @@ namespace Osmium {
                     errmsg << "invalid blob size: " << size;
                     throw std::runtime_error(errmsg.str());
                 }
-                if (read(this->get_fd(), buffer, size) != size) {
-                    throw std::runtime_error("failed to read blob");
+                int offset = 0;
+                while (offset < size) {
+                    int nread = read(this->get_fd(), buffer + offset, size - offset);
+                    if (nread < 1) {
+                        throw std::runtime_error("failed to read blob");
+                    }
+                    offset += nread;
                 }
                 if (!blob.ParseFromArray(buffer, size)) {
                     throw std::runtime_error("failed to parse blob");

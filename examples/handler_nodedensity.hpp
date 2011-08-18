@@ -47,13 +47,13 @@ namespace Osmium {
         public:
 
             NodeDensity(int size = 1024,
-                    int min = 0,
-                    int max = 99999)
-                  : Base(),
-                    m_xsize(size*2),
-                    m_ysize(size),
-                    m_min(min),
-                    m_max(max) {
+                        int min = 0,
+                        int max = 99999)
+                : Base(),
+                  m_xsize(size*2),
+                  m_ysize(size),
+                  m_min(min),
+                  m_max(max) {
                 m_factor = m_ysize / 180;
                 m_node_count = static_cast<node_count_t*>(calloc(m_xsize * m_ysize, sizeof(node_count_t)));
                 m_max_count = 0;

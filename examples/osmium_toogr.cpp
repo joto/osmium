@@ -134,8 +134,8 @@ public:
                 Osmium::Geometry::Point point(*node);
 
                 OGRFeature* feature = OGRFeature::CreateFeature(m_layer_point->GetLayerDefn());
-                OGRPoint* ogrpoint = point.create_ogr_geometry(); 
-                feature->SetGeometry(ogrpoint); 
+                OGRPoint* ogrpoint = point.create_ogr_geometry();
+                feature->SetGeometry(ogrpoint);
                 feature->SetField("id", node->id());
                 feature->SetField("operator", node->tags().get_tag_by_key("operator"));
 
@@ -164,8 +164,8 @@ public:
                 Osmium::Geometry::LineString linestring(*way);
 
                 OGRFeature* feature = OGRFeature::CreateFeature(m_layer_linestring->GetLayerDefn());
-                OGRLineString* ogrlinestring = linestring.create_ogr_geometry(); 
-                feature->SetGeometry(ogrlinestring); 
+                OGRLineString* ogrlinestring = linestring.create_ogr_geometry();
+                feature->SetGeometry(ogrlinestring);
                 feature->SetField("id", way->id());
                 feature->SetField("type", highway);
 

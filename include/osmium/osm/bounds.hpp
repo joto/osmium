@@ -69,7 +69,7 @@ namespace Osmium {
 
             friend std::ostream& operator<<(std::ostream& out, const Bounds& bounds) {
                 out << '(' << bounds.bl().lon() << ',' << bounds.bl().lat() << ','
-                           << bounds.tr().lon() << ',' << bounds.tr().lat() << ')';
+                    << bounds.tr().lon() << ',' << bounds.tr().lat() << ')';
                 return out;
             }
 
