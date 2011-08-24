@@ -40,7 +40,7 @@ PROGRAMS = osmium_sizeof osmium_debug osmium_stats osmium_find_bbox osmium_time 
 all: $(PROGRAMS)
 
 osmium_sizeof: osmium_sizeof.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
+	$(CXX) $(CXXFLAGS) $(CXXFLAGS_LIBXML2) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_XML2)
 
 osmium_debug: osmium_debug.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
