@@ -50,6 +50,10 @@ libgd (for tagstats and nodedensity applications only)
     http://www.libgd.org/
     Debian/Ubuntu: libgd2-xpm-dev
 
+GDAL (for OGR support)
+    http://gdal.org/
+    Debian/Ubuntu: libgdal1-dev
+
 Expat (for parsing XML files)
     http://expat.sourceforge.net/
     Debian/Ubuntu: libexpat1-dev
@@ -78,6 +82,10 @@ Google protocol buffers (for PBF support)
 Doxygen (to build API documentation)
     http://www.stack.nl/~dimitri/doxygen/
     Debian/Ubuntu: doxygen
+
+libboost-test (for tests)
+    http://www.boost.org/doc/libs/1_47_0/libs/test/doc/html/index.html
+    Debian/Ubuntu: libboost-test-dev
 
 OSMPBF (for PBF support)
     https://github.com/joto/OSM-binary
