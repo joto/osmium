@@ -9,7 +9,7 @@ all:
 clean:
 	rm -fr doc/html
 
-install:
+install: doc
 	install -m 755 -g root -o root -d $(DESTDIR)/usr/include
 	install -m 755 -g root -o root -d $(DESTDIR)/usr/share/doc/libosmium-dev
 	install -m 644 -g root -o root README $(DESTDIR)/usr/share/doc/libosmium-dev/README
