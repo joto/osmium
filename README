@@ -38,6 +38,14 @@ zlib (for PBF support)
     http://www.zlib.net/
     Debian/Ubuntu: zlib1g-dev
 
+libboost-test (for tests)
+    http://www.boost.org/doc/libs/1_47_0/libs/test/doc/html/index.html
+    Debian/Ubuntu: libboost-test-dev
+    
+GDAL
+    http://gdal.org/
+    Debian/Ubuntu: libgdal1-dev
+
 shapelib (for shapefile support in osmjs)
     http://shapelib.maptools.org/
     Debian/Ubuntu: libshp-dev
