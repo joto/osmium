@@ -126,9 +126,9 @@ public:
         handler_cfw->init(meta);
     }
 
-    void node(Osmium::OSM::Node *node) {
+    void node(Osmium::OSM::Node* node) {
         handler_cfw->node(node);
-        const char *amenity = node->tags().get_tag_by_key("amenity");
+        const char* amenity = node->tags().get_tag_by_key("amenity");
         if (amenity && !strcmp(amenity, "post_box")) {
             try {
                 Osmium::Geometry::Point point(*node);
@@ -140,7 +140,7 @@ public:
                 feature->SetField("operator", node->tags().get_tag_by_key("operator"));
 
                 if (m_layer_point->CreateFeature(feature) != OGRERR_NONE) {
-                    std::cerr << "Failed to create feature in shapefile.\n";
+                    std::cerr << "Failed to create feature.\n";
                     exit(1);
                 }
 
@@ -156,9 +156,9 @@ public:
         handler_cfw->after_nodes();
     }
 
-    void way(Osmium::OSM::Way *way) {
+    void way(Osmium::OSM::Way* way) {
         handler_cfw->way(way);
-        const char *highway = way->tags().get_tag_by_key("highway");
+        const char* highway = way->tags().get_tag_by_key("highway");
         if (highway) {
             try {
                 Osmium::Geometry::LineString linestring(*way);
@@ -170,7 +170,7 @@ public:
                 feature->SetField("type", highway);
 
                 if (m_layer_linestring->CreateFeature(feature) != OGRERR_NONE) {
-                    std::cerr << "Failed to create feature in shapefile.\n";
+                    std::cerr << "Failed to create feature.\n";
                     exit(1);
                 }
 
