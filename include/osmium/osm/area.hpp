@@ -242,14 +242,12 @@ namespace Osmium {
 
         public:
 
-            osm_sequence_id_t num_nodes;
-            double           *lon; // XXX should this be a vector?
-            double           *lat;
+            WayNodeList m_node_list;
 
 #ifdef OSMIUM_WITH_GEOS
-            AreaFromWay(Way *way, geos::geom::Geometry *geom) : Area(geom) {
+            AreaFromWay(Way* way, geos::geom::Geometry* geom) : Area(geom) {
 #else
-            AreaFromWay(Way *way) : Area() {
+            AreaFromWay(Way* way) : Area() {
 #endif // OSMIUM_WITH_GEOS
                 id(way->id());
                 version(way->version());
@@ -259,22 +257,18 @@ namespace Osmium {
                 user(way->user());
 
                 tags(way->tags());
-
-                num_nodes = way->node_count();
-                lon = (double *) malloc(sizeof(double) * num_nodes);
-                lat = (double *) malloc(sizeof(double) * num_nodes);
-                if (!lon || !lat) {
-                    throw std::bad_alloc();
-                }
-                for (osm_sequence_id_t i=0; i < num_nodes; i++) {
-                    lon[i] = way->get_lon(i);
-                    lat[i] = way->get_lat(i);
-                }
+                m_node_list = way->nodes();
             }
 
             ~AreaFromWay() {
-                free(lat);
-                free(lon);
+            }
+
+            const WayNodeList& nodes() const {
+                return m_node_list;
+            }
+
+            WayNodeList& nodes() {
+                return m_node_list;
             }
 
             osm_object_type_t get_type() const {
@@ -305,7 +299,7 @@ namespace Osmium {
             std::string geometry_error_message;
 
             /// callback we should call when a multipolygon was completed
-            void (*callback)(Osmium::OSM::Area *);
+            void (*callback)(Osmium::OSM::Area*);
 
             /// whether we want to repair a broken geometry
             bool attempt_repair;
@@ -318,7 +312,7 @@ namespace Osmium {
                 return false;
             }
 
-            bool same_tags(const Object *a, const Object *b) {
+            bool same_tags(const Object* a, const Object* b) {
                 if ((a == NULL) || (b == NULL)) return false;
                 const TagList& at = a->tags();
                 const TagList& bt = b->tags();
@@ -340,7 +334,7 @@ namespace Osmium {
             }
 
             /** returns false if there was a collision, true otherwise */
-            bool merge_tags(Object *a, const Object *b) {
+            bool merge_tags(Object* a, const Object* b) {
                 bool rv = true;
                 TagList& at = a->tags();
                 const TagList& bt = b->tags();
@@ -363,7 +357,7 @@ namespace Osmium {
                 return rv;
             }
 
-            bool untagged(const Object *r) {
+            bool untagged(const Object* r) {
                 if (r == NULL) return true;
                 const TagList& tags = r->tags();
                 if (tags.empty()) return true;
@@ -378,7 +372,7 @@ namespace Osmium {
 
         public:
 
-            AreaFromRelation(Relation *r, bool b, int n, void (*callback)(Osmium::OSM::Area *), bool repair) : Area(), boundary(b), relation(r), callback(callback) {
+            AreaFromRelation(Relation* r, bool b, int n, void (*callback)(Osmium::OSM::Area*), bool repair) : Area(), boundary(b), relation(r), callback(callback) {
                 num_ways = n;
                 missing_ways = n;
 #ifdef OSMIUM_WITH_GEOS

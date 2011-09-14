@@ -178,12 +178,13 @@ namespace Osmium {
                     const Osmium::OSM::AreaFromWay* area_from_way = dynamic_cast<const Osmium::OSM::AreaFromWay*>(m_area);
                     if (area_from_way) {
                         v8::Local<v8::Array> polygon = v8::Array::New(1);
-                        v8::Local<v8::Array> ring = v8::Array::New(area_from_way->num_nodes);
-                        for (osm_sequence_id_t i=0; i < area_from_way->num_nodes; ++i) {
+                        v8::Local<v8::Array> ring = v8::Array::New(area_from_way->nodes().size());
+                        int n = 0;
+                        for (Osmium::OSM::WayNodeList::const_iterator it = area_from_way->nodes().begin(); it != area_from_way->nodes().end(); ++it) {
                             v8::Local<v8::Array> coord = v8::Array::New(2);
-                            coord->Set(0, v8::Number::New(area_from_way->lon[i]));
-                            coord->Set(1, v8::Number::New(area_from_way->lat[i]));
-                            ring->Set(i, coord);
+                            coord->Set(0, v8::Number::New(it->lon()));
+                            coord->Set(1, v8::Number::New(it->lat()));
+                            ring->Set(n++, coord);
                         }
                         polygon->Set(0, ring);
                         return scope.Close(polygon);
