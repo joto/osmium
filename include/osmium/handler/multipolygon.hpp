@@ -115,7 +115,8 @@ namespace Osmium {
                 if (way2areaidx_iterator == m_way2areaidx.end()) { // not in any relation
                     if (way->is_closed() && way->node_count() >= 4) { // way is closed and has enough nodes, build simple multipolygon
 #ifdef OSMIUM_WITH_GEOS
-                        Osmium::OSM::AreaFromWay* area = new Osmium::OSM::AreaFromWay(way, way->create_geos_geometry());
+                        Osmium::Geometry::Polygon polygon(*way);
+                        Osmium::OSM::AreaFromWay* area = new Osmium::OSM::AreaFromWay(way, polygon.create_geos_geometry());
 #else
                         Osmium::OSM::AreaFromWay* area = new Osmium::OSM::AreaFromWay(way);
 #endif // OSMIUM_WITH_GEOS

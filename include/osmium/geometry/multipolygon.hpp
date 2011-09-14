@@ -38,6 +38,11 @@ namespace Osmium {
         public:
 
             MultiPolygon(const Osmium::OSM::Area& area) : Geometry(area.id()), m_area(&area) {
+#ifdef OSMIUM_WITH_GEOS
+                if (!m_area->get_geometry()) {
+                    throw Osmium::Exception::IllegalGeometry();
+                }
+#endif // OSMIUM_WITH_GEOS
             }
 
 #ifdef OSMIUM_WITH_GEOS
@@ -169,7 +174,7 @@ namespace Osmium {
                         }
                     }
                     return scope.Close(multipolygon_array);
-                } else if (geometry->getGeometryTypeId() == geos::geom::GEOS_LINESTRING) {
+                } else if (geometry->getGeometryTypeId() == geos::geom::GEOS_POLYGON) {
                     const Osmium::OSM::AreaFromWay* area_from_way = dynamic_cast<const Osmium::OSM::AreaFromWay*>(m_area);
                     if (area_from_way) {
                         v8::Local<v8::Array> polygon = v8::Array::New(1);
@@ -191,11 +196,77 @@ namespace Osmium {
             struct JavascriptTemplate : public Osmium::Geometry::Geometry::JavascriptTemplate {
 
                 JavascriptTemplate() : Osmium::Geometry::Geometry::JavascriptTemplate() {
-                    js_template->Set("toArray",  v8::FunctionTemplate::New(function_template<MultiPolygon, &MultiPolygon::js_to_array>));
+                    js_template->Set("toArray", v8::FunctionTemplate::New(function_template<MultiPolygon, &MultiPolygon::js_to_array>));
                 }
 
             };
 # endif // OSMIUM_WITH_JAVASCRIPT
+
+# ifdef OSMIUM_WITH_OGR
+        private:
+
+            void add_ring(OGRPolygon* ogrpolygon, const geos::geom::LineString* geosring) const {
+                OGRLinearRing *ogrring = new OGRLinearRing;
+
+                const geos::geom::CoordinateSequence* cs = geosring->getCoordinatesRO();
+                ogrring->setNumPoints(cs->getSize());
+
+                for (size_t i = 0; i < cs->getSize(); ++i) {
+                    ogrring->setPoint(i, cs->getX(i), cs->getY(i), 0);
+                }
+
+                ogrpolygon->addRingDirectly(ogrring);
+            };
+
+            OGRPolygon* make_polygon(const geos::geom::Polygon* geospolygon) const {
+                OGRPolygon* ogrpolygon = new OGRPolygon;
+
+                add_ring(ogrpolygon, geospolygon->getExteriorRing());
+                for (size_t i=0; i < geospolygon->getNumInteriorRing(); ++i) {
+                    add_ring(ogrpolygon, geospolygon->getInteriorRingN(i));
+                }
+
+                return ogrpolygon;
+            }
+
+        public:
+
+            /**
+             * Create OGR geometry of this MultiPolygon.
+             *
+             * Caller takes ownership.
+             */
+            OGRMultiPolygon* create_ogr_geometry() const {
+                OGRMultiPolygon* ogrmp = new OGRMultiPolygon;
+
+                if (m_area->get_geometry()->getGeometryTypeId() == geos::geom::GEOS_POLYGON) {
+                    OGRPolygon* ogrpolygon = make_polygon(dynamic_cast<const geos::geom::Polygon*>(m_area->get_geometry()));
+
+                    OGRErr result = ogrmp->addGeometryDirectly(ogrpolygon);
+                    if (result != OGRERR_NONE) {
+                        throw Osmium::Exception::IllegalGeometry();
+                    }
+                    return ogrmp;
+                }
+
+                if (m_area->get_geometry()->getGeometryTypeId() != geos::geom::GEOS_MULTIPOLYGON) {
+                    throw Osmium::Exception::IllegalGeometry();
+                }
+
+                const geos::geom::GeometryCollection* geosgeom = dynamic_cast<const geos::geom::GeometryCollection*>(m_area->get_geometry());
+                for (geos::geom::GeometryCollection::const_iterator it = geosgeom->begin(); it != geosgeom->end(); ++it) {
+
+                    OGRPolygon* ogrpolygon = make_polygon(dynamic_cast<const geos::geom::Polygon*>(*it));
+
+                    OGRErr result = ogrmp->addGeometryDirectly(ogrpolygon);
+                    if (result != OGRERR_NONE) {
+                        throw Osmium::Exception::IllegalGeometry();
+                    }
+                }
+
+                return ogrmp;
+            }
+# endif // OSMIUM_WITH_OGR
 #endif // OSMIUM_WITH_GEOS
 
         private:
