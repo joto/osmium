@@ -146,7 +146,7 @@ public:
                 shapefile_places->add_geometry(point.create_shp_object());
                 shapefile_places->add_attribute(0, node->id());
                 if (name) shapefile_places->add_attribute_with_truncate(1, name);
-                shapefile_places->add_attribute_with_truncate(2, type);
+                shapefile_places->add_attribute_with_truncate(2, place);
                 if (pop) shapefile_places->add_attribute(3, atoi(pop));
             }
             else if (type)
