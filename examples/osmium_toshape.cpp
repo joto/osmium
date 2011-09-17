@@ -50,12 +50,10 @@ public:
 
     MyShapeHandler() {
         handler_cfw = new cfw_handler_t(store_pos, store_neg);
-        std::string filename("postboxes");
-        shapefile_point = new Osmium::Export::PointShapefile(filename);
+        shapefile_point = new Osmium::Export::PointShapefile("postboxes");
         shapefile_point->add_field("id", FTInteger, 10);
         shapefile_point->add_field("operator", FTString, 30);
-        filename = "roads";
-        shapefile_linestring = new Osmium::Export::LineStringShapefile(filename);
+        shapefile_linestring = new Osmium::Export::LineStringShapefile("roads");
         shapefile_linestring->add_field("id", FTInteger, 10);
         shapefile_linestring->add_field("type", FTString, 30);
     }

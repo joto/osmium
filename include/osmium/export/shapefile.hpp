@@ -349,14 +349,14 @@ namespace Osmium {
              * The constructor for Shapefile is protected. Use one of
              * PointShapefile, LineShapefile, or PolygonShapefile.
              */
-            Shapefile(std::string& filename, int type) : m_filename_base(filename), m_fields(), m_type(type), m_sequence_number(0) {
+            Shapefile(const std::string& filename, int type) : m_filename_base(filename), m_fields(), m_type(type), m_sequence_number(0) {
                 open();
             }
 
         private:
 
             /// base filename
-            std::string m_filename_base;
+            const std::string m_filename_base;
 
             /// fields in DBF
             std::vector<Field> m_fields;
@@ -434,7 +434,7 @@ namespace Osmium {
              *
              * @param filename Filename (optionally including path) without any suffix.
              */
-            PointShapefile(std::string& filename) : Shapefile(filename, SHPT_POINT) {
+            PointShapefile(const std::string& filename) : Shapefile(filename, SHPT_POINT) {
             }
 
         private:
@@ -457,7 +457,7 @@ namespace Osmium {
              *
              * @param filename Filename (optionally including path) without any suffix.
              */
-            LineStringShapefile(std::string& filename) : Shapefile(filename, SHPT_ARC) {
+            LineStringShapefile(const std::string& filename) : Shapefile(filename, SHPT_ARC) {
             }
 
         private:
@@ -480,7 +480,7 @@ namespace Osmium {
              *
              * @param filename Filename (optionally including path) without any suffix.
              */
-            PolygonShapefile(std::string& filename) : Shapefile(filename, SHPT_POLYGON) {
+            PolygonShapefile(const std::string& filename) : Shapefile(filename, SHPT_POLYGON) {
             }
 
         private:
