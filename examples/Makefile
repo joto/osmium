@@ -29,6 +29,7 @@ LDFLAGS = -L/usr/local/lib -lexpat -lpthread
 LIB_GD       = -lgd -lz -lm
 LIB_SQLITE   = -lsqlite3
 LIB_V8       = -lv8
+LIB_ICU      = -licuuc
 LIB_GEOS     = $(shell geos-config --libs)
 LIB_SHAPE    = -lshp $(LIB_GEOS)
 LIB_PROTOBUF = -lz -lprotobuf-lite -losmpbf
@@ -48,7 +49,7 @@ osmium_debug: osmium_debug.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
 
 osmium_toshape: osmium_toshape.cpp
-	$(CXX) $(CXXFLAGS) $(CXXFLAGS_SHAPE) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_SHAPE)
+	$(CXX) $(CXXFLAGS) $(CXXFLAGS_SHAPE) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_SHAPE) $(LIB_ICU)
 
 osmium_toogr: osmium_toogr.cpp
 	$(CXX) $(CXXFLAGS) $(CXXFLAGS_OGR) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_OGR)
