@@ -211,22 +211,22 @@ namespace Osmium {
                 }
             }
 
+            // truncates UTF8 string to fit in shape field
             void add_attribute_with_truncate(const int field, const char *value) {
-                uint16_t utf16[(max_dbf_field_length+2)*2];
                 char dest[max_dbf_field_length+1];
-                memset(utf16, 0, (max_dbf_field_length+2)*4);
-                memset(dest, 0, max_dbf_field_length+1);
-                UErrorCode error_code = U_ZERO_ERROR;
-                int32_t utf16_l;
-                u_strFromUTF8(utf16, sizeof(utf16), &utf16_l, value, -1, &error_code);
-                if (!U_FAILURE(error_code)) {
-                    error_code = U_ZERO_ERROR;
-                    u_strToUTF8(dest, m_fields[field].width(), NULL, utf16, -1, &error_code);
-                    if (error_code == U_BUFFER_OVERFLOW_ERROR || !U_FAILURE(error_code)) 
-                    {
-                        add_attribute(field, dest);
-                    }
+                size_t l = m_fields[field].width();
+                memset(dest, 0, l+1);
+                strncpy(dest, value, l);
+                size_t i = l-1;
+                if (dest[i] & 128) {
+                    if (dest[i] & 64)
+                        dest[i] = '\0';
+                    else if ((dest[i-1] & 224) == 224)
+                        dest[i-1] = '\0';
+                    else if ((dest[i-2] & 240) == 240)
+                        dest[i-2] = '\0';
                 }
+                add_attribute(field, dest);
             }
 
             void add_attribute_with_truncate(const int field, const std::string& value) {
