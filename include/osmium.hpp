@@ -36,6 +36,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
  * source code is at https://github.com/joto/osmium .
  */
 
+
 #ifdef OSMIUM_WITH_JAVASCRIPT
 # include <v8.h>
 # include <unicode/ustring.h>
