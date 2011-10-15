@@ -99,7 +99,9 @@ public:
     }
 
     void init(Osmium::OSM::Meta& meta) {
-        handler_multipolygon->init(meta);
+        if (handler_multipolygon) {
+            handler_multipolygon->init(meta);
+        }
         if (handler_cfw) {
             handler_cfw->init(meta);
         }
@@ -111,16 +113,22 @@ public:
     }
 
     void before_relations() {
-        handler_multipolygon->before_relations();
+        if (handler_multipolygon) {
+            handler_multipolygon->before_relations();
+        }
     }
 
     void relation(Osmium::OSM::Relation *relation) {
-        handler_multipolygon->relation(relation);
+        if (handler_multipolygon) {
+            handler_multipolygon->relation(relation);
+        }
         handler_javascript->relation(relation);
     }
 
     void after_relations() {
-        handler_multipolygon->after_relations();
+        if (handler_multipolygon) {
+            handler_multipolygon->after_relations();
+        }
         std::cerr << "1st pass finished" << std::endl;
     }
 
@@ -159,17 +167,23 @@ public:
         if (handler_cfw) {
             handler_cfw->way(way);
         }
-        handler_multipolygon->way(way);
+        if (handler_multipolygon) {
+            handler_multipolygon->way(way);
+        }
         handler_javascript->way(way);
     }
 
     void after_ways() {
-        handler_multipolygon->after_ways();
+        if (handler_multipolygon) {
+            handler_multipolygon->after_ways();
+        }
     }
 
     void final() {
         handler_javascript->final();
-        handler_multipolygon->final();
+        if (handler_multipolygon) {
+            handler_multipolygon->final();
+        }
     }
 };
 
@@ -186,7 +200,8 @@ void print_help() {
               << "  --javascript=FILE, -j FILE       - Process given Javascript file" << std::endl \
               << "  --location-store=STORE, -l STORE - Set location store (default: 'none')" << std::endl \
               << "  --no-repair, -r                  - Do not attempt to repair broken multipolygons" << std::endl \
-              << "  --2pass, -2                      - Read OSMFILE twice and build multipolygons" << std::endl \
+              << "  --2pass, -2                      - Read OSMFILE twice" << std::endl \
+              << "  --multipolygon, -m               - Build multipolygons (implies -2)" << std::endl \
               << "Location stores:" << std::endl \
               << "  none        - Do not store node locations (you will have no way or polygon geometries)" << std::endl \
               << "  array       - Store node locations in large array (use for large OSM files)" << std::endl \
@@ -252,13 +267,15 @@ int main(int argc, char *argv[]) {
         {"location-store", required_argument, 0, 'l'},
         {"no-repair",            no_argument, 0, 'r'},
         {"2pass",                no_argument, 0, '2'},
+        {"multipolygon",         no_argument, 0, 'm'},
         {0, 0, 0, 0}
     };
 
     bool debug = false;
+    bool multipolygon = false;
 
     while (1) {
-        int c = getopt_long(argc, argv, "dhi:j:l:r2", long_options, 0);
+        int c = getopt_long(argc, argv, "dhi:j:l:r2m", long_options, 0);
         if (c == -1)
             break;
 
@@ -297,6 +314,10 @@ int main(int argc, char *argv[]) {
             case '2':
                 two_passes = true;
                 break;
+            case 'm':
+                multipolygon = true;
+                two_passes = true;
+                break;
             default:
                 exit(1);
         }
@@ -317,6 +338,10 @@ int main(int argc, char *argv[]) {
     if (two_passes && osm_filename == "-") {
         std::cerr << "Can't read from stdin when in dual-pass mode" << std::endl;
         exit(1);
+    }
+
+    if (two_passes && ! multipolygon) {
+        std::cerr << "Warning! The command line option -2 has changed its meaning.\nIt now only enables the two-pass mode, multipolygon assembly has to be enabled with -m.\n";
     }
 
     Osmium::init(debug);
@@ -354,11 +379,15 @@ int main(int argc, char *argv[]) {
     handler_javascript = new Osmium::Handler::Javascript(include_files, javascript_filename.c_str());
 
     if (two_passes) {
-        Osmium::Handler::Multipolygon handler_multipolygon(attempt_repair, cbmp);
-        DualPass1 handler1(handler_cfw, &handler_multipolygon, handler_javascript);
+        Osmium::Handler::Multipolygon* handler_multipolygon = NULL;
+        if (multipolygon) {
+            handler_multipolygon = new Osmium::Handler::Multipolygon(attempt_repair, cbmp);
+        }
+        DualPass1 handler1(handler_cfw, handler_multipolygon, handler_javascript);
         infile.read(handler1);
-        DualPass2 handler2(handler_cfw, &handler_multipolygon, handler_javascript);
+        DualPass2 handler2(handler_cfw, handler_multipolygon, handler_javascript);
         infile.read(handler2);
+        delete handler_multipolygon;
     } else {
         SinglePass handler(handler_cfw, handler_javascript);
         infile.read(handler);

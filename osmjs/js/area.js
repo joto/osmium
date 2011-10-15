@@ -4,7 +4,7 @@
 
   area.js
 
-  run with: osmjs -2 -l sparsetable -j area.js OSMFILE
+  run with: osmjs -2 -m -l sparsetable -j area.js OSMFILE
 
 */
 

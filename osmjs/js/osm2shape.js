@@ -7,7 +7,7 @@
 
   (see also config.js)
 
-  run with: osmjs -2 -l sparsetable -i osm2shape.js -j config.js OSMFILE
+  run with: osmjs -2 -m -l sparsetable -i osm2shape.js -j config.js OSMFILE
 
 */
 

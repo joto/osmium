@@ -4,7 +4,7 @@
 
   testgeom.js
 
-  run with: osmjs -2 -l sparsetable -j testgeom.js OSMFILE
+  run with: osmjs -2 -m -l sparsetable -j testgeom.js OSMFILE
 
 */
 

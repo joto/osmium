@@ -4,7 +4,7 @@
 
   objects_2pass.js
 
-  run with: osmjs -2 -l sparsetable -j objects_2pass.js OSMFILE
+  run with: osmjs -2 -m -l sparsetable -j objects_2pass.js OSMFILE
 
 */
 
