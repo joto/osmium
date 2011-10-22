@@ -32,7 +32,7 @@ namespace Osmium {
      */
     namespace Output {
 
-        class Base {
+        class Base : public Osmium::Handler::Base {
 
         protected:
 
