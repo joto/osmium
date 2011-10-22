@@ -36,21 +36,44 @@ LIB_PROTOBUF = -lz -lprotobuf-lite -losmpbf
 LIB_XML2     = $(shell xml2-config --libs)
 LIB_OGR      = $(shell gdal-config --libs)
 
-PROGRAMS = osmium_sizeof osmium_debug osmium_stats osmium_find_bbox osmium_time osmium_progress osmium_convert osmium_toogr osmium_toogr2 osmium_toshape nodedensity
+PROGRAMS = \
+    osmium_convert \
+    osmium_debug \
+    osmium_find_bbox \
+    osmium_progress \
+    osmium_sizeof \
+    osmium_stats \
+    osmium_time \
+    osmium_toogr \
+    osmium_toogr2 \
+    osmium_toshape \
+    nodedensity
 
 .PHONY: all clean
 
 all: $(PROGRAMS)
 
-osmium_sizeof: osmium_sizeof.cpp
+osmium_convert: osmium_convert.cpp
 	$(CXX) $(CXXFLAGS) $(CXXFLAGS_LIBXML2) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_XML2)
 
 osmium_debug: osmium_debug.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
 #	$(CXX) $(CXXFLAGS) -DOSMIUM_DEBUG_WITH_ENDTIME -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
 
-osmium_toshape: osmium_toshape.cpp
-	$(CXX) $(CXXFLAGS) $(CXXFLAGS_SHAPE) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_SHAPE)
+osmium_find_bbox: osmium_find_bbox.cpp
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
+
+osmium_progress: osmium_progress.cpp
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
+
+osmium_sizeof: osmium_sizeof.cpp
+	$(CXX) $(CXXFLAGS) $(CXXFLAGS_LIBXML2) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_XML2)
+
+osmium_stats: osmium_stats.cpp
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_SQLITE)
+
+osmium_time: osmium_time.cpp
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
 
 osmium_toogr: osmium_toogr.cpp
 	$(CXX) $(CXXFLAGS) $(CXXFLAGS_OGR) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_OGR)
@@ -58,20 +81,8 @@ osmium_toogr: osmium_toogr.cpp
 osmium_toogr2: osmium_toogr2.cpp
 	$(CXX) $(CXXFLAGS) $(CXXFLAGS_OGR) $(CXXFLAGS_GEOS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_OGR) $(LIB_GEOS)
 
-osmium_stats: osmium_stats.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_SQLITE)
-
-osmium_find_bbox: osmium_find_bbox.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
-
-osmium_time: osmium_time.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
-
-osmium_progress: osmium_progress.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
-
-osmium_convert: osmium_convert.cpp
-	$(CXX) $(CXXFLAGS) $(CXXFLAGS_LIBXML2) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_XML2)
+osmium_toshape: osmium_toshape.cpp
+	$(CXX) $(CXXFLAGS) $(CXXFLAGS_SHAPE) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_SHAPE)
 
 nodedensity: nodedensity.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_GD)
