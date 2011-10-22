@@ -245,18 +245,6 @@ namespace Osmium {
 
             virtual osm_object_type_t get_type() const = 0;
 
-            virtual void reset() {
-                m_id        = 0;
-                m_version   = 0;
-                m_uid       = -1; // to be compatible with Osmosis we use -1 for unknown user id
-                m_changeset = 0;
-                m_timestamp = 0;
-                m_endtime   = 0;
-                m_user[0]   = '\0';
-                m_visible   = true;
-                m_tags.clear();
-            }
-
             /**
              * Set named attribute.
              * @param attr Name of the attribute (must be one of "id", "version", "changeset", "timestamp", "uid", "user", "visible")
@@ -349,8 +337,16 @@ namespace Osmium {
 
         protected:
 
-            Object() : m_tags() {
-                reset();
+            Object() :
+                m_id(0),
+                m_version(0),
+                m_changeset(0),
+                m_timestamp(0),
+                m_endtime(0),
+                m_uid(-1), // to be compatible with Osmosis we use -1 for unknown user id
+                m_visible(true),
+                m_tags() {
+                m_user[0] = '\0';
             }
 
             Object(const Object &o) {

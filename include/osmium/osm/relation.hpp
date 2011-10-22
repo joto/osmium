@@ -34,7 +34,6 @@ namespace Osmium {
         public:
 
             Relation() : Object(), m_members() {
-                reset();
 #ifdef OSMIUM_WITH_JAVASCRIPT
                 js_object_instance  = JavascriptTemplate::get<JavascriptTemplate>().create_instance(this);
 #endif // OSMIUM_WITH_JAVASCRIPT
@@ -53,11 +52,6 @@ namespace Osmium {
 
             osm_object_type_t get_type() const {
                 return RELATION;
-            }
-
-            void reset() {
-                Object::reset();
-                m_members.clear();
             }
 
             void add_member(const char type, osm_object_id_t ref, const char *role) {

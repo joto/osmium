@@ -42,16 +42,10 @@ namespace Osmium {
 
         public:
 
-            Node() : Object() {
-                reset();
+            Node() : Object(), m_position() {
 #ifdef OSMIUM_WITH_JAVASCRIPT
                 js_object_instance = JavascriptTemplate::get<JavascriptTemplate>().create_instance(this);
 #endif // OSMIUM_WITH_JAVASCRIPT
-            }
-
-            void reset() {
-                Object::reset();
-                m_position = Position();
             }
 
             const Position position() const {

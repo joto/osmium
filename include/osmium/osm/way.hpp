@@ -55,12 +55,10 @@ namespace Osmium {
             /// Construct a Way object.
             Way() : Object(), m_node_list() {
                 init();
-                reset();
             }
 
             Way(int size_of_node_list) : Object(), m_node_list(size_of_node_list) {
                 init();
-                reset();
             }
 
             /// Copy a Way object.
@@ -89,11 +87,6 @@ namespace Osmium {
 
             osm_object_type_t get_type() const {
                 return WAY;
-            }
-
-            void reset() {
-                Object::reset();
-                m_node_list.clear();
             }
 
             osm_object_id_t get_node_id(osm_sequence_id_t n) const {
