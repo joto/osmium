@@ -37,6 +37,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <osmium/osm/types.hpp>
 #include <osmium/osm/tag_list.hpp>
+#include <osmium/utils/timestamp.hpp>
 
 namespace Osmium {
 
@@ -119,46 +120,19 @@ namespace Osmium {
             }
 
             /**
-             * The timestamp format for OSM timestamps in strftime(3) format.
-             * This is the ISO-Format yyyy-mm-ddThh:mm:ssZ
+             * Get the timestamp when this object last changed.
+             * @return Timestamp as a string in ISO format (yyyy-mm-ddThh:mm:ssZ). Empty string if unset.
              */
-            static const char *timestamp_format() {
-                static const char f[] = "%Y-%m-%dT%H:%M:%SZ";
-                return f;
+            std::string timestamp_as_string() const {
+                return Osmium::Utils::Timestamp::to_iso(m_timestamp);
             }
 
             /**
-             * Get the timestamp when this object last changed.
-             * @return Timestamp as a string in ISO format (yyyy-mm-ddThh:mm:ssZ).
+             * Get the timestamp until which this object is valid.
+             * @return Timestamp as a string in ISO format (yyyy-mm-ddThh:mm:ssZ). Empty string if unset.
              */
-            std::string timestamp_as_string() const {
-                if (m_timestamp == 0) {
-                    return std::string("");
-                }
-                struct tm *tm = gmtime(&m_timestamp);
-                std::string s(timestamp_length, '\0');
-                /* This const_cast is ok, because we know we have enough space
-                   in the string for the format we are using (well at least until
-                   the year will have 5 digits). And by setting the size
-                   afterwards from the result of strftime we make sure thats set
-                   right, too. */
-                s.resize(strftime(const_cast<char *>(s.c_str()), timestamp_length, timestamp_format(), tm));
-                return s;
-            }
-
             std::string endtime_as_string() const {
-                if (m_endtime == 0) {
-                    return std::string("");
-                }
-                struct tm *tm = gmtime(&m_endtime);
-                std::string s(timestamp_length, '\0');
-                /* This const_cast is ok, because we know we have enough space
-                   in the string for the format we are using (well at least until
-                   the year will have 5 digits). And by setting the size
-                   afterwards from the result of strftime we make sure thats set
-                   right, too. */
-                s.resize(strftime(const_cast<char *>(s.c_str()), timestamp_length, timestamp_format(), tm));
-                return s;
+                return Osmium::Utils::Timestamp::to_iso(m_endtime);
             }
 
             /**
@@ -171,6 +145,12 @@ namespace Osmium {
                 return *this;
             }
 
+            /**
+             * Set the endtime after which this object is no longer valid.
+             * (This is only used when working with history data.)
+             * @param timestamp Time in seconds since epoch.
+             * @return Reference to object to make calls chainable.
+             */
             Object& endtime(time_t timestamp) {
                 m_endtime = timestamp;
                 return *this;
@@ -180,14 +160,12 @@ namespace Osmium {
              * Set the timestamp when this object last changed.
              * @param timestamp Timestamp in the format "yyyy-mm-ddThh:mm:ssZ".
              * @return Reference to object to make calls chainable.
-             * @exception std::invalid_argument Thrown when the given string can't be parsed as a timestamp. The object timestamp will remain unchanged in this case.
+             * @exception std::invalid_argument Thrown when the given string
+             *   can't be parsed as a timestamp. The object timestamp will remain
+             *   unchanged in this case.
              */
             Object& timestamp(const char *timestamp) {
-                struct tm tm = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-                if (strptime(timestamp, timestamp_format(), &tm) == NULL) {
-                    throw std::invalid_argument("can't parse timestamp");
-                }
-                m_timestamp = timegm(&tm);
+                m_timestamp = Osmium::Utils::Timestamp::parse_iso(timestamp);
                 return *this;
             }
 
@@ -365,8 +343,6 @@ namespace Osmium {
             }
 
         private:
-
-            static const int timestamp_length = 20 + 1; // length of ISO timestamp string yyyy-mm-ddThh:mm:ssZ\0
 
             osm_object_id_t    m_id;          ///< object id
             osm_version_t      m_version;     ///< object version
