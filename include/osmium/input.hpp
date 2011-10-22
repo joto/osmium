@@ -123,7 +123,7 @@ namespace Osmium {
 
             }
 
-            void call_after_and_before_handlers(osm_object_type_t current_object_type) {
+            void call_after_and_before_on_handler(osm_object_type_t current_object_type) {
                 if (current_object_type != m_last_object_type) {
                     switch (m_last_object_type) {
                         case NODE:
@@ -158,6 +158,18 @@ namespace Osmium {
                 }
             }
 
+            void call_node_on_handler() const {
+                m_handler.node(m_node);
+            }
+
+            void call_way_on_handler() const {
+                m_handler.way(m_way);
+            }
+
+            void call_relation_on_handler() const {
+                m_handler.relation(m_relation);
+            }
+
             void call_final_on_handler() const {
                 m_handler.final();
             }
@@ -172,18 +184,6 @@ namespace Osmium {
 
             const Osmium::OSMFile& get_file() const {
                 return m_file;
-            }
-
-            void handle_node() const {
-                m_handler.node(m_node);
-            }
-
-            void handle_way() const {
-                m_handler.way(m_way);
-            }
-
-            void handle_relation() const {
-                m_handler.relation(m_relation);
             }
 
             /*

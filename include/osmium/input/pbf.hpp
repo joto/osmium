@@ -124,7 +124,7 @@ namespace Osmium {
                             }
                         }
                     }
-                    this->call_after_and_before_handlers(UNKNOWN);
+                    this->call_after_and_before_on_handler(UNKNOWN);
                 } catch (Osmium::Input::StopReading) {
                     // if a handler says to stop reading, we do
                 }
@@ -144,7 +144,7 @@ namespace Osmium {
             */
             void parse_group(const OSMPBF::PrimitiveGroup& group, const OSMPBF::StringTable& stringtable) {
                 if (group.has_dense())  {
-                    this->call_after_and_before_handlers(NODE);
+                    this->call_after_and_before_on_handler(NODE);
 
                     // MAGIC: This bit of magic checks whether the empty node function in the
                     // handler base class was overwritten. If it was we parse the nodes from the input
@@ -153,21 +153,21 @@ namespace Osmium {
                         parse_dense_node_group(group, stringtable);
                     }
                 } else if (group.ways_size() != 0) {
-                    this->call_after_and_before_handlers(WAY);
+                    this->call_after_and_before_on_handler(WAY);
 
                     // MAGIC: see above
                     if (typeid(&THandler::way) != typeid(&Osmium::Handler::Base::way)) {
                         parse_way_group(group, stringtable);
                     }
                 } else if (group.relations_size() != 0) {
-                    this->call_after_and_before_handlers(RELATION);
+                    this->call_after_and_before_on_handler(RELATION);
 
                     // MAGIC: see above
                     if (typeid(&THandler::relation) != typeid(&Osmium::Handler::Base::relation)) {
                         parse_relation_group(group, stringtable);
                     }
                 } else if (group.nodes_size() != 0) {
-                    this->call_after_and_before_handlers(NODE);
+                    this->call_after_and_before_on_handler(NODE);
 
                     // MAGIC: see above
                     if (typeid(&THandler::node) != typeid(&Osmium::Handler::Base::node)) {
@@ -206,7 +206,7 @@ namespace Osmium {
                     node.position(Osmium::OSM::Position(
                                                ( (double) pbf_node.lon() * pbf_primitive_block.granularity() + pbf_primitive_block.lon_offset() ) / OSMPBF::lonlat_resolution,
                                                ( (double) pbf_node.lat() * pbf_primitive_block.granularity() + pbf_primitive_block.lat_offset() ) / OSMPBF::lonlat_resolution));
-                    this->handle_node();
+                    this->call_node_on_handler();
                 }
             }
 
@@ -241,7 +241,7 @@ namespace Osmium {
                         way.add_node(ref);
                     }
 
-                    this->handle_way();
+                    this->call_way_on_handler();
                 }
             }
 
@@ -288,7 +288,7 @@ namespace Osmium {
                         relation.add_member(type, ref, stringtable.s( pbf_relation.roles_sid( i ) ).data());
                     }
 
-                    this->handle_relation();
+                    this->call_relation_on_handler();
                 }
             }
 
@@ -348,7 +348,7 @@ namespace Osmium {
                         last_dense_tag += 2;
                     }
 
-                    this->handle_node();
+                    this->call_node_on_handler();
                 }
             }
 

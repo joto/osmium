@@ -96,7 +96,7 @@ namespace Osmium {
                     } while (!done);
                     XML_ParserFree(parser);
 
-                    this->call_after_and_before_handlers(UNKNOWN);
+                    this->call_after_and_before_on_handler(UNKNOWN);
                 } catch (Osmium::Input::StopReading) {
                     // if a handler says to stop reading, we do
                 }
@@ -143,7 +143,7 @@ namespace Osmium {
                         }
                     }
                 } else if (!strcmp(element, "node")) {
-                    this->call_after_and_before_handlers(NODE);
+                    this->call_after_and_before_on_handler(NODE);
                     init_object(this->prepare_node(), attrs);
                 } else if (!strcmp(element, "tag")) {
                     const char *key = "", *value = "";
@@ -160,7 +160,7 @@ namespace Osmium {
                         m_current_object->tags().add(key, value);
                     }
                 } else if (!strcmp(element, "way")) {
-                    this->call_after_and_before_handlers(WAY);
+                    this->call_after_and_before_on_handler(WAY);
                     init_object(this->prepare_way(), attrs);
                 } else if (!strcmp(element, "member")) {
                     char        type = 'x';
@@ -180,7 +180,7 @@ namespace Osmium {
                         this->m_relation->add_member(type, ref, role);
                     }
                 } else if (!strcmp(element, "relation")) {
-                    this->call_after_and_before_handlers(RELATION);
+                    this->call_after_and_before_on_handler(RELATION);
                     init_object(this->prepare_relation(), attrs);
                 } else if (!strcmp(element, "bounds")) {
                     Osmium::OSM::Position min;
@@ -202,13 +202,13 @@ namespace Osmium {
 
             void end_element(const XML_Char* element) {
                 if (!strcmp(element, "node")) {
-                    this->handle_node();
+                    this->call_node_on_handler();
                     m_current_object = NULL;
                 } else if (!strcmp(element, "way")) {
-                    this->handle_way();
+                    this->call_way_on_handler();
                     m_current_object = NULL;
                 } else if (!strcmp(element, "relation")) {
-                    this->handle_relation();
+                    this->call_relation_on_handler();
                     m_current_object = NULL;
                 }
             }
