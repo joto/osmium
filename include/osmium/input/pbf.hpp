@@ -128,6 +128,7 @@ namespace Osmium {
                 } catch (Osmium::Input::StopReading) {
                     // if a handler says to stop reading, we do
                 }
+                this->call_final_on_handler();
             }
 
         private:

@@ -99,7 +99,6 @@ namespace Osmium {
         public:
 
             virtual ~Base() {
-                m_handler.final();
             }
 
             /**
@@ -157,6 +156,10 @@ namespace Osmium {
                     }
                     m_last_object_type = current_object_type;
                 }
+            }
+
+            void call_final_on_handler() const {
+                m_handler.final();
             }
 
             Osmium::OSM::Meta& meta() {
