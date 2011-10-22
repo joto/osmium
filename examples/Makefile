@@ -73,7 +73,7 @@ osmium_progress: osmium_progress.cpp
 osmium_convert: osmium_convert.cpp
 	$(CXX) $(CXXFLAGS) $(CXXFLAGS_LIBXML2) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_XML2)
 
-nodedensity: nodedensity.cpp handler_nodedensity.hpp
+nodedensity: nodedensity.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_GD)
 
 clean:
