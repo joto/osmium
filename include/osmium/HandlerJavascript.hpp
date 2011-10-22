@@ -270,7 +270,7 @@ namespace Osmium {
                 }
             }
 
-            void node(Osmium::OSM::Node* node) {
+            void node(const shared_ptr<Osmium::OSM::Node const>& node) {
                 if (!cb.node.IsEmpty()) {
                     (void) cb.node->Call(node->get_instance(), 0, 0);
                 }
@@ -279,7 +279,7 @@ namespace Osmium {
 #endif // OSMIUM_V8_FORCE_GC
             }
 
-            void way(Osmium::OSM::Way* way) {
+            void way(const shared_ptr<Osmium::OSM::Way const>& way) {
                 if (!cb.way.IsEmpty()) {
                     (void) cb.way->Call(way->get_instance(), 0, 0);
                 }
@@ -288,7 +288,7 @@ namespace Osmium {
 #endif // OSMIUM_V8_FORCE_GC
             }
 
-            void relation(Osmium::OSM::Relation* relation) {
+            void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
                 if (!cb.relation.IsEmpty()) {
                     (void) cb.relation->Call(relation->get_instance(), 0, 0);
                 }

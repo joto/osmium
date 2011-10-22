@@ -35,10 +35,10 @@ namespace Osmium {
 
         public:
 
-            Meta() : m_bounds() {
+            Meta() : m_bounds(), m_with_history(false) {
             }
 
-            Meta(const Bounds& bounds) : m_bounds(bounds) {
+            Meta(const Bounds& bounds) : m_bounds(bounds), m_with_history(false) {
             }
 
             Bounds& bounds() {
@@ -49,9 +49,14 @@ namespace Osmium {
                 return m_bounds;
             }
 
+            bool with_history() const {
+                return m_with_history;
+            }
+
         private:
 
             Bounds m_bounds;
+            bool m_with_history;
 
         }; // class Meta
 

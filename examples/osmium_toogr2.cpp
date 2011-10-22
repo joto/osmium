@@ -58,7 +58,7 @@ public:
         handler_multipolygon->before_relations();
     }
 
-    void relation(Osmium::OSM::Relation* relation) {
+    void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
         handler_multipolygon->relation(relation);
     }
 
@@ -129,7 +129,7 @@ public:
         handler_cfw->init(meta);
     }
 
-    void node(Osmium::OSM::Node* node) {
+    void node(const shared_ptr<Osmium::OSM::Node const>& node) {
         handler_cfw->node(node);
     }
 
@@ -137,7 +137,7 @@ public:
         handler_cfw->after_nodes();
     }
 
-    void way(Osmium::OSM::Way* way) {
+    void way(const shared_ptr<Osmium::OSM::Way>& way) {
         handler_cfw->way(way);
         handler_multipolygon->way(way);
     }

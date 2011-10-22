@@ -114,6 +114,10 @@ namespace Osmium {
                 return m_timestamp;
             }
 
+            time_t endtime() const {
+                return m_endtime;
+            }
+
             /**
              * The timestamp format for OSM timestamps in strftime(3) format.
              * This is the ISO-Format yyyy-mm-ddThh:mm:ssZ
@@ -128,7 +132,25 @@ namespace Osmium {
              * @return Timestamp as a string in ISO format (yyyy-mm-ddThh:mm:ssZ).
              */
             std::string timestamp_as_string() const {
+                if (m_timestamp == 0) {
+                    return std::string("");
+                }
                 struct tm *tm = gmtime(&m_timestamp);
+                std::string s(timestamp_length, '\0');
+                /* This const_cast is ok, because we know we have enough space
+                   in the string for the format we are using (well at least until
+                   the year will have 5 digits). And by setting the size
+                   afterwards from the result of strftime we make sure thats set
+                   right, too. */
+                s.resize(strftime(const_cast<char *>(s.c_str()), timestamp_length, timestamp_format(), tm));
+                return s;
+            }
+
+            std::string endtime_as_string() const {
+                if (m_endtime == 0) {
+                    return std::string("");
+                }
+                struct tm *tm = gmtime(&m_endtime);
                 std::string s(timestamp_length, '\0');
                 /* This const_cast is ok, because we know we have enough space
                    in the string for the format we are using (well at least until
@@ -146,6 +168,11 @@ namespace Osmium {
              */
             Object& timestamp(time_t timestamp) {
                 m_timestamp = timestamp;
+                return *this;
+            }
+
+            Object& endtime(time_t timestamp) {
+                m_endtime = timestamp;
                 return *this;
             }
 
@@ -224,6 +251,7 @@ namespace Osmium {
                 m_uid       = -1; // to be compatible with Osmosis we use -1 for unknown user id
                 m_changeset = 0;
                 m_timestamp = 0;
+                m_endtime   = 0;
                 m_user[0]   = '\0';
                 m_visible   = true;
                 m_tags.clear();
@@ -331,6 +359,7 @@ namespace Osmium {
                 m_uid       = o.m_uid;
                 m_changeset = o.m_changeset;
                 m_timestamp = o.m_timestamp;
+                m_endtime   = o.m_endtime;
                 m_tags      = o.m_tags;
                 m_visible   = o.m_visible;
                 strncpy(m_user, o.m_user, max_length_username);
@@ -347,6 +376,7 @@ namespace Osmium {
             osm_version_t      m_version;     ///< object version
             osm_changeset_id_t m_changeset;   ///< id of last changeset that changed this object
             time_t             m_timestamp;   ///< when this object changed last
+            time_t             m_endtime;     ///< when this object version was replaced by a new one
             osm_user_id_t      m_uid;         ///< user id of user who last changed this object
             char m_user[max_length_username]; ///< name of user who last changed this object
             bool               m_visible;     ///< object visible (only when working with history data)

@@ -22,6 +22,15 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#include <boost/tr1/memory.hpp>
+#include <boost/make_shared.hpp>
+
+using std::tr1::shared_ptr;
+using std::tr1::static_pointer_cast;
+using std::tr1::const_pointer_cast;
+using std::tr1::dynamic_pointer_cast;
+using boost::make_shared;
+
 #include <osmium/handler.hpp>
 #include <osmium/osmfile.hpp>
 
@@ -54,7 +63,7 @@ namespace Osmium {
          *
          * - init(Osmium::OSM::Meta&)
          * - before_nodes/ways/relations()
-         * - node/way/relation(Osmium::OSM::Node/Way/Relation*)
+         * - node/way/relation(const shared_ptr<Osmium::OSM::Node/Way/Relation>&)
          * - after_nodes/ways/relations()
          * - final()
          * - area(Osmium::OSM::Area*)
@@ -91,10 +100,6 @@ namespace Osmium {
 
             virtual ~Base() {
                 m_handler.final();
-
-                delete m_relation;
-                delete m_way;
-                delete m_node;
             }
 
             /**
@@ -110,13 +115,13 @@ namespace Osmium {
                 : m_last_object_type(UNKNOWN),
                   m_file(file),
                   m_handler(handler),
-                  m_meta() {
+                  m_meta(),
+                  m_node(),
+                  m_way(),
+                  m_relation() {
 
                 m_file.open_for_input();
 
-                m_node     = new Osmium::OSM::Node;
-                m_way      = new Osmium::OSM::Way(2000); // create way object with space for 2000 nodes
-                m_relation = new Osmium::OSM::Relation;
             }
 
             void call_after_and_before_handlers(osm_object_type_t current_object_type) {
@@ -166,28 +171,55 @@ namespace Osmium {
                 return m_file;
             }
 
-            void handle_node() {
+            void handle_node() const {
                 m_handler.node(m_node);
             }
 
-            void handle_way() {
+            void handle_way() const {
                 m_handler.way(m_way);
             }
 
-            void handle_relation() {
+            void handle_relation() const {
                 m_handler.relation(m_relation);
             }
 
-            Osmium::OSM::Node* node() {
-                return m_node;
+            /*
+               The following methods prepare the m_node/way/relation member
+               variable for use. If it is empty or in use by somebody other
+               than this parser, a new object will be allocated. If it not is
+               use, it will be reset to it's pristine state by calling the
+               destructor directly and then placement new. This gets around a
+               memory deallocation and re-allocation which was timed to slow
+               down the program noticably.
+            */
+            Osmium::OSM::Node& prepare_node() {
+                if (m_node && m_node.unique()) {
+                    m_node.get()->~Node();
+                    new (m_node.get()) Osmium::OSM::Node();
+                } else {
+                    m_node = make_shared<Osmium::OSM::Node>();
+                }
+                return *m_node;
             }
 
-            Osmium::OSM::Way* way() {
-                return m_way;
+            Osmium::OSM::Way& prepare_way() {
+                if (m_way && m_way.unique()) {
+                    m_way.get()->~Way();
+                    new (m_way.get()) Osmium::OSM::Way(2000);
+                } else {
+                    m_way = make_shared<Osmium::OSM::Way>(2000);
+                }
+                return *m_way;
             }
 
-            Osmium::OSM::Relation* relation() {
-                return m_relation;
+            Osmium::OSM::Relation& prepare_relation() {
+                if (m_relation && m_relation.unique()) {
+                    m_relation.get()->~Relation();
+                    new (m_relation.get()) Osmium::OSM::Relation();
+                } else {
+                    m_relation = make_shared<Osmium::OSM::Relation>();
+                }
+                return *m_relation;
             }
 
         private:
@@ -210,11 +242,13 @@ namespace Osmium {
 
             Osmium::OSM::Meta m_meta;
 
-            Osmium::OSM::Node*     m_node;
-            Osmium::OSM::Way*      m_way;
-            Osmium::OSM::Relation* m_relation;
+        protected:
 
-        };
+            shared_ptr<Osmium::OSM::Node>     m_node;
+            shared_ptr<Osmium::OSM::Way>      m_way;
+            shared_ptr<Osmium::OSM::Relation> m_relation;
+
+        }; // class Base
 
     } // namespace Input
 

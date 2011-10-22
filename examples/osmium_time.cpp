@@ -33,29 +33,29 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 class MyTimerHandler : public Osmium::Handler::Base {
 
-    uint64_t nodes;
-    uint64_t ways;
-    uint64_t relations;
+    uint64_t m_nodes;
+    uint64_t m_ways;
+    uint64_t m_relations;
 
 public:
 
-    MyTimerHandler() : nodes(0), ways(0), relations(0) {
+    MyTimerHandler() : m_nodes(0), m_ways(0), m_relations(0) {
     }
 
-    void node(Osmium::OSM::Node * /*node*/) {
-        nodes++;
+    void node(const shared_ptr<Osmium::OSM::Node const>& /*node*/) {
+        m_nodes++;
     }
 
-    void way(Osmium::OSM::Way * /*way*/) {
-        ways++;
+    void way(const shared_ptr<Osmium::OSM::Way const>& /*way*/) {
+        m_ways++;
     }
 
-    void relation(Osmium::OSM::Relation * /*relation*/) {
-        relations++;
+    void relation(const shared_ptr<Osmium::OSM::Relation const>& /*relation*/) {
+        m_relations++;
     }
 
     void final() {
-        std::cout << "nodes: " << nodes << "  ways: " << ways << "  relations: " << relations << std::endl;
+        std::cout << "nodes: " << m_nodes << "  ways: " << m_ways << "  relations: " << m_relations << std::endl;
     }
 };
 

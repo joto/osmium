@@ -117,7 +117,7 @@ namespace Osmium {
                 }
             }
 
-            void node(const Osmium::OSM::Node* /*object*/) {
+            void node(const shared_ptr<Osmium::OSM::Node const>& /*object*/) {
                 if (first_node.tv_sec == 0) {
                     gettimeofday(&first_node, 0);
                 }
@@ -126,7 +126,7 @@ namespace Osmium {
                 }
             }
 
-            void way(const Osmium::OSM::Way* /*object*/) {
+            void way(const shared_ptr<Osmium::OSM::Way const>& /*object*/) {
                 if (first_way.tv_sec == 0) {
                     gettimeofday(&first_way, 0);
                 }
@@ -135,7 +135,7 @@ namespace Osmium {
                 }
             }
 
-            void relation(const Osmium::OSM::Relation* /*object*/) {
+            void relation(const shared_ptr<Osmium::OSM::Relation const>& /*object*/) {
                 if (first_relation.tv_sec == 0) {
                     gettimeofday(&first_relation, 0);
                 }

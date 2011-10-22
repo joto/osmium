@@ -40,7 +40,7 @@ class ConvertHandler : public Osmium::Handler::Base {
 
 public:
 
-    ConvertHandler(Osmium::OSMFile *osmfile = new Osmium::OSMFile("")) : m_outfile(osmfile) {
+    ConvertHandler(Osmium::OSMFile* osmfile = new Osmium::OSMFile("")) : m_outfile(osmfile) {
     }
 
     ~ConvertHandler() {
@@ -53,17 +53,17 @@ public:
         m_progress_handler.init(meta);
     }
 
-    void node(Osmium::OSM::Node* node) {
+    void node(const shared_ptr<Osmium::OSM::Node const>& node) {
         output->node(node);
         m_progress_handler.node(node);
     }
 
-    void way(Osmium::OSM::Way* way) {
+    void way(const shared_ptr<Osmium::OSM::Way const>& way) {
         output->way(way);
         m_progress_handler.way(way);
     }
 
-    void relation(Osmium::OSM::Relation* relation) {
+    void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
         output->relation(relation);
         m_progress_handler.relation(relation);
     }

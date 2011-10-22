@@ -59,7 +59,7 @@ namespace Osmium {
             void before_nodes() const {
             }
 
-            void node(Osmium::OSM::Node*) const {
+            void node(const shared_ptr<Osmium::OSM::Node const>&) const {
             }
 
             void after_nodes() const {
@@ -68,7 +68,7 @@ namespace Osmium {
             void before_ways() const {
             }
 
-            void way(Osmium::OSM::Way*) const {
+            void way(const shared_ptr<Osmium::OSM::Way const>&) const {
             }
 
             void after_ways() const {
@@ -77,7 +77,7 @@ namespace Osmium {
             void before_relations() const {
             }
 
-            void relation(Osmium::OSM::Relation*) const {
+            void relation(const shared_ptr<Osmium::OSM::Relation const>&) const {
             }
 
             void after_relations() const {

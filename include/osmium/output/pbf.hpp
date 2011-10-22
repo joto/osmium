@@ -465,7 +465,7 @@ namespace Osmium {
              *
              * pbf_object_t is either OSMPBF::Node, OSMPBF::Way or OSMPBF::Relation.
              */
-            template <class pbf_object_t> void apply_common_info(const Osmium::OSM::Object *in, pbf_object_t *out) {
+            template <class pbf_object_t> void apply_common_info(const shared_ptr<Osmium::OSM::Object const>& in, pbf_object_t* out) {
                 // set the object-id
                 out->set_id(in->id());
 
@@ -574,7 +574,7 @@ namespace Osmium {
              *
              * @param node The node to add.
              */
-            void write_node(const Osmium::OSM::Node* node) {
+            void write_node(const shared_ptr<Osmium::OSM::Node const>& node) {
                 OSMPBF::Node *pbf_node = pbf_nodes->add_nodes();
 
                 // copy the common meta-info from the osmium-object to the pbf-object
@@ -591,7 +591,7 @@ namespace Osmium {
              *
              * @param node The node to add.
              */
-            void write_dense_node(const Osmium::OSM::Node* node) {
+            void write_dense_node(const shared_ptr<Osmium::OSM::Node const>& node) {
                 // add a DenseNodes-Section to the PrimitiveGroup
                 OSMPBF::DenseNodes *dense = pbf_nodes->mutable_dense();
 
@@ -644,7 +644,7 @@ namespace Osmium {
              *
              * @param way The way to add.
              */
-            void write_way(const Osmium::OSM::Way* way) {
+            void write_way(const shared_ptr<Osmium::OSM::Way const>& way) {
                 // add a way to the group
                 OSMPBF::Way *pbf_way = pbf_ways->add_ways();
 
@@ -666,7 +666,7 @@ namespace Osmium {
              *
              * @param relation The relation to add.
              */
-            void write_relation(const Osmium::OSM::Relation* relation) {
+            void write_relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
                 // add a relation to the group
                 OSMPBF::Relation *pbf_relation = pbf_relations->add_relations();
 
@@ -867,7 +867,7 @@ namespace Osmium {
              * cache it for later bulk-writing. Calling write_final ensures that everything
              * gets written and every file pointer is closed.
              */
-            void node(Osmium::OSM::Node* node) {
+            void node(const shared_ptr<Osmium::OSM::Node const>& node) {
                 // first of we check the contents-counter which may flush the cached nodes to
                 // disk if the limit is reached. This call also increases the contents-counter
                 check_block_contents_counter();
@@ -895,7 +895,7 @@ namespace Osmium {
              * cache it for later bulk-writing. Calling write_final ensures that everything
              * gets written and every file pointer is closed.
              */
-            void way(Osmium::OSM::Way* way) {
+            void way(const shared_ptr<Osmium::OSM::Way const>& way) {
                 // first of we check the contents-counter which may flush the cached nodes to
                 // disk if the limit is reached. This call also increases the contents-counter
                 check_block_contents_counter();
@@ -919,7 +919,7 @@ namespace Osmium {
              * cache it for later bulk-writing. Calling write_final ensures that everything
              * gets written and every file pointer is closed.
              */
-            void relation(Osmium::OSM::Relation* relation) {
+            void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
                 // first of we check the contents-counter which may flush the cached nodes to
                 // disk if the limit is reached. This call also increases the contents-counter
                 check_block_contents_counter();

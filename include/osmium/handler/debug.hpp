@@ -26,29 +26,49 @@ namespace Osmium {
 
     namespace Handler {
 
+        /**
+         * This handler dumps information about each callback and about each
+         * object to stdout.
+         */
         class Debug : public Base {
 
         public:
 
-            Debug() : Base() {
+            Debug(bool with_history=false) : Base(), m_with_history(with_history) {
             }
 
-            void init(Osmium::OSM::Meta& meta) const {
+            void init(Osmium::OSM::Meta& meta) {
                 std::cout << "meta:\n";
+                if (meta.with_history()) {
+                    m_with_history = true;
+                }
+
                 if (meta.bounds().defined()) {
                     std::cout << "  bounds=" << meta.bounds() << "\n";
                 }
             }
 
-            void node(const Osmium::OSM::Node* node) const {
+            void before_nodes() const {
+                std::cout << "before_nodes\n";
+            }
+
+            void node(const shared_ptr<Osmium::OSM::Node const>& node) const {
                 std::cout << "node:\n";
                 print_meta(node);
-                const Osmium::OSM::Position position = node->position();
+                const Osmium::OSM::Position& position = node->position();
                 std::cout << "  lon=" << std::fixed << std::setprecision(7) << position.lon() << "\n";
                 std::cout << "  lat=" << std::fixed << std::setprecision(7) << position.lat() << "\n";
             }
 
-            void way(const Osmium::OSM::Way* way) const {
+            void after_nodes() const {
+                std::cout << "after_nodes\n";
+            }
+
+            void before_ways() const {
+                std::cout << "before_ways\n";
+            }
+
+            void way(const shared_ptr<Osmium::OSM::Way const>& way) const {
                 std::cout << "way:\n";
                 print_meta(way);
                 std::cout << "  node_count=" << way->node_count() << "\n";
@@ -59,27 +79,48 @@ namespace Osmium {
                 }
             }
 
-            void relation(Osmium::OSM::Relation* relation) const {
+            void after_ways() const {
+                std::cout << "after_ways\n";
+            }
+
+            void before_relations() const {
+                std::cout << "before_relations\n";
+            }
+
+            void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) const {
                 std::cout << "relation:\n";
                 print_meta(relation);
-                std::cout << "  members.size=" << relation->members().size() << "\n";
-                std::cout << "  members:\n";
+                std::cout << "  members: (count=" << relation->members().size() << ")\n";
                 Osmium::OSM::RelationMemberList::const_iterator end = relation->members().end();
                 for (Osmium::OSM::RelationMemberList::const_iterator it = relation->members().begin(); it != end; ++it) {
                     std::cout << "    type=" << it->type() << " ref=" << it->ref() << " role=|" << it->role() << "|" << "\n";
                 }
             }
 
+            void after_relations() const {
+                std::cout << "after_relations\n";
+            }
+
+            void final() const {
+                std::cout << "final\n";
+            }
+
         private:
 
-            void print_meta(const Osmium::OSM::Object* object) const {
+            bool m_with_history;
+
+            void print_meta(const shared_ptr<Osmium::OSM::Object const>& object) const {
                 std::cout <<   "  id="        << object->id()
                           << "\n  version="   << object->version()
                           << "\n  uid="       << object->uid()
                           << "\n  user=|"     << object->user() << "|"
                           << "\n  changeset=" << object->changeset()
-                          << "\n  timestamp=" << object->timestamp_as_string()
-                          << "\n  tags:" << "\n";
+                          << "\n  timestamp=" << object->timestamp_as_string();
+                if (m_with_history) {
+                    std::cout << "\n  visible=" << (object->visible() ? "yes" : "no")
+                              << "\n  endtime=" << object->endtime_as_string();
+                }
+                std::cout << "\n  tags: (count=" << object->tags().size() << ")\n";
                 Osmium::OSM::TagList::const_iterator end = object->tags().end();
                 for (Osmium::OSM::TagList::const_iterator it = object->tags().begin(); it != end; ++it) {
                     std::cout << "    k=|" << it->key() << "| v=|" << it->value() << "|" << "\n";

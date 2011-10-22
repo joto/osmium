@@ -1,5 +1,5 @@
-#ifndef OSMIUM_XMLPARSER_HPP
-#define OSMIUM_XMLPARSER_HPP
+#ifndef OSMIUM_INPUT_XML_HPP
+#define OSMIUM_INPUT_XML_HPP
 
 /*
 
@@ -37,7 +37,7 @@ namespace Osmium {
     namespace Input {
 
         /**
-        * Class for parsing XML files.
+        * Class for parsing OSM XML files.
         *
         * Generally you are not supposed to instantiate this class yourself.
         * Instead create an OSMFile object and call its read() method.
@@ -47,18 +47,6 @@ namespace Osmium {
         template <class THandler>
         class XML : public Base<THandler> {
 
-            static const int buffer_size = 10240;
-
-            Osmium::OSM::Object *current_object;
-
-            static void XMLCALL start_element_wrapper(void *data, const XML_Char* element, const XML_Char** attrs) {
-                ((Osmium::Input::XML<THandler> *)data)->start_element(element, attrs);
-            }
-
-            static void XMLCALL end_element_wrapper(void *data, const XML_Char* element) {
-                ((Osmium::Input::XML<THandler> *)data)->end_element(element);
-            }
-
         public:
 
             /**
@@ -67,12 +55,11 @@ namespace Osmium {
             * @param file OSMFile instance.
             * @param handler Instance of THandler.
             */
-            XML(Osmium::OSMFile& file, THandler& handler) : Base<THandler>(file, handler) {
+            XML(Osmium::OSMFile& file, THandler& handler) : Base<THandler>(file, handler), m_current_object(NULL) {
             }
 
             void parse() {
                 int done;
-                current_object = 0;
 
                 XML_Parser parser = XML_ParserCreate(0);
                 if (!parser) {
@@ -85,12 +72,12 @@ namespace Osmium {
 
                 try {
                     do {
-                        void *buffer = XML_GetBuffer(parser, buffer_size);
+                        void* buffer = XML_GetBuffer(parser, c_buffer_size);
                         if (buffer == 0) {
                             throw std::runtime_error("out of memory");
                         }
 
-                        int result = read(this->get_fd(), buffer, buffer_size);
+                        int result = read(this->get_fd(), buffer, c_buffer_size);
                         if (result < 0) {
                             exit(1);
                         }
@@ -117,16 +104,31 @@ namespace Osmium {
 
         private:
 
-            void init_object(Osmium::OSM::Object *obj, const XML_Char **attrs) {
-                current_object = obj;
-                current_object->reset();
+            static const int c_buffer_size = 10240;
+
+            Osmium::OSM::Object* m_current_object;
+
+            static void XMLCALL start_element_wrapper(void* data, const XML_Char* element, const XML_Char** attrs) {
+                ((Osmium::Input::XML<THandler> *)data)->start_element(element, attrs);
+            }
+
+            static void XMLCALL end_element_wrapper(void* data, const XML_Char* element) {
+                ((Osmium::Input::XML<THandler> *)data)->end_element(element);
+            }
+
+            void init_object(Osmium::OSM::Object& obj, const XML_Char** attrs) {
+                m_current_object = &obj;
                 for (int count = 0; attrs[count]; count += 2) {
                     if (!strcmp(attrs[count], "lon")) {
-                        dynamic_cast<Osmium::OSM::Node *>(current_object)->set_x(atof(attrs[count+1]));
+                        if (this->m_node) {
+                            this->m_node->set_x(atof(attrs[count+1]));
+                        }
                     } else if (!strcmp(attrs[count], "lat")) {
-                        dynamic_cast<Osmium::OSM::Node *>(current_object)->set_y(atof(attrs[count+1]));
+                        if (this->m_node) {
+                            this->m_node->set_y(atof(attrs[count+1]));
+                        }
                     } else {
-                        current_object->set_attribute(attrs[count], attrs[count+1]);
+                        m_current_object->set_attribute(attrs[count], attrs[count+1]);
                     }
                 }
             }
@@ -136,12 +138,12 @@ namespace Osmium {
                 if (!strcmp(element, "nd")) {
                     for (int count = 0; attrs[count]; count += 2) {
                         if (!strcmp(attrs[count], "ref")) {
-                            this->way()->add_node(atoll(attrs[count+1]));
+                            this->m_way->add_node(atoll(attrs[count+1]));
                         }
                     }
                 } else if (!strcmp(element, "node")) {
                     this->call_after_and_before_handlers(NODE);
-                    init_object(this->node(), attrs);
+                    init_object(this->prepare_node(), attrs);
                 } else if (!strcmp(element, "tag")) {
                     const char *key = "", *value = "";
                     for (int count = 0; attrs[count]; count += 2) {
@@ -153,12 +155,12 @@ namespace Osmium {
                         }
                     }
                     // XXX assert key, value exist
-                    if (current_object) {
-                        current_object->tags().add(key, value);
+                    if (m_current_object) {
+                        m_current_object->tags().add(key, value);
                     }
                 } else if (!strcmp(element, "way")) {
                     this->call_after_and_before_handlers(WAY);
-                    init_object(this->way(), attrs);
+                    init_object(this->prepare_way(), attrs);
                 } else if (!strcmp(element, "member")) {
                     char        type = 'x';
                     uint64_t    ref  = 0;
@@ -173,10 +175,12 @@ namespace Osmium {
                         }
                     }
                     // XXX assert type, ref, role are set
-                    this->relation()->add_member(type, ref, role);
+                    if (m_current_object && this->m_relation) {
+                        this->m_relation->add_member(type, ref, role);
+                    }
                 } else if (!strcmp(element, "relation")) {
                     this->call_after_and_before_handlers(RELATION);
-                    init_object(this->relation(), attrs);
+                    init_object(this->prepare_relation(), attrs);
                 } else if (!strcmp(element, "bounds")) {
                     Osmium::OSM::Position min;
                     Osmium::OSM::Position max;
@@ -198,15 +202,13 @@ namespace Osmium {
             void end_element(const XML_Char* element) {
                 if (!strcmp(element, "node")) {
                     this->handle_node();
-                    current_object = 0;
-                }
-                if (!strcmp(element, "way")) {
+                    m_current_object = NULL;
+                } else if (!strcmp(element, "way")) {
                     this->handle_way();
-                    current_object = 0;
-                }
-                if (!strcmp(element, "relation")) {
+                    m_current_object = NULL;
+                } else if (!strcmp(element, "relation")) {
                     this->handle_relation();
-                    current_object = 0;
+                    m_current_object = NULL;
                 }
             }
 
@@ -216,4 +218,4 @@ namespace Osmium {
 
 } // namespace Osmium
 
-#endif // OSMIUM_XMLPARSER_HPP
+#endif // OSMIUM_INPUT_XML_HPP

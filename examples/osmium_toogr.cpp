@@ -126,7 +126,7 @@ public:
         handler_cfw->init(meta);
     }
 
-    void node(Osmium::OSM::Node* node) {
+    void node(const shared_ptr<Osmium::OSM::Node const>& node) {
         handler_cfw->node(node);
         const char* amenity = node->tags().get_tag_by_key("amenity");
         if (amenity && !strcmp(amenity, "post_box")) {
@@ -156,7 +156,7 @@ public:
         handler_cfw->after_nodes();
     }
 
-    void way(Osmium::OSM::Way* way) {
+    void way(const shared_ptr<Osmium::OSM::Way>& way) {
         handler_cfw->way(way);
         const char* highway = way->tags().get_tag_by_key("highway");
         if (highway) {

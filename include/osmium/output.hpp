@@ -52,9 +52,9 @@ namespace Osmium {
             }
 
             virtual void init(Osmium::OSM::Meta&) = 0;
-            virtual void node(Osmium::OSM::Node*) = 0;
-            virtual void way(Osmium::OSM::Way*) = 0;
-            virtual void relation(Osmium::OSM::Relation*) = 0;
+            virtual void node(const shared_ptr<Osmium::OSM::Node const>&) = 0;
+            virtual void way(const shared_ptr<Osmium::OSM::Way const>&) = 0;
+            virtual void relation(const shared_ptr<Osmium::OSM::Relation const>&) = 0;
             virtual void final() = 0;
 
         }; // class Base

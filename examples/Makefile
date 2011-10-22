@@ -5,6 +5,7 @@
 #------------------------------------------------------------------------------
 
 CXX = g++
+#CXX = clang
 
 CXXFLAGS = -g
 #CXXFLAGS = -O3
@@ -46,6 +47,7 @@ osmium_sizeof: osmium_sizeof.cpp
 
 osmium_debug: osmium_debug.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
+#	$(CXX) $(CXXFLAGS) -DOSMIUM_DEBUG_WITH_ENDTIME -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
 
 osmium_toshape: osmium_toshape.cpp
 	$(CXX) $(CXXFLAGS) $(CXXFLAGS_SHAPE) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_SHAPE)

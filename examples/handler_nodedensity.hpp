@@ -64,7 +64,7 @@ namespace Osmium {
                 free(m_node_count);
             }
 
-            void node(Osmium::OSM::Node* node) {
+            void node(const shared_ptr<Osmium::OSM::Node const>& node) {
                 int x = int( (180 + node->position().lon()) * m_factor );
                 int y = int( ( 90 - node->position().lat()) * m_factor );
                 if (x <        0) x =         0;

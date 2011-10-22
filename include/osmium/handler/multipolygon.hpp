@@ -60,7 +60,7 @@ namespace Osmium {
             }
 
             // in pass 1
-            void relation(Osmium::OSM::Relation* relation) {
+            void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
                 const char* type = relation->tags().get_tag_by_key("type");
 
                 // ignore relations without "type" tag
@@ -109,16 +109,16 @@ namespace Osmium {
             }
 
             // in pass 2
-            void way(Osmium::OSM::Way* way) {
+            void way(const shared_ptr<Osmium::OSM::Way>& way) {
                 way2areaidx_t::const_iterator way2areaidx_iterator(m_way2areaidx.find(way->id()));
 
                 if (way2areaidx_iterator == m_way2areaidx.end()) { // not in any relation
                     if (way->is_closed() && way->node_count() >= 4) { // way is closed and has enough nodes, build simple multipolygon
 #ifdef OSMIUM_WITH_GEOS
                         Osmium::Geometry::Polygon polygon(*way);
-                        Osmium::OSM::AreaFromWay* area = new Osmium::OSM::AreaFromWay(way, polygon.create_geos_geometry());
+                        Osmium::OSM::AreaFromWay* area = new Osmium::OSM::AreaFromWay(way.get(), polygon.create_geos_geometry());
 #else
-                        Osmium::OSM::AreaFromWay* area = new Osmium::OSM::AreaFromWay(way);
+                        Osmium::OSM::AreaFromWay* area = new Osmium::OSM::AreaFromWay(way.get());
 #endif // OSMIUM_WITH_GEOS
                         if (Osmium::debug()) {
                             std::cerr << "MP simple way_id=" << way->id() << "\n";
@@ -145,7 +145,7 @@ namespace Osmium {
                     }
 
                     // store copy of current way in multipolygon
-                    area->add_member_way(way);
+                    area->add_member_way(way.get());
 
                     if (area->is_complete()) {
                         area->handle_complete_multipolygon();

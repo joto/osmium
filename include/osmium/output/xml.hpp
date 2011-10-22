@@ -63,7 +63,7 @@ namespace Osmium {
                 }
             }
 
-            void node(Osmium::OSM::Node* node) {
+            void node(const shared_ptr<Osmium::OSM::Node const>& node) {
                 xmlTextWriterStartElement(xml_writer, BAD_CAST "node"); // <node>
 
                 write_meta(node);
@@ -77,7 +77,7 @@ namespace Osmium {
                 xmlTextWriterEndElement(xml_writer); // </node>
             }
 
-            void way(Osmium::OSM::Way* way) {
+            void way(const shared_ptr<Osmium::OSM::Way const>& way) {
                 xmlTextWriterStartElement(xml_writer, BAD_CAST "way"); // <way>
 
                 write_meta(way);
@@ -94,7 +94,7 @@ namespace Osmium {
                 xmlTextWriterEndElement(xml_writer); // </way>
             }
 
-            void relation(Osmium::OSM::Relation* relation) {
+            void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
                 xmlTextWriterStartElement(xml_writer, BAD_CAST "relation"); // <relation>
 
                 write_meta(relation);
@@ -125,7 +125,7 @@ namespace Osmium {
 
             xmlTextWriterPtr xml_writer;
 
-            void write_meta(const Osmium::OSM::Object* object) {
+            void write_meta(const shared_ptr<Osmium::OSM::Object const>& object) {
                 xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "id",        "%d", object->id());
                 xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "version",   "%d", object->version());
                 xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "changeset", "%d", object->changeset());

@@ -40,7 +40,7 @@ namespace Osmium {
                 return m_bounds;
             }
 
-            void node(Osmium::OSM::Node* node) {
+            void node(const shared_ptr<Osmium::OSM::Node const>& node) {
                 m_bounds.extend(node->position());
             }
 

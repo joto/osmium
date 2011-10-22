@@ -52,7 +52,7 @@ public:
         handler_javascript->init(meta);
     }
 
-    void node(Osmium::OSM::Node *node) {
+    void node(const shared_ptr<Osmium::OSM::Node const>& node) {
         if (handler_cfw) {
             handler_cfw->node(node);
         }
@@ -64,14 +64,14 @@ public:
             handler_cfw->after_nodes();
     }
 
-    void way(Osmium::OSM::Way *way) {
+    void way(const shared_ptr<Osmium::OSM::Way>& way) {
         if (handler_cfw) {
             handler_cfw->way(way);
         }
         handler_javascript->way(way);
     }
 
-    void relation(Osmium::OSM::Relation *relation) {
+    void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
         handler_javascript->relation(relation);
     }
 
@@ -108,7 +108,7 @@ public:
         handler_javascript->init(meta);
     }
 
-    void node(Osmium::OSM::Node *node) {
+    void node(const shared_ptr<Osmium::OSM::Node const>& node) {
         handler_javascript->node(node);
     }
 
@@ -118,7 +118,7 @@ public:
         }
     }
 
-    void relation(Osmium::OSM::Relation *relation) {
+    void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
         if (handler_multipolygon) {
             handler_multipolygon->relation(relation);
         }
@@ -151,7 +151,7 @@ public:
           handler_javascript(js) {
     }
 
-    void node(Osmium::OSM::Node *node) {
+    void node(const shared_ptr<Osmium::OSM::Node const>& node) {
         if (handler_cfw) {
             handler_cfw->node(node);
         }
@@ -163,7 +163,7 @@ public:
         }
     }
 
-    void way(Osmium::OSM::Way *way) {
+    void way(const shared_ptr<Osmium::OSM::Way>& way) {
         if (handler_cfw) {
             handler_cfw->way(way);
         }

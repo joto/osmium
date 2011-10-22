@@ -2,6 +2,9 @@
 
   This is a small tool to dump the contents of the input file.
 
+  If OSMIUM_DEBUG_WITH_ENDTIME is defined when compiling, the
+  Osmium::Handler::EndTime is used.
+
 */
 
 /*
@@ -25,74 +28,28 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
-#include <cstdlib>
-
 #include <osmium.hpp>
 #include <osmium/handler/debug.hpp>
 
-class MyDebugHandler : public Osmium::Handler::Base {
-
-    Osmium::Handler::Debug handler_debug;
-
-public:
-
-    void init(Osmium::OSM::Meta &meta) {
-        handler_debug.init(meta);
-    }
-
-    void before_nodes() {
-        std::cout << "before_nodes" << std::endl;
-    }
-
-    void node(Osmium::OSM::Node *node) {
-        handler_debug.node(node);
-    }
-
-    void after_nodes() {
-        std::cout << "after_nodes" << std::endl;
-    }
-
-    void before_ways() {
-        std::cout << "before_ways" << std::endl;
-    }
-
-    void way(Osmium::OSM::Way *way) {
-        handler_debug.way(way);
-    }
-
-    void after_ways() {
-        std::cout << "after_ways" << std::endl;
-    }
-
-    void before_relations() {
-        std::cout << "before_relations" << std::endl;
-    }
-
-    void relation(Osmium::OSM::Relation *relation) {
-        handler_debug.relation(relation);
-    }
-
-    void after_relations() {
-        std::cout << "after_relations" << std::endl;
-    }
-
-    void final() {
-        std::cout << "final" << std::endl;
-    }
-};
-
-/* ================================================== */
+#ifdef OSMIUM_DEBUG_WITH_ENDTIME
+# include <osmium/handler/endtime.hpp>
+#endif // OSMIUM_DEBUG_WITH_ENDTIME
 
 int main(int argc, char *argv[]) {
     Osmium::init(true);
 
     if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " OSMFILE" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " OSMFILE\n";
         exit(1);
     }
 
     Osmium::OSMFile infile(argv[1]);
-    MyDebugHandler handler;
+#ifdef OSMIUM_DEBUG_WITH_ENDTIME
+    Osmium::Handler::Debug debug_handler(true);
+    Osmium::Handler::EndTime<Osmium::Handler::Debug> handler(debug_handler);
+#else
+    Osmium::Handler::Debug handler;
+#endif // OSMIUM_DEBUG_WITH_ENDTIME
     infile.read(handler);
 }
 
