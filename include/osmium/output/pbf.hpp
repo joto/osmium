@@ -945,7 +945,7 @@ namespace Osmium {
                     std::cerr << "finishing" << std::endl;
                 }
 
-                // if the current block contains any elementy, flush it to the protobuf
+                // if the current block contains any elements, flush it to the protobuf
                 if (primitive_block_contents > 0) {
                     store_primitive_block();
                 }
