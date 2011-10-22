@@ -41,6 +41,7 @@ PROGRAMS = \
     osmium_debug \
     osmium_find_bbox \
     osmium_progress \
+    osmium_range_from_history \
     osmium_sizeof \
     osmium_stats \
     osmium_time \
@@ -64,6 +65,9 @@ osmium_find_bbox: osmium_find_bbox.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
 
 osmium_progress: osmium_progress.cpp
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
+
+osmium_range_from_history: osmium_range_from_history.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
 
 osmium_sizeof: osmium_sizeof.cpp
