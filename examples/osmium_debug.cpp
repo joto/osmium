@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
     Osmium::OSMFile infile(argv[1]);
 #ifdef OSMIUM_DEBUG_WITH_ENDTIME
     Osmium::Handler::Debug debug_handler(true);
-    Osmium::Handler::EndTime<Osmium::Handler::Debug> handler(debug_handler);
+    Osmium::Handler::EndTime<Osmium::Handler::Debug> handler(&debug_handler);
 #else
     Osmium::Handler::Debug handler;
 #endif // OSMIUM_DEBUG_WITH_ENDTIME

@@ -36,15 +36,15 @@ namespace Osmium {
 
         public:
 
-            EndTime(THandler handler) : Base(), m_handler(handler) {
+            EndTime(THandler* handler) : Base(), m_handler(handler) {
             }
 
             void init(Osmium::OSM::Meta& meta) {
-                m_handler.init(meta);
+                m_handler->init(meta);
             }
 
             void before_nodes() {
-                m_handler.before_nodes();
+                m_handler->before_nodes();
             }
 
             void node(const shared_ptr<Osmium::OSM::Node>& node) {
@@ -52,21 +52,21 @@ namespace Osmium {
                     if (node->id() == m_last_node->id()) {
                         m_last_node->endtime(node->timestamp());
                     }
-                    m_handler.node(m_last_node);
+                    m_handler->node(m_last_node);
                 }
                 m_last_node = node;
             }
 
             void after_nodes() {
                 if (m_last_node) {
-                    m_handler.node(m_last_node);
+                    m_handler->node(m_last_node);
                     m_last_node.reset();
                 }
-                m_handler.after_nodes();
+                m_handler->after_nodes();
             }
 
             void before_ways() {
-                m_handler.before_ways();
+                m_handler->before_ways();
             }
 
             void way(const shared_ptr<Osmium::OSM::Way>& way) {
@@ -74,21 +74,21 @@ namespace Osmium {
                     if (way->id() == m_last_way->id()) {
                         m_last_way->endtime(way->timestamp());
                     }
-                    m_handler.way(m_last_way);
+                    m_handler->way(m_last_way);
                 }
                 m_last_way = way;
             }
 
             void after_ways() {
                 if (m_last_way) {
-                    m_handler.way(m_last_way);
+                    m_handler->way(m_last_way);
                     m_last_way.reset();
                 }
-                m_handler.after_ways();
+                m_handler->after_ways();
             }
 
             void before_relations() {
-                m_handler.before_relations();
+                m_handler->before_relations();
             }
 
             void relation(const shared_ptr<Osmium::OSM::Relation>& relation) {
@@ -96,26 +96,26 @@ namespace Osmium {
                     if (relation->id() == m_last_relation->id()) {
                         m_last_relation->endtime(relation->timestamp());
                     }
-                    m_handler.relation(m_last_relation);
+                    m_handler->relation(m_last_relation);
                 }
                 m_last_relation = relation;
             }
 
             void after_relations() {
                 if (m_last_relation) {
-                    m_handler.relation(m_last_relation);
+                    m_handler->relation(m_last_relation);
                     m_last_relation.reset();
                 }
-                m_handler.after_relations();
+                m_handler->after_relations();
             }
 
             void final() {
-                m_handler.final();
+                m_handler->final();
             }
 
         private:
 
-            THandler m_handler;
+            THandler* m_handler;
 
             shared_ptr<Osmium::OSM::Node>     m_last_node;
             shared_ptr<Osmium::OSM::Way>      m_last_way;
