@@ -49,10 +49,6 @@ namespace Osmium {
                 return m_bounds;
             }
 
-            bool with_history() const {
-                return m_has_multiple_object_versions;
-            }
-
             bool has_multiple_object_versions() const {
                 return m_has_multiple_object_versions;
             }

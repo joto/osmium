@@ -34,13 +34,13 @@ namespace Osmium {
 
         public:
 
-            Debug(bool with_history=false) : Base(), m_with_history(with_history) {
+            Debug(bool has_multiple_object_versions=false) : Base(), m_has_multiple_object_versions(has_multiple_object_versions) {
             }
 
             void init(Osmium::OSM::Meta& meta) {
                 std::cout << "meta:\n";
-                if (meta.with_history()) {
-                    m_with_history = true;
+                if (meta.has_multiple_object_versions()) {
+                    m_has_multiple_object_versions = true;
                 }
 
                 if (meta.bounds().defined()) {
@@ -107,7 +107,7 @@ namespace Osmium {
 
         private:
 
-            bool m_with_history;
+            bool m_has_multiple_object_versions;
 
             void print_meta(const shared_ptr<Osmium::OSM::Object const>& object) const {
                 std::cout <<   "  id="        << object->id()
@@ -116,7 +116,7 @@ namespace Osmium {
                           << "\n  user=|"     << object->user() << "|"
                           << "\n  changeset=" << object->changeset()
                           << "\n  timestamp=" << object->timestamp_as_string();
-                if (m_with_history) {
+                if (m_has_multiple_object_versions) {
                     std::cout << "\n  visible=" << (object->visible() ? "yes" : "no")
                               << "\n  endtime=" << object->endtime_as_string();
                 }
