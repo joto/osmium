@@ -33,22 +33,21 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 class ConvertHandler : public Osmium::Handler::Base {
 
-    Osmium::OSMFile* m_outfile;
+    Osmium::OSMFile& m_outfile;
     Osmium::Handler::Progress m_progress_handler;
 
     Osmium::Output::Base* output;
 
 public:
 
-    ConvertHandler(Osmium::OSMFile* osmfile = new Osmium::OSMFile("")) : m_outfile(osmfile) {
+    ConvertHandler(Osmium::OSMFile& osmfile) : m_outfile(osmfile) {
     }
 
     ~ConvertHandler() {
-        delete m_outfile;
     }
 
     void init(Osmium::OSM::Meta& meta) {
-        output = m_outfile->create_output_file();
+        output = m_outfile.create_output_file();
         output->init(meta);
         m_progress_handler.init(meta);
     }
@@ -161,21 +160,21 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    Osmium::OSMFile* outfile = new Osmium::OSMFile(output);
+    Osmium::OSMFile outfile(output);
     if (!output_format.empty()) {
         try {
-            outfile->set_type_and_encoding(output_format);
+            outfile.set_type_and_encoding(output_format);
         } catch (Osmium::OSMFile::ArgumentError& e) {
             std::cerr << "Unknown format for output: " << e.value() << std::endl;
             exit(1);
         }
     }
 
-    if (infile.get_type() == Osmium::OSMFile::FileType::OSM() && outfile->get_type() == Osmium::OSMFile::FileType::History()) {
+    if (infile.get_type() == Osmium::OSMFile::FileType::OSM() && outfile.get_type() == Osmium::OSMFile::FileType::History()) {
         std::cerr << "Warning! You are converting from an OSM file without history information to one with history information.\nThis will almost certainly not do what you want!" << std::endl;
-    } else if (infile.get_type() == Osmium::OSMFile::FileType::History() && outfile->get_type() == Osmium::OSMFile::FileType::OSM()) {
+    } else if (infile.get_type() == Osmium::OSMFile::FileType::History() && outfile.get_type() == Osmium::OSMFile::FileType::OSM()) {
         std::cerr << "Warning! You are converting from an OSM file with history information to one without history information.\nThis will almost certainly not do what you want!" << std::endl;
-    } else if (infile.get_type() != outfile->get_type()) {
+    } else if (infile.get_type() != outfile.get_type()) {
         std::cerr << "Warning! Source and destination are not of the same type." << std::endl;
     }
 
