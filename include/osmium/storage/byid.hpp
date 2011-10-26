@@ -30,6 +30,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <unistd.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <boost/utility.hpp>
 
 namespace Osmium {
 
@@ -54,7 +55,7 @@ namespace Osmium {
          * there before.
          */
         template <typename TValue>
-        class ById {
+        class ById : boost::noncopyable {
 
         public:
 
@@ -152,10 +153,6 @@ namespace Osmium {
 
             uint64_t m_size;
 
-            // disable copying and assignment
-            FixedArray(const FixedArray&) {}
-            FixedArray& operator=(const FixedArray&) {}
-
         }; // class FixedArray
 
         /**
@@ -214,10 +211,6 @@ namespace Osmium {
             uint64_t m_grow_size;
 
             google::sparsetable<TValue> m_items;
-
-            // disable copying and assignment
-            SparseTable(const SparseTable&) {}
-            SparseTable& operator=(const SparseTable&) {}
 
         }; // class SparseTable
 
@@ -347,10 +340,6 @@ namespace Osmium {
                 }
                 return s.st_size;
             }
-
-            // disable copying and assignment
-            Mmap(const Mmap&) {}
-            Mmap& operator=(const Mmap&) {}
 
         }; // class Mmap
 

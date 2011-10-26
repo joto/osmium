@@ -27,12 +27,13 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <fstream>
 #include <sstream>
 #include <shapefil.h>
+#include <boost/utility.hpp>
 
 namespace Osmium {
 
     namespace Export {
 
-        class Shapefile {
+        class Shapefile : boost::noncopyable {
 
             // the following limits are defined by the shapefile spec
             static const unsigned int max_dbf_fields            =  16;
@@ -374,10 +375,6 @@ namespace Osmium {
             /// shapefile sequence number for auto-overflow (0=first)
             int m_sequence_number;
 
-            // define copy constructor and assignment operator as private
-            Shapefile(const Shapefile&);
-            Shapefile& operator=(const Shapefile&);
-
             /**
              * Open and initialize all files belonging to shapefile (.shp/shx/dbf/prj/cpg).
              * Uses m_filename_base and m_sequence_number plus suffix to build filename.
@@ -437,12 +434,6 @@ namespace Osmium {
             PointShapefile(const std::string& filename) : Shapefile(filename, SHPT_POINT) {
             }
 
-        private:
-
-            // define copy constructor and assignment operator as private
-            PointShapefile(const PointShapefile&);
-            PointShapefile& operator=(const PointShapefile&);
-
         };
 
         /**
@@ -460,12 +451,6 @@ namespace Osmium {
             LineStringShapefile(const std::string& filename) : Shapefile(filename, SHPT_ARC) {
             }
 
-        private:
-
-            // define copy constructor and assignment operator as private
-            LineStringShapefile(const LineStringShapefile&);
-            LineStringShapefile& operator=(const LineStringShapefile&);
-
         };
 
         /**
@@ -482,12 +467,6 @@ namespace Osmium {
              */
             PolygonShapefile(const std::string& filename) : Shapefile(filename, SHPT_POLYGON) {
             }
-
-        private:
-
-            // define copy constructor and assignment operator as private
-            PolygonShapefile(const PolygonShapefile&);
-            PolygonShapefile& operator=(const PolygonShapefile&);
 
         };
 

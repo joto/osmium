@@ -22,6 +22,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#include <boost/utility.hpp>
 #include <boost/tr1/memory.hpp>
 #include <boost/make_shared.hpp>
 
@@ -94,7 +95,7 @@ namespace Osmium {
          * final() instead.
          */
         template <class THandler>
-        class Base {
+        class Base : boost::noncopyable {
 
         public:
 

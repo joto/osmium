@@ -22,6 +22,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#include <boost/utility.hpp>
+
 #include <osmium/osm/meta.hpp>
 #include <osmium/osm/node.hpp>
 #include <osmium/osm/way.hpp>
@@ -46,7 +48,7 @@ namespace Osmium {
          * Only overwrite the functions you actually use. They must be declared public.
          * If you overwrite the constructor call the Base constructor without arguments.
          */
-        class Base {
+        class Base : boost::noncopyable {
 
         public:
 

@@ -28,6 +28,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <fcntl.h>
 #include <errno.h>
 #include <stdexcept>
+#include <boost/utility.hpp>
 
 namespace Osmium {
 
@@ -141,7 +142,7 @@ namespace Osmium {
          * You can not create instances of this class yourself, instead use
          * the static methods provided to get the predefined instances.
          */
-        class FileType {
+        class FileType : boost::noncopyable {
 
             std::string m_suffix;
             bool m_has_multiple_object_versions;
@@ -163,7 +164,7 @@ namespace Osmium {
              * Normal OSM file without history.
              */
             static FileType* OSM() {
-                static FileType instance = FileType(".osm", false);
+                static FileType instance(".osm", false);
                 return &instance;
             }
 
@@ -171,7 +172,7 @@ namespace Osmium {
              * OSM file with history.
              */
             static FileType* History() {
-                static FileType instance = FileType(".osh", true);
+                static FileType instance(".osh", true);
                 return &instance;
             }
 
@@ -179,7 +180,7 @@ namespace Osmium {
              * OSM change file.
              */
             static FileType* Change() {
-                static FileType instance = FileType(".osc", true);
+                static FileType instance(".osc", true);
                 return &instance;
             }
 
@@ -192,7 +193,7 @@ namespace Osmium {
          * You can not create instances of this class yourself, instead use
          * the static methods provided to get the predefined instances.
          */
-        class FileEncoding {
+        class FileEncoding : boost::noncopyable {
 
             std::string m_suffix;
             std::string m_compress;
@@ -224,7 +225,7 @@ namespace Osmium {
              * Encoding in PBF.
              */
             static FileEncoding* PBF() {
-                static FileEncoding instance = FileEncoding(".pbf", "", "", true);
+                static FileEncoding instance(".pbf", "", "", true);
                 return &instance;
             }
 
@@ -232,7 +233,7 @@ namespace Osmium {
              * XML encoding, uncompressed.
              */
             static FileEncoding* XML() {
-                static FileEncoding instance = FileEncoding("", "", "", false);
+                static FileEncoding instance("", "", "", false);
                 return &instance;
             }
 
@@ -240,7 +241,7 @@ namespace Osmium {
              * XML encoding, compressed with gzip.
              */
             static FileEncoding* XMLgz() {
-                static FileEncoding instance = FileEncoding(".gz", "gzip", "gzcat", false);
+                static FileEncoding instance(".gz", "gzip", "gzcat", false);
                 return &instance;
             }
 
@@ -248,7 +249,7 @@ namespace Osmium {
              * XML encoding, compressed with bzip2.
              */
             static FileEncoding* XMLbz2() {
-                static FileEncoding instance = FileEncoding(".bz2", "bzip2", "bzcat", false);
+                static FileEncoding instance(".bz2", "bzip2", "bzcat", false);
                 return &instance;
             }
 
