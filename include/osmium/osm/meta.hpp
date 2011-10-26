@@ -35,10 +35,10 @@ namespace Osmium {
 
         public:
 
-            Meta() : m_bounds(), m_with_history(false) {
+            Meta() : m_bounds(), m_has_multiple_object_versions(false) {
             }
 
-            Meta(const Bounds& bounds) : m_bounds(bounds), m_with_history(false) {
+            Meta(const Bounds& bounds) : m_bounds(bounds), m_has_multiple_object_versions(false) {
             }
 
             Bounds& bounds() {
@@ -50,13 +50,27 @@ namespace Osmium {
             }
 
             bool with_history() const {
-                return m_with_history;
+                return m_has_multiple_object_versions;
+            }
+
+            bool has_multiple_object_versions() const {
+                return m_has_multiple_object_versions;
+            }
+
+            Meta& has_multiple_object_versions(bool h) {
+                m_has_multiple_object_versions = h;
+                return *this;
             }
 
         private:
 
             Bounds m_bounds;
-            bool m_with_history;
+
+            /**
+             * Are there possibly multiple versions of the same object in this stream of objects?
+             * This is true for history files and for change files, but not for normal OSM files.
+             */
+            bool m_has_multiple_object_versions;
 
         }; // class Meta
 

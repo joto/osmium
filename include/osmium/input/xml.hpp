@@ -55,7 +55,7 @@ namespace Osmium {
             * @param file OSMFile instance.
             * @param handler Instance of THandler.
             */
-            XML(Osmium::OSMFile& file, THandler& handler) : Base<THandler>(file, handler), m_current_object(NULL) {
+            XML(Osmium::OSMFile& file, THandler& handler) : Base<THandler>(file, handler), m_current_object(NULL), m_in_delete_section(false) {
             }
 
             void parse() {
@@ -109,6 +109,12 @@ namespace Osmium {
 
             Osmium::OSM::Object* m_current_object;
 
+            /**
+             * This is used only for change files which contain create, modify,
+             * and delete sections.
+             */
+            bool m_in_delete_section;
+
             static void XMLCALL start_element_wrapper(void* data, const XML_Char* element, const XML_Char** attrs) {
                 ((Osmium::Input::XML<THandler> *)data)->start_element(element, attrs);
             }
@@ -118,6 +124,9 @@ namespace Osmium {
             }
 
             void init_object(Osmium::OSM::Object& obj, const XML_Char** attrs) {
+                if (m_in_delete_section) {
+                    obj.visible(false);
+                }
                 m_current_object = &obj;
                 for (int count = 0; attrs[count]; count += 2) {
                     if (!strcmp(attrs[count], "lon")) {
@@ -197,6 +206,8 @@ namespace Osmium {
                         }
                     }
                     this->meta().bounds().extend(min).extend(max);
+                } else if (!strcmp(element, "delete")) {
+                    m_in_delete_section = true;
                 }
             }
 
@@ -210,6 +221,8 @@ namespace Osmium {
                 } else if (!strcmp(element, "relation")) {
                     this->call_relation_on_handler();
                     m_current_object = NULL;
+                } else if (!strcmp(element, "delete")) {
+                    m_in_delete_section = false;
                 }
             }
 

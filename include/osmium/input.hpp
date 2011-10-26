@@ -119,6 +119,7 @@ namespace Osmium {
                   m_way(),
                   m_relation() {
 
+                m_meta.has_multiple_object_versions(m_file.has_multiple_object_versions());
                 m_file.open_for_input();
 
             }

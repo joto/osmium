@@ -144,8 +144,9 @@ namespace Osmium {
         class FileType {
 
             std::string m_suffix;
+            bool m_has_multiple_object_versions;
 
-            FileType(std::string suffix) : m_suffix(suffix) {
+            FileType(std::string suffix, bool has_multiple_object_versions) : m_suffix(suffix), m_has_multiple_object_versions(has_multiple_object_versions) {
             }
 
         public:
@@ -154,11 +155,15 @@ namespace Osmium {
                 return m_suffix;
             }
 
+            bool has_multiple_object_versions() const {
+                return m_has_multiple_object_versions;
+            }
+
             /**
              * Normal OSM file without history.
              */
             static FileType* OSM() {
-                static FileType instance = FileType(".osm");
+                static FileType instance = FileType(".osm", false);
                 return &instance;
             }
 
@@ -166,20 +171,17 @@ namespace Osmium {
              * OSM file with history.
              */
             static FileType* History() {
-                static FileType instance = FileType(".osh");
+                static FileType instance = FileType(".osh", true);
                 return &instance;
             }
 
-#if 0
-            // NOT YET IMPLEMENTED
             /**
              * OSM change file.
              */
             static FileType* Change() {
-                static FileType instance = FileType(".osc");
+                static FileType instance = FileType(".osc", true);
                 return &instance;
             }
-#endif
 
         };
 
@@ -255,10 +257,10 @@ namespace Osmium {
     private:
 
         /// Type of file.
-        FileType *m_type;
+        FileType* m_type;
 
         /// Encoding of file.
-        FileEncoding *m_encoding;
+        FileEncoding* m_encoding;
 
         /// File name.
         std::string m_filename;
@@ -426,11 +428,6 @@ namespace Osmium {
             } else if (suffix == "osh.gz") {
                 m_type     = FileType::History();
                 m_encoding = FileEncoding::XMLgz();
-#if 0
-                // NOT YET IMPLEMENTED
-            } else if (suffix == "osc.pbf") {
-                m_type     = FileType::Change();
-                m_encoding = FileEncoding::PBF();
             } else if (suffix == "osc") {
                 m_type     = FileType::Change();
                 m_encoding = FileEncoding::XML();
@@ -440,7 +437,6 @@ namespace Osmium {
             } else if (suffix == "osc.gz") {
                 m_type     = FileType::Change();
                 m_encoding = FileEncoding::XMLgz();
-#endif
             } else {
                 default_settings_for_file();
             }
@@ -531,11 +527,11 @@ namespace Osmium {
             return m_fd;
         }
 
-        FileType *get_type() const {
+        FileType* get_type() const {
             return m_type;
         }
 
-        OSMFile& set_type(FileType *type) {
+        OSMFile& set_type(FileType* type) {
             m_type = type;
             return *this;
         }
@@ -545,18 +541,19 @@ namespace Osmium {
                 m_type = FileType::OSM();
             } else if (type == "history" || type == "osh") {
                 m_type = FileType::History();
-#if 0
-                // NOT YET IMPLEMENTED
             } else if (type == "change" || type == "osc") {
                 m_type = FileType::Change();
-#endif
             } else {
                 throw ArgumentError("Unknown OSM file type", type);
             }
             return *this;
         }
 
-        FileEncoding *get_encoding() const {
+        bool has_multiple_object_versions() const {
+            return m_type->has_multiple_object_versions();
+        }
+
+        FileEncoding* get_encoding() const {
             return m_encoding;
         }
 
