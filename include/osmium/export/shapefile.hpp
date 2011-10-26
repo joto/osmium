@@ -159,7 +159,7 @@ namespace Osmium {
              *                   the type of geometry does not fit the type of the
              *                   shapefile.
              */
-            void add_geometry(SHPObject *shp_object) {
+            void add_geometry(SHPObject* shp_object) {
                 if (!shp_object || shp_object->nSHPType != m_shp_handle->nShapeType) {
                     throw Osmium::Exception::IllegalGeometry();
                 }
@@ -287,7 +287,7 @@ namespace Osmium {
             }
 
             v8::Local<v8::Object> js_instance() const {
-                return JavascriptTemplate::get<JavascriptTemplate>().create_instance((void *)this);
+                return JavascriptTemplate::get<JavascriptTemplate>().create_instance((void*)this);
             }
 
             v8::Handle<v8::Value> js_add_field(const v8::Arguments& args) {
@@ -315,7 +315,7 @@ namespace Osmium {
                 }
 
                 v8::Local<v8::Object> xxx = v8::Local<v8::Object>::Cast(args[0]);
-                Osmium::Geometry::Geometry* geometry = (Osmium::Geometry::Geometry *) v8::Local<v8::External>::Cast(xxx->GetInternalField(0))->Value();
+                Osmium::Geometry::Geometry* geometry = (Osmium::Geometry::Geometry*) v8::Local<v8::External>::Cast(xxx->GetInternalField(0))->Value();
 
                 try {
                     add(geometry, v8::Local<v8::Object>::Cast(args[1]));

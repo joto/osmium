@@ -140,7 +140,7 @@ namespace Osmium {
                     return v8::Undefined();
                 } else {
                     v8::String::Utf8Value str(args[0]);
-                    Osmium::Export::CSV *oc = new Osmium::Export::CSV(*str);
+                    Osmium::Export::CSV* oc = new Osmium::Export::CSV(*str);
                     return oc->js_instance();
                 }
             }
@@ -153,7 +153,7 @@ namespace Osmium {
                     v8::String::Utf8Value str(args[0]);
                     v8::String::AsciiValue type(args[1]);
                     std::string filename(*str);
-                    Osmium::Export::Shapefile *oc;
+                    Osmium::Export::Shapefile* oc;
                     if (!strcmp(*type, "point")) {
                         oc = new Osmium::Export::PointShapefile(filename);
                     } else if (!strcmp(*type, "line")) {
@@ -169,7 +169,7 @@ namespace Osmium {
             }
 #endif // OSMIUM_WITH_SHPLIB
 
-            Javascript(std::vector<std::string> include_files, const char *filename) : Base() {
+            Javascript(std::vector<std::string> include_files, const char* filename) : Base() {
 //                v8::HandleScope handle_scope;
                 v8::Handle<v8::String> init_source = v8::String::New("Osmium = { Callbacks: {}, Output: { } };");
                 v8::Handle<v8::Script> init_script = v8::Script::Compile(init_source);

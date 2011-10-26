@@ -126,7 +126,7 @@ namespace Osmium {
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
             v8::Local<v8::Object> js_instance() const {
-                return JavascriptTemplate::get<JavascriptTemplate>().create_instance((void *)this);
+                return JavascriptTemplate::get<JavascriptTemplate>().create_instance((void*)this);
             }
 
             v8::Handle<v8::Value> js_lon() const {

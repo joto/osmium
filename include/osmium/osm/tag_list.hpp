@@ -87,11 +87,11 @@ namespace Osmium {
             }
 
             /// Add new tag with given key and value to list.
-            void add(const char *key, const char *value) {
+            void add(const char* key, const char* value) {
                 m_tags.push_back(Tag(key, value));
             }
 
-            const char *get_tag_by_key(const char *key) const {
+            const char* get_tag_by_key(const char* key) const {
                 for (const_iterator it = begin(); it != end(); ++it) {
                     if (!strcmp(it->key(), key)) {
                         return it->value();
@@ -100,14 +100,14 @@ namespace Osmium {
                 return 0;
             }
 
-            const char *get_tag_key(unsigned int n) const {
+            const char* get_tag_key(unsigned int n) const {
                 if (n < m_tags.size()) {
                     return m_tags[n].key();
                 }
                 throw std::range_error("no tag with this index");
             }
 
-            const char *get_tag_value(unsigned int n) const {
+            const char* get_tag_value(unsigned int n) const {
                 if (n < m_tags.size()) {
                     return m_tags[n].value();
                 }
@@ -116,12 +116,12 @@ namespace Osmium {
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
             v8::Local<v8::Object> js_instance() const {
-                return JavascriptTemplate::get<JavascriptTemplate>().create_instance((void *)this);
+                return JavascriptTemplate::get<JavascriptTemplate>().create_instance((void*)this);
             }
 
             v8::Handle<v8::Value> js_get_tag_value_by_key(v8::Local<v8::String> property) const {
-                const char *key = Osmium::v8_String_to_utf8<Osmium::OSM::Tag::max_utf16_length_key>(property);
-                const char *value = get_tag_by_key(key);
+                const char* key = Osmium::v8_String_to_utf8<Osmium::OSM::Tag::max_utf16_length_key>(property);
+                const char* value = get_tag_by_key(key);
                 if (value) {
                     return Osmium::utf8_to_v8_String<Osmium::OSM::Tag::max_utf16_length_value>(value);
                 }

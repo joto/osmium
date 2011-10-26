@@ -55,14 +55,14 @@ namespace Osmium {
              * Create a Javascript object instance from the Javascript template
              * wrapping a C++ object.
              */
-            v8::Local<v8::Object> create_instance(void *wrapped) {
+            v8::Local<v8::Object> create_instance(void* wrapped) {
                 v8::Local<v8::Object> instance = js_template->NewInstance();
                 instance->SetInternalField(0, v8::External::New(wrapped));
                 return instance;
             }
 
             template <class TWrapped>
-            v8::Persistent<v8::Object> create_persistent_instance(TWrapped *wrapped) {
+            v8::Persistent<v8::Object> create_persistent_instance(TWrapped* wrapped) {
                 v8::Persistent<v8::Object> instance = v8::Persistent<v8::Object>::New(create_instance(wrapped));
                 instance.MakeWeak(wrapped, Osmium::Javascript::Template::free_instance<TWrapped>);
                 return instance;
@@ -97,32 +97,32 @@ namespace Osmium {
             */
             template<class TObject, v8::Handle<v8::Value> (TObject::*func)() const>
             static v8::Handle<v8::Value> accessor_getter(v8::Local<v8::String>, const v8::AccessorInfo &info) {
-                return (( reinterpret_cast<TObject *>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()) )->*(func))();
+                return (( reinterpret_cast<TObject*>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()) )->*(func))();
             }
 
             template<class TObject, v8::Handle<v8::Value> (TObject::*func)(v8::Local<v8::String>) const>
             static v8::Handle<v8::Value> named_property_getter(v8::Local<v8::String> property, const v8::AccessorInfo &info) {
-                return (( reinterpret_cast<TObject *>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()) )->*(func))(property);
+                return (( reinterpret_cast<TObject*>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()) )->*(func))(property);
             }
 
             template<class TObject, v8::Handle<v8::Value> (TObject::*func)(uint32_t) const>
             static v8::Handle<v8::Value> indexed_property_getter(uint32_t index, const v8::AccessorInfo &info) {
-                return (( reinterpret_cast<TObject *>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()) )->*(func))(index);
+                return (( reinterpret_cast<TObject*>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()) )->*(func))(index);
             }
 
             template<class TObject, v8::Handle<v8::Value> (TObject::*func)(uint32_t)>
             static v8::Handle<v8::Value> indexed_property_getter(uint32_t index, const v8::AccessorInfo &info) {
-                return (( reinterpret_cast<TObject *>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()) )->*(func))(index);
+                return (( reinterpret_cast<TObject*>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()) )->*(func))(index);
             }
 
             template<class TObject, v8::Handle<v8::Array> (TObject::*func)() const>
             static v8::Handle<v8::Array> property_enumerator(const v8::AccessorInfo &info) {
-                return (( reinterpret_cast<TObject *>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()) )->*(func))();
+                return (( reinterpret_cast<TObject*>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()) )->*(func))();
             }
 
             template<class TObject, v8::Handle<v8::Value> (TObject::*func)(const v8::Arguments&)>
             static v8::Handle<v8::Value> function_template(const v8::Arguments& args) {
-                return (( reinterpret_cast<TObject *>(v8::Local<v8::External>::Cast(args.Holder()->GetInternalField(0))->Value()) )->*(func))(args);
+                return (( reinterpret_cast<TObject*>(v8::Local<v8::External>::Cast(args.Holder()->GetInternalField(0))->Value()) )->*(func))(args);
             }
 
         protected:

@@ -174,7 +174,7 @@ namespace Osmium {
              */
             template<typename T>
             inline void write_binary(std::ostream& out, const T value) const {
-                out.write(reinterpret_cast<const char *>(&value), sizeof(T));
+                out.write(reinterpret_cast<const char*>(&value), sizeof(T));
             }
 
             /**
@@ -184,7 +184,7 @@ namespace Osmium {
              */
             template<typename T>
             inline void write_hex(std::ostream& out, const T value) const {
-                static const char *lookup_hex = "0123456789ABCDEF";
+                static const char* lookup_hex = "0123456789ABCDEF";
                 for (const char* in = reinterpret_cast<const char*>(&value); in < reinterpret_cast<const char*>(&value) + sizeof(T); ++in) {
                     out << lookup_hex[(*in >> 4) & 0xf]
                         << lookup_hex[*in & 0xf];
@@ -235,7 +235,7 @@ namespace Osmium {
             virtual std::ostream& write_to_stream(std::ostream& out, AsHexWKB, bool with_srid=false) const = 0;
 
 #ifdef  OSMIUM_WITH_SHPLIB
-            virtual SHPObject *create_shp_object() const {
+            virtual SHPObject* create_shp_object() const {
                 return NULL;
             }
 #endif // OSMIUM_WITH_SHPLIB

@@ -72,7 +72,7 @@ namespace Osmium {
 
                 // initialize all statistics to zero
                 for (int i=0; m_stat_names[i]; ++i) {
-                    ((uint64_t *) &m_stats)[i] = 0;
+                    ((uint64_t*) &m_stats)[i] = 0;
                 }
             }
 
@@ -143,7 +143,7 @@ namespace Osmium {
                 unlink("count.db");
                 Sqlite::Database db("count.db");
 
-                sqlite3 *sqlite_db = db.get_sqlite3();
+                sqlite3* sqlite_db = db.get_sqlite3();
                 if (SQLITE_OK != sqlite3_exec(sqlite_db, \
                                               "CREATE TABLE stats (" \
                                               "  key    TEXT, " \
@@ -154,18 +154,18 @@ namespace Osmium {
                     exit(1);
                 }
 
-                Sqlite::Statement *statement_insert_into_main_stats = db.prepare("INSERT INTO stats (key, value) VALUES (?, ?);");
+                Sqlite::Statement* statement_insert_into_main_stats = db.prepare("INSERT INTO stats (key, value) VALUES (?, ?);");
                 db.begin_transaction();
 
                 for (int i=0; m_stat_names[i]; ++i) {
                     statement_insert_into_main_stats
                     ->bind_text(m_stat_names[i])
-                    ->bind_int64( ((uint64_t *) &m_stats)[i] )
+                    ->bind_int64( ((uint64_t*) &m_stats)[i] )
                     ->execute();
                 }
                 statement_insert_into_main_stats
                 ->bind_text("nodes_with_tags")
-                ->bind_int64( ((uint64_t *) &m_stats)[0] - ((uint64_t *) &m_stats)[1] )
+                ->bind_int64( ((uint64_t*) &m_stats)[0] - ((uint64_t*) &m_stats)[1] )
                 ->execute();
 
                 db.commit();

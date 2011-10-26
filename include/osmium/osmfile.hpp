@@ -558,7 +558,7 @@ namespace Osmium {
             return m_encoding;
         }
 
-        OSMFile& set_encoding(FileEncoding *encoding) {
+        OSMFile& set_encoding(FileEncoding* encoding) {
             m_encoding = encoding;
             return *this;
         }
@@ -617,7 +617,7 @@ namespace Osmium {
         /**
          * Create output file from OSMFile.
          */
-        Osmium::Output::Base *create_output_file();
+        Osmium::Output::Base* create_output_file();
 
     };
 

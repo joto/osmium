@@ -367,7 +367,7 @@ namespace Osmium {
                     // test, if the node-block has a densenodes structure
                     if (pbf_nodes->has_dense()) {
                         // get a pointer to the densenodes structure
-                        OSMPBF::DenseNodes *dense = pbf_nodes->mutable_dense();
+                        OSMPBF::DenseNodes* dense = pbf_nodes->mutable_dense();
 
                         // in the densenodes structure keys and vals are encoded in an intermixed
                         // array, individual nodes are seperated by a value of 0 (0 in the StringTable
@@ -383,7 +383,7 @@ namespace Osmium {
                         // test if the densenodes block has meta infos
                         if (dense->has_denseinfo()) {
                             // get a pointer to the denseinfo structure
-                            OSMPBF::DenseInfo *denseinfo = dense->mutable_denseinfo();
+                            OSMPBF::DenseInfo* denseinfo = dense->mutable_denseinfo();
 
                             // iterate over all username string-ids
                             for (int i=0, l= denseinfo->user_sid_size(); i<l; i++) {
@@ -410,7 +410,7 @@ namespace Osmium {
                     // iterate over all relations
                     for (int i=0, l=pbf_relations->relations_size(); i<l; i++) {
                         // get a pointer to the relation
-                        OSMPBF::Relation *relation = pbf_relations->mutable_relations(i);
+                        OSMPBF::Relation* relation = pbf_relations->mutable_relations(i);
 
                         // pass them to the map_common_string_ids function
                         map_common_string_ids(relation);
@@ -430,11 +430,11 @@ namespace Osmium {
              *
              * pbf_object_t is either OSMPBF::Node, OSMPBF::Way or OSMPBF::Relation.
              */
-            template <class pbf_object_t> void map_common_string_ids(pbf_object_t *in) {
+            template <class pbf_object_t> void map_common_string_ids(pbf_object_t* in) {
                 // if the object has meta-info attached
                 if (in->has_info()) {
                     // map the interim-id of the user name to a real id
-                    OSMPBF::Info *info = in->mutable_info();
+                    OSMPBF::Info* info = in->mutable_info();
                     info->set_user_sid(string_table.map_string_id(info->user_sid()));
                 }
 
@@ -583,7 +583,7 @@ namespace Osmium {
              * @param node The node to add.
              */
             void write_node(const shared_ptr<Osmium::OSM::Node const>& node) {
-                OSMPBF::Node *pbf_node = pbf_nodes->add_nodes();
+                OSMPBF::Node* pbf_node = pbf_nodes->add_nodes();
 
                 // copy the common meta-info from the osmium-object to the pbf-object
                 apply_common_info(node, pbf_node);
@@ -601,7 +601,7 @@ namespace Osmium {
              */
             void write_dense_node(const shared_ptr<Osmium::OSM::Node const>& node) {
                 // add a DenseNodes-Section to the PrimitiveGroup
-                OSMPBF::DenseNodes *dense = pbf_nodes->mutable_dense();
+                OSMPBF::DenseNodes* dense = pbf_nodes->mutable_dense();
 
                 // copy the id, delta encoded
                 dense->add_id(m_delta_id.update(node->id()));
@@ -657,7 +657,7 @@ namespace Osmium {
              */
             void write_way(const shared_ptr<Osmium::OSM::Way const>& way) {
                 // add a way to the group
-                OSMPBF::Way *pbf_way = pbf_ways->add_ways();
+                OSMPBF::Way* pbf_way = pbf_ways->add_ways();
 
                 // copy the common meta-info from the osmium-object to the pbf-object
                 apply_common_info(way, pbf_way);
@@ -679,7 +679,7 @@ namespace Osmium {
              */
             void write_relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
                 // add a relation to the group
-                OSMPBF::Relation *pbf_relation = pbf_relations->add_relations();
+                OSMPBF::Relation* pbf_relation = pbf_relations->add_relations();
 
                 // copy the common meta-info from the osmium-object to the pbf-object
                 apply_common_info(relation, pbf_relation);
@@ -689,7 +689,7 @@ namespace Osmium {
                 // iterate over all relation-members
                 for (int i=0, l=relation->members().size(); i<l; i++) {
                     // save a pointer to the osmium-object representing the relation-member
-                    const Osmium::OSM::RelationMember *mem = relation->get_member(i);
+                    const Osmium::OSM::RelationMember* mem = relation->get_member(i);
 
                     // record the relation-member role to the interim stringtable and copy the
                     // interim string-id to the pbf-object

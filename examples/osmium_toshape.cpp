@@ -39,8 +39,8 @@ typedef Osmium::Handler::CoordinatesForWays<storage_sparsetable_t, storage_mmap_
 
 class MyShapeHandler : public Osmium::Handler::Base {
 
-    Osmium::Export::PointShapefile *shapefile_point;
-    Osmium::Export::LineStringShapefile *shapefile_linestring;
+    Osmium::Export::PointShapefile* shapefile_point;
+    Osmium::Export::LineStringShapefile* shapefile_linestring;
 
     storage_sparsetable_t store_pos;
     storage_mmap_t store_neg;
@@ -69,13 +69,13 @@ public:
 
     void node(const shared_ptr<Osmium::OSM::Node const>& node) {
         handler_cfw->node(node);
-        const char *amenity = node->tags().get_tag_by_key("amenity");
+        const char* amenity = node->tags().get_tag_by_key("amenity");
         if (amenity && !strcmp(amenity, "post_box")) {
             try {
                 Osmium::Geometry::Point point(*node);
                 shapefile_point->add_geometry(point.create_shp_object());
                 shapefile_point->add_attribute(0, node->id());
-                const char *op = node->tags().get_tag_by_key("operator");
+                const char* op = node->tags().get_tag_by_key("operator");
                 if (op) {
                     shapefile_point->add_attribute(1, std::string(op));
                 }
@@ -91,13 +91,13 @@ public:
 
     void way(const shared_ptr<Osmium::OSM::Way>& way) {
         handler_cfw->way(way);
-        const char *highway = way->tags().get_tag_by_key("highway");
+        const char* highway = way->tags().get_tag_by_key("highway");
         if (highway) {
             try {
                 Osmium::Geometry::LineString linestring(*way);
                 shapefile_linestring->add_geometry(linestring.create_shp_object());
                 shapefile_linestring->add_attribute(0, way->id());
-                const char *type = way->tags().get_tag_by_key("highway");
+                const char* type = way->tags().get_tag_by_key("highway");
                 if (type) {
                     shapefile_linestring->add_attribute(1, std::string(type));
                 }

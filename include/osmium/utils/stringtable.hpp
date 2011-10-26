@@ -105,7 +105,7 @@ namespace Osmium {
             // try to find the string in the interim StringTable
             if (strings.count(string) > 0) {
                 // found, get a pointer to the associated string_info struct
-                string_info *info_p = &strings[string];
+                string_info* info_p = &strings[string];
 
                 // increase the counter by one
                 info_p->count++;
@@ -134,7 +134,7 @@ namespace Osmium {
          * while storing to the real table, this function fills the string_ids_map with
          * pairs, mapping the interim-ids to final and real StringTable ids.
          */
-        void store_stringtable(OSMPBF::StringTable *st) {
+        void store_stringtable(OSMPBF::StringTable* st) {
             // as a map can't be sorted, we need a vector holding our string/string_info pairs
             std::vector<std::pair<std::string, string_info> > strvec;
 

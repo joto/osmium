@@ -64,7 +64,7 @@ namespace Osmium {
                 return *this;
             }
 
-            Object& id(const char *id) {
+            Object& id(const char* id) {
                 m_id = atol(id);
                 return *this;
             }
@@ -78,7 +78,7 @@ namespace Osmium {
                 return *this;
             }
 
-            Object& version(const char *version) {
+            Object& version(const char* version) {
                 m_version = atoi(version);
                 return *this;
             }
@@ -92,7 +92,7 @@ namespace Osmium {
                 return *this;
             }
 
-            Object& changeset(const char *changeset) {
+            Object& changeset(const char* changeset) {
                 m_changeset = atol(changeset);
                 return *this;
             }
@@ -106,7 +106,7 @@ namespace Osmium {
                 return *this;
             }
 
-            Object& uid(const char *uid) {
+            Object& uid(const char* uid) {
                 m_uid = atol(uid);
                 return *this;
             }
@@ -164,7 +164,7 @@ namespace Osmium {
              *   can't be parsed as a timestamp. The object timestamp will remain
              *   unchanged in this case.
              */
-            Object& timestamp(const char *timestamp) {
+            Object& timestamp(const char* timestamp) {
                 m_timestamp = Osmium::Utils::Timestamp::parse_iso(timestamp);
                 return *this;
             }
@@ -173,7 +173,7 @@ namespace Osmium {
              * Get the name of the user who last changed this object.
              * @return Pointer to internal buffer with user name.
              */
-            const char *user() const {
+            const char* user() const {
                 return m_user;
             }
 
@@ -182,7 +182,7 @@ namespace Osmium {
              * @return Reference to object to make calls chainable.
              * @exception std::length_error Thrown when the username contains more than max_characters_username (255 UTF-8 characters). When the exception is thrown the username is set to "".
              */
-            Object& user(const char *user) {
+            Object& user(const char* user) {
                 if (! memccpy(m_user, user, 0, max_length_username)) {
                     m_user[0] = '\0';
                     throw std::length_error("user name too long");
@@ -214,7 +214,7 @@ namespace Osmium {
              * (This is only used in OSM files with history.)
              * @return Reference to object to make calls chainable.
              */
-            Object& visible(const char *visible) {
+            Object& visible(const char* visible) {
                 if (!strcmp(visible, "false")) {
                     m_visible = false;
                 }
@@ -228,7 +228,7 @@ namespace Osmium {
              * @param attr Name of the attribute (must be one of "id", "version", "changeset", "timestamp", "uid", "user", "visible")
              * @param value Value of the attribute
              */
-            void set_attribute(const char *attr, const char *value) {
+            void set_attribute(const char* attr, const char* value) {
                 if (!strcmp(attr, "id")) {
                     id(value);
                 } else if (!strcmp(attr, "version")) {

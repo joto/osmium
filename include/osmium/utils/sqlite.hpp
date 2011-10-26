@@ -56,11 +56,11 @@ namespace Osmium {
 
         private:
 
-            sqlite3 *db;
+            sqlite3* db;
 
         public:
 
-            Database(const char *filename) {
+            Database(const char* filename) {
                 if (sqlite3_open_v2(filename, &db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, 0)) {
                     sqlite3_close(db);
                     throw Sqlite::Exception("Can't open database", errmsg());
@@ -76,7 +76,7 @@ namespace Osmium {
                 return error;
             }
 
-            sqlite3 *get_sqlite3() {
+            sqlite3* get_sqlite3() {
                 return db;
             }
 
@@ -96,7 +96,7 @@ namespace Osmium {
                 }
             }
 
-            Statement *prepare(const char *sql);
+            Statement* prepare(const char* sql);
 
         }; // class Database
 
@@ -107,14 +107,14 @@ namespace Osmium {
 
         private:
 
-            Database *db_;
-            sqlite3_stmt *statement;
+            Database* db_;
+            sqlite3_stmt* statement;
 
             int bindnum;
 
         public:
 
-            Statement(Database *db, const char *sql) : db_(db), statement(0), bindnum(1) {
+            Statement(Database* db, const char* sql) : db_(db), statement(0), bindnum(1) {
                 sqlite3_prepare_v2(db->get_sqlite3(), sql, -1, &statement, 0);
                 if (statement == 0) {
                     throw Sqlite::Exception("Can't prepare statement", db_->errmsg());
@@ -125,35 +125,35 @@ namespace Osmium {
                 sqlite3_finalize(statement);
             }
 
-            Statement *bind_null() {
+            Statement* bind_null() {
                 if (SQLITE_OK != sqlite3_bind_null(statement, bindnum++)) {
                     throw Sqlite::Exception("Can't bind null value", db_->errmsg());
                 }
                 return this;
             }
 
-            Statement *bind_text(const char *value) {
+            Statement* bind_text(const char* value) {
                 if (SQLITE_OK != sqlite3_bind_text(statement, bindnum++, value, -1, SQLITE_STATIC)) {
                     throw Sqlite::Exception("Can't bind text value", db_->errmsg());
                 }
                 return this;
             }
 
-            Statement *bind_int(int value) {
+            Statement* bind_int(int value) {
                 if (SQLITE_OK != sqlite3_bind_int(statement, bindnum++, value)) {
                     throw Sqlite::Exception("Can't bind int value", db_->errmsg());
                 }
                 return this;
             }
 
-            Statement *bind_int64(int64_t value) {
+            Statement* bind_int64(int64_t value) {
                 if (SQLITE_OK != sqlite3_bind_int64(statement, bindnum++, value)) {
                     throw Sqlite::Exception("Can't bind int64 value", db_->errmsg());
                 }
                 return this;
             }
 
-            Statement *bind_blob(const void *value, int length) {
+            Statement* bind_blob(const void* value, int length) {
                 if (SQLITE_OK != sqlite3_bind_blob(statement, bindnum++, value, length, 0)) {
                     throw Sqlite::Exception("Can't bind blob value", db_->errmsg());
                 }
@@ -170,7 +170,7 @@ namespace Osmium {
 
         }; // class Statement
 
-        inline Statement *Database::prepare(const char *sql) {
+        inline Statement* Database::prepare(const char* sql) {
             return new Statement(this, sql);
         }
 

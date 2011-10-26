@@ -71,7 +71,7 @@ namespace Osmium {
                     case geos::geom::GEOS_LINESTRING:
                     case geos::geom::GEOS_LINEARRING: {
                         part_start_list.push_back(x_list.size());
-                        const geos::geom::CoordinateSequence *cs = static_cast<const geos::geom::LineString*>(g)->getCoordinatesRO();
+                        const geos::geom::CoordinateSequence* cs = static_cast<const geos::geom::LineString*>(g)->getCoordinatesRO();
                         for (size_t i = 0; i < cs->getSize(); ++i) {
                             x_list.push_back(cs->getX(i));
                             y_list.push_back(cs->getY(i));
@@ -91,7 +91,7 @@ namespace Osmium {
              * Caller takes ownership. You have to call
              * SHPDestroyObject() with this geometry when you are done.
              */
-            SHPObject *create_shp_object() const {
+            SHPObject* create_shp_object() const {
                 if (!m_area->get_geometry()) {
                     throw Osmium::Exception::IllegalGeometry();
                 }
@@ -140,12 +140,12 @@ namespace Osmium {
 
 # ifdef OSMIUM_WITH_JAVASCRIPT
             v8::Local<v8::Object> js_instance() const {
-                return JavascriptTemplate::get<JavascriptTemplate>().create_instance((void *)this);
+                return JavascriptTemplate::get<JavascriptTemplate>().create_instance((void*)this);
             }
 
-            v8::Handle<v8::Array> js_ring_as_array(const geos::geom::LineString *ring) const {
+            v8::Handle<v8::Array> js_ring_as_array(const geos::geom::LineString* ring) const {
                 v8::HandleScope scope;
-                const geos::geom::CoordinateSequence *cs = ring->getCoordinatesRO();
+                const geos::geom::CoordinateSequence* cs = ring->getCoordinatesRO();
                 v8::Local<v8::Array> ring_array = v8::Array::New(cs->getSize());
                 for (size_t i = 0; i < cs->getSize(); ++i) {
                     v8::Local<v8::Array> coord = v8::Array::New(2);
@@ -165,7 +165,7 @@ namespace Osmium {
                     v8::Local<v8::Array> multipolygon_array = v8::Array::New(geometry->getNumGeometries());
 
                     for (size_t i=0; i < geometry->getNumGeometries(); ++i) {
-                        geos::geom::Polygon *polygon = (geos::geom::Polygon *) geometry->getGeometryN(i);
+                        geos::geom::Polygon* polygon = (geos::geom::Polygon*) geometry->getGeometryN(i);
                         v8::Local<v8::Array> polygon_array = v8::Array::New(polygon->getNumInteriorRing());
                         multipolygon_array->Set(i, polygon_array);
                         polygon_array->Set(0, js_ring_as_array(polygon->getExteriorRing()));
@@ -207,7 +207,7 @@ namespace Osmium {
         private:
 
             void add_ring(OGRPolygon* ogrpolygon, const geos::geom::LineString* geosring) const {
-                OGRLinearRing *ogrring = new OGRLinearRing;
+                OGRLinearRing* ogrring = new OGRLinearRing;
 
                 const geos::geom::CoordinateSequence* cs = geosring->getCoordinatesRO();
                 ogrring->setNumPoints(cs->getSize());

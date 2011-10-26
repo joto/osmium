@@ -76,7 +76,7 @@ namespace Osmium {
                 return m_role;
             }
 
-            RelationMember& role(const char *role) {
+            RelationMember& role(const char* role) {
                 if (! memccpy(m_role, role, 0, max_length_role)) {
                     throw std::length_error("role too long");
                 }
@@ -85,7 +85,7 @@ namespace Osmium {
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
             v8::Local<v8::Object> js_instance() const {
-                return JavascriptTemplate::get<JavascriptTemplate>().create_instance((void *)this);
+                return JavascriptTemplate::get<JavascriptTemplate>().create_instance((void*)this);
             }
 
             v8::Handle<v8::Value> js_ref() const {

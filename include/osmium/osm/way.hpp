@@ -167,12 +167,12 @@ namespace Osmium {
              */
             geos::geom::Geometry* create_geos_geometry() const {
                 try {
-                    std::vector<geos::geom::Coordinate> *c = new std::vector<geos::geom::Coordinate>;
+                    std::vector<geos::geom::Coordinate>* c = new std::vector<geos::geom::Coordinate>;
                     for (osm_sequence_id_t i=0; i < m_node_list.size(); ++i) {
                         c->push_back(m_node_list[i].position());
                     }
-                    geos::geom::CoordinateSequence *cs = Osmium::Geometry::geos_geometry_factory()->getCoordinateSequenceFactory()->create(c);
-                    return (geos::geom::Geometry *) Osmium::Geometry::geos_geometry_factory()->createLineString(cs);
+                    geos::geom::CoordinateSequence* cs = Osmium::Geometry::geos_geometry_factory()->getCoordinateSequenceFactory()->create(c);
+                    return (geos::geom::Geometry*) Osmium::Geometry::geos_geometry_factory()->createLineString(cs);
                 } catch (const geos::util::GEOSException& exc) {
                     std::cerr << "error building way geometry, leave it as NULL\n";
                     return NULL;

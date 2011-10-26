@@ -121,7 +121,7 @@ namespace Osmium {
              * @exception std::bad_alloc Thrown when there is not enough memory.
              */
             FixedArray(const uint64_t max_id) : ById<TValue>(), m_size(max_id) {
-                m_items = (TValue *) malloc(sizeof(TValue) * max_id);
+                m_items = (TValue*) malloc(sizeof(TValue) * max_id);
                 if (!m_items) {
                     throw std::bad_alloc();
                 }
@@ -240,7 +240,7 @@ namespace Osmium {
              * @exception std::bad_alloc Thrown when there is not enough memory.
              */
             Mmap() : ById<TValue>(), m_size(size_increment), m_fd(-1) {
-                m_items = (TValue *) mmap(NULL, sizeof(TValue) * m_size, PROT_READ|PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+                m_items = (TValue*) mmap(NULL, sizeof(TValue) * m_size, PROT_READ|PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
                 if (m_items == MAP_FAILED) {
                     throw std::bad_alloc();
                 }
@@ -284,7 +284,7 @@ namespace Osmium {
                     }
                 }
 
-                m_items = (TValue *) mmap(NULL, sizeof(TValue) * m_size, PROT_READ|PROT_WRITE, MAP_SHARED, m_fd, 0);
+                m_items = (TValue*) mmap(NULL, sizeof(TValue) * m_size, PROT_READ|PROT_WRITE, MAP_SHARED, m_fd, 0);
                 if (m_items == MAP_FAILED) {
                     throw std::bad_alloc();
                 }
@@ -305,7 +305,7 @@ namespace Osmium {
                         }
                     }
 
-                    m_items = (TValue *) mremap(m_items, sizeof(TValue) * m_size, sizeof(TValue) * new_size, MREMAP_MAYMOVE);
+                    m_items = (TValue*) mremap(m_items, sizeof(TValue) * m_size, sizeof(TValue) * new_size, MREMAP_MAYMOVE);
                     if (m_items == MAP_FAILED) {
                         throw std::bad_alloc();
                     }
