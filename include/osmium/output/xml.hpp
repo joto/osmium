@@ -137,7 +137,7 @@ namespace Osmium {
                     xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "user", BAD_CAST object->user());
                 }
 
-                if (m_file.get_type() == Osmium::OSMFile::FileType::History()) {
+                if (m_file.has_multiple_object_versions()) {
                     xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "visible", object->visible() ? BAD_CAST "true" : BAD_CAST "false");
                 }
             }

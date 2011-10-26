@@ -109,15 +109,15 @@ namespace Osmium {
         class PBF : public Base {
 
             /**
-             * maximum number of items in a primitive block.
+             * Maximum number of items in a primitive block.
              *
-             * the uncompressed length of a Blob *should* be less
+             * The uncompressed length of a Blob *should* be less
              * than 16 megabytes and *must* be less than 32 megabytes.
              *
-             * a block may contain any number of entities, as long as
+             * A block may contain any number of entities, as long as
              * the size limits for the surrounding blob are obeyed.
-             * However, for simplicity, the current osmosis (0.38)
-             * as well as the osmium implement implementation always
+             * However, for simplicity, the current Osmosis (0.38)
+             * as well as Osmium implementation always
              * uses at most 8k entities in a block.
              */
             static const uint32_t max_block_contents = 8000;
@@ -146,9 +146,9 @@ namespace Osmium {
              * pointer to PrimitiveGroups inside the current PrimitiveBlock,
              * used for writing nodes, ways or relations
              */
-            OSMPBF::PrimitiveGroup *pbf_nodes;
-            OSMPBF::PrimitiveGroup *pbf_ways;
-            OSMPBF::PrimitiveGroup *pbf_relations;
+            OSMPBF::PrimitiveGroup* pbf_nodes;
+            OSMPBF::PrimitiveGroup* pbf_ways;
+            OSMPBF::PrimitiveGroup* pbf_relations;
 
             /**
              * to flexibly handle multiple resolutions, the granularity, or
@@ -192,6 +192,11 @@ namespace Osmium {
              * also able to omit this information to reduce size.
              */
             bool m_should_add_metadata;
+
+            /**
+             * Should the visible flag be added on objects?
+             */
+            bool m_add_visible;
 
             /**
              * counter used to quickly check the number of objects stored inside
@@ -479,7 +484,10 @@ namespace Osmium {
 
                 if (should_add_metadata()) {
                     // add an info-section to the pbf object and set the meta-info on it
-                    OSMPBF::Info *out_info = out->mutable_info();
+                    OSMPBF::Info* out_info = out->mutable_info();
+                    if (m_add_visible) {
+                        out_info->set_visible(in->visible());
+                    }
                     out_info->set_version(in->version());
                     out_info->set_timestamp(timestamp2int(in->timestamp()));
                     out_info->set_changeset(in->changeset());
@@ -619,10 +627,13 @@ namespace Osmium {
 
                 if (should_add_metadata()) {
                     // add a DenseInfo-Section to the PrimitiveGroup
-                    OSMPBF::DenseInfo *denseinfo = dense->mutable_denseinfo();
+                    OSMPBF::DenseInfo* denseinfo = dense->mutable_denseinfo();
 
-                    // copy the version
                     denseinfo->add_version(node->version());
+
+                    if (m_add_visible) {
+                        denseinfo->add_visible(node->visible());
+                    }
 
                     // copy the timestamp, delta encoded
                     denseinfo->add_timestamp(m_delta_timestamp.update(timestamp2int(node->timestamp())));
@@ -718,6 +729,7 @@ namespace Osmium {
                 m_use_dense_format(true),
                 m_use_compression(true),
                 m_should_add_metadata(true),
+                m_add_visible(file.has_multiple_object_versions()),
                 primitive_block_contents(0),
                 string_table(),
                 m_compression_buffer(),
