@@ -22,6 +22,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#include <boost/operators.hpp>
+
 #include <osmium/osm/object.hpp>
 #include <osmium/osm/relation_member_list.hpp>
 
@@ -29,7 +31,7 @@ namespace Osmium {
 
     namespace OSM {
 
-        class Relation : public Object {
+        class Relation : public Object, boost::less_than_comparable<Relation> {
 
         public:
 
@@ -78,6 +80,19 @@ namespace Osmium {
 
             };
 #endif // OSMIUM_WITH_JAVASCRIPT
+
+            /**
+             * Relations can be ordered by id and version.
+             * Note that we use the absolute value of the id for a
+             * better ordering of objects with negative id.
+             */
+            friend bool operator<(const Relation& lhs, const Relation& rhs) {
+                if (lhs.id() == rhs.id()) {
+                    return lhs.version() < rhs.version();
+                } else {
+                    return abs(lhs.id()) < abs(rhs.id());
+                }
+            }
 
         private:
 

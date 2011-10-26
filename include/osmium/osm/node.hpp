@@ -22,6 +22,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#include <boost/operators.hpp>
 #include <osmium/osm/position.hpp>
 
 /** @file
@@ -34,7 +35,7 @@ namespace Osmium {
 
     namespace OSM {
 
-        class Node : public Object {
+        class Node : public Object, boost::less_than_comparable<Node> {
 
             static const int max_length_coordinate = 12 + 1; ///< maximum length of coordinate string (3 digits + dot + 8 digits + null byte)
 
@@ -88,6 +89,19 @@ namespace Osmium {
 
             };
 #endif // OSMIUM_WITH_JAVASCRIPT
+
+            /**
+             * Nodes can be ordered by id and version.
+             * Note that we use the absolute value of the id for a
+             * better ordering of objects with negative id.
+             */
+            friend bool operator<(const Node& lhs, const Node& rhs) {
+                if (lhs.id() == rhs.id()) {
+                    return lhs.version() < rhs.version();
+                } else {
+                    return abs(lhs.id()) < abs(rhs.id());
+                }
+            }
 
         }; // class Node
 
