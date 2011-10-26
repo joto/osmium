@@ -36,7 +36,7 @@ namespace Osmium {
 
         public:
 
-            XML(Osmium::OSMFile& file) : Base(file) {
+            XML(Osmium::OSMFile& file) : Base(file), m_last_op('\0') {
                 xml_writer = xmlNewTextWriter(xmlOutputBufferCreateFd(this->get_fd(), NULL));
             }
 
@@ -48,7 +48,11 @@ namespace Osmium {
                 xmlTextWriterSetIndentString(xml_writer, BAD_CAST "  ");
                 xmlTextWriterStartDocument(xml_writer, NULL, "utf-8", NULL); // <?xml .. ?>
 
-                xmlTextWriterStartElement(xml_writer, BAD_CAST "osm");  // <osm>
+                if (m_file.get_type() == Osmium::OSMFile::FileType::Change()) {
+                    xmlTextWriterStartElement(xml_writer, BAD_CAST "osmChange");  // <osmChange>
+                } else {
+                    xmlTextWriterStartElement(xml_writer, BAD_CAST "osm");  // <osm>
+                }
                 xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "version", BAD_CAST "0.6");
                 xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "generator", BAD_CAST "Osmium (http://wiki.openstreetmap.org/wiki/Osmium)");
                 if (meta.bounds().defined()) {
@@ -64,13 +68,16 @@ namespace Osmium {
             }
 
             void node(const shared_ptr<Osmium::OSM::Node const>& node) {
+                if (m_file.get_type() == Osmium::OSMFile::FileType::Change()) {
+                    open_close_op_tag(node->visible() ? (node->version() == 1 ? 'c' : 'm') : 'd');
+                }
                 xmlTextWriterStartElement(xml_writer, BAD_CAST "node"); // <node>
 
                 write_meta(node);
 
                 const Osmium::OSM::Position position = node->position();
-                xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "lon", "%.7f", position.lon());
                 xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "lat", "%.7f", position.lat());
+                xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "lon", "%.7f", position.lon());
 
                 write_tags(node->tags());
 
@@ -78,6 +85,9 @@ namespace Osmium {
             }
 
             void way(const shared_ptr<Osmium::OSM::Way const>& way) {
+                if (m_file.get_type() == Osmium::OSMFile::FileType::Change()) {
+                    open_close_op_tag(way->visible() ? (way->version() == 1 ? 'c' : 'm') : 'd');
+                }
                 xmlTextWriterStartElement(xml_writer, BAD_CAST "way"); // <way>
 
                 write_meta(way);
@@ -95,6 +105,9 @@ namespace Osmium {
             }
 
             void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
+                if (m_file.get_type() == Osmium::OSMFile::FileType::Change()) {
+                    open_close_op_tag(relation->visible() ? (relation->version() == 1 ? 'c' : 'm') : 'd');
+                }
                 xmlTextWriterStartElement(xml_writer, BAD_CAST "relation"); // <relation>
 
                 write_meta(relation);
@@ -116,7 +129,10 @@ namespace Osmium {
             }
 
             void final() {
-                xmlTextWriterEndElement(xml_writer); // </osm>
+                if (m_file.get_type() == Osmium::OSMFile::FileType::Change()) {
+                    open_close_op_tag('\0');
+                }
+                xmlTextWriterEndElement(xml_writer); // </osm> or </osmChange>
                 xmlFreeTextWriter(xml_writer);
                 m_file.close();
             }
@@ -126,9 +142,8 @@ namespace Osmium {
             xmlTextWriterPtr xml_writer;
 
             void write_meta(const shared_ptr<Osmium::OSM::Object const>& object) {
-                xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "id",        "%d", object->id());
-                xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "version",   "%d", object->version());
-                xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "changeset", "%d", object->changeset());
+                xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "id",      "%d", object->id());
+                xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "version", "%d", object->version());
                 xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "timestamp", BAD_CAST object->timestamp_as_string().c_str());
 
                 // uid == 0 -> anonymous
@@ -137,7 +152,9 @@ namespace Osmium {
                     xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "user", BAD_CAST object->user());
                 }
 
-                if (m_file.has_multiple_object_versions()) {
+                xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "changeset", "%d", object->changeset());
+
+                if (m_file.has_multiple_object_versions() && m_file.get_type() != Osmium::OSMFile::FileType::Change()) {
                     xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "visible", object->visible() ? BAD_CAST "true" : BAD_CAST "false");
                 }
             }
@@ -150,6 +167,32 @@ namespace Osmium {
                     xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "v", BAD_CAST it->value());
                     xmlTextWriterEndElement(xml_writer); // </tag>
                 }
+            }
+
+            char m_last_op;
+
+            void open_close_op_tag(char op) {
+                if (op == m_last_op) {
+                    return;
+                }
+
+                if (m_last_op) {
+                    xmlTextWriterEndElement(xml_writer);
+                }
+
+                switch (op) {
+                    case 'c':
+                        xmlTextWriterStartElement(xml_writer, BAD_CAST "create");
+                        break;
+                    case 'm':
+                        xmlTextWriterStartElement(xml_writer, BAD_CAST "modify");
+                        break;
+                    case 'd':
+                        xmlTextWriterStartElement(xml_writer, BAD_CAST "delete");
+                        break;
+                }
+
+                m_last_op = op;
             }
 
         }; // class XML
