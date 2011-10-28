@@ -30,6 +30,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <stdexcept>
 #include <assert.h>
 #include <time.h>
+#include <boost/tr1/memory.hpp>
+using std::tr1::shared_ptr;
 
 #ifdef OSMIUM_WITH_SHPLIB
 # include <shapefil.h>

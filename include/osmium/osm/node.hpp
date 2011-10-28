@@ -23,6 +23,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 */
 
 #include <boost/operators.hpp>
+
 #include <osmium/osm/position.hpp>
 
 /** @file
@@ -101,6 +102,13 @@ namespace Osmium {
                 } else {
                     return abs(lhs.id()) < abs(rhs.id());
                 }
+            }
+
+            /**
+             * Ordering for shared_ptrs of Nodes.
+             */
+            friend bool operator<(const shared_ptr<Node const>& lhs, const shared_ptr<Node const>& rhs) {
+                return *lhs < *rhs;
             }
 
         }; // class Node

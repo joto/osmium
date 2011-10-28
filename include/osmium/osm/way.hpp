@@ -207,7 +207,7 @@ namespace Osmium {
             /**
              * Ways can be ordered by id and version.
              * Note that we use the absolute value of the id for a
-             * better ordering of objects with negative id.
+             * better ordering of objects with negative ids.
              */
             friend bool operator<(const Way& lhs, const Way& rhs) {
                 if (lhs.id() == rhs.id()) {
@@ -215,6 +215,13 @@ namespace Osmium {
                 } else {
                     return abs(lhs.id()) < abs(rhs.id());
                 }
+            }
+
+            /**
+             * Ordering for shared_ptrs of Ways.
+             */
+            friend bool operator<(const shared_ptr<Way const>& lhs, const shared_ptr<Way const>& rhs) {
+                return *lhs < *rhs;
             }
 
         }; // class Way
