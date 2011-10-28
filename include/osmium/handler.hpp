@@ -45,8 +45,8 @@ namespace Osmium {
          * Defines empty methods that can be overwritten in child classes.
          *
          * To define your own handler create a subclass of this class.
-         * Only overwrite the functions you actually use. They must be declared public.
-         * If you overwrite the constructor call the Base constructor without arguments.
+         * Only overwrite the methods you actually use. They must be declared public.
+         * If you overwrite the constructor, call the Base constructor without arguments.
          */
         class Base : boost::noncopyable {
 
@@ -92,6 +92,73 @@ namespace Osmium {
             }
 
         }; // class Base
+
+        /**
+         * This handler forwards all calls to another handler.
+         * Use this as a base for your handler instead of Base() if you want calls
+         * forwarded by default.
+         */
+        template <class THandler>
+        class Forward : public Base {
+
+        public:
+
+            Forward(THandler* handler) : Base(), m_handler(handler) {
+            }
+
+            void init(Osmium::OSM::Meta& meta) const {
+                m_handler->init(meta);
+            }
+
+            void before_nodes() const {
+                m_handler->before_nodes();
+            }
+
+            void node(const shared_ptr<Osmium::OSM::Node>& node) const {
+                m_handler->node(node);
+            }
+
+            void after_nodes() const {
+                m_handler->after_nodes();
+            }
+
+            void before_ways() const {
+                m_handler->before_ways();
+            }
+
+            void way(const shared_ptr<Osmium::OSM::Way>& way) const {
+                m_handler->way(way);
+            }
+
+            void after_ways() const {
+                m_handler->after_ways();
+            }
+
+            void before_relations() const {
+                m_handler->before_relations();
+            }
+
+            void relation(const shared_ptr<Osmium::OSM::Relation>& relation) const {
+                m_handler->relation(relation);
+            }
+
+            void after_relations() const {
+                m_handler->after_relations();
+            }
+
+            void area(Osmium::OSM::Area* area) const {
+                m_handler->area(area);
+            }
+
+            void final() const {
+                m_handler->final();
+            }
+
+        private:
+
+            THandler* m_handler;
+
+        }; // class Forward
 
     } // namespace Handler
 
