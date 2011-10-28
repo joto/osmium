@@ -63,7 +63,7 @@ namespace Osmium {
                    the year will have 5 digits). And by setting the size
                    afterwards from the result of strftime we make sure thats set
                    right, too. */
-                s.resize(strftime(const_cast<char *>(s.c_str()), timestamp_length, timestamp_format(), tm));
+                s.resize(strftime(const_cast<char*>(s.c_str()), timestamp_length, timestamp_format(), tm));
                 return s;
             }
 
