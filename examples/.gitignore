@@ -6,6 +6,7 @@ osmium_progress
 osmium_range_from_history
 osmium_sizeof
 osmium_stats
+osmium_store_and_debug
 osmium_time
 osmium_toogr
 osmium_toogr2

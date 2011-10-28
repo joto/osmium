@@ -39,6 +39,7 @@ LIB_OGR      = $(shell gdal-config --libs)
 PROGRAMS = \
     osmium_convert \
     osmium_debug \
+    osmium_store_and_debug \
     osmium_find_bbox \
     osmium_progress \
     osmium_range_from_history \
@@ -56,6 +57,9 @@ all: $(PROGRAMS)
 
 osmium_convert: osmium_convert.cpp
 	$(CXX) $(CXXFLAGS) $(CXXFLAGS_LIBXML2) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_XML2)
+
+osmium_store_and_debug: osmium_store_and_debug.cpp
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
 
 osmium_debug: osmium_debug.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
