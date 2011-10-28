@@ -351,7 +351,7 @@ namespace Osmium {
 
             /**
              * Before a PrimitiveBlock gets serialized, all interim StringTable-ids needs to be
-             * mapped to the associated real StringTable ids. Th is is done in this function.
+             * mapped to the associated real StringTable ids. This is done in this function.
              *
              * This function needs to know about the concrete structure of all item types to find
              * all occurrences of string-ids.
@@ -444,8 +444,6 @@ namespace Osmium {
                     in->set_vals(i, string_table.map_string_id(in->vals(i)));
                 }
             }
-
-
 
 
             ///// MetaData helper /////
@@ -908,7 +906,7 @@ namespace Osmium {
              * gets written and every file pointer is closed.
              */
             void way(const shared_ptr<Osmium::OSM::Way const>& way) {
-                // first of we check the contents-counter which may flush the cached nodes to
+                // first of we check the contents-counter which may flush the cached ways to
                 // disk if the limit is reached. This call also increases the contents-counter
                 check_block_contents_counter();
 
@@ -932,7 +930,7 @@ namespace Osmium {
              * gets written and every file pointer is closed.
              */
             void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
-                // first of we check the contents-counter which may flush the cached nodes to
+                // first of we check the contents-counter which may flush the cached relations to
                 // disk if the limit is reached. This call also increases the contents-counter
                 check_block_contents_counter();
 
