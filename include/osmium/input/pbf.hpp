@@ -42,8 +42,8 @@ namespace Osmium {
         template <class THandler>
         class PBF : public Base<THandler> {
 
-            char buffer[OSMPBF::max_uncompressed_blob_size];
-            char unpack_buffer[OSMPBF::max_uncompressed_blob_size];
+            unsigned char buffer[OSMPBF::max_uncompressed_blob_size];
+            unsigned char unpack_buffer[OSMPBF::max_uncompressed_blob_size];
 
             typedef std::pair<const void*, size_t> array_t;
 
@@ -430,41 +430,15 @@ namespace Osmium {
                 if (blob.has_raw()) {
                     return array_t(blob.raw().data(), blob.raw().size());
                 } else if (blob.has_zlib_data()) {
-                    unpack_with_zlib(blob.zlib_data().data(), blob.zlib_data().size(), blob.raw_size());
-                    return array_t(unpack_buffer, blob.raw_size());
+                    unsigned long raw_size = blob.raw_size();
+                    if (uncompress(unpack_buffer, &raw_size, reinterpret_cast<const unsigned char*>(blob.zlib_data().data()), blob.zlib_data().size()) != Z_OK || blob.raw_size() != static_cast<long>(raw_size)) {
+                        throw std::runtime_error("zlib error");
+                    }
+                    return array_t(unpack_buffer, raw_size);
                 } else if (blob.has_lzma_data()) {
                     throw std::runtime_error("lzma blobs not implemented");
                 } else {
                     throw std::runtime_error("Blob contains no data");
-                }
-            }
-
-            /**
-            * Unpack a blob thats been packed with zlib.
-            *
-            * @param data Source (packed) data.
-            * @param size Size of source data in bytes.
-            * @param raw_size Size of destination (unpacked) data.
-            */
-            void unpack_with_zlib(const char *data, size_t size, size_t raw_size) const {
-                z_stream compressed_stream;
-
-                compressed_stream.next_in   = (unsigned char*) data;
-                compressed_stream.avail_in  = size;
-                compressed_stream.next_out  = (unsigned char*) unpack_buffer;
-                compressed_stream.avail_out = raw_size;
-                compressed_stream.zalloc    = Z_NULL;
-                compressed_stream.zfree     = Z_NULL;
-                compressed_stream.opaque    = Z_NULL;
-
-                if (inflateInit(&compressed_stream) != Z_OK) {
-                    throw std::runtime_error("failed to init zlib stream");
-                }
-                if (inflate(&compressed_stream, Z_FINISH) != Z_STREAM_END) {
-                    throw std::runtime_error("failed to inflate zlib stream");
-                }
-                if (inflateEnd(&compressed_stream) != Z_OK) {
-                    throw std::runtime_error("failed to deinit zlib stream");
                 }
             }
 
