@@ -32,12 +32,15 @@ namespace Osmium {
     /**
      * StringTable management for PBF writer
      *
-     * All Strings are stored as indexes to rows in a StringTable. The StringTable contains
+     * All strings are stored as indexes to rows in a StringTable. The StringTable contains
      * one row for each used string, so strings that are used multiple times need to be
      * stored only once. The StringTable is sorted by usage-count, so the most often used
      * string is stored at index 1.
      */
     class StringTable {
+
+        /// type for string IDs (interim and final)
+        typedef uint16_t string_id_t;
 
         /**
          * this is the struct used to build the StringTable. It is stored as
@@ -64,128 +67,97 @@ namespace Osmium {
             /**
              * an intermediate-id
              */
-            uint16_t interim_id;
+            string_id_t interim_id;
         };
 
-        /**
-         * interim StringTable, storing all strings that should be written to
-         * the StringTable once the block is written to disk.
-         */
-        std::map<std::string, string_info> strings;
-
-        /**
-         * this map is used to map the interim-ids to real StringTable-IDs after
-         * writing all strings to the StringTable.
-         */
-        std::map<uint16_t, uint16_t> string_ids_map;
-
-        /**
-         * this is the comparator used while sorting the interim StringTable.
-         */
-        static bool stringtable_comparator(const std::pair<std::string, string_info> &a, const std::pair<std::string, string_info> &b) {
-            // it first compares based on count
-            if (a.second.count > b.second.count) {
-                return true;
-            } else if (a.second.count < b.second.count) {
-                return false;
-            } else {
-                // if the count is equal, compare based on lexicography order so make
-                // the sorting of the later zlib compression faster
-                return a.first < b.first;
-            }
+        friend bool operator<(const string_info& lhs, const string_info& rhs) {
+            return lhs.count > rhs.count;
         }
 
+        /**
+         * Interim StringTable, storing all strings that should be written to
+         * the StringTable once the block is written to disk.
+         */
+        typedef std::map<std::string, string_info> string2string_info_t;
+        string2string_info_t m_strings;
+
+        /**
+         * This vector is used to map the interim IDs to real StringTable IDs after
+         * writing all strings to the StringTable.
+         */
+        typedef std::vector<string_id_t> interim_id2id_t;
+        interim_id2id_t m_id2id_map;
+
+        int m_size;
+
     public:
+
+        StringTable() : m_strings(), m_id2id_map(), m_size(0) {
+        }
 
         /**
          * record a string in the interim StringTable if it's missing, otherwise just increase its counter,
          * return the interim-id assigned to the string.
          */
-        uint16_t record_string(const std::string& string) {
-            // try to find the string in the interim StringTable
-            if (strings.count(string) > 0) {
-                // found, get a pointer to the associated string_info struct
-                string_info* info_p = &strings[string];
-
-                // increase the counter by one
-                info_p->count++;
-
-                // return the associated interim-id
-                //if (Osmium::debug()) fprintf(stderr, "found string %s at interim-id %u\n", string.c_str(), info_p->interim_id);
-                return info_p->interim_id;
+        string_id_t record_string(const std::string& string) {
+            string_info& info = m_strings[string];
+            if (info.interim_id == 0) {
+                info.interim_id = ++m_size;
             } else {
-                // not found, initialize a new string_info struct with the count set to 0 and the
-                // interim-id set to the current size +1
-                string_info info = {0, (uint16_t)(strings.size()+1)};
-
-                // store this string_info struct in the interim StringTable
-                strings[string] = info;
-
-                // debug-print and return the associated interim-id
-                if (Osmium::debug()) {
-                    std::cerr << "record string " << string << " at interim-id " << info.interim_id << std::endl;
-                }
-                return info.interim_id;
+                info.count++;
             }
+            return info.interim_id;
+        }
+
+        template<typename A, typename B>
+        static std::pair<B,A> flip_pair(const std::pair<A,B>& p) {
+            return std::pair<B,A>(p.second, p.first);
         }
 
         /**
-         * sort the interim StringTable and store it to the real protobuf StringTable.
-         * while storing to the real table, this function fills the string_ids_map with
+         * Sort the interim StringTable and store it to the real protobuf StringTable.
+         * while storing to the real table, this function fills the id2id_map with
          * pairs, mapping the interim-ids to final and real StringTable ids.
+         *
+         * Note that the m_strings table is a std::map and as such is sorted lexicographically.
+         * When the transformation into the sortedby multimap is done, it gets sorted by
+         * the count. The end result (at least with the glibc standard container/algorithm
+         * implementation) is that the string table is sorted first by reverse count (ie descending)
+         * and then by reverse lexicographic order.
          */
         void store_stringtable(OSMPBF::StringTable* st) {
-            // as a map can't be sorted, we need a vector holding our string/string_info pairs
-            std::vector<std::pair<std::string, string_info> > strvec;
+            typedef std::multimap<string_info, std::string> cmap;
+            cmap sortedbycount;
 
-            // we now copy the contents from the map over to the vector
-            std::copy(strings.begin(), strings.end(), back_inserter(strvec));
+            m_id2id_map.reserve(m_size);
 
-            // next the vector is sorted using our comparator
-            std::sort(strvec.begin(), strvec.end(), stringtable_comparator);
+            std::transform(m_strings.begin(), m_strings.end(),
+                std::inserter(sortedbycount, sortedbycount.begin()), flip_pair<std::string, string_info>);
 
-            // iterate over the items of our vector
-            for (int i=0, l=strvec.size(); i<l; i++) {
-                if (Osmium::debug()) {
-                    std::cerr << "store stringtable: " << strvec[i].first << " (cnt=" << strvec[i].second.count+1 << ") with interim-id " << strvec[i].second.interim_id << " at stringtable-id " << i+1 << std::endl;
-                }
-
+            int n=0;
+            cmap::const_iterator end=sortedbycount.end();
+            for (cmap::const_iterator it = sortedbycount.begin(); it != end; ++it) {
                 // add the string of the current item to the pbf StringTable
-                st->add_s(strvec[i].first);
+                st->add_s(it->second);
 
                 // store the mapping from the interim-id to the real id
-                string_ids_map[strvec[i].second.interim_id] = i+1;
+                m_id2id_map[it->first.interim_id] = ++n;
             }
         }
 
         /**
-         * map from an interim-id to a real string-id, throwing an exception if an
-         * unknown mapping is requested.
+         * Map from an interim ID to a real string ID.
          */
-        uint16_t map_string_id(const uint16_t interim_id) {
-            // declare an iterator over the ids-map
-            std::map<uint16_t, uint16_t>::const_iterator it;
-
-            // use the find method of the map to search for the mapping pair
-            it = string_ids_map.find(interim_id);
-
-            // if there was a hit
-            if (it != string_ids_map.end()) {
-                // return the real-id stored in the second part of the pair
-                //if (Osmium::debug()) fprintf(stderr, "mapping interim-id %u to stringtable-id %u\n", interim_id, it->second);
-                return it->second;
-            }
-
-            // throw an exception
-            throw std::runtime_error("Request for string not in stringable\n");
+        string_id_t map_string_id(const string_id_t interim_id) const {
+            return m_id2id_map[interim_id];
         }
 
         /**
-         * clear the stringtable, preparing for the next block
+         * Clear the stringtable, preparing for the next block.
          */
         void clear() {
-            strings.clear();
-            string_ids_map.clear();
+            m_strings.clear();
+            m_size = 0;
         }
 
     }; // class StringTable
