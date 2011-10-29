@@ -24,7 +24,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <string>
 #include <zlib.h>
-#include <typeinfo>
 
 #include <osmpbf/osmpbf.h>
 
@@ -145,40 +144,28 @@ namespace Osmium {
             void parse_group(const OSMPBF::PrimitiveGroup& group, const OSMPBF::StringTable& stringtable) {
                 if (group.has_dense())  {
                     this->call_after_and_before_on_handler(NODE);
-
-                    // MAGIC: This bit of magic checks whether the empty node function in the
-                    // handler base class was overwritten. If it was we parse the nodes from the input
-                    // file, if not we skip parsing them because they will not be used anyway.
-                    if (typeid(&THandler::node) != typeid(&Osmium::Handler::Base::node)) {
-                        parse_dense_node_group(group, stringtable);
-                    }
+                    parse_dense_node_group(group, stringtable, &THandler::node);
                 } else if (group.ways_size() != 0) {
                     this->call_after_and_before_on_handler(WAY);
-
-                    // MAGIC: see above
-                    if (typeid(&THandler::way) != typeid(&Osmium::Handler::Base::way)) {
-                        parse_way_group(group, stringtable);
-                    }
+                    parse_way_group(group, stringtable, &THandler::way);
                 } else if (group.relations_size() != 0) {
                     this->call_after_and_before_on_handler(RELATION);
-
-                    // MAGIC: see above
-                    if (typeid(&THandler::relation) != typeid(&Osmium::Handler::Base::relation)) {
-                        parse_relation_group(group, stringtable);
-                    }
+                    parse_relation_group(group, stringtable, &THandler::relation);
                 } else if (group.nodes_size() != 0) {
                     this->call_after_and_before_on_handler(NODE);
-
-                    // MAGIC: see above
-                    if (typeid(&THandler::node) != typeid(&Osmium::Handler::Base::node)) {
-                        parse_node_group(group, stringtable);
-                    }
+                    parse_node_group(group, stringtable, &THandler::node);
                 } else {
                     throw std::runtime_error("Group of unknown type.");
                 }
             }
 
-            void parse_node_group(const OSMPBF::PrimitiveGroup& group, const OSMPBF::StringTable& stringtable) {
+            // empty specialization to optimize the case where the node() method on the handler is empty
+            void parse_node_group(const OSMPBF::PrimitiveGroup& /*group*/, const OSMPBF::StringTable& /*stringtable*/,
+                void (Osmium::Handler::Base::*)(const shared_ptr<Osmium::OSM::Node const>&) const) {
+            }
+
+            template <typename T>
+            void parse_node_group(const OSMPBF::PrimitiveGroup& group, const OSMPBF::StringTable& stringtable, T) {
                 int max_entity = group.nodes_size();
                 for (int entity=0; entity < max_entity; entity++) {
                     Osmium::OSM::Node& node = this->prepare_node();
@@ -210,7 +197,13 @@ namespace Osmium {
                 }
             }
 
-            void parse_way_group(const OSMPBF::PrimitiveGroup& group, const OSMPBF::StringTable& stringtable) {
+            // empty specialization to optimize the case where the way() method on the handler is empty
+            void parse_way_group(const OSMPBF::PrimitiveGroup& /*group*/, const OSMPBF::StringTable& /*stringtable*/,
+                void (Osmium::Handler::Base::*)(const shared_ptr<Osmium::OSM::Way const>&) const) {
+            }
+
+            template <typename T>
+            void parse_way_group(const OSMPBF::PrimitiveGroup& group, const OSMPBF::StringTable& stringtable, T) {
                 int max_entity = group.ways_size();
                 for (int entity=0; entity < max_entity; entity++) {
                     Osmium::OSM::Way& way = this->prepare_way();
@@ -245,7 +238,13 @@ namespace Osmium {
                 }
             }
 
-            void parse_relation_group(const OSMPBF::PrimitiveGroup& group, const OSMPBF::StringTable& stringtable) {
+            // empty specialization to optimize the case where the relation() method on the handler is empty
+            void parse_relation_group(const OSMPBF::PrimitiveGroup& /*group*/, const OSMPBF::StringTable& /*stringtable*/,
+                void (Osmium::Handler::Base::*)(const shared_ptr<Osmium::OSM::Relation const>&) const) {
+            }
+
+            template <typename T>
+            void parse_relation_group(const OSMPBF::PrimitiveGroup& group, const OSMPBF::StringTable& stringtable, T) {
                 int max_entity = group.relations_size();
                 for (int entity=0; entity < max_entity; entity++) {
                     Osmium::OSM::Relation& relation = this->prepare_relation();
@@ -292,7 +291,13 @@ namespace Osmium {
                 }
             }
 
-            void parse_dense_node_group(const OSMPBF::PrimitiveGroup& group, const OSMPBF::StringTable& stringtable) {
+            // empty specialization to optimize the case where the node() method on the handler is empty
+            void parse_dense_node_group(const OSMPBF::PrimitiveGroup& /*group*/, const OSMPBF::StringTable& /*stringtable*/,
+                void (Osmium::Handler::Base::*)(const shared_ptr<Osmium::OSM::Node const>&) const) {
+            }
+
+            template <typename T>
+            void parse_dense_node_group(const OSMPBF::PrimitiveGroup& group, const OSMPBF::StringTable& stringtable, T) {
                 int64_t last_dense_id        = 0;
                 int64_t last_dense_latitude  = 0;
                 int64_t last_dense_longitude = 0;
