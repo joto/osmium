@@ -42,14 +42,16 @@ namespace Osmium {
         template <class THandler>
         class PBF : public Base<THandler> {
 
-            unsigned char buffer[OSMPBF::max_uncompressed_blob_size];
-            unsigned char unpack_buffer[OSMPBF::max_uncompressed_blob_size];
-
             typedef std::pair<const void*, size_t> array_t;
 
-            OSMPBF::BlobHeader pbf_blob_header;
-            OSMPBF::PrimitiveBlock pbf_primitive_block;
-            int64_t date_factor;
+            unsigned char m_input_buffer[OSMPBF::max_uncompressed_blob_size];
+            unsigned char m_unpack_buffer[OSMPBF::max_uncompressed_blob_size];
+
+            OSMPBF::Blob           m_pbf_blob;
+            OSMPBF::BlobHeader     m_pbf_blob_header;
+            OSMPBF::PrimitiveBlock m_pbf_primitive_block;
+
+            int64_t m_date_factor;
 
         public:
 
@@ -57,7 +59,7 @@ namespace Osmium {
             * Instantiate PBF Parser
             *
             * @param file OSMFile instance.
-            * @param handler Instance of THandler. If NULL an instance of class THandler is created internally.
+            * @param handler Instance of THandler.
             */
             PBF(OSMFile& file, THandler& handler) : Base<THandler>(file, handler) {
                 GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -72,25 +74,25 @@ namespace Osmium {
             void parse() {
                 try {
                     while (read_blob_header()) {
-                        array_t a = read_blob(pbf_blob_header.datasize());
+                        const array_t a = read_blob(m_pbf_blob_header.datasize());
 
-                        if (pbf_blob_header.type() == "OSMData") {
-                            if (!pbf_primitive_block.ParseFromArray(a.first, a.second)) {
+                        if (m_pbf_blob_header.type() == "OSMData") {
+                            if (!m_pbf_primitive_block.ParseFromArray(a.first, a.second)) {
                                 throw std::runtime_error("Failed to parse PrimitiveBlock.");
                             }
-                            OSMPBF::StringTable stringtable = pbf_primitive_block.stringtable();
-                            date_factor = pbf_primitive_block.date_granularity() / 1000;
-                            for (int i=0; i < pbf_primitive_block.primitivegroup_size(); i++) {
-                                parse_group(pbf_primitive_block.primitivegroup(i), stringtable);
+                            const OSMPBF::StringTable& stringtable = m_pbf_primitive_block.stringtable();
+                            m_date_factor = m_pbf_primitive_block.date_granularity() / 1000;
+                            for (int i=0; i < m_pbf_primitive_block.primitivegroup_size(); ++i) {
+                                parse_group(m_pbf_primitive_block.primitivegroup(i), stringtable);
                             }
-                        } else if (pbf_blob_header.type() == "OSMHeader") {
+                        } else if (m_pbf_blob_header.type() == "OSMHeader") {
                             OSMPBF::HeaderBlock pbf_header_block;
                             if (!pbf_header_block.ParseFromArray(a.first, a.second)) {
                                 throw std::runtime_error("Failed to parse HeaderBlock.");
                             }
 
                             bool has_historical_information_feature = false;
-                            for (int i=0; i < pbf_header_block.required_features_size(); i++) {
+                            for (int i=0; i < pbf_header_block.required_features_size(); ++i) {
                                 const std::string& feature = pbf_header_block.required_features(i);
 
                                 if (feature == "OsmSchema-V0.6") continue;
@@ -105,21 +107,22 @@ namespace Osmium {
                                 throw std::runtime_error(errmsg.str());
                             }
 
-                            Osmium::OSMFile::FileType* expected_file_type = this->get_file().get_type();
+                            const Osmium::OSMFile::FileType* expected_file_type = this->get_file().get_type();
                             if (expected_file_type == Osmium::OSMFile::FileType::OSM() && has_historical_information_feature) {
                                 throw Osmium::OSMFile::FileTypeOSMExpected();
                             }
                             if (expected_file_type == Osmium::OSMFile::FileType::History() && !has_historical_information_feature) {
                                 throw Osmium::OSMFile::FileTypeHistoryExpected();
                             }
+
                             if (pbf_header_block.has_bbox()) {
-                                OSMPBF::HeaderBBox bbox = pbf_header_block.bbox();
-                                this->meta().bounds().extend(Osmium::OSM::Position((double)bbox.left() / OSMPBF::lonlat_resolution, (double)bbox.bottom() / OSMPBF::lonlat_resolution));
-                                this->meta().bounds().extend(Osmium::OSM::Position((double)bbox.right() / OSMPBF::lonlat_resolution, (double)bbox.top() / OSMPBF::lonlat_resolution));
+                                const OSMPBF::HeaderBBox& bbox = pbf_header_block.bbox();
+                                this->meta().bounds().extend(Osmium::OSM::Position((double)bbox.left()  / OSMPBF::lonlat_resolution, (double)bbox.bottom() / OSMPBF::lonlat_resolution));
+                                this->meta().bounds().extend(Osmium::OSM::Position((double)bbox.right() / OSMPBF::lonlat_resolution, (double)bbox.top()    / OSMPBF::lonlat_resolution));
                             }
                         } else {
                             if (Osmium::debug()) {
-                                std::cerr << "Ignoring unknown blob type (" << pbf_blob_header.type().data() << ")." << std::endl;
+                                std::cerr << "Ignoring unknown blob type (" << m_pbf_blob_header.type().data() << ").\n";
                             }
                         }
                     }
@@ -167,7 +170,7 @@ namespace Osmium {
             template <typename T>
             void parse_node_group(const OSMPBF::PrimitiveGroup& group, const OSMPBF::StringTable& stringtable, T) {
                 int max_entity = group.nodes_size();
-                for (int entity=0; entity < max_entity; entity++) {
+                for (int entity=0; entity < max_entity; ++entity) {
                     Osmium::OSM::Node& node = this->prepare_node();
 
                     const OSMPBF::Node& pbf_node = group.nodes(entity);
@@ -176,7 +179,7 @@ namespace Osmium {
                     if (pbf_node.has_info()) {
                         node.version(pbf_node.info().version())
                         .changeset(pbf_node.info().changeset())
-                        .timestamp(pbf_node.info().timestamp() * date_factor)
+                        .timestamp(pbf_node.info().timestamp() * m_date_factor)
                         .uid(pbf_node.info().uid())
                         .user(stringtable.s(pbf_node.info().user_sid()).data());
                         if (pbf_node.info().has_visible()) {
@@ -185,14 +188,14 @@ namespace Osmium {
                     }
 
                     Osmium::OSM::TagList& tags = node.tags();
-                    for (int tag=0; tag < pbf_node.keys_size(); tag++) {
+                    for (int tag=0; tag < pbf_node.keys_size(); ++tag) {
                         tags.add(stringtable.s( pbf_node.keys( tag ) ).data(),
                                  stringtable.s( pbf_node.vals( tag ) ).data());
                     }
 
                     node.position(Osmium::OSM::Position(
-                                      ( (double) pbf_node.lon() * pbf_primitive_block.granularity() + pbf_primitive_block.lon_offset() ) / OSMPBF::lonlat_resolution,
-                                      ( (double) pbf_node.lat() * pbf_primitive_block.granularity() + pbf_primitive_block.lat_offset() ) / OSMPBF::lonlat_resolution));
+                                      ( (double) pbf_node.lon() * m_pbf_primitive_block.granularity() + m_pbf_primitive_block.lon_offset() ) / OSMPBF::lonlat_resolution,
+                                      ( (double) pbf_node.lat() * m_pbf_primitive_block.granularity() + m_pbf_primitive_block.lat_offset() ) / OSMPBF::lonlat_resolution));
                     this->call_node_on_handler();
                 }
             }
@@ -205,7 +208,7 @@ namespace Osmium {
             template <typename T>
             void parse_way_group(const OSMPBF::PrimitiveGroup& group, const OSMPBF::StringTable& stringtable, T) {
                 int max_entity = group.ways_size();
-                for (int entity=0; entity < max_entity; entity++) {
+                for (int entity=0; entity < max_entity; ++entity) {
                     Osmium::OSM::Way& way = this->prepare_way();
 
                     const OSMPBF::Way& pbf_way = group.ways(entity);
@@ -214,7 +217,7 @@ namespace Osmium {
                     if (pbf_way.has_info()) {
                         way.version(pbf_way.info().version())
                         .changeset(pbf_way.info().changeset())
-                        .timestamp(pbf_way.info().timestamp() * date_factor)
+                        .timestamp(pbf_way.info().timestamp() * m_date_factor)
                         .uid(pbf_way.info().uid())
                         .user(stringtable.s(pbf_way.info().user_sid()).data());
                         if (pbf_way.info().has_visible()) {
@@ -223,13 +226,13 @@ namespace Osmium {
                     }
 
                     Osmium::OSM::TagList& tags = way.tags();
-                    for (int tag=0; tag < pbf_way.keys_size(); tag++) {
+                    for (int tag=0; tag < pbf_way.keys_size(); ++tag) {
                         tags.add(stringtable.s( pbf_way.keys( tag ) ).data(),
                                  stringtable.s( pbf_way.vals( tag ) ).data());
                     }
 
                     uint64_t ref = 0;
-                    for (int i=0; i < pbf_way.refs_size(); i++) {
+                    for (int i=0; i < pbf_way.refs_size(); ++i) {
                         ref += pbf_way.refs(i);
                         way.add_node(ref);
                     }
@@ -246,7 +249,7 @@ namespace Osmium {
             template <typename T>
             void parse_relation_group(const OSMPBF::PrimitiveGroup& group, const OSMPBF::StringTable& stringtable, T) {
                 int max_entity = group.relations_size();
-                for (int entity=0; entity < max_entity; entity++) {
+                for (int entity=0; entity < max_entity; ++entity) {
                     Osmium::OSM::Relation& relation = this->prepare_relation();
 
                     const OSMPBF::Relation& pbf_relation = group.relations(entity);
@@ -255,7 +258,7 @@ namespace Osmium {
                     if (pbf_relation.has_info()) {
                         relation.version(pbf_relation.info().version())
                         .changeset(pbf_relation.info().changeset())
-                        .timestamp(pbf_relation.info().timestamp() * date_factor)
+                        .timestamp(pbf_relation.info().timestamp() * m_date_factor)
                         .uid(pbf_relation.info().uid())
                         .user(stringtable.s(pbf_relation.info().user_sid()).data());
                         if (pbf_relation.info().has_visible()) {
@@ -264,13 +267,13 @@ namespace Osmium {
                     }
 
                     Osmium::OSM::TagList& tags = relation.tags();
-                    for (int tag=0; tag < pbf_relation.keys_size(); tag++) {
+                    for (int tag=0; tag < pbf_relation.keys_size(); ++tag) {
                         tags.add(stringtable.s( pbf_relation.keys(tag) ).data(),
                                  stringtable.s( pbf_relation.vals(tag) ).data());
                     }
 
                     uint64_t ref = 0;
-                    for (int i=0; i < pbf_relation.types_size(); i++) {
+                    for (int i=0; i < pbf_relation.types_size(); ++i) {
                         char type = 'x';
                         switch (pbf_relation.types(i)) {
                             case OSMPBF::Relation::NODE:
@@ -323,7 +326,7 @@ namespace Osmium {
 
                         node.version(dense.denseinfo().version(entity));
                         node.changeset(last_dense_changeset);
-                        node.timestamp(last_dense_timestamp * date_factor);
+                        node.timestamp(last_dense_timestamp * m_date_factor);
                         node.uid(last_dense_uid);
                         node.user(stringtable.s(last_dense_user_sid).data());
 
@@ -335,8 +338,8 @@ namespace Osmium {
                     last_dense_latitude  += dense.lat(entity);
                     last_dense_longitude += dense.lon(entity);
                     node.position(Osmium::OSM::Position(
-                                      ( (double) last_dense_longitude * pbf_primitive_block.granularity() + pbf_primitive_block.lon_offset() ) / OSMPBF::lonlat_resolution,
-                                      ( (double) last_dense_latitude  * pbf_primitive_block.granularity() + pbf_primitive_block.lat_offset() ) / OSMPBF::lonlat_resolution));
+                                      ( (double) last_dense_longitude * m_pbf_primitive_block.granularity() + m_pbf_primitive_block.lon_offset() ) / OSMPBF::lonlat_resolution,
+                                      ( (double) last_dense_latitude  * m_pbf_primitive_block.granularity() + m_pbf_primitive_block.lat_offset() ) / OSMPBF::lonlat_resolution));
 
                     while (last_dense_tag < dense.keys_vals_size()) {
                         int tag_key_pos = dense.keys_vals(last_dense_tag);
@@ -371,11 +374,10 @@ namespace Osmium {
             */
             bool read_blob_header() {
                 unsigned char size_in_network_byte_order[4];
-                int size = sizeof(size_in_network_byte_order);
                 int offset = 0;
-                while (offset < size) {
-                    int nread = read(this->get_fd(), size_in_network_byte_order + offset, size - offset);
-                    if (nread == -1) {
+                while (offset < static_cast<int>(sizeof(size_in_network_byte_order))) {
+                    int nread = read(this->get_fd(), size_in_network_byte_order + offset, sizeof(size_in_network_byte_order) - offset);
+                    if (nread < 0) {
                         throw std::runtime_error("read error");
                     } else if (nread == 0) {
                         return false; // EOF
@@ -383,7 +385,7 @@ namespace Osmium {
                     offset += nread;
                 }
 
-                size = convert_from_network_byte_order(size_in_network_byte_order);
+                const int size = convert_from_network_byte_order(size_in_network_byte_order);
                 if (size > OSMPBF::max_blob_header_size || size < 0) {
                     std::ostringstream errmsg;
                     errmsg << "BlobHeader size invalid:" << size;
@@ -392,14 +394,14 @@ namespace Osmium {
 
                 offset = 0;
                 while (offset < size) {
-                    int nread = read(this->get_fd(), buffer + offset, size - offset);
+                    int nread = read(this->get_fd(), m_input_buffer + offset, size - offset);
                     if (nread < 1) {
                         throw std::runtime_error("failed to read BlobHeader");
                     }
                     offset += nread;
                 }
 
-                if (!pbf_blob_header.ParseFromArray(buffer, size)) {
+                if (!m_pbf_blob_header.ParseFromArray(m_input_buffer, size)) {
                     throw std::runtime_error("failed to parse BlobHeader");
                 }
                 return true;
@@ -408,8 +410,7 @@ namespace Osmium {
             /**
             * Read a (possibly compressed) blob of data. If the blob is compressed, it is uncompressed.
             */
-            array_t read_blob(int size) {
-                static OSMPBF::Blob blob;
+            array_t read_blob(const int size) {
                 if (size < 0 || size > OSMPBF::max_uncompressed_blob_size) {
                     std::ostringstream errmsg;
                     errmsg << "invalid blob size: " << size;
@@ -417,25 +418,25 @@ namespace Osmium {
                 }
                 int offset = 0;
                 while (offset < size) {
-                    int nread = read(this->get_fd(), buffer + offset, size - offset);
+                    int nread = read(this->get_fd(), m_input_buffer + offset, size - offset);
                     if (nread < 1) {
                         throw std::runtime_error("failed to read blob");
                     }
                     offset += nread;
                 }
-                if (!blob.ParseFromArray(buffer, size)) {
+                if (!m_pbf_blob.ParseFromArray(m_input_buffer, size)) {
                     throw std::runtime_error("failed to parse blob");
                 }
 
-                if (blob.has_raw()) {
-                    return array_t(blob.raw().data(), blob.raw().size());
-                } else if (blob.has_zlib_data()) {
-                    unsigned long raw_size = blob.raw_size();
-                    if (uncompress(unpack_buffer, &raw_size, reinterpret_cast<const unsigned char*>(blob.zlib_data().data()), blob.zlib_data().size()) != Z_OK || blob.raw_size() != static_cast<long>(raw_size)) {
+                if (m_pbf_blob.has_raw()) {
+                    return array_t(m_pbf_blob.raw().data(), m_pbf_blob.raw().size());
+                } else if (m_pbf_blob.has_zlib_data()) {
+                    unsigned long raw_size = m_pbf_blob.raw_size();
+                    if (uncompress(m_unpack_buffer, &raw_size, reinterpret_cast<const unsigned char*>(m_pbf_blob.zlib_data().data()), m_pbf_blob.zlib_data().size()) != Z_OK || m_pbf_blob.raw_size() != static_cast<long>(raw_size)) {
                         throw std::runtime_error("zlib error");
                     }
-                    return array_t(unpack_buffer, raw_size);
-                } else if (blob.has_lzma_data()) {
+                    return array_t(m_unpack_buffer, raw_size);
+                } else if (m_pbf_blob.has_lzma_data()) {
                     throw std::runtime_error("lzma blobs not implemented");
                 } else {
                     throw std::runtime_error("Blob contains no data");
