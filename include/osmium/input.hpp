@@ -199,7 +199,7 @@ namespace Osmium {
             */
             Osmium::OSM::Node& prepare_node() {
                 if (m_node && m_node.unique()) {
-                    m_node.get()->~Node();
+                    m_node->~Node();
                     new (m_node.get()) Osmium::OSM::Node();
                 } else {
                     m_node = make_shared<Osmium::OSM::Node>();
@@ -209,7 +209,7 @@ namespace Osmium {
 
             Osmium::OSM::Way& prepare_way() {
                 if (m_way && m_way.unique()) {
-                    m_way.get()->~Way();
+                    m_way->~Way();
                     new (m_way.get()) Osmium::OSM::Way(2000);
                 } else {
                     m_way = make_shared<Osmium::OSM::Way>(2000);
@@ -219,7 +219,7 @@ namespace Osmium {
 
             Osmium::OSM::Relation& prepare_relation() {
                 if (m_relation && m_relation.unique()) {
-                    m_relation.get()->~Relation();
+                    m_relation->~Relation();
                     new (m_relation.get()) Osmium::OSM::Relation();
                 } else {
                     m_relation = make_shared<Osmium::OSM::Relation>();
