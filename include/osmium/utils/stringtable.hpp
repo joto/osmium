@@ -102,7 +102,7 @@ namespace Osmium {
         string_id_t record_string(const std::string& string) {
             string_info& info = m_strings[string];
             if (info.interim_id == 0) {
-                info.interim_id = m_size++;
+                info.interim_id = ++m_size;
             } else {
                 info.count++;
             }
@@ -129,7 +129,7 @@ namespace Osmium {
             typedef std::multimap<string_info, std::string> cmap;
             cmap sortedbycount;
 
-            m_id2id_map.resize(m_size);
+            m_id2id_map.resize(m_size+1);
 
             std::transform(m_strings.begin(), m_strings.end(),
                 std::inserter(sortedbycount, sortedbycount.begin()), flip_pair<std::string, string_info>);
