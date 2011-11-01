@@ -34,6 +34,10 @@ PREREQUISITES
 Different parts of Osmium and the applications build on top of it need
 different libraries:
 
+boost (several libraries)
+    http://www.boost.org/
+    Debian/Ubuntu: libboost-dev
+
 zlib (for PBF support)
     http://www.zlib.net/
     Debian/Ubuntu: zlib1g-dev
