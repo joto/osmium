@@ -154,20 +154,26 @@ namespace Osmium {
                     timeval now;
                     gettimeofday(&now, 0);
 
-                    float node_diff = (first_way.tv_sec - first_node.tv_sec) * 1000000 + (first_way.tv_usec - first_node.tv_usec);
-                    int nodes_per_sec = (float)count_nodes / node_diff * 1000000;
-                    std::cout << nodes_per_sec << " Nodes, ";
+                    if (count_nodes > 0) {
+                        float node_diff = (first_way.tv_sec - first_node.tv_sec) * 1000000 + (first_way.tv_usec - first_node.tv_usec);
+                        int nodes_per_sec = (float)count_nodes / node_diff * 1000000;
+                        std::cout << nodes_per_sec << " Nodes ";
+                    }
 
-                    float way_diff = (first_relation.tv_sec - first_way.tv_sec) * 1000000 + (first_relation.tv_usec - first_way.tv_usec);
-                    int ways_per_sec = (float)count_ways / way_diff * 1000000;
-                    std::cout << ways_per_sec << " Ways and ";
+                    if (count_ways > 0) {
+                        float way_diff = (first_relation.tv_sec - first_way.tv_sec) * 1000000 + (first_relation.tv_usec - first_way.tv_usec);
+                        int ways_per_sec = (float)count_ways / way_diff * 1000000;
+                        std::cout << ways_per_sec << " Ways ";
+                    }
 
-                    float relation_diff = (now.tv_sec - first_relation.tv_sec) * 1000000 + (now.tv_usec - first_relation.tv_usec);
-                    int relations_per_sec = (float)count_relations / relation_diff * 1000000;
-                    std::cout << relations_per_sec << " Relations per second";
+                    if (count_relations > 0) {
+                        float relation_diff = (now.tv_sec - first_relation.tv_sec) * 1000000 + (now.tv_usec - first_relation.tv_usec);
+                        int relations_per_sec = (float)count_relations / relation_diff * 1000000;
+                        std::cout << relations_per_sec << " Relations ";
+                    }
 
                     show_cursor();
-                    std::cout << std::endl;
+                    std::cout  << "per second" << std::endl;
                     std::cout.flush();
                 }
             }
