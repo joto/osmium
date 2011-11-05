@@ -97,10 +97,7 @@ public:
                 Osmium::Geometry::LineString linestring(*way);
                 shapefile_linestring->add_geometry(linestring.create_shp_object());
                 shapefile_linestring->add_attribute(0, way->id());
-                const char* type = way->tags().get_tag_by_key("highway");
-                if (type) {
-                    shapefile_linestring->add_attribute(1, std::string(type));
-                }
+                shapefile_linestring->add_attribute(1, std::string(highway));
             } catch (Osmium::Exception::IllegalGeometry) {
                 std::cerr << "Ignoring illegal geometry for way " << way->id() << ".\n";
             }
