@@ -124,8 +124,7 @@ Call "make doc" in the top-level directory to build the Osmium C++ docs.
 
 Call "make install" to install the include files and documentation.
 
-To build the example applications go into the "examples" directory and
-call "make".
+See "examples/README" for build instructions of the example applications.
 
 See "osmjs/README" for build instructions of osmjs.
 

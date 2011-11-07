@@ -1,0 +1,68 @@
+
+Osmium Examples
+===============
+
+This folder contains a number of example applications to demonstrate the
+use of the Osmium framework for other developers.
+
+
+FILES
+-----
+
+* nodedensity  
+  This application will write a heatmap-like PNG to stdout based on the desity
+  of nodes in the supplied input file.
+
+* osmium_convert  
+  This application can be used to convert between the several OSM file formats
+  like OSM (xml), gzip-compressed XML, bzip2-compressed XML and PBF.
+
+* osmium_debug  
+  This is a small tool to dump the contents of the input file.
+
+* osmium_find_bbox  
+  This is a small tool to find the bounding box of the input file.
+
+* osmium_progress  
+  This is a small tool demonstrates the use of the progress handler.
+
+* osmium_range_from_history  
+  Program to test the RangeFromHistory handler.
+
+* osmium_sizeof  
+  This is a small tool to find out the sizes of some basic classes.
+  It is only used for Osmium development.
+
+* osmium_stats  
+  This is a small tool to try the Statistics handler.
+
+* osmium_store_and_debug  
+  This is a small tool to dump the contents of the input file.
+
+* osmium_time  
+  A small application that counts the various nodes, ways and relations in an
+  input file and stops the time that it took to do that.
+
+* osmium_toogr  
+  This is an example tool that converts OSM data to a spatialite database using
+  the OGR library.
+
+* osmium_toogr2  
+  This is an example tool that converts OSM data to a spatialite database using
+  the OGR library. (This version creates multipolygons and reads the input file
+  twice to do that.)
+
+* osmium_toshape  
+  An example application that converts any kind of OSM file into a set of
+  shapefiles. It is filtering out highways as polylines and postboxes as points.
+
+
+BUILDING
+--------
+
+First you need to (build and) install all the prerequisites as mentioned in
+the README file inside the main project folder.
+
+To build the example applications go into the "examples" directory and
+call "make".
+
