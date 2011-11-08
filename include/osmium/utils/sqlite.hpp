@@ -139,6 +139,13 @@ namespace Osmium {
                 return this;
             }
 
+            Statement* bind_text(const std::string& value) {
+                if (SQLITE_OK != sqlite3_bind_text(statement, bindnum++, value.c_str(), -1, SQLITE_STATIC)) {
+                    throw Sqlite::Exception("Can't bind text value", db_->errmsg());
+                }
+                return this;
+            }
+
             Statement* bind_int(int value) {
                 if (SQLITE_OK != sqlite3_bind_int(statement, bindnum++, value)) {
                     throw Sqlite::Exception("Can't bind int value", db_->errmsg());
@@ -149,6 +156,13 @@ namespace Osmium {
             Statement* bind_int64(int64_t value) {
                 if (SQLITE_OK != sqlite3_bind_int64(statement, bindnum++, value)) {
                     throw Sqlite::Exception("Can't bind int64 value", db_->errmsg());
+                }
+                return this;
+            }
+
+            Statement* bind_double(double value) {
+                if (SQLITE_OK != sqlite3_bind_double(statement, bindnum++, value)) {
+                    throw Sqlite::Exception("Can't bind double value", db_->errmsg());
                 }
                 return this;
             }
