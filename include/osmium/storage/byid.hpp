@@ -88,6 +88,12 @@ namespace Osmium {
              */
             virtual uint64_t used_memory() const = 0;
 
+            /**
+             * Clear memory used for this storage. After this you can not
+             * use the storage container any more.
+             */
+            virtual void clear() = 0;
+
         };
 
         /**
@@ -128,7 +134,7 @@ namespace Osmium {
             }
 
             ~FixedArray() {
-                free(m_items);
+                clear();
             }
 
             void set(uint64_t id, TValue value) {
@@ -145,6 +151,11 @@ namespace Osmium {
 
             uint64_t used_memory() const {
                 return m_size * sizeof(TValue);
+            }
+
+            void clear() {
+                free(m_items);
+                m_items = NULL;
             }
 
         private:
@@ -204,6 +215,10 @@ namespace Osmium {
                 // unused items use 1 bit, used items sizeof(TValue) bytes
                 // http://google-sparsehash.googlecode.com/svn/trunk/doc/sparsetable.html
                 return (m_items.size() / 8) + (m_items.num_nonempty() * sizeof(TValue));
+            }
+
+            void clear() {
+                m_items.clear();
             }
 
         private:
@@ -291,7 +306,7 @@ namespace Osmium {
             }
 
             ~Mmap() {
-                munmap(m_items, sizeof(TValue) * m_size);
+                clear();
             }
 
             void set(uint64_t id, TValue value) {
@@ -324,6 +339,10 @@ namespace Osmium {
 
             uint64_t used_memory() const {
                 return m_size * sizeof(TValue);
+            }
+
+            void clear() {
+                munmap(m_items, sizeof(TValue) * m_size);
             }
 
         private:
