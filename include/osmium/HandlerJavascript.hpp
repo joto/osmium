@@ -102,7 +102,7 @@ namespace Osmium {
 
                 for (int i = 0; i < args.Length(); i++) {
                     Osmium::v8_String_to_ostream(args[i]->ToString(), std::cout);
-                    std::cout << std::endl;
+                    std::cout << "\n";
                 }
 
                 return handle_scope.Close(v8::Integer::New(1));

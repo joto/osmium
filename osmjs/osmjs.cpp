@@ -192,22 +192,22 @@ public:
 v8::Persistent<v8::Context> global_context;
 
 void print_help() {
-    std::cout << "osmjs [OPTIONS] OSMFILE [SCRIPT_ARG ...]" << std::endl \
-              << "Options:" << std::endl \
-              << "  --help, -h                       - This help message" << std::endl \
-              << "  --debug, -d                      - Enable debugging output" << std::endl \
-              << "  --include=FILE, -i FILE          - Include Javascript file (can be given several times)" << std::endl \
-              << "  --javascript=FILE, -j FILE       - Process given Javascript file" << std::endl \
-              << "  --location-store=STORE, -l STORE - Set location store (default: 'none')" << std::endl \
-              << "  --no-repair, -r                  - Do not attempt to repair broken multipolygons" << std::endl \
-              << "  --2pass, -2                      - Read OSMFILE twice" << std::endl \
-              << "  --multipolygon, -m               - Build multipolygons (implies -2)" << std::endl \
-              << "Location stores:" << std::endl \
-              << "  none        - Do not store node locations (you will have no way or polygon geometries)" << std::endl \
-              << "  array       - Store node locations in large array (use for large OSM files)" << std::endl \
-              << "  disk        - Store node locations on disk (use when low on memory)" << std::endl \
-              << "  sparsetable - Store node locations in sparse table (use for small OSM files)" << std::endl;
-
+    std::cout << "osmjs [OPTIONS] OSMFILE [SCRIPT_ARG ...]\n"
+              << "Options:\n"
+              << "  --help, -h                       - This help message\n"
+              << "  --debug, -d                      - Enable debugging output\n"
+              << "  --include=FILE, -i FILE          - Include Javascript file (can be given several times)\n"
+              << "  --javascript=FILE, -j FILE       - Process given Javascript file\n"
+              << "  --location-store=STORE, -l STORE - Set location store (default: 'none')\n"
+              << "  --no-repair, -r                  - Do not attempt to repair broken multipolygons\n"
+              << "  --2pass, -2                      - Read OSMFILE twice\n"
+              << "  --multipolygon, -m               - Build multipolygons (implies -2)\n"
+              << "Location stores:\n"
+              << "  none        - Do not store node locations (you will have no way or polygon geometries)\n"
+              << "  array       - Store node locations in large array (use for large OSM files)\n"
+              << "  disk        - Store node locations on disk (use when low on memory)\n"
+              << "  sparsetable - Store node locations in sparse table (use for small OSM files)\n"
+        ;
 }
 
 std::string find_include_file(std::string filename) {
@@ -247,6 +247,8 @@ void cbmp(Osmium::OSM::Area* area) {
 }
 
 int main(int argc, char *argv[]) {
+    std::ios_base::sync_with_stdio(false);
+
     bool two_passes = false;
     bool attempt_repair = true;
     std::string javascript_filename;
