@@ -342,7 +342,9 @@ namespace Osmium {
             }
 
             virtual ~Object() {
+#ifdef OSMIUM_WITH_JAVASCRIPT
                 js_object_instance.Dispose();
+#endif // OSMIUM_WITH_JAVASCRIPT
             }
 
         private:
