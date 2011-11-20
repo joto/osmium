@@ -46,7 +46,8 @@ namespace Osmium {
 
             Node() : Object(), m_position() {
 #ifdef OSMIUM_WITH_JAVASCRIPT
-                js_object_instance = JavascriptTemplate::get<JavascriptTemplate>().create_instance(this);
+                v8::HandleScope handle_scope;
+                js_object_instance = v8::Persistent<v8::Object>::New(JavascriptTemplate::get<JavascriptTemplate>().create_instance(this));
 #endif // OSMIUM_WITH_JAVASCRIPT
             }
 

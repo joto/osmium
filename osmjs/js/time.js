@@ -2,15 +2,24 @@
 
 var nodes=0, ways=0, relations=0;
 
-Osmium.Callbacks.node = function(node) {
+Osmium.Callbacks.node = function() {
     nodes += 1;
 }
 
-Osmium.Callbacks.way = function(way) {
+Osmium.Callbacks.after_nodes = function() {
+}
+
+Osmium.Callbacks.way = function() {
+    if (ways == 0) {
+        print('first way');
+    }
     ways += 1;
 }
 
-Osmium.Callbacks.relation = function(relation) {
+Osmium.Callbacks.relation = function() {
+    if (relations == 0) {
+        print('first relation');
+    }
     relations += 1;
 }
 

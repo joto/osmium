@@ -261,9 +261,9 @@ namespace Osmium {
             }
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
-            v8::Local<v8::Object> js_object_instance;
+            v8::Persistent<v8::Object> js_object_instance;
 
-            v8::Local<v8::Object> get_instance() const {
+            v8::Persistent<v8::Object> get_instance() const {
                 return js_object_instance;
             }
 
@@ -342,6 +342,7 @@ namespace Osmium {
             }
 
             virtual ~Object() {
+                js_object_instance.Dispose();
             }
 
         private:
