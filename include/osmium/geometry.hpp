@@ -130,6 +130,64 @@ namespace Osmium {
         }
 
         /**
+         * Write a value as binary to an output stream.
+         *
+         * @tparam T Type of value.
+         */
+        template<typename T>
+        inline void write_binary(std::ostream& out, const T value) {
+            out.write(reinterpret_cast<const char*>(&value), sizeof(T));
+        }
+
+        /**
+         * Write a value as hex encoding of binary to an output stream.
+         *
+         * @tparam T Type of value.
+         */
+        template<typename T>
+        inline void write_hex(std::ostream& out, const T value) {
+            static const char* lookup_hex = "0123456789ABCDEF";
+            for (const char* in = reinterpret_cast<const char*>(&value); in < reinterpret_cast<const char*>(&value) + sizeof(T); ++in) {
+                out << lookup_hex[(*in >> 4) & 0xf]
+                    << lookup_hex[*in & 0xf];
+            }
+        }
+
+        /**
+         * Write header of WKB data structure as binary to output stream.
+         * The header contains:
+         * - the byte order marker
+         * - the geometry type
+         * - (optionally) the SRID
+         */
+        inline void write_binary_wkb_header(std::ostream& out, bool with_srid, uint32_t type) {
+            write_binary<uint8_t>(out, wkbNDR);
+            if (with_srid) {
+                write_binary<uint32_t>(out, type | wkbSRID);
+                write_binary<uint32_t>(out, srid);
+            } else {
+                write_binary<uint32_t>(out, type);
+            }
+        }
+
+        /**
+         * Write header of WKB data structure as hex encoding of binary to output stream.
+         * The header contains:
+         * - the byte order marker
+         * - the geometry type
+         * - (optionally) the SRID
+         */
+        inline void write_hex_wkb_header(std::ostream& out, bool with_srid, uint32_t type) {
+            write_hex<uint8_t>(out, wkbNDR);
+            if (with_srid) {
+                write_hex<uint32_t>(out, type | wkbSRID);
+                write_hex<uint32_t>(out, srid);
+            } else {
+                write_hex<uint32_t>(out, type);
+            }
+        }
+
+        /**
          * Abstract base class for all Osmium geometry classes. Geometries of different
          * types are created from OSM objects (nodes, ways, relations). Geometries
          * can be written out and transformed in different ways.
@@ -165,64 +223,6 @@ namespace Osmium {
 
             AsHexWKB as_HexWKB(bool with_srid=false) const {
                 return AsHexWKB(*this, with_srid);
-            }
-
-            /**
-             * Write a value as binary to an output stream.
-             *
-             * @tparam T Type of value.
-             */
-            template<typename T>
-            inline void write_binary(std::ostream& out, const T value) const {
-                out.write(reinterpret_cast<const char*>(&value), sizeof(T));
-            }
-
-            /**
-             * Write a value as hex encoding of binary to an output stream.
-             *
-             * @tparam T Type of value.
-             */
-            template<typename T>
-            inline void write_hex(std::ostream& out, const T value) const {
-                static const char* lookup_hex = "0123456789ABCDEF";
-                for (const char* in = reinterpret_cast<const char*>(&value); in < reinterpret_cast<const char*>(&value) + sizeof(T); ++in) {
-                    out << lookup_hex[(*in >> 4) & 0xf]
-                        << lookup_hex[*in & 0xf];
-                }
-            }
-
-            /**
-             * Write header of WKB data structure as binary to output stream.
-             * The header contains:
-             * - the byte order marker
-             * - the geometry type
-             * - (optionally) the SRID
-             */
-            inline void write_binary_wkb_header(std::ostream& out, bool with_srid, uint32_t type) const {
-                write_binary<uint8_t>(out, wkbNDR);
-                if (with_srid) {
-                    write_binary<uint32_t>(out, type | wkbSRID);
-                    write_binary<uint32_t>(out, srid);
-                } else {
-                    write_binary<uint32_t>(out, type);
-                }
-            }
-
-            /**
-             * Write header of WKB data structure as hex encoding of binary to output stream.
-             * The header contains:
-             * - the byte order marker
-             * - the geometry type
-             * - (optionally) the SRID
-             */
-            inline void write_hex_wkb_header(std::ostream& out, bool with_srid, uint32_t type) const {
-                write_hex<uint8_t>(out, wkbNDR);
-                if (with_srid) {
-                    write_hex<uint32_t>(out, type | wkbSRID);
-                    write_hex<uint32_t>(out, srid);
-                } else {
-                    write_hex<uint32_t>(out, type);
-                }
             }
 
             /// Write geometry as WKT to output stream.
