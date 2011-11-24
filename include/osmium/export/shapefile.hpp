@@ -197,12 +197,42 @@ namespace Osmium {
                 }
             }
 
+            void add_attribute(const int field, const char *value) const {
+                int ok = DBFWriteStringAttribute(m_dbf_handle, m_current_shape, field, value);
+                if (!ok) {
+                    throw std::runtime_error(std::string("Can't add char* to field"));
+                }
+            }
+
             void add_attribute(const int field) const {
                 int ok = DBFWriteNULLAttribute(m_dbf_handle, m_current_shape, field);
                 if (!ok) {
                     throw std::runtime_error(std::string("Can't add null to field"));
                 }
             }
+
+            // truncates UTF8 string to fit in shape field
+            void add_attribute_with_truncate(const int field, const char *value) {
+                char dest[max_dbf_field_length+1];
+                size_t l = m_fields[field].width();
+                memset(dest, 0, l+1);
+                strncpy(dest, value, l);
+                size_t i = l-1;
+                if (dest[i] & 128) {
+                    if (dest[i] & 64)
+                        dest[i] = '\0';
+                    else if ((dest[i-1] & 224) == 224)
+                        dest[i-1] = '\0';
+                    else if ((dest[i-2] & 240) == 240)
+                        dest[i-2] = '\0';
+                }
+                add_attribute(field, dest);
+            }
+
+            void add_attribute_with_truncate(const int field, const std::string& value) {
+                add_attribute_with_truncate(field, value.c_str());
+            }
+                
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
             int add_string_attribute(int n, v8::Local<v8::Value> value) const {
