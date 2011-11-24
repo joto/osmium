@@ -234,7 +234,6 @@ namespace Osmium {
             void add_attribute_with_truncate(const int field, const std::string& value) {
                 add_attribute_with_truncate(field, value.c_str());
             }
-                
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
             int add_string_attribute(int n, v8::Local<v8::Value> value) const {

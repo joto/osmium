@@ -207,7 +207,7 @@ void print_help() {
               << "  array       - Store node locations in large array (use for large OSM files)\n"
               << "  disk        - Store node locations on disk (use when low on memory)\n"
               << "  sparsetable - Store node locations in sparse table (use for small OSM files)\n"
-        ;
+              ;
 }
 
 std::string find_include_file(std::string filename) {

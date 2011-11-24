@@ -10,7 +10,7 @@ FILES
 -----
 
 * nodedensity  
-  This application will write a heatmap-like PNG to stdout based on the desity
+  This application will write a heatmap-like PNG to stdout based on the density
   of nodes in the supplied input file.
 
 * osmium_convert  
@@ -24,7 +24,7 @@ FILES
   This is a small tool to find the bounding box of the input file.
 
 * osmium_progress  
-  This is a small tool demonstrates the use of the progress handler.
+  This is a small tool demonstrating the use of the progress handler.
 
 * osmium_range_from_history  
   Program to test the RangeFromHistory handler.
@@ -41,7 +41,7 @@ FILES
 
 * osmium_time  
   A small application that counts the various nodes, ways and relations in an
-  input file and stops the time that it took to do that.
+  input file and shows the time that it took to do that.
 
 * osmium_toogr  
   This is an example tool that converts OSM data to a spatialite database using
@@ -54,7 +54,7 @@ FILES
 
 * osmium_toshape  
   An example application that converts any kind of OSM file into a set of
-  shapefiles. It is filtering out highways as polylines and postboxes as points.
+  shapefiles. It is filtering out highways as linestrings and postboxes as points.
 
 
 BUILDING

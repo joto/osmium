@@ -132,7 +132,7 @@ namespace Osmium {
             m_id2id_map.resize(m_size+1);
 
             std::transform(m_strings.begin(), m_strings.end(),
-                std::inserter(sortedbycount, sortedbycount.begin()), flip_pair<std::string, string_info>);
+                           std::inserter(sortedbycount, sortedbycount.begin()), flip_pair<std::string, string_info>);
 
             int n=0;
             cmap::const_iterator end=sortedbycount.end();
