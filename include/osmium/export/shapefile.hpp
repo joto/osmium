@@ -213,19 +213,20 @@ namespace Osmium {
             }
 
             // truncates UTF8 string to fit in shape field
-            void add_attribute_with_truncate(const int field, const char *value) {
+            void add_attribute_with_truncate(const int field, const char* value) {
                 char dest[max_dbf_field_length+1];
-                size_t l = m_fields[field].width();
-                memset(dest, 0, l+1);
-                strncpy(dest, value, l);
-                size_t i = l-1;
+                size_t length = m_fields[field].width();
+                memset(dest, 0, length+1);
+                strncpy(dest, value, length);
+                size_t i = length-1;
                 if (dest[i] & 128) {
-                    if (dest[i] & 64)
+                    if (dest[i] & 64) {
                         dest[i] = '\0';
-                    else if ((dest[i-1] & 224) == 224)
+                    } else if ((dest[i-1] & 224) == 224) {
                         dest[i-1] = '\0';
-                    else if ((dest[i-2] & 240) == 240)
+                    } else if ((dest[i-2] & 240) == 240) {
                         dest[i-2] = '\0';
+                    }
                 }
                 add_attribute(field, dest);
             }
