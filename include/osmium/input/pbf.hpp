@@ -432,6 +432,7 @@ namespace Osmium {
                     return array_t(m_pbf_blob.raw().data(), m_pbf_blob.raw().size());
                 } else if (m_pbf_blob.has_zlib_data()) {
                     unsigned long raw_size = m_pbf_blob.raw_size();
+                    assert(raw_size <= static_cast<unsigned long>(OSMPBF::max_uncompressed_blob_size));
                     if (uncompress(m_unpack_buffer, &raw_size, reinterpret_cast<const unsigned char*>(m_pbf_blob.zlib_data().data()), m_pbf_blob.zlib_data().size()) != Z_OK || m_pbf_blob.raw_size() != static_cast<long>(raw_size)) {
                         throw std::runtime_error("zlib error");
                     }
