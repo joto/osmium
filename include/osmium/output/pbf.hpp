@@ -564,11 +564,29 @@ namespace Osmium {
              * this little function checks primitive_block_contents counter against its maximum and calls
              * store_primitive_block to flush the block to the disk when it's reached. It's also responsible
              * for increasing this counter.
+             *
+             * each 1000 items it also checks the byte-size of the current block. The block-size is only an
+             * estimation of the final blob-size, because it doesn't include the size of the stringtable and
+             * the blob-metadata, so the threshold we apply is 50% of the maximum blob-size.
+             *
+             * A usual node- or way-block with 8000 nodes or ways in it fills only 1-2% of a blob. In reality
+             * only relation-blocks will reach this limit.
              */
             void check_block_contents_counter() {
                 if (primitive_block_contents >= max_block_contents) {
                     store_primitive_block();
                 }
+                if (primitive_block_contents % 1000 == 0) {
+                    if (pbf_primitive_block.ByteSize() > (OSMPBF::max_uncompressed_blob_size / 2)) {
+                        if (Osmium::debug()) {
+                            std::cerr << "storing primitive_block with only " << primitive_block_contents << " items, because its ByteSize (" << pbf_primitive_block.ByteSize() << ") reached " <<
+                                (static_cast<float>(pbf_primitive_block.ByteSize()) / static_cast<float>(OSMPBF::max_uncompressed_blob_size) * 100.0) << "% of the maximum blob-size" << std::endl;
+                        }
+
+                        store_primitive_block();
+                    }
+                }
+
                 primitive_block_contents++;
             }
 
