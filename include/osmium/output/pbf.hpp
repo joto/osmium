@@ -730,7 +730,7 @@ namespace Osmium {
                     }
                 }
 
-                // count up blob size by the size of the Way
+                // count up blob size by the size of the Relation
                 primitive_block_size += pbf_relation->ByteSize();
             }
 
