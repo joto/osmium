@@ -685,8 +685,7 @@ namespace Osmium {
                 }
 
                 // count up blob size by the size of the Way
-                int sz = pbf_way->ByteSize();
-                primitive_block_size += sz;
+                primitive_block_size += pbf_way->ByteSize();
             }
 
             /**
@@ -732,8 +731,7 @@ namespace Osmium {
                 }
 
                 // count up blob size by the size of the Way
-                int sz = pbf_relation->ByteSize();
-                primitive_block_size += sz;
+                primitive_block_size += pbf_relation->ByteSize();
             }
 
         public:
