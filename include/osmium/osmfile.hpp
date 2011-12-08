@@ -48,6 +48,11 @@ namespace Osmium {
 
     public:
 
+        /**
+         * Low-level system call error.
+         * This should normally not happen unless your system is out of
+         * resources like number of processes or filehandles.
+         */
         class SystemError : public std::runtime_error {
 
             int m_errno;
@@ -60,12 +65,20 @@ namespace Osmium {
                   m_errno(e) {
             }
 
+            /**
+             * Get the system errno variable from the system call that caused
+             * this exception.
+             */
             int system_errno() const throw() {
                 return m_errno;
             }
 
         };
 
+        /**
+         * Low-level I/O Error.
+         * This exception if thrown if there is an error in an I/O system call.
+         */
         class IOError : public std::runtime_error {
 
             std::string m_filename;
@@ -84,10 +97,17 @@ namespace Osmium {
             ~IOError() throw() {
             }
 
+            /**
+             * Get the filename that caused this exception.
+             */
             const std::string& filename() const throw() {
                 return m_filename;
             }
 
+            /**
+             * Get the system errno variable from the system call that caused
+             * this exception.
+             */
             int system_errno() const throw() {
                 return m_errno;
             }
@@ -283,8 +303,9 @@ namespace Osmium {
          * This function never returns in the child.
          *
          * @param command Command to execute in the child.
-         * @param input 0 for reading from child, 1 for writing to child
+         * @param input 0 for reading from child, 1 for writing to child.
          * @return File descriptor of pipe in the parent.
+         * @throws SystemError if a system call fails.
          */
         int execute(std::string command, int input) {
             int pipefd[2];
@@ -328,6 +349,12 @@ namespace Osmium {
             return pipefd[input];
         }
 
+        /**
+         * Open OSMFile for reading.
+         *
+         * @return File descriptor of open file.
+         * @throws IOError if the file can't be opened.
+         */
         int open_input_file() const {
             if (m_filename == "") {
                 return 0; // stdin
@@ -340,6 +367,13 @@ namespace Osmium {
             }
         }
 
+        /**
+         * Open OSMFile for writing. If the file exists, it is truncated, if
+         * not it is created.
+         *
+         * @return File descriptor of open file.
+         * @throws IOError if the file can't be opened.
+         */
         int open_output_file() const {
             if (m_filename == "") {
                 return 1; // stdout
@@ -352,6 +386,15 @@ namespace Osmium {
             }
         }
 
+        /**
+         * Open OSMFile for reading. Handles URLs or normal files. URLs
+         * are opened by executing the "curl" program (which must be installed)
+         * and reading from its output.
+         *
+         * @return File descriptor of open file or pipe.
+         * @throws SystemError if a system call fails.
+         * @throws IOError if the file can't be opened.
+         */
         int open_input_file_or_url() {
             std::string protocol = m_filename.substr(0, m_filename.find_first_of(':'));
             if (protocol == "http" || protocol == "https") {
