@@ -123,6 +123,14 @@ namespace Osmium {
             static const uint32_t max_block_contents = 8000;
 
             /**
+             * The output buffer (block) will be filled to about
+             * 95% and then written to disk. This leaves more than
+             * enough space for the string table (which typically
+             * needs about 0.1 to 0.3% of the block size).
+             */
+            static const int buffer_fill_percent = 95;
+
+            /**
              * protobuf-struct of a Blob
              */
             OSMPBF::Blob pbf_blob;
@@ -567,14 +575,14 @@ namespace Osmium {
              * store_primitive_block to flush the block to the disk when it's reached. It's also responsible
              * for increasing this counter.
              *
-             * this function also checks the estimated size of the current block and calla store_primitive_block
-             * when the estimated size reaches 95% of the maximum uncompressed blob size.
+             * this function also checks the estimated size of the current block and calls store_primitive_block
+             * when the estimated size reaches buffer_fill_percent of the maximum uncompressed blob size.
              */
             void check_block_contents_counter() {
                 if (primitive_block_contents >= max_block_contents) {
                     store_primitive_block();
                 }
-                else if (primitive_block_size > (static_cast<uint32_t>(OSMPBF::max_uncompressed_blob_size) * 95 / 100)) {
+                else if (primitive_block_size > (static_cast<uint32_t>(OSMPBF::max_uncompressed_blob_size) * buffer_fill_percent / 100)) {
                     if (Osmium::debug()) {
                         std::cerr << "storing primitive_block with only " << primitive_block_contents << " items, because its ByteSize (" << primitive_block_size << ") reached " <<
                             (static_cast<float>(primitive_block_size) / static_cast<float>(OSMPBF::max_uncompressed_blob_size) * 100.0) << "% of the maximum blob-size" << std::endl;
