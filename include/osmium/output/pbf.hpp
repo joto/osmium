@@ -207,6 +207,7 @@ namespace Osmium {
              * called once for each object.
              */
             uint16_t primitive_block_contents;
+            uint32_t primitive_block_size;
 
             // StringTable management
             Osmium::StringTable string_table;
@@ -553,6 +554,7 @@ namespace Osmium {
 
                 // reset the contents-counter to zero
                 primitive_block_contents = 0;
+                primitive_block_size = 0;
 
                 // reset the node/way/relation pointers to NULL
                 pbf_nodes = NULL;
@@ -564,11 +566,23 @@ namespace Osmium {
              * this little function checks primitive_block_contents counter against its maximum and calls
              * store_primitive_block to flush the block to the disk when it's reached. It's also responsible
              * for increasing this counter.
+             *
+             * this function also checks the estimated size of the current block and calla store_primitive_block
+             * when the estimated size reaches 95% of the maximum uncompressed blob size.
              */
             void check_block_contents_counter() {
                 if (primitive_block_contents >= max_block_contents) {
                     store_primitive_block();
                 }
+                else if (primitive_block_size > (static_cast<uint32_t>(OSMPBF::max_uncompressed_blob_size) * 95 / 100)) {
+                    if (Osmium::debug()) {
+                        std::cerr << "storing primitive_block with only " << primitive_block_contents << " items, because its ByteSize (" << primitive_block_size << ") reached " <<
+                            (static_cast<float>(primitive_block_size) / static_cast<float>(OSMPBF::max_uncompressed_blob_size) * 100.0) << "% of the maximum blob-size" << std::endl;
+                    }
+
+                    store_primitive_block();
+                }
+
                 primitive_block_contents++;
             }
 
@@ -581,6 +595,7 @@ namespace Osmium {
              * @param node The node to add.
              */
             void write_node(const shared_ptr<Osmium::OSM::Node const>& node) {
+                // add a way to the group
                 OSMPBF::Node* pbf_node = pbf_nodes->add_nodes();
 
                 // copy the common meta-info from the osmium-object to the pbf-object
@@ -668,6 +683,9 @@ namespace Osmium {
                     // copy the way-node-id, delta encoded
                     pbf_way->add_refs(delta_id.update(way->get_node_id(i)));
                 }
+
+                // count up blob size by the size of the Way
+                primitive_block_size += pbf_way->ByteSize();
             }
 
             /**
@@ -711,6 +729,9 @@ namespace Osmium {
                             throw std::runtime_error("Unknown relation member type: " + mem->type());
                     }
                 }
+
+                // count up blob size by the size of the Relation
+                primitive_block_size += pbf_relation->ByteSize();
             }
 
         public:
@@ -729,6 +750,7 @@ namespace Osmium {
                 m_should_add_metadata(true),
                 m_add_visible(file.has_multiple_object_versions()),
                 primitive_block_contents(0),
+                primitive_block_size(0),
                 string_table(),
                 m_compression_buffer(),
                 m_delta_id(),
