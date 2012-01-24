@@ -36,9 +36,11 @@ namespace Osmium {
         class Shapefile : boost::noncopyable {
 
             // the following limits are defined by the shapefile spec
-            static const unsigned int max_dbf_fields            =  16;
             static const unsigned int max_dbf_field_name_length =  11;
             static const          int max_dbf_field_length      = 255;
+
+            // this limit has been arrived at experimentally
+            static const unsigned int max_dbf_fields = 2047;
 
             class Field {
 
@@ -103,7 +105,7 @@ namespace Osmium {
                     }
                     m_fields.push_back(field);
                 } else {
-                    throw std::out_of_range("Can't have more than 16 fields in a shapefile.");
+                    throw std::out_of_range("Too many fields in the shapefile.");
                 }
             }
 
