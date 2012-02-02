@@ -32,6 +32,11 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <fcntl.h>
 #include <boost/utility.hpp>
 
+// Darwin uses a different name.
+#ifndef MAP_ANONYMOUS
+#define MAP_ANONYMOUS MAP_ANON
+#endif
+
 namespace Osmium {
 
     /**
@@ -320,7 +325,9 @@ namespace Osmium {
                         }
                     }
 
-                    m_items = (TValue*) mremap(m_items, sizeof(TValue) * m_size, sizeof(TValue) * new_size, MREMAP_MAYMOVE);
+                    // use unmap/map instead of remap because Darwin doesn't support remap.
+                    munmap(m_items, sizeof(TValue) * m_size);
+                    m_items = (TValue*) mmap(NULL, sizeof(TValue) * new_size, PROT_READ|PROT_WRITE, MAP_SHARED, m_fd, 0);
                     if (m_items == MAP_FAILED) {
                         throw std::bad_alloc();
                     }
