@@ -915,6 +915,7 @@ namespace Osmium {
                 //   as for the relation
 
                 START_TIMER(extra_polygons);
+                int outer_ring_count = 0;
                 for (unsigned int i=0; i<ringlist.size(); i++) {
                     if (ringlist[i]->contained_by) {
                         if (ringlist[i]->ways.size() == 1 && !untagged(ringlist[i]->ways[0]->way)) {
@@ -948,6 +949,8 @@ namespace Osmium {
                             }
                             delete special_mp;
                         }
+                    } else {
+                        outer_ring_count++;
                     }
                 }
                 STOP_TIMER(extra_polygons);
@@ -1063,6 +1066,14 @@ namespace Osmium {
                             } else if (untagged(relation)) {
                                 // relation untagged; use tags from way; ok
                                 merge_tags(relation, wi->way);
+                            } else {
+                                // this is grey-area terrain in OSM - we have tags on
+                                // the relation and a different set of tags on the outer
+                                // way(s). Use tags from outer ring only if there is 
+                                // only one outer ring and it has only one way.
+                                if (outer_ring_count == 1 && ringlist[i]->ways.size() == 1) {
+                                    merge_tags(relation, wi->way);
+                                }
                             }
 
                             wi->innerouter = OUTER;
