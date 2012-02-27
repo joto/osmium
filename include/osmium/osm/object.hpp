@@ -113,6 +113,10 @@ namespace Osmium {
                 return *this;
             }
 
+            bool user_is_anonymous() const {
+                return m_uid == -1;
+            }
+
             time_t timestamp() const {
                 return m_timestamp;
             }
