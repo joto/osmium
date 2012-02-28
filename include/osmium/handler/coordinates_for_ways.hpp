@@ -58,6 +58,10 @@ namespace Osmium {
                 }
             }
 
+            Osmium::OSM::Position get_node_pos(const int64_t id) const {
+                return id >= 0 ? m_storage_pos[id] : m_storage_neg[-id];
+            }
+
             void after_nodes() const {
                 if (Osmium::debug()) {
                     std::cerr << "Memory used for node coordinates storage (approximate):\n  for positive IDs: "
