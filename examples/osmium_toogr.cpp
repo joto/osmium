@@ -108,11 +108,11 @@ public:
             exit(1);
         }
 
-        OGRFieldDefn layer_linestring_field_operator("type", OFTString);
-        layer_linestring_field_operator.SetWidth(30);
+        OGRFieldDefn layer_linestring_field_type("type", OFTString);
+        layer_linestring_field_type.SetWidth(30);
 
-        if (m_layer_linestring->CreateField(&layer_linestring_field_operator) != OGRERR_NONE ) {
-            std::cerr << "Creating operator field failed.\n";
+        if (m_layer_linestring->CreateField(&layer_linestring_field_type) != OGRERR_NONE ) {
+            std::cerr << "Creating type field failed.\n";
             exit(1);
         }
     }
