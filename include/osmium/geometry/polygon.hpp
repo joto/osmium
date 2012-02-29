@@ -134,7 +134,7 @@ namespace Osmium {
             OGRPolygon* create_ogr_geometry() const {
                 OGRPolygon* p = new OGRPolygon();
                 OGRLinearRing* r = new OGRLinearRing();
-                for (Osmium::OSM::WayNodeList::const_reverse_iterator it = m_way_node_list->rbegin(); it != m_way_node_list->rend(); ++it) {
+                for (Osmium::OSM::WayNodeList::const_iterator it = m_way_node_list->begin(); it != m_way_node_list->end(); ++it) {
                     r->addPoint(it->lon(), it->lat());
                 }
                 p->addRingDirectly(r);
