@@ -105,6 +105,10 @@ namespace Osmium {
 # include <osmium/javascript/template.hpp>
 #endif // OSMIUM_WITH_JAVASCRIPT
 
+#ifdef OSMIUM_WITH_GEOS
+# include <osmium/geometry_factory.hpp>
+#endif // OSMIUM_WITH_GEOS
+
 #include <osmium/exceptions.hpp>
 #include <osmium/osm.hpp>
 #include <osmium/geometry/null.hpp>
