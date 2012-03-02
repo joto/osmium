@@ -52,8 +52,8 @@ namespace Osmium {
             /**
              * Create Polygon geometry from a list of nodes in a way.
              */
-            Polygon(const Osmium::OSM::Way& way)
-                : FromWay(way.nodes(), false, way.id()) {
+            Polygon(const Osmium::OSM::Way& way, bool reverse=false)
+                : FromWay(way.nodes(), reverse, way.id()) {
                 if (!way.nodes().is_closed()) {
                     throw Osmium::Exception::IllegalGeometry();
                 }
@@ -100,8 +100,14 @@ namespace Osmium {
             geos::geom::Geometry* create_geos_geometry() const {
                 try {
                     std::vector<geos::geom::Coordinate>* c = new std::vector<geos::geom::Coordinate>;
-                    for (Osmium::OSM::WayNodeList::const_iterator it = m_way_node_list->begin(); it != m_way_node_list->end(); ++it) {
-                        c->push_back(it->position());
+                    if (m_reverse) {
+                        for (Osmium::OSM::WayNodeList::const_reverse_iterator it = m_way_node_list->rbegin(); it != m_way_node_list->rend(); ++it) {
+                            c->push_back(it->position());
+                        }
+                    } else {
+                        for (Osmium::OSM::WayNodeList::const_iterator it = m_way_node_list->begin(); it != m_way_node_list->end(); ++it) {
+                            c->push_back(it->position());
+                        }
                     }
                     geos::geom::CoordinateSequence* cs = Osmium::Geometry::geos_geometry_factory()->getCoordinateSequenceFactory()->create(c);
                     geos::geom::LinearRing* lr = Osmium::Geometry::geos_geometry_factory()->createLinearRing(cs);
@@ -134,8 +140,14 @@ namespace Osmium {
             OGRPolygon* create_ogr_geometry() const {
                 OGRPolygon* p = new OGRPolygon();
                 OGRLinearRing* r = new OGRLinearRing();
-                for (Osmium::OSM::WayNodeList::const_iterator it = m_way_node_list->begin(); it != m_way_node_list->end(); ++it) {
-                    r->addPoint(it->lon(), it->lat());
+                if (m_reverse) {
+                    for (Osmium::OSM::WayNodeList::const_reverse_iterator it = m_way_node_list->rbegin(); it != m_way_node_list->rend(); ++it) {
+                        r->addPoint(it->lon(), it->lat());
+                    }
+                } else {
+                    for (Osmium::OSM::WayNodeList::const_iterator it = m_way_node_list->begin(); it != m_way_node_list->end(); ++it) {
+                        r->addPoint(it->lon(), it->lat());
+                    }
                 }
                 p->addRingDirectly(r);
                 return p;
