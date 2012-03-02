@@ -269,7 +269,7 @@ namespace Osmium {
              * @param remove Should the file be removed after use?
              * @exception std::bad_alloc Thrown when there is not enough memory or some other problem.
              */
-            Mmap(std::string& filename, bool remove=true) : ById<TValue>(), m_size(1) {
+            Mmap(const std::string& filename, bool remove=true) : ById<TValue>(), m_size(1) {
                 if (filename == "") {
                     FILE* file = tmpfile();
                     if (!file) {
