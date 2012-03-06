@@ -90,6 +90,11 @@ namespace Osmium {
                 return m_list.rend();
             }
 
+            template <class InputIterator>
+            void insert(iterator position, InputIterator first, InputIterator last) {
+                m_list.insert(position, first, last);
+            }
+
             WayNode& operator[](int i) {
                 return m_list[i];
             }

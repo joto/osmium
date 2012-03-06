@@ -47,6 +47,10 @@ namespace Osmium {
                 return m_position;
             }
 
+            Position& position() {
+                return m_position;
+            }
+
             WayNode& position(const Position& position) {
                 m_position = position;
                 return *this;
