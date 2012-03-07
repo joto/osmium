@@ -22,6 +22,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#include <iomanip>
 #include <algorithm>
 
 #include <osmium/geometry/from_way.hpp>
@@ -42,8 +43,9 @@ namespace Osmium {
              * Create Polygon geometry from a list of nodes.
              */
             Polygon(const Osmium::OSM::WayNodeList& way_node_list,
+                    bool reverse=false,
                     osm_object_id_t id=0)
-                : FromWay(way_node_list, false, id) {
+                : FromWay(way_node_list, reverse, id) {
                 if (!way_node_list.is_closed()) {
                     throw Osmium::Exception::IllegalGeometry();
                 }
