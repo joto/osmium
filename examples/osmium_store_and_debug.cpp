@@ -1,9 +1,7 @@
 /*
 
-  This is a small tool to dump the contents of the input file.
-
-  If OSMIUM_DEBUG_WITH_ENDTIME is defined when compiling, the
-  Osmium::Handler::EndTime is used.
+  This example program shows how to read an OSM change file and
+  apply it to an OSM file. The results are dumped to stdout.
 
 */
 
@@ -36,7 +34,7 @@ int main(int argc, char *argv[]) {
     Osmium::init(true);
 
     if (argc != 3) {
-        std::cerr << "Usage: " << argv[0] << " OSMFILE1 OSMFILE2\n";
+        std::cerr << "Usage: " << argv[0] << " OSM-CHANGE-FILE OSM-FILE\n";
         exit(1);
     }
 

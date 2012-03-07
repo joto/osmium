@@ -37,7 +37,8 @@ FILES
   This is a small tool to try the Statistics handler.
 
 * osmium_store_and_debug  
-  This is a small tool to dump the contents of the input file.
+  This example program shows how to read an OSM change file and
+  apply it to an OSM file. The results are dumped to stdout.
 
 * osmium_time  
   A small application that counts the various nodes, ways and relations in an
