@@ -71,7 +71,8 @@ public:
             exit(1);
         }
 
-        OGRSpatialReference sparef("EPSG:4326");
+        OGRSpatialReference sparef;
+        sparef.SetWellKnownGeogCS("WGS84");
         m_layer_point = m_data_source->CreateLayer("postboxes", &sparef, wkbPoint, NULL);
         if (m_layer_point == NULL) {
             std::cerr << "Layer creation failed.\n";
