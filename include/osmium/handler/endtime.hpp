@@ -36,7 +36,12 @@ namespace Osmium {
 
         public:
 
-            EndTime(THandler* handler) : Base(), m_handler(handler) {
+            EndTime(THandler* handler) :
+                Base(),
+                m_handler(handler),
+                m_last_node(),
+                m_last_way(),
+                m_last_relation() {
             }
 
             void init(Osmium::OSM::Meta& meta) {
