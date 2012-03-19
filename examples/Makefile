@@ -92,6 +92,9 @@ osmium_toogr2: osmium_toogr2.cpp
 osmium_toshape: osmium_toshape.cpp
 	$(CXX) $(CXXFLAGS) $(CXXFLAGS_SHAPE) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_SHAPE)
 
+osmium_maxid: osmium_maxid.cpp
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
+
 nodedensity: nodedensity.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_GD)
 
