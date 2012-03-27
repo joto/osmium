@@ -143,16 +143,22 @@ namespace Osmium {
 
             void write_meta(const shared_ptr<Osmium::OSM::Object const>& object) {
                 xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "id",      "%d", object->id());
-                xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "version", "%d", object->version());
-                xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "timestamp", BAD_CAST object->timestamp_as_string().c_str());
+                if (object->version()) {
+                    xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "version", "%d", object->version());
+                }
+                if (object->timestamp()) {
+                    xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "timestamp", BAD_CAST object->timestamp_as_string().c_str());
+                }
 
-                // uid == 0 -> anonymous
+                // uid <= 0 -> anonymous
                 if (object->uid() > 0) {
                     xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "uid", "%d", object->uid());
                     xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "user", BAD_CAST object->user());
                 }
 
-                xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "changeset", "%d", object->changeset());
+                if (object->changeset()) {
+                    xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "changeset", "%d", object->changeset());
+                }
 
                 if (m_file.has_multiple_object_versions() && m_file.get_type() != Osmium::OSMFile::FileType::Change()) {
                     xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "visible", object->visible() ? BAD_CAST "true" : BAD_CAST "false");
