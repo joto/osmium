@@ -107,7 +107,15 @@ namespace Osmium {
                 return m_list.front();
             }
 
+            WayNode& front() {
+                return m_list.front();
+            }
+
             const WayNode& back() const {
+                return m_list.back();
+            }
+
+            WayNode& back() {
                 return m_list.back();
             }
 

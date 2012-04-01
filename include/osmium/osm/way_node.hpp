@@ -43,6 +43,11 @@ namespace Osmium {
                 return m_ref;
             }
 
+            WayNode& ref(osm_object_id_t ref) {
+                m_ref = ref;
+                return *this;
+            }
+
             const Position& position() const {
                 return m_position;
             }
