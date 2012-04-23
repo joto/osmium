@@ -157,6 +157,7 @@ namespace Osmium {
          */
         void clear() {
             m_strings.clear();
+            m_id2id_map.clear();
             m_size = 0;
         }
 

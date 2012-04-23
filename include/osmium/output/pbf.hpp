@@ -527,6 +527,11 @@ namespace Osmium {
                     std::cerr << "storing primitive block with " << primitive_block_contents << " items" << std::endl;
                 }
 
+                // add empty StringTable entry at index 0
+                // StringTable index 0 is reserved as delimiter in the densenodes key/value list
+                // this line also ensures that there's always a valid StringTable
+                pbf_primitive_block.mutable_stringtable()->add_s("");
+
                 // store the interim StringTable into the protobuf object
                 string_table.store_stringtable(pbf_primitive_block.mutable_stringtable());
 
@@ -538,11 +543,6 @@ namespace Osmium {
 
                 // clear the PrimitiveBlock struct
                 pbf_primitive_block.Clear();
-
-                // add empty StringTable entry at index 0
-                // StringTable index 0 is rserved as delimiter in the densenodes key/value list
-                // this line also ensures that there's always a valid StringTable
-                pbf_primitive_block.mutable_stringtable()->add_s("");
 
                 // set the granularity
                 pbf_primitive_block.set_granularity(location_granularity());
