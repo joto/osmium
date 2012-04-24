@@ -128,6 +128,9 @@ namespace Osmium {
             void call_after_and_before_on_handler(osm_object_type_t current_object_type) {
                 if (current_object_type != m_last_object_type) {
                     switch (m_last_object_type) {
+                        case UNKNOWN:
+                            m_handler.init(m_meta);
+                            break;
                         case NODE:
                             m_handler.after_nodes();
                             break;
@@ -142,9 +145,6 @@ namespace Osmium {
                     }
                     switch (current_object_type) {
                         case NODE:
-                            if (m_last_object_type == UNKNOWN) {
-                                m_handler.init(m_meta);
-                            }
                             m_handler.before_nodes();
                             break;
                         case WAY:

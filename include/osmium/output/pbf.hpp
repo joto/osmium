@@ -159,16 +159,16 @@ namespace Osmium {
             OSMPBF::PrimitiveGroup* pbf_relations;
 
             /**
-             * to flexibly handle multiple resolutions, the granularity, or
+             * To flexibly handle multiple resolutions, the granularity, or
              * resolution used for representing locations is adjustable in
              * multiples of 1 nanodegree. The default scaling factor is 100
              * nanodegrees, corresponding to about ~1cm at the equator.
-             * These is the current resolution of the OSM database.
+             * This is the current resolution of the OSM database.
              */
             int m_location_granularity;
 
             /**
-             * the granularity used for representing timestamps is also adjustable in
+             * The granularity used for representing timestamps is also adjustable in
              * multiples of 1 millisecond. The default scaling factor is 1000
              * milliseconds, which is the current resolution of the OSM database.
              */
@@ -527,10 +527,9 @@ namespace Osmium {
                     std::cerr << "storing primitive block with " << primitive_block_contents << " items" << std::endl;
                 }
 
-                // add empty StringTable entry at index 0
-                // StringTable index 0 is reserved as delimiter in the densenodes key/value list
-                // this line also ensures that there's always a valid StringTable
-                pbf_primitive_block.mutable_stringtable()->add_s("");
+                // set the granularity
+                pbf_primitive_block.set_granularity(location_granularity());
+                pbf_primitive_block.set_date_granularity(date_granularity());
 
                 // store the interim StringTable into the protobuf object
                 string_table.store_stringtable(pbf_primitive_block.mutable_stringtable());
@@ -543,10 +542,6 @@ namespace Osmium {
 
                 // clear the PrimitiveBlock struct
                 pbf_primitive_block.Clear();
-
-                // set the granularity
-                pbf_primitive_block.set_granularity(location_granularity());
-                pbf_primitive_block.set_date_granularity(date_granularity());
 
                 // clear the interim StringTable and its id map
                 string_table.clear();
@@ -637,7 +632,7 @@ namespace Osmium {
                 // array, individual nodes are seperated by a value of 0 (0 in the StringTable
                 // is always unused)
                 // so for three nodes the keys_vals array may look like this: 3 5 2 1 0 0 8 5
-                // the first node has two tags (3=>5 and 2=>1), the second node has does not
+                // the first node has two tags (3=>5 and 2=>1), the second node does not
                 // have any tags and the third node has a single tag (8=>5)
                 Osmium::OSM::TagList::const_iterator end = node->tags().end();
                 for (Osmium::OSM::TagList::const_iterator it = node->tags().begin(); it != end; ++it) {
@@ -748,6 +743,10 @@ namespace Osmium {
              * Create PBF output object from OSMFile.
              */
             PBF(Osmium::OSMFile& file) : Base(file),
+                pbf_blob(),
+                pbf_blob_header(),
+                pbf_header_block(),
+                pbf_primitive_block(),
                 pbf_nodes(NULL),
                 pbf_ways(NULL),
                 pbf_relations(NULL),
@@ -889,22 +888,13 @@ namespace Osmium {
                 }
 
                 store_header_block();
-
-                // add empty StringTable entry at index 0
-                // StringTable index 0 is reserved as delimiter in the densenodes key/value list
-                // this line also ensures that there's always a valid StringTable
-                pbf_primitive_block.mutable_stringtable()->add_s("");
-
-                // set the granularity
-                pbf_primitive_block.set_granularity(location_granularity());
-                pbf_primitive_block.set_date_granularity(date_granularity());
             }
 
             /**
              * Add a node to the pbf.
              *
              * A call to this method won't write the node to the file directly but
-             * cache it for later bulk-writing. Calling write_final ensures that everything
+             * cache it for later bulk-writing. Calling final() ensures that everything
              * gets written and every file pointer is closed.
              */
             void node(const shared_ptr<Osmium::OSM::Node const>& node) {
@@ -932,7 +922,7 @@ namespace Osmium {
              * Add a way to the pbf.
              *
              * A call to this method won't write the way to the file directly but
-             * cache it for later bulk-writing. Calling write_final ensures that everything
+             * cache it for later bulk-writing. Calling final() ensures that everything
              * gets written and every file pointer is closed.
              */
             void way(const shared_ptr<Osmium::OSM::Way const>& way) {
@@ -956,7 +946,7 @@ namespace Osmium {
              * Add a relation to the pbf.
              *
              * A call to this method won't write the way to the file directly but
-             * cache it for later bulk-writing. Calling write_final ensures that everything
+             * cache it for later bulk-writing. Calling final() ensures that everything
              * gets written and every file pointer is closed.
              */
             void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {

@@ -126,6 +126,11 @@ namespace Osmium {
          * and then by reverse lexicographic order.
          */
         void store_stringtable(OSMPBF::StringTable* st) {
+            // add empty StringTable entry at index 0
+            // StringTable index 0 is reserved as delimiter in the densenodes key/value list
+            // this line also ensures that there's always a valid StringTable
+            st->add_s("");
+
             typedef std::multimap<string_info, std::string> cmap;
             cmap sortedbycount;
 
