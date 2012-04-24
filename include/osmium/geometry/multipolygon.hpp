@@ -54,14 +54,14 @@ namespace Osmium {
                 switch (g->getGeometryTypeId()) {
                     case geos::geom::GEOS_MULTIPOLYGON:
                     case geos::geom::GEOS_MULTILINESTRING: {
-                        for (geos::geom::GeometryCollection::const_iterator it = static_cast<const geos::geom::GeometryCollection*>(g)->begin();
-                                it != static_cast<const geos::geom::GeometryCollection*>(g)->end(); ++it) {
+                        for (geos::geom::GeometryCollection::const_iterator it = dynamic_cast<const geos::geom::GeometryCollection*>(g)->begin();
+                                it != dynamic_cast<const geos::geom::GeometryCollection*>(g)->end(); ++it) {
                             dump_geometry(*it, part_start_list, x_list, y_list);
                         }
                         break;
                     }
                     case geos::geom::GEOS_POLYGON: {
-                        const geos::geom::Polygon* polygon = static_cast<const geos::geom::Polygon*>(g);
+                        const geos::geom::Polygon* polygon = dynamic_cast<const geos::geom::Polygon*>(g);
                         dump_geometry(polygon->getExteriorRing(), part_start_list, x_list, y_list);
                         for (size_t i=0; i < polygon->getNumInteriorRing(); ++i) {
                             dump_geometry(polygon->getInteriorRingN(i), part_start_list, x_list, y_list);
@@ -71,7 +71,7 @@ namespace Osmium {
                     case geos::geom::GEOS_LINESTRING:
                     case geos::geom::GEOS_LINEARRING: {
                         part_start_list.push_back(x_list.size());
-                        const geos::geom::CoordinateSequence* cs = static_cast<const geos::geom::LineString*>(g)->getCoordinatesRO();
+                        const geos::geom::CoordinateSequence* cs = dynamic_cast<const geos::geom::LineString*>(g)->getCoordinatesRO();
                         for (size_t i = 0; i < cs->getSize(); ++i) {
                             x_list.push_back(cs->getX(i));
                             y_list.push_back(cs->getY(i));
