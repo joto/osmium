@@ -255,10 +255,18 @@ namespace Osmium {
              * @exception std::bad_alloc Thrown when there is not enough memory.
              */
             Mmap() : ById<TValue>(), m_size(size_increment), m_fd(-1) {
+#ifdef MREMAP_MAYMOVE
                 m_items = static_cast<TValue*>(mmap(NULL, sizeof(TValue) * m_size, PROT_READ|PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0));
                 if (m_items == MAP_FAILED) {
                     throw std::bad_alloc();
                 }
+#else
+                // this is an anonymous mmap but the system does not support mremap, fallback to malloc
+                m_items = static_cast<TValue*>(malloc(sizeof(TValue) * m_size));
+                if (m_items == NULL) {
+                    throw std::bad_alloc();
+                }
+#endif
             }
 
             /**
@@ -319,11 +327,30 @@ namespace Osmium {
                             throw std::bad_alloc();
                         }
                     }
-
+#ifdef MREMAP_MAYMOVE
                     m_items = static_cast<TValue*>(mremap(m_items, sizeof(TValue) * m_size, sizeof(TValue) * new_size, MREMAP_MAYMOVE));
                     if (m_items == MAP_FAILED) {
                         throw std::bad_alloc();
                     }
+#else
+                    // if there is a file backing this mmap, unmap and remap
+                    if (m_fd >= 0) {
+                        munmap(m_items, sizeof(TValue) * m_size);
+
+                        m_items = static_cast<TValue*>(mmap(NULL, sizeof(TValue) * new_size, PROT_READ|PROT_WRITE, MAP_SHARED, m_fd, 0));
+                        if (m_items == MAP_FAILED) {
+                            throw std::bad_alloc();
+                        }
+                    }
+
+                    // this is an anonymous mmap but the system does not support mremap, fallback to realloc
+                    else {
+                        m_items = static_cast<TValue*>(realloc(m_items, sizeof(TValue) * new_size));
+                        if (m_items == NULL) {
+                            throw std::bad_alloc();
+                        }
+                    }
+#endif
                     m_size = new_size;
                 }
                 m_items[id] = value;
