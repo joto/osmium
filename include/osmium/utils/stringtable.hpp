@@ -25,7 +25,11 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <stdint.h>
 #include <string>
 #include <map>
+#include <vector>
+#include <algorithm>
 #include <iostream>
+
+#include <osmpbf/osmpbf.h>
 
 namespace Osmium {
 

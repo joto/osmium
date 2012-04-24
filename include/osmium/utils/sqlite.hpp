@@ -25,6 +25,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <stdexcept>
 #include <string>
 #include <iostream>
+#include <stdint.h>
 
 #include <sqlite3.h>
 
@@ -84,7 +85,7 @@ namespace Osmium {
                 if (SQLITE_OK != sqlite3_exec(db, "BEGIN TRANSACTION;", 0, 0, 0)) {
                     std::cerr << "Database error: " << sqlite3_errmsg(db) << "\n";
                     sqlite3_close(db);
-                    exit(1);
+                    throw std::runtime_error("Sqlite error");
                 }
             }
 
@@ -92,7 +93,7 @@ namespace Osmium {
                 if (SQLITE_OK != sqlite3_exec(db, "COMMIT;", 0, 0, 0)) {
                     std::cerr << "Database error: " << sqlite3_errmsg(db) << "\n";
                     sqlite3_close(db);
-                    exit(1);
+                    throw std::runtime_error("Sqlite error");
                 }
             }
 

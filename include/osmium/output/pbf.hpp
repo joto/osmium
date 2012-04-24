@@ -102,6 +102,8 @@ More complete outlines of real .osm.pbf files can be created using the osmpbf-ou
 
 #include <osmium/utils/delta.hpp>
 
+#include <osmium/output.hpp>
+
 namespace Osmium {
 
     namespace Output {

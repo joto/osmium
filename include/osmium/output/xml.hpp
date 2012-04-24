@@ -26,6 +26,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #undef XMLCALL
 #include <libxml/xmlwriter.h>
 
+#include <osmium/output.hpp>
+
 // XXX error handling is mostly missing...
 
 namespace Osmium {
