@@ -1,10 +1,35 @@
+/*
+
+Copyright 2012 Jochen Topf <jochen@topf.org> and others (see README).
+
+This file is part of Osmium (https://github.com/joto/osmium).
+
+Osmium is free software: you can redistribute it and/or modify it under the
+terms of the GNU Lesser General Public License or (at your option) the GNU
+General Public License as published by the Free Software Foundation, either
+version 3 of the Licenses, or (at your option) any later version.
+
+Osmium is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Lesser General Public License and the GNU
+General Public License for more details.
+
+You should have received a copy of the Licenses along with Osmium. If not, see
+<http://www.gnu.org/licenses/>.
+
+*/
 
 #include <cstdlib>
 #include <getopt.h>
 #include <unistd.h>
 
 #include <osmium.hpp>
-#include <osmium/storage/byid.hpp>
+#include <osmium/storage/byid/fixed_array.hpp>
+#include <osmium/storage/byid/sparsetable.hpp>
+#include <osmium/storage/byid/mmap_file.hpp>
+#ifdef __linux__
+#  include <osmium/storage/byid/mmap_anon.hpp>
+#endif
 #include <osmium/handler/coordinates_for_ways.hpp>
 #include <osmium/handler/multipolygon.hpp>
 
@@ -27,8 +52,8 @@ timer Osmium::OSM::AreaFromRelation::multipolygon_write_timer;
 timer Osmium::OSM::AreaFromRelation::error_write_timer;
 #endif // OSMIUM_WITH_MULTIPOLYGON_PROFILING
 
-typedef Osmium::Storage::ById<Osmium::OSM::Position> storage_byid_t;
-typedef Osmium::Storage::Mmap<Osmium::OSM::Position> storage_mmap_t;
+typedef Osmium::Storage::ById::Base<Osmium::OSM::Position> storage_byid_t;
+typedef Osmium::Storage::ById::MmapFile<Osmium::OSM::Position> storage_mmap_t;
 typedef Osmium::Handler::CoordinatesForWays<storage_byid_t, storage_mmap_t> cfw_handler_t;
 
 class SinglePass : public Osmium::Handler::Base {
@@ -368,15 +393,19 @@ int main(int argc, char *argv[]) {
     global_context->Global()->Set(v8::String::New("argv"), js_argv);
 
     storage_byid_t* store_pos = NULL;
-    if (location_store == ARRAY) {
-        store_pos = new Osmium::Storage::Mmap<Osmium::OSM::Position>();
-    } else if (location_store == DISK) {
-        std::string filename("");
-        store_pos = new Osmium::Storage::Mmap<Osmium::OSM::Position>(filename);
+    if (location_store == DISK) {
+        store_pos = new Osmium::Storage::ById::MmapFile<Osmium::OSM::Position>();
+    } else if (location_store == ARRAY) {
+#ifdef __linux__
+        store_pos = new Osmium::Storage::ById::MmapAnon<Osmium::OSM::Position>();
+#else
+        std::cerr << "Option -l array is not available on non-linux system. Use -l disk instead.\n";
+        exit(1);
+#endif
     } else if (location_store == SPARSETABLE) {
-        store_pos = new Osmium::Storage::SparseTable<Osmium::OSM::Position>();
+        store_pos = new Osmium::Storage::ById::SparseTable<Osmium::OSM::Position>();
     }
-    Osmium::Storage::Mmap<Osmium::OSM::Position> store_neg;
+    Osmium::Storage::ById::MmapFile<Osmium::OSM::Position> store_neg;
     cfw_handler_t* handler_cfw = (store_pos == NULL) ? NULL : new cfw_handler_t(*store_pos, store_neg);
     handler_javascript = new Osmium::Handler::Javascript(include_files, javascript_filename.c_str());
 

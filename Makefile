@@ -26,7 +26,7 @@ check:
 # we know we are missing something.
 check-includes:
 	echo "check includes report:" >check-includes-report; \
-	for FILE in include/*.hpp include/*/*.hpp include/*/*/*.hpp; do \
+	for FILE in include/*.hpp include/*/*.hpp include/*/*/*.hpp include/*/*/*/*.hpp; do \
         echo "$${FILE}:" >>check-includes-report; \
         echo -n "$${FILE} "; \
         if `g++ -I include $${FILE} 2>>check-includes-report`; then \
