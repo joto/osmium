@@ -49,6 +49,8 @@ namespace Osmium {
                 Field(const std::string& name, DBFFieldType type, int width=1, int decimals=0) : m_name(name), m_type(type), m_width(width), m_decimals(decimals) {
                     if (name == "" || name.size() > max_dbf_field_name_length) {
                         throw std::invalid_argument("field name must be between 1 and 11 characters long");
+                    } else if (width > max_dbf_field_length) {
+                        throw std::invalid_argument("field width must not exceed 255 characters");
                     }
                 }
 
