@@ -165,7 +165,7 @@ namespace Osmium {
                     v8::Local<v8::Array> multipolygon_array = v8::Array::New(geometry->getNumGeometries());
 
                     for (size_t i=0; i < geometry->getNumGeometries(); ++i) {
-                        geos::geom::Polygon* polygon = (geos::geom::Polygon*) geometry->getGeometryN(i);
+                        const geos::geom::Polygon* polygon = dynamic_cast<const geos::geom::Polygon*>(geometry->getGeometryN(i));
                         v8::Local<v8::Array> polygon_array = v8::Array::New(polygon->getNumInteriorRing());
                         multipolygon_array->Set(i, polygon_array);
                         polygon_array->Set(0, js_ring_as_array(polygon->getExteriorRing()));
