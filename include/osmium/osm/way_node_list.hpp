@@ -131,8 +131,18 @@ namespace Osmium {
                 }
             }
 
+            WayNodeList& push_back(const WayNode& way_node) {
+                m_list.push_back(way_node);
+                return *this;
+            }
+
             WayNodeList& add(const WayNode& way_node) {
                 m_list.push_back(way_node);
+                return *this;
+            }
+
+            WayNodeList& push_back(osm_object_id_t ref) {
+                m_list.push_back(WayNode(ref));
                 return *this;
             }
 
