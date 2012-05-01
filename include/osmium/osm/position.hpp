@@ -26,6 +26,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <ostream>
 #include <limits>
 #include <math.h>
+#include <boost/operators.hpp>
 
 #ifdef OSMIUM_WITH_GEOS
 # include <geos/geom/Coordinate.h>
@@ -41,7 +42,7 @@ namespace Osmium {
         * centimeters, good enough for OSM use. (The main OSM database uses
         * the same scheme.)
         */
-        class Position {
+        class Position : boost::totally_ordered<Position> {
 
         public:
 
@@ -98,8 +99,12 @@ namespace Osmium {
                 return p1.m_x == p2.m_x && p1.m_y == p2.m_y;
             }
 
-            friend bool operator!=(const Position& p1, const Position& p2) {
-                return !(p1 == p2);
+            friend bool operator<(const Position& p1, const Position& p2) {
+                if (p1.m_x == p2.m_x) {
+                    return p1.m_y < p2.m_y;
+                } else {
+                    return p1.m_x < p2.m_x;
+                }
             }
 
             friend std::ostream& operator<<(std::ostream& out, const Position& position) {
