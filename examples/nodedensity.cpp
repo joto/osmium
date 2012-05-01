@@ -1,6 +1,6 @@
 /*
 
-Copyright 2011 Jochen Topf <jochen@topf.org> and others (see README).
+Copyright 2012 Jochen Topf <jochen@topf.org> and others (see README).
 
 This file is part of Osmium (https://github.com/joto/osmium).
 
