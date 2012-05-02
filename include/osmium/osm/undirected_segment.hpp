@@ -44,20 +44,20 @@ namespace Osmium {
                 }
             }
 
-            /**
-            * UndirectedSegments are "smaller" if they are to the left and down of another
-            * segment. The first() position is checked first() and only if they have the
-            * same first() position the second() position is taken into account.
-            */
-            bool operator<(const UndirectedSegment& rhs) const {
-                if (first() == rhs.first()) {
-                    return second() < rhs.second();
-                } else {
-                    return first() < rhs.first();
-                }
-            }
-
         };
+
+        /**
+        * UndirectedSegments are "smaller" if they are to the left and down of another
+        * segment. The first() position is checked first() and only if they have the
+        * same first() position the second() position is taken into account.
+        */
+        bool operator<(const UndirectedSegment& lhs, const UndirectedSegment& rhs) {
+            if (lhs.first() == rhs.first()) {
+                return lhs.second() < rhs.second();
+            } else {
+                return lhs.first() < rhs.first();
+            }
+        }
 
     } // namespace OSM
 

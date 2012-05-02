@@ -50,11 +50,6 @@ namespace Osmium {
                 return m_second;
             }
 
-            /// Segments are equal if both their positions are equal
-            bool operator==(const Segment& rhs) const {
-                return first() == rhs.first() && second() == rhs.second();
-            }
-
         protected:
 
             void swap_positions() {
@@ -67,6 +62,11 @@ namespace Osmium {
             Osmium::OSM::Position m_second;
 
         }; // class Segment
+
+        /// Segments are equal if both their positions are equal
+        bool operator==(const Segment& lhs, const Segment& rhs) {
+            return lhs.first() == rhs.first() && lhs.second() == rhs.second();
+        }
 
     } // namespace OSM
 
