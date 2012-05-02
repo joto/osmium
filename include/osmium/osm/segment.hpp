@@ -64,7 +64,7 @@ namespace Osmium {
         }; // class Segment
 
         /// Segments are equal if both their positions are equal
-        bool operator==(const Segment& lhs, const Segment& rhs) {
+        inline bool operator==(const Segment& lhs, const Segment& rhs) {
             return lhs.first() == rhs.first() && lhs.second() == rhs.second();
         }
 

@@ -51,7 +51,7 @@ namespace Osmium {
         * segment. The first() position is checked first() and only if they have the
         * same first() position the second() position is taken into account.
         */
-        bool operator<(const UndirectedSegment& lhs, const UndirectedSegment& rhs) {
+        inline bool operator<(const UndirectedSegment& lhs, const UndirectedSegment& rhs) {
             if (lhs.first() == rhs.first()) {
                 return lhs.second() < rhs.second();
             } else {
