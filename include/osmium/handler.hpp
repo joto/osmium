@@ -160,6 +160,72 @@ namespace Osmium {
 
         }; // class Forward
 
+        /**
+         * This handler automatically takes all steps necessary for
+         * proper multipolygon assembling. To be able to do this, the
+         * file needs to be parsed twice. This handler will hide all
+         * the complexity and just provide you with the right calls to
+         * _node, _way,_relation and _area, ensuring each gets only called
+         * once per entity.
+         */
+        class BaseWithArea : public Base {
+
+        public:
+
+            BaseWithArea(bool attempt_repair) {
+            }
+
+            void _init(Osmium::OSM::Meta& meta) const {}
+            void _before_nodes() const {}
+            void _node(const shared_ptr<Osmium::OSM::Node>& node) const {}
+            void _after_nodes() const {}
+            void _before_ways() const {}
+            void _way(const shared_ptr<Osmium::OSM::Way>& way) const {}
+            void _after_ways() const {}
+            void _before_relations() const {}
+            void _relation(const shared_ptr<Osmium::OSM::Relation>& relation) const {}
+            void _after_relations() const {}
+            void _area(Osmium::OSM::Area* area) const {}
+            void _final() const {}
+
+            void init(Osmium::OSM::Meta& meta) const {
+            }
+
+            void before_nodes() const {
+            }
+
+            void node(const shared_ptr<Osmium::OSM::Node>& node) const {
+            }
+
+            void after_nodes() const {
+            }
+
+            void before_ways() const {
+            }
+
+            void way(const shared_ptr<Osmium::OSM::Way>& way) const {
+            }
+
+            void after_ways() const {
+            }
+
+            void before_relations() const {
+            }
+
+            void relation(const shared_ptr<Osmium::OSM::Relation>& relation) const {
+            }
+
+            void after_relations() const {
+            }
+
+            void area(Osmium::OSM::Area* area) const {
+            }
+
+            void final() const {
+            }
+
+        }; // class Forward
+
     } // namespace Handler
 
 } // namespace Osmium
