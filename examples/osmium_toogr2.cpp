@@ -33,24 +33,17 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <ogrsf_frmts.h>
 
 #include <osmium.hpp>
-#include <osmium/storage/byid/sparsetable.hpp>
-#include <osmium/storage/byid/mmap_file.hpp>
-#include <osmium/handler/coordinates_for_ways.hpp>
-#include <osmium/handler/multipolygon.hpp>
+#include <osmium/handler/multipolygon_adapter.hpp>
 #include <osmium/geometry/multipolygon.hpp>
 
-typedef Osmium::Storage::ById::SparseTable<Osmium::OSM::Position> storage_sparsetable_t;
-typedef Osmium::Storage::ById::MmapFile<Osmium::OSM::Position> storage_mmap_t;
-typedef Osmium::Handler::CoordinatesForWays<storage_sparsetable_t, storage_mmap_t> cfw_handler_t;
-
-class MyOGRHandler : public Osmium::Handler::BaseWithArea {
+class MyOGRHandler : public Osmium::Handler::Base {
 
     OGRDataSource* m_data_source;
     OGRLayer* m_layer_mp;
 
 public:
 
-    MyOGRHandler(bool attempt_repair) : Osmium::Handler::BaseWithArea(attempt_repair) {
+    MyOGRHandler() {
 
         OGRRegisterAll();
 
@@ -92,19 +85,19 @@ public:
 
     // TODO: filter interesting relations for Multipolygon-Processing
 
-    void _node(const shared_ptr<Osmium::OSM::Node>& node) const {
+    void node(const shared_ptr<Osmium::OSM::Node>& node) const {
         std::cerr << "Node #" << node->id() << std::endl;
     }
 
-    void _way(const shared_ptr<Osmium::OSM::Way>& way) const {
+    void way(const shared_ptr<Osmium::OSM::Way>& way) const {
         std::cerr << "Way #" << way->id() << std::endl;
     }
 
-    void _relation(const shared_ptr<Osmium::OSM::Relation>& relation) const {
+    void relation(const shared_ptr<Osmium::OSM::Relation>& relation) const {
         std::cerr << "Relation #" << relation->id() << std::endl;
     }
 
-    void _area(Osmium::OSM::Area* area) {
+    void area(Osmium::OSM::Area* area) {
         std::cerr << "Area from " << ((area->get_type() == AREA_FROM_WAY) ? "Way" : "Relation")
             << " #" << area->id() << std::endl;
 
@@ -146,13 +139,14 @@ int main(int argc, char *argv[]) {
     bool attempt_repair = true;
 
     std::cerr << "Initializing" << std::endl;
-    MyOGRHandler handler(attempt_repair);
+    MyOGRHandler ogrhandler;
+    Osmium::Handler::MultipolygonAdapter<MyOGRHandler> adapter(&ogrhandler, attempt_repair);
 
     std::cerr << "Starting 1st Pass" << std::endl;
-    infile.read(handler);
+    infile.read(*adapter.firstPass());
 
     std::cerr << "Starting 2nd Pass" << std::endl;
-    infile.read(handler);
+    infile.read(*adapter.secondPass());
 
     std::cerr << "Done" << std::endl;
 }
