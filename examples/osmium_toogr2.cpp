@@ -33,60 +33,17 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <ogrsf_frmts.h>
 
 #include <osmium.hpp>
-#include <osmium/storage/byid/sparsetable.hpp>
-#include <osmium/storage/byid/mmap_file.hpp>
-#include <osmium/handler/coordinates_for_ways.hpp>
-#include <osmium/handler/multipolygon.hpp>
+#include <osmium/handler/multipolygon_adapter.hpp>
 #include <osmium/geometry/multipolygon.hpp>
 
-typedef Osmium::Storage::ById::SparseTable<Osmium::OSM::Position> storage_sparsetable_t;
-typedef Osmium::Storage::ById::MmapFile<Osmium::OSM::Position> storage_mmap_t;
-typedef Osmium::Handler::CoordinatesForWays<storage_sparsetable_t, storage_mmap_t> cfw_handler_t;
-
-class MyOGRHandlerPass1 : public Osmium::Handler::Base {
-
-    Osmium::Handler::Multipolygon* handler_multipolygon;
-
-public:
-
-    MyOGRHandlerPass1(Osmium::Handler::Multipolygon* hmp) : handler_multipolygon(hmp) {
-    }
-
-    ~MyOGRHandlerPass1() {
-    }
-
-    void before_relations() {
-        handler_multipolygon->before_relations();
-    }
-
-    void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
-        handler_multipolygon->relation(relation);
-    }
-
-    void after_relations() {
-        handler_multipolygon->after_relations();
-        std::cerr << "1st pass finished" << std::endl;
-    }
-
-};
-
-/* ================================================== */
-
-class MyOGRHandlerPass2 : public Osmium::Handler::Base {
+class MyOGRHandler : public Osmium::Handler::Base {
 
     OGRDataSource* m_data_source;
     OGRLayer* m_layer_mp;
 
-    storage_sparsetable_t store_pos;
-    storage_mmap_t store_neg;
-    cfw_handler_t* handler_cfw;
-
-    Osmium::Handler::Multipolygon* handler_multipolygon;
-
 public:
 
-    MyOGRHandlerPass2(Osmium::Handler::Multipolygon* hmp) : handler_multipolygon(hmp) {
-        handler_cfw = new cfw_handler_t(store_pos, store_neg);
+    MyOGRHandler() {
 
         OGRRegisterAll();
 
@@ -116,35 +73,34 @@ public:
         OGRFieldDefn layer_mp_field_id("id", OFTInteger);
         layer_mp_field_id.SetWidth(10);
 
-        if (m_layer_mp->CreateField(&layer_mp_field_id) != OGRERR_NONE ) {
+        if (m_layer_mp->CreateField(&layer_mp_field_id) != OGRERR_NONE) {
             std::cerr << "Creating id field failed.\n";
             exit(1);
         }
     }
 
-    ~MyOGRHandlerPass2() {
+    ~MyOGRHandler() {
         OGRDataSource::DestroyDataSource(m_data_source);
-        delete handler_cfw;
     }
 
-    void init(Osmium::OSM::Meta& meta) {
-        handler_cfw->init(meta);
+    // TODO: filter interesting relations for Multipolygon-Processing
+
+    void node(const shared_ptr<Osmium::OSM::Node>& node) const {
+        std::cerr << "Node #" << node->id() << std::endl;
     }
 
-    void node(const shared_ptr<Osmium::OSM::Node const>& node) {
-        handler_cfw->node(node);
+    void way(const shared_ptr<Osmium::OSM::Way>& way) const {
+        std::cerr << "Way #" << way->id() << std::endl;
     }
 
-    void after_nodes() {
-        handler_cfw->after_nodes();
-    }
-
-    void way(const shared_ptr<Osmium::OSM::Way>& way) {
-        handler_cfw->way(way);
-        handler_multipolygon->way(way);
+    void relation(const shared_ptr<Osmium::OSM::Relation>& relation) const {
+        std::cerr << "Relation #" << relation->id() << std::endl;
     }
 
     void area(Osmium::OSM::Area* area) {
+        std::cerr << "Area from " << ((area->get_type() == AREA_FROM_WAY) ? "Way" : "Relation")
+            << " #" << area->id() << std::endl;
+
         const char* building = area->tags().get_tag_by_key("building");
         if (building) {
             try {
@@ -152,6 +108,7 @@ public:
 
                 OGRFeature* feature = OGRFeature::CreateFeature(m_layer_mp->GetLayerDefn());
                 OGRMultiPolygon* ogrmp = mp.create_ogr_geometry();
+
                 feature->SetGeometry(ogrmp);
                 feature->SetField("id", area->id());
 
@@ -167,16 +124,7 @@ public:
             }
         }
     }
-
 };
-
-MyOGRHandlerPass2* hpass2;
-
-/* ================================================== */
-
-void cbmp(Osmium::OSM::Area* area) {
-    hpass2->area(area);
-}
 
 int main(int argc, char *argv[]) {
     Osmium::init(true);
@@ -189,16 +137,16 @@ int main(int argc, char *argv[]) {
     Osmium::OSMFile infile(argv[1]);
 
     bool attempt_repair = true;
-    Osmium::Handler::Multipolygon handler_multipolygon(attempt_repair, cbmp);
 
-    // first pass
-    MyOGRHandlerPass1 handler_pass1(&handler_multipolygon);
-    infile.read(handler_pass1);
+    std::cerr << "Initializing" << std::endl;
+    MyOGRHandler ogrhandler;
+    Osmium::Handler::MultipolygonAdapter<MyOGRHandler> adapter(&ogrhandler, attempt_repair);
 
-    // second pass
-    MyOGRHandlerPass2 handler_pass2(&handler_multipolygon);
-    hpass2 = &handler_pass2;
+    std::cerr << "Starting 1st Pass" << std::endl;
+    infile.read(*adapter.firstPass());
 
-    infile.read(handler_pass2);
+    std::cerr << "Starting 2nd Pass" << std::endl;
+    infile.read(*adapter.secondPass());
+
+    std::cerr << "Done" << std::endl;
 }
-

@@ -22,6 +22,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#include <boost/function.hpp>
+
 #include <assert.h>
 #include <sys/types.h>
 #include <string.h>
@@ -302,6 +304,7 @@ namespace Osmium {
 
             /// callback we should call when a multipolygon was completed
             void (*callback)(Osmium::OSM::Area*);
+            boost::function<void (Osmium::OSM::Area*)> callback_fnc;
 
             /// whether we want to repair a broken geometry
             bool attempt_repair;
@@ -384,6 +387,16 @@ namespace Osmium {
                 attempt_repair = repair;
             }
 
+            AreaFromRelation(Relation* r, bool b, int n, boost::function<void (Osmium::OSM::Area*)> callback, bool repair) : Area(), boundary(b), relation(r), callback(NULL), callback_fnc(callback) {
+                num_ways = n;
+                missing_ways = n;
+#ifdef OSMIUM_WITH_GEOS
+                geometry = NULL;
+#endif // OSMIUM_WITH_GEOS
+                id(r->id());
+                attempt_repair = repair;
+            }
+
 #ifdef OSMIUM_WITH_MULTIPOLYGON_PROFILING
             static std::vector<std::pair<std::string, timer *> > timers;
 
@@ -450,7 +463,10 @@ namespace Osmium {
                     std::cerr << "  geom build error: " << geometry_error_message << "\n";
                 }
 #endif // OSMIUM_WITH_GEOS
-                callback(this);
+                if(callback)
+                    callback(this);
+                else
+                    callback_fnc(this);
             }
 
         private:
@@ -945,7 +961,10 @@ namespace Osmium {
                             } else {
                                 Osmium::OSM::AreaFromWay *internal_mp =
                                     new Osmium::OSM::AreaFromWay(ringlist[i]->ways[0]->way, special_mp);
-                                callback(internal_mp);
+                                if(callback)
+                                    callback(internal_mp);
+                                else
+                                    callback_fnc(internal_mp);
                                 delete internal_mp;
                                 // AreaFromWay destructor deletes the
                                 // geometry, so avoid to delete it again.

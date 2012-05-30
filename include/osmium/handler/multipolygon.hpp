@@ -22,6 +22,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#include <boost/function.hpp>
 #include <google/sparse_hash_map>
 
 #include <osmium/handler.hpp>
@@ -44,6 +45,7 @@ namespace Osmium {
 
             bool m_attempt_repair;
             void (*m_callback_area)(Osmium::OSM::Area*);
+            boost::function<void (Osmium::OSM::Area*)> m_callback_area_fnc;
 
             uint64_t m_count_ways_in_all_areas;
 
@@ -56,6 +58,17 @@ namespace Osmium {
                   m_way2areaidx(),
                   m_attempt_repair(attempt_repair),
                   m_callback_area(callback_area),
+                  m_count_ways_in_all_areas(0) {
+            }
+
+            Multipolygon(bool attempt_repair,
+                         boost::function<void (Osmium::OSM::Area*)> callback_area)
+                : Base(),
+                  m_areas(),
+                  m_way2areaidx(),
+                  m_attempt_repair(attempt_repair),
+                  m_callback_area(NULL),
+                  m_callback_area_fnc(callback_area),
                   m_count_ways_in_all_areas(0) {
             }
 
@@ -92,7 +105,11 @@ namespace Osmium {
 
                 m_count_ways_in_all_areas += num_ways;
 
-                Osmium::OSM::AreaFromRelation* area = new Osmium::OSM::AreaFromRelation(new Osmium::OSM::Relation(*relation), is_boundary, num_ways, m_callback_area, m_attempt_repair);
+                Osmium::OSM::AreaFromRelation* area;
+                if(m_callback_area)
+                    area = new Osmium::OSM::AreaFromRelation(new Osmium::OSM::Relation(*relation), is_boundary, num_ways, m_callback_area, m_attempt_repair);
+                else
+                    area = new Osmium::OSM::AreaFromRelation(new Osmium::OSM::Relation(*relation), is_boundary, num_ways, m_callback_area_fnc, m_attempt_repair);
                 m_areas.push_back(area);
             }
 
@@ -123,7 +140,11 @@ namespace Osmium {
                         if (Osmium::debug()) {
                             std::cerr << "MP simple way_id=" << way->id() << "\n";
                         }
-                        m_callback_area(area);
+                        if(m_callback_area)
+                            m_callback_area(area);
+                        else if(m_callback_area_fnc)
+                            m_callback_area_fnc(area);
+
                         delete area;
                     }
                     return;
