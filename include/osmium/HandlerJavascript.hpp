@@ -144,7 +144,7 @@ namespace Osmium {
                 } else {
                     v8::String::Utf8Value str(args[0]);
                     Osmium::Export::CSV* oc = new Osmium::Export::CSV(*str);
-                    return oc->js_instance();
+                    return Osmium::Javascript::WrapperTemplate::ExportCSV::get<Osmium::Javascript::WrapperTemplate::ExportCSV>().create_instance((void*)(oc));
                 }
             }
 

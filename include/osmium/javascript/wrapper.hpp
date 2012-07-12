@@ -494,6 +494,32 @@ namespace Osmium {
 
             };
 
+            struct ExportCSV : public Osmium::Javascript::Template {
+
+                static v8::Handle<v8::Value> print(const v8::Arguments& args, Osmium::Export::CSV* csv) {
+                    for (int i = 0; i < args.Length(); i++) {
+                        if (i != 0) {
+                            csv->out << '\t';
+                        }
+                        Osmium::v8_String_to_ostream(args[i]->ToString(), csv->out);
+                    }
+                    csv->out << std::endl;
+                    return v8::Integer::New(1);
+                }
+
+                static v8::Handle<v8::Value> close(const v8::Arguments& /*args*/, Osmium::Export::CSV* csv) {
+                    csv->out.flush();
+                    csv->out.close();
+                    return v8::Undefined();
+                }
+
+                ExportCSV() : Osmium::Javascript::Template() {
+                    js_template->Set("print", v8::FunctionTemplate::New(function_template_<Osmium::Export::CSV, print>));
+                    js_template->Set("close", v8::FunctionTemplate::New(function_template_<Osmium::Export::CSV, close>));
+                }
+
+            };
+
         } // namespace WrapperTemplate
 
     } // namespace Javascript

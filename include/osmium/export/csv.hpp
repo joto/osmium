@@ -24,10 +24,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <fstream>
 
-#ifdef OSMIUM_WITH_JAVASCRIPT
-# include <v8.h>
-#endif // OSMIUM_WITH_JAVASCRIPT
-
 namespace Osmium {
 
     namespace Export {
@@ -46,38 +42,6 @@ namespace Osmium {
                 out.flush();
                 out.close();
             }
-
-#ifdef OSMIUM_WITH_JAVASCRIPT
-            v8::Local<v8::Object> js_instance() const {
-                return JavascriptTemplate::get<JavascriptTemplate>().create_instance((void *)this);
-            }
-
-            v8::Handle<v8::Value> js_print(const v8::Arguments& args) {
-                for (int i = 0; i < args.Length(); i++) {
-                    if (i != 0) {
-                        out << '\t';
-                    }
-                    Osmium::v8_String_to_ostream(args[i]->ToString(), out);
-                }
-                out << std::endl;
-                return v8::Integer::New(1);
-            }
-
-            v8::Handle<v8::Value> js_close(const v8::Arguments& /*args*/) {
-                out.flush();
-                out.close();
-                return v8::Undefined();
-            }
-
-            struct JavascriptTemplate : public Osmium::Javascript::Template {
-
-                JavascriptTemplate() : Osmium::Javascript::Template() {
-                    js_template->Set("print", v8::FunctionTemplate::New(function_template<CSV, &CSV::js_print>));
-                    js_template->Set("close", v8::FunctionTemplate::New(function_template<CSV, &CSV::js_close>));
-                }
-
-            };
-#endif // OSMIUM_WITH_JAVASCRIPT
 
         }; // class CSV
 
