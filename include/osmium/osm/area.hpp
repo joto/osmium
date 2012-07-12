@@ -210,16 +210,6 @@ namespace Osmium {
             }
 #endif // OSMIUM_WITH_GEOS
 
-#ifdef OSMIUM_WITH_JAVASCRIPT
-            v8::Handle<v8::Value> js_from() const {
-                const char *value = (get_type() == AREA_FROM_WAY) ? "way" : "relation";
-                return v8::String::NewSymbol(value);
-            }
-
-            v8::Handle<v8::Value> js_geom() const;
-
-#endif // OSMIUM_WITH_JAVASCRIPT
-
         }; // class Area
 
         /***

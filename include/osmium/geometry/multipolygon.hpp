@@ -280,16 +280,4 @@ namespace Osmium {
 
 } // namespace Osmium
 
-#ifdef OSMIUM_WITH_JAVASCRIPT
-v8::Handle<v8::Value> Osmium::OSM::Area::js_geom() const {
-    if (get_geometry()) {
-        Osmium::Geometry::MultiPolygon* geom = new Osmium::Geometry::MultiPolygon(*this);
-        return Osmium::Javascript::Template::get<Osmium::Geometry::MultiPolygon::JavascriptTemplate>().create_persistent_instance<Osmium::Geometry::MultiPolygon>(geom);
-    } else {
-        Osmium::Geometry::Null* geom = new Osmium::Geometry::Null();
-        return Osmium::Javascript::Template::get<Osmium::Geometry::Null::JavascriptTemplate>().create_persistent_instance<Osmium::Geometry::Null>(geom);
-    }
-}
-#endif // OSMIUM_WITH_JAVASCRIPT
-
 #endif // OSMIUM_GEOMETRY_MULTIPOLYGON_HPP

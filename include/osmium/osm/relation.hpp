@@ -61,13 +61,6 @@ namespace Osmium {
                 return NULL;
             }
 
-#ifdef OSMIUM_WITH_JAVASCRIPT
-            v8::Handle<v8::Value> js_members() const {
-                return members().js_instance();
-            }
-
-#endif // OSMIUM_WITH_JAVASCRIPT
-
             /**
              * Relations can be ordered by id and version.
              * Note that we use the absolute value of the id for a

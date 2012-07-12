@@ -134,17 +134,36 @@ namespace Osmium {
 
             struct OSMRelation : public OSMObject {
 
+                static v8::Handle<v8::Value> js_members(Osmium::OSM::Relation* relation) {
+                    return relation->members().js_instance();
+                }
+
                 OSMRelation() : OSMObject() {
-                    js_template->SetAccessor(v8::String::NewSymbol("members"), accessor_getter<Osmium::OSM::Relation, &Osmium::OSM::Relation::js_members>);
+                    js_template->SetAccessor(v8::String::NewSymbol("members"), accessor_getter_<Osmium::OSM::Relation, js_members>);
                 }
 
             };
 
             struct OSMArea : public OSMObject {
 
+                static v8::Handle<v8::Value> js_from(Osmium::OSM::Area* area) {
+                    const char* value = (area->get_type() == AREA_FROM_WAY) ? "way" : "relation";
+                    return v8::String::NewSymbol(value);
+                }
+
+                static v8::Handle<v8::Value> js_geom(Osmium::OSM::Area* area) {
+                    if (area->get_geometry()) {
+                        Osmium::Geometry::MultiPolygon* geom = new Osmium::Geometry::MultiPolygon(*area);
+                        return Osmium::Javascript::Template::get<Osmium::Geometry::MultiPolygon::JavascriptTemplate>().create_persistent_instance<Osmium::Geometry::MultiPolygon>(geom);
+                    } else {
+                        Osmium::Geometry::Null* geom = new Osmium::Geometry::Null();
+                        return Osmium::Javascript::Template::get<Osmium::Geometry::Null::JavascriptTemplate>().create_persistent_instance<Osmium::Geometry::Null>(geom);
+                    }
+                }
+
                 OSMArea() : OSMObject() {
-                    js_template->SetAccessor(v8::String::NewSymbol("from"), accessor_getter<Osmium::OSM::Area, &Osmium::OSM::Area::js_from>);
-                    js_template->SetAccessor(v8::String::NewSymbol("geom"), accessor_getter<Osmium::OSM::Area, &Osmium::OSM::Area::js_geom>);
+                    js_template->SetAccessor(v8::String::NewSymbol("from"), accessor_getter_<Osmium::OSM::Area, js_from>);
+                    js_template->SetAccessor(v8::String::NewSymbol("geom"), accessor_getter_<Osmium::OSM::Area, js_geom>);
                 }
 
             };
