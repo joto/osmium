@@ -123,7 +123,9 @@ namespace Osmium {
 #include <osmium/osmfile_impl.hpp>
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
-# include <osmium/HandlerJavascript.hpp>
+# include <osmium/export/csv.hpp>
+# include <osmium/export/shapefile.hpp>
+# include <osmium/javascript/handler.hpp>
 #endif // OSMIUM_WITH_JAVASCRIPT
 
 #endif // OSMIUM_OSMIUM_HPP

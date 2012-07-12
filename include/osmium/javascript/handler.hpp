@@ -1,5 +1,5 @@
-#ifndef OSMIUM_HANDLER_JAVASCRIPT_HPP
-#define OSMIUM_HANDLER_JAVASCRIPT_HPP
+#ifndef OSMIUM_JAVASCRIPT_HANDLER_HPP
+#define OSMIUM_JAVASCRIPT_HANDLER_HPP
 
 /*
 
@@ -33,9 +33,9 @@ extern v8::Persistent<v8::Context> global_context;
 
 namespace Osmium {
 
-    namespace Handler {
+    namespace Javascript {
 
-        class Javascript : public Base {
+        class Handler : public Osmium::Handler::Base {
 
             /***
             * Load Javascript file into string
@@ -172,7 +172,7 @@ namespace Osmium {
             }
 #endif // OSMIUM_WITH_SHPLIB
 
-            Javascript(std::vector<std::string> include_files, const char* filename) : Base() {
+            Handler(std::vector<std::string> include_files, const char* filename) : Osmium::Handler::Base() {
 //                v8::HandleScope handle_scope;
                 v8::Handle<v8::String> init_source = v8::String::New("Osmium = { Callbacks: {}, Output: { } };");
                 v8::Handle<v8::Script> init_script = v8::Script::Compile(init_source);
@@ -263,7 +263,7 @@ namespace Osmium {
                 }
             }
 
-            ~Javascript() {
+            ~Handler() {
                 callbacks_object.Dispose();
             }
 
@@ -323,10 +323,10 @@ namespace Osmium {
                 }
             }
 
-        }; // class Javascript
+        }; // class Handler
 
-    } // namespace Handler
+    } // namespace Javascript
 
 } // namespace Osmium
 
-#endif // OSMIUM_HANDLER_JAVASCRIPT_HPP
+#endif // OSMIUM_JAVASCRIPT_HANDLER_HPP

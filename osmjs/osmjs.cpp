@@ -59,12 +59,12 @@ typedef Osmium::Handler::CoordinatesForWays<storage_byid_t, storage_mmap_t> cfw_
 class SinglePass : public Osmium::Handler::Base {
 
     cfw_handler_t* handler_cfw;
-    Osmium::Handler::Javascript* handler_javascript;
+    Osmium::Javascript::Handler* handler_javascript;
 
 public:
 
     SinglePass(cfw_handler_t* cfw = NULL,
-               Osmium::Handler::Javascript* js  = NULL)
+               Osmium::Javascript::Handler* js  = NULL)
         : Base(),
           handler_cfw(cfw),
           handler_javascript(js) {
@@ -110,13 +110,13 @@ class DualPass1 : public Osmium::Handler::Base {
 
     cfw_handler_t* handler_cfw;
     Osmium::Handler::Multipolygon* handler_multipolygon;
-    Osmium::Handler::Javascript* handler_javascript;
+    Osmium::Javascript::Handler* handler_javascript;
 
 public:
 
     DualPass1(cfw_handler_t* cfw = NULL,
               Osmium::Handler::Multipolygon* mp  = NULL,
-              Osmium::Handler::Javascript* js  = NULL)
+              Osmium::Javascript::Handler* js  = NULL)
         : Base(),
           handler_cfw(cfw),
           handler_multipolygon(mp),
@@ -163,13 +163,13 @@ class DualPass2 : public Osmium::Handler::Base {
 
     cfw_handler_t* handler_cfw;
     Osmium::Handler::Multipolygon* handler_multipolygon;
-    Osmium::Handler::Javascript* handler_javascript;
+    Osmium::Javascript::Handler* handler_javascript;
 
 public:
 
     DualPass2(cfw_handler_t* cfw = NULL,
               Osmium::Handler::Multipolygon* mp  = NULL,
-              Osmium::Handler::Javascript* js  = NULL)
+              Osmium::Javascript::Handler* js  = NULL)
         : Base(),
           handler_cfw(cfw),
           handler_multipolygon(mp),
@@ -265,7 +265,7 @@ std::string find_include_file(std::string filename) {
     exit(1);
 }
 
-Osmium::Handler::Javascript* handler_javascript;
+Osmium::Javascript::Handler* handler_javascript;
 
 void cbmp(Osmium::OSM::Area* area) {
     handler_javascript->area(area);
@@ -377,8 +377,8 @@ int main(int argc, char *argv[]) {
     v8::HandleScope handle_scope;
 
     v8::Handle<v8::ObjectTemplate> global_template = v8::ObjectTemplate::New();
-    global_template->Set(v8::String::New("print"), v8::FunctionTemplate::New(Osmium::Handler::Javascript::Print));
-    global_template->Set(v8::String::New("include"), v8::FunctionTemplate::New(Osmium::Handler::Javascript::Include));
+    global_template->Set(v8::String::New("print"), v8::FunctionTemplate::New(Osmium::Javascript::Handler::Print));
+    global_template->Set(v8::String::New("include"), v8::FunctionTemplate::New(Osmium::Javascript::Handler::Include));
 
     global_context = v8::Persistent<v8::Context>::New(v8::Context::New(0, global_template));
     v8::Context::Scope context_scope(global_context);
@@ -407,7 +407,7 @@ int main(int argc, char *argv[]) {
     }
     Osmium::Storage::ById::MmapFile<Osmium::OSM::Position> store_neg;
     cfw_handler_t* handler_cfw = (store_pos == NULL) ? NULL : new cfw_handler_t(*store_pos, store_neg);
-    handler_javascript = new Osmium::Handler::Javascript(include_files, javascript_filename.c_str());
+    handler_javascript = new Osmium::Javascript::Handler(include_files, javascript_filename.c_str());
 
     if (two_passes) {
         Osmium::Handler::Multipolygon* handler_multipolygon = NULL;
