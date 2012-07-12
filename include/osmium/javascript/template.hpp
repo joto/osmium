@@ -131,6 +131,11 @@ namespace Osmium {
                 return func( reinterpret_cast<Wrapped*>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()) );
             }
 
+            template<class Wrapped, v8::Handle<v8::Value> (func)(const v8::Arguments&, Wrapped*)>
+            static v8::Handle<v8::Value> function_template_(const v8::Arguments& args) {
+                return func(args, reinterpret_cast<Wrapped*>(v8::Local<v8::External>::Cast(args.Holder()->GetInternalField(0))->Value()) );
+            }
+
         protected:
 
             v8::Persistent<v8::ObjectTemplate> js_template;

@@ -31,6 +31,16 @@ namespace Osmium {
 
         class FromWay : public Geometry {
 
+        public:
+
+            const Osmium::OSM::WayNodeList* nodes() const {
+                return m_way_node_list;
+            }
+
+            bool reverse() const {
+                return m_reverse;
+            } 
+
         protected:
 
             FromWay(const Osmium::OSM::WayNodeList& way_node_list,
@@ -89,8 +99,8 @@ namespace Osmium {
                     throw Osmium::Exception::IllegalGeometry();
                 }
                 if (m_reverse) {
-                    reverse(lon_checked.begin(), lon_checked.end());
-                    reverse(lat_checked.begin(), lat_checked.end());
+                    std::reverse(lon_checked.begin(), lon_checked.end());
+                    std::reverse(lat_checked.begin(), lat_checked.end());
                 }
                 return SHPCreateSimpleObject(shp_type, lon_checked.size(), &(lon_checked[0]), &(lat_checked[0]), NULL);
             }

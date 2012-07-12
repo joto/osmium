@@ -21,11 +21,212 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 <http://www.gnu.org/licenses/>.
 
 */
+
 namespace Osmium {
 
     namespace Javascript {
 
         namespace WrapperTemplate {
+
+            struct OSMPosition {
+
+                static v8::Handle<v8::Array> to_array(const Osmium::OSM::Position& position) {
+                    v8::HandleScope scope;
+                    v8::Local<v8::Array> array = v8::Array::New(2);
+                    array->Set(0, v8::Number::New(position.lon()));
+                    array->Set(1, v8::Number::New(position.lat()));
+                    return scope.Close(array);
+                }
+
+            };
+
+            struct Geometry : public Osmium::Javascript::Template {
+
+                static v8::Handle<v8::Value> to_wkt(const v8::Arguments& args, Osmium::Geometry::Geometry* geometry) {
+                    std::ostringstream oss;
+                    bool with_srid = false;
+                    if (args.Length() >= 1) {
+                        with_srid = args[0]->ToBoolean()->Value();
+                    }
+                    oss << geometry->as_WKT(with_srid);
+                    return v8::String::New(oss.str().c_str());
+                }
+
+                static v8::Handle<v8::Value> to_wkb(const v8::Arguments& args, Osmium::Geometry::Geometry* geometry) {
+                    std::ostringstream oss;
+                    bool with_srid = false;
+                    if (args.Length() >= 1) {
+                        with_srid = args[0]->ToBoolean()->Value();
+                    }
+                    oss << geometry->as_WKB(with_srid);
+                    return v8::String::New(oss.str().c_str());
+                }
+
+                static v8::Handle<v8::Value> to_hexwkb(const v8::Arguments& args, Osmium::Geometry::Geometry* geometry) {
+                    std::ostringstream oss;
+                    bool with_srid = false;
+                    if (args.Length() >= 1) {
+                        with_srid = args[0]->ToBoolean()->Value();
+                    }
+                    oss << geometry->as_HexWKB(with_srid);
+                    return v8::String::New(oss.str().c_str());
+                }
+
+                Geometry() : Osmium::Javascript::Template() {
+                    js_template->Set("toWKT",    v8::FunctionTemplate::New(function_template_<Osmium::Geometry::Geometry, to_wkt>));
+                    js_template->Set("toWKB",    v8::FunctionTemplate::New(function_template_<Osmium::Geometry::Geometry, to_wkb>));
+                    js_template->Set("toHexWKB", v8::FunctionTemplate::New(function_template_<Osmium::Geometry::Geometry, to_hexwkb>));
+                }
+
+            };
+
+            struct GeometryNull : public Osmium::Javascript::Template {
+
+                GeometryNull() : Osmium::Javascript::Template() {
+                    js_template->Set("toWKT",    v8::FunctionTemplate::New(function_template<Osmium::Javascript::Template, &Osmium::Javascript::Template::js_undefined>));
+                    js_template->Set("toWKB",    v8::FunctionTemplate::New(function_template<Osmium::Javascript::Template, &Osmium::Javascript::Template::js_undefined>));
+                    js_template->Set("toHexWKB", v8::FunctionTemplate::New(function_template<Osmium::Javascript::Template, &Osmium::Javascript::Template::js_undefined>));
+                    js_template->Set("toArray",  v8::FunctionTemplate::New(function_template<Osmium::Javascript::Template, &Osmium::Javascript::Template::js_undefined>));
+                }
+
+            };
+
+            struct GeometryPoint : public Geometry {
+
+                static v8::Handle<v8::Value> lon(Osmium::Geometry::Point* point) {
+                    return v8::Number::New(point->lon());
+                }
+
+                static v8::Handle<v8::Value> lat(Osmium::Geometry::Point* point) {
+                    return v8::Number::New(point->lat());
+                }
+
+                static v8::Handle<v8::Value> to_array(const v8::Arguments& /*args*/, Osmium::Geometry::Point* point) {
+                    return OSMPosition::to_array(point->position());
+                }
+
+                GeometryPoint() : Geometry() {
+                    js_template->SetAccessor(v8::String::NewSymbol("lon"), accessor_getter_<Osmium::Geometry::Point, lon>);
+                    js_template->SetAccessor(v8::String::NewSymbol("lat"), accessor_getter_<Osmium::Geometry::Point, lat>);
+                    js_template->Set("toArray", v8::FunctionTemplate::New(function_template_<Osmium::Geometry::Point, to_array>));
+                }
+
+            };
+
+            struct GeometryLineString : public Geometry {
+
+                static v8::Handle<v8::Value> to_array(const v8::Arguments& /*args*/, Osmium::Geometry::LineString* ls) {
+                    v8::HandleScope scope;
+                    v8::Local<v8::Array> linestring = v8::Array::New(ls->nodes()->size());
+                    unsigned int max = ls->nodes()->size() - 1;
+                    const Osmium::OSM::WayNodeList& wnl = *(ls->nodes());
+                    if (ls->reverse()) {
+                        for (unsigned int i=0; i <= max; ++i) {
+                            linestring->Set(max - i, OSMPosition::to_array(wnl[i].position()));
+                        }
+                    } else {
+                        for (unsigned int i=0; i <= max; ++i) {
+                            linestring->Set(i, OSMPosition::to_array(wnl[i].position()));
+                        }
+                    }
+                    return scope.Close(linestring);
+                }
+
+                GeometryLineString() : Geometry() {
+                    js_template->Set("toArray", v8::FunctionTemplate::New(function_template_<Osmium::Geometry::LineString, to_array>));
+                }
+
+            };
+
+            struct GeometryPolygon : public Geometry {
+
+                static v8::Handle<v8::Value> to_array(const v8::Arguments& /*args*/, Osmium::Geometry::Polygon* p) {
+                    v8::HandleScope scope;
+                    v8::Local<v8::Array> polygon = v8::Array::New(1);
+                    v8::Local<v8::Array> linear_ring = v8::Array::New(p->nodes()->size());
+                    polygon->Set(0, linear_ring);
+                    unsigned int max = p->nodes()->size() - 1;
+                    const Osmium::OSM::WayNodeList& wnl = *(p->nodes());
+                    if (p->reverse()) {
+                        for (unsigned int i=0; i <= max; ++i) {
+                            linear_ring->Set(max - i, OSMPosition::to_array(wnl[i].position()));
+                        }
+                    } else {
+                        for (unsigned int i=0; i <= max; ++i) {
+                            linear_ring->Set(i, OSMPosition::to_array(wnl[i].position()));
+                        }
+                    }
+                    return scope.Close(polygon);
+                }
+
+                GeometryPolygon() : Geometry() {
+                    js_template->Set("toArray", v8::FunctionTemplate::New(function_template_<Osmium::Geometry::Polygon, to_array>));
+                }
+
+            };
+
+            struct GeometryMultiPolygon : public Geometry {
+
+/*                v8::Local<v8::Object> js_instance() const {
+                    return JavascriptTemplate::get<JavascriptTemplate>().create_instance((void*)this);
+                }*/
+
+                static v8::Handle<v8::Array> ring_as_array(const geos::geom::LineString* ring) {
+                    v8::HandleScope scope;
+                    const geos::geom::CoordinateSequence* cs = ring->getCoordinatesRO();
+                    v8::Local<v8::Array> ring_array = v8::Array::New(cs->getSize());
+                    for (size_t i = 0; i < cs->getSize(); ++i) {
+                        v8::Local<v8::Array> coord = v8::Array::New(2);
+                        coord->Set(0, v8::Number::New(cs->getX(i)));
+                        coord->Set(1, v8::Number::New(cs->getY(i)));
+                        ring_array->Set(i, coord);
+                    }
+
+                    return scope.Close(ring_array);
+                }
+
+                static v8::Handle<v8::Value> to_array(const v8::Arguments& /*args*/, Osmium::Geometry::MultiPolygon* mp) {
+                    v8::HandleScope scope;
+                    geos::geom::Geometry* geometry = mp->area()->get_geometry();
+
+                    if (geometry->getGeometryTypeId() == geos::geom::GEOS_MULTIPOLYGON) {
+                        v8::Local<v8::Array> multipolygon_array = v8::Array::New(geometry->getNumGeometries());
+
+                        for (size_t i=0; i < geometry->getNumGeometries(); ++i) {
+                            const geos::geom::Polygon* polygon = dynamic_cast<const geos::geom::Polygon*>(geometry->getGeometryN(i));
+                            v8::Local<v8::Array> polygon_array = v8::Array::New(polygon->getNumInteriorRing());
+                            multipolygon_array->Set(i, polygon_array);
+                            polygon_array->Set(0, ring_as_array(polygon->getExteriorRing()));
+                            for (size_t j=0; j < polygon->getNumInteriorRing(); ++j) {
+                                polygon_array->Set(j+1, ring_as_array(polygon->getInteriorRingN(j)));
+                            }
+                        }
+                        return scope.Close(multipolygon_array);
+                    } else if (geometry->getGeometryTypeId() == geos::geom::GEOS_POLYGON) {
+                        const Osmium::OSM::AreaFromWay* area_from_way = dynamic_cast<const Osmium::OSM::AreaFromWay*>(mp->area());
+                        if (area_from_way) {
+                            v8::Local<v8::Array> polygon = v8::Array::New(1);
+                            v8::Local<v8::Array> ring = v8::Array::New(area_from_way->nodes().size());
+                            int n = 0;
+                            for (Osmium::OSM::WayNodeList::const_iterator it = area_from_way->nodes().begin(); it != area_from_way->nodes().end(); ++it) {
+                                v8::Local<v8::Array> coord = v8::Array::New(2);
+                                coord->Set(0, v8::Number::New(it->lon()));
+                                coord->Set(1, v8::Number::New(it->lat()));
+                                ring->Set(n++, coord);
+                            }
+                            polygon->Set(0, ring);
+                            return scope.Close(polygon);
+                        }
+                    }
+
+                    return scope.Close(v8::Undefined());
+                }
+
+                GeometryMultiPolygon() : Geometry() {
+                    js_template->Set("toArray", v8::FunctionTemplate::New(function_template_<Osmium::Geometry::MultiPolygon, to_array>));
+                }
+
+            };
 
             struct OSMObject : public Osmium::Javascript::Template {
 
@@ -78,7 +279,7 @@ namespace Osmium {
 
                 static v8::Handle<v8::Value> get_geom(Osmium::OSM::Node* node) {
                     Osmium::Geometry::Point* geom = new Osmium::Geometry::Point(*node);
-                    return Osmium::Javascript::Template::get<Osmium::Geometry::Point::JavascriptTemplate>().create_persistent_instance<Osmium::Geometry::Point>(geom);
+                    return Osmium::Javascript::Template::get<Osmium::Javascript::WrapperTemplate::GeometryPoint>().create_persistent_instance<Osmium::Geometry::Point>(geom);
                 }
 
                 OSMNode() : OSMObject() {
@@ -96,30 +297,30 @@ namespace Osmium {
                 static v8::Handle<v8::Value> geom(Osmium::OSM::Way* way) {
                     if (way->nodes().has_position()) {
                         Osmium::Geometry::LineString* geom = new Osmium::Geometry::LineString(*way);
-                        return Osmium::Javascript::Template::get<Osmium::Geometry::LineString::JavascriptTemplate>().create_persistent_instance<Osmium::Geometry::LineString>(geom);
+                        return Osmium::Javascript::Template::get<Osmium::Javascript::WrapperTemplate::GeometryLineString>().create_persistent_instance<Osmium::Geometry::LineString>(geom);
                     } else {
                         Osmium::Geometry::Null* geom = new Osmium::Geometry::Null();
-                        return Osmium::Javascript::Template::get<Osmium::Geometry::Null::JavascriptTemplate>().create_persistent_instance<Osmium::Geometry::Null>(geom);
+                        return Osmium::Javascript::Template::get<GeometryNull>().create_persistent_instance<Osmium::Geometry::Null>(geom);
                     }
                 }
 
                 static v8::Handle<v8::Value> reverse_geom(Osmium::OSM::Way* way) {
                     if (way->nodes().has_position()) {
                         Osmium::Geometry::LineString* geom = new Osmium::Geometry::LineString(*way, true);
-                        return Osmium::Javascript::Template::get<Osmium::Geometry::LineString::JavascriptTemplate>().create_persistent_instance<Osmium::Geometry::LineString>(geom);
+                        return Osmium::Javascript::Template::get<Osmium::Javascript::WrapperTemplate::GeometryLineString>().create_persistent_instance<Osmium::Geometry::LineString>(geom);
                     } else {
                         Osmium::Geometry::Null* geom = new Osmium::Geometry::Null();
-                        return Osmium::Javascript::Template::get<Osmium::Geometry::Null::JavascriptTemplate>().create_persistent_instance<Osmium::Geometry::Null>(geom);
+                        return Osmium::Javascript::Template::get<GeometryNull>().create_persistent_instance<Osmium::Geometry::Null>(geom);
                     }
                 }
 
                 static v8::Handle<v8::Value> polygon_geom(Osmium::OSM::Way* way) {
                     if (way->nodes().has_position() && way->nodes().is_closed()) {
                         Osmium::Geometry::Polygon* geom = new Osmium::Geometry::Polygon(*way);
-                        return Osmium::Javascript::Template::get<Osmium::Geometry::Polygon::JavascriptTemplate>().create_persistent_instance<Osmium::Geometry::Polygon>(geom);
+                        return Osmium::Javascript::Template::get<Osmium::Javascript::WrapperTemplate::GeometryPolygon>().create_persistent_instance<Osmium::Geometry::Polygon>(geom);
                     } else {
                         Osmium::Geometry::Null* geom = new Osmium::Geometry::Null();
-                        return Osmium::Javascript::Template::get<Osmium::Geometry::Null::JavascriptTemplate>().create_persistent_instance<Osmium::Geometry::Null>(geom);
+                        return Osmium::Javascript::Template::get<GeometryNull>().create_persistent_instance<Osmium::Geometry::Null>(geom);
                     }
                 }
 
@@ -154,10 +355,10 @@ namespace Osmium {
                 static v8::Handle<v8::Value> geom(Osmium::OSM::Area* area) {
                     if (area->get_geometry()) {
                         Osmium::Geometry::MultiPolygon* geom = new Osmium::Geometry::MultiPolygon(*area);
-                        return Osmium::Javascript::Template::get<Osmium::Geometry::MultiPolygon::JavascriptTemplate>().create_persistent_instance<Osmium::Geometry::MultiPolygon>(geom);
+                        return Osmium::Javascript::Template::get<GeometryMultiPolygon>().create_persistent_instance<Osmium::Geometry::MultiPolygon>(geom);
                     } else {
                         Osmium::Geometry::Null* geom = new Osmium::Geometry::Null();
-                        return Osmium::Javascript::Template::get<Osmium::Geometry::Null::JavascriptTemplate>().create_persistent_instance<Osmium::Geometry::Null>(geom);
+                        return Osmium::Javascript::Template::get<GeometryNull>().create_persistent_instance<Osmium::Geometry::Null>(geom);
                     }
                 }
 

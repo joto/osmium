@@ -51,19 +51,6 @@ namespace Osmium {
                 return out;
             }
 
-#ifdef OSMIUM_WITH_JAVASCRIPT
-            struct JavascriptTemplate : public Osmium::Javascript::Template {
-
-                JavascriptTemplate() : Osmium::Javascript::Template() {
-                    js_template->Set("toWKT",    v8::FunctionTemplate::New(function_template<Osmium::Javascript::Template, &Osmium::Javascript::Template::js_undefined>));
-                    js_template->Set("toWKB",    v8::FunctionTemplate::New(function_template<Osmium::Javascript::Template, &Osmium::Javascript::Template::js_undefined>));
-                    js_template->Set("toHexWKB", v8::FunctionTemplate::New(function_template<Osmium::Javascript::Template, &Osmium::Javascript::Template::js_undefined>));
-                    js_template->Set("toArray",  v8::FunctionTemplate::New(function_template<Osmium::Javascript::Template, &Osmium::Javascript::Template::js_undefined>));
-                }
-
-            };
-#endif // OSMIUM_WITH_JAVASCRIPT
-
         }; // class Null
 
     } // namespace Geometry

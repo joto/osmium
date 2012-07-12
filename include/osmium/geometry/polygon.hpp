@@ -156,38 +156,6 @@ namespace Osmium {
             }
 #endif // OSMIUM_WITH_OGR
 
-#ifdef OSMIUM_WITH_JAVASCRIPT
-            v8::Local<v8::Object> js_instance() const {
-                return JavascriptTemplate::get<JavascriptTemplate>().create_instance((void *)this);
-            }
-
-            v8::Handle<v8::Value> js_to_array(const v8::Arguments& /*args*/) {
-                v8::HandleScope scope;
-                v8::Local<v8::Array> polygon = v8::Array::New(1);
-                v8::Local<v8::Array> linear_ring = v8::Array::New(m_way_node_list->size());
-                polygon->Set(0, linear_ring);
-                unsigned int max = m_way_node_list->size() - 1;
-                if (m_reverse) {
-                    for (unsigned int i=0; i <= max; ++i) {
-                        linear_ring->Set(max - i, (*m_way_node_list)[i].position().js_to_array());
-                    }
-                } else {
-                    for (unsigned int i=0; i <= max; ++i) {
-                        linear_ring->Set(i, (*m_way_node_list)[i].position().js_to_array());
-                    }
-                }
-                return scope.Close(polygon);
-            }
-
-            struct JavascriptTemplate : public Osmium::Geometry::Geometry::JavascriptTemplate {
-
-                JavascriptTemplate() : Osmium::Geometry::Geometry::JavascriptTemplate() {
-                    js_template->Set("toArray", v8::FunctionTemplate::New(function_template<Polygon, &Polygon::js_to_array>));
-                }
-
-            };
-#endif // OSMIUM_WITH_JAVASCRIPT
-
         }; // class Polygon
 
     } // namespace Geometry

@@ -85,16 +85,6 @@ namespace Osmium {
                 return *this;
             }
 
-#ifdef OSMIUM_WITH_JAVASCRIPT
-            v8::Handle<v8::Array> js_to_array() const {
-                v8::HandleScope scope;
-                v8::Local<v8::Array> array = v8::Array::New(2);
-                array->Set(0, v8::Number::New(lon()));
-                array->Set(1, v8::Number::New(lat()));
-                return scope.Close(array);
-            }
-#endif // OSMIUM_WITH_JAVASCRIPT
-
             friend bool operator==(const Position& p1, const Position& p2) {
                 return p1.m_x == p2.m_x && p1.m_y == p2.m_y;
             }

@@ -58,6 +58,10 @@ namespace Osmium {
                   m_position(Osmium::OSM::Position(node.get_lon(), node.get_lat())) {
             }
 
+            const Osmium::OSM::Position& position() const {
+                return m_position;
+            }
+
             double lon() const {
                 return m_position.lon();
             }
@@ -123,34 +127,6 @@ namespace Osmium {
                 return p;
             }
 #endif // OSMIUM_WITH_OGR
-
-#ifdef OSMIUM_WITH_JAVASCRIPT
-            v8::Local<v8::Object> js_instance() const {
-                return JavascriptTemplate::get<JavascriptTemplate>().create_instance((void*)this);
-            }
-
-            v8::Handle<v8::Value> js_lon() const {
-                return v8::Number::New(lon());
-            }
-
-            v8::Handle<v8::Value> js_lat() const {
-                return v8::Number::New(lat());
-            }
-
-            v8::Handle<v8::Value> js_to_array(const v8::Arguments& /*args*/) {
-                return m_position.js_to_array();
-            }
-
-            struct JavascriptTemplate : public Osmium::Geometry::Geometry::JavascriptTemplate {
-
-                JavascriptTemplate() : Osmium::Geometry::Geometry::JavascriptTemplate() {
-                    js_template->SetAccessor(v8::String::NewSymbol("lon"), accessor_getter<Point, &Point::js_lon>);
-                    js_template->SetAccessor(v8::String::NewSymbol("lat"), accessor_getter<Point, &Point::js_lat>);
-                    js_template->Set("toArray", v8::FunctionTemplate::New(function_template<Point, &Point::js_to_array>));
-                }
-
-            };
-#endif // OSMIUM_WITH_JAVASCRIPT
 
         private:
 

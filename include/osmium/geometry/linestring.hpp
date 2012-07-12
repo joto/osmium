@@ -166,36 +166,6 @@ namespace Osmium {
             }
 #endif // OSMIUM_WITH_OGR
 
-#ifdef OSMIUM_WITH_JAVASCRIPT
-            v8::Local<v8::Object> js_instance() const {
-                return JavascriptTemplate::get<JavascriptTemplate>().create_instance((void *)this);
-            }
-
-            v8::Handle<v8::Value> js_to_array(const v8::Arguments& /*args*/) {
-                v8::HandleScope scope;
-                v8::Local<v8::Array> linestring = v8::Array::New(m_way_node_list->size());
-                unsigned int max = m_way_node_list->size() - 1;
-                if (m_reverse) {
-                    for (unsigned int i=0; i <= max; ++i) {
-                        linestring->Set(max - i, (*m_way_node_list)[i].position().js_to_array());
-                    }
-                } else {
-                    for (unsigned int i=0; i <= max; ++i) {
-                        linestring->Set(i, (*m_way_node_list)[i].position().js_to_array());
-                    }
-                }
-                return scope.Close(linestring);
-            }
-
-            struct JavascriptTemplate : public Osmium::Geometry::Geometry::JavascriptTemplate {
-
-                JavascriptTemplate() : Osmium::Geometry::Geometry::JavascriptTemplate() {
-                    js_template->Set("toArray", v8::FunctionTemplate::New(function_template<LineString, &LineString::js_to_array>));
-                }
-
-            };
-#endif // OSMIUM_WITH_JAVASCRIPT
-
         }; // class LineString
 
     } // namespace Geometry
