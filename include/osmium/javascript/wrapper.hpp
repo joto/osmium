@@ -83,10 +83,10 @@ namespace Osmium {
             struct GeometryNull : public Osmium::Javascript::Template {
 
                 GeometryNull() : Osmium::Javascript::Template() {
-                    js_template->Set("toWKT",    v8::FunctionTemplate::New(function_template<Osmium::Javascript::Template, &Osmium::Javascript::Template::js_undefined>));
-                    js_template->Set("toWKB",    v8::FunctionTemplate::New(function_template<Osmium::Javascript::Template, &Osmium::Javascript::Template::js_undefined>));
-                    js_template->Set("toHexWKB", v8::FunctionTemplate::New(function_template<Osmium::Javascript::Template, &Osmium::Javascript::Template::js_undefined>));
-                    js_template->Set("toArray",  v8::FunctionTemplate::New(function_template<Osmium::Javascript::Template, &Osmium::Javascript::Template::js_undefined>));
+                    js_template->Set("toWKT",    v8::FunctionTemplate::New(undefined));
+                    js_template->Set("toWKB",    v8::FunctionTemplate::New(undefined));
+                    js_template->Set("toHexWKB", v8::FunctionTemplate::New(undefined));
+                    js_template->Set("toArray",  v8::FunctionTemplate::New(undefined));
                 }
 
             };
