@@ -29,7 +29,6 @@ LDFLAGS = -L/usr/local/lib -lexpat -lpthread
 
 LIB_GD       = -lgd -lz -lm
 LIB_SQLITE   = -lsqlite3
-LIB_V8       = -lv8
 LIB_GEOS     = $(shell geos-config --libs)
 LIB_SHAPE    = -lshp $(LIB_GEOS)
 LIB_PROTOBUF = -lz -lprotobuf-lite -losmpbf

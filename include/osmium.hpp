@@ -36,12 +36,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
  * source code is at https://github.com/joto/osmium .
  */
 
-#ifdef OSMIUM_WITH_JAVASCRIPT
-# include <v8.h>
-# include <unicode/ustring.h>
-# include <osmium/utils/unicode.hpp>
-#endif // OSMIUM_WITH_JAVASCRIPT
-
 #include <osmpbf/osmpbf.h>
 
 /**
@@ -101,10 +95,6 @@ namespace Osmium {
 // normally this should be defined, otherwise you will generate invalid linestring geometries
 #define OSMIUM_CHECK_WAY_GEOMETRY
 
-#ifdef OSMIUM_WITH_JAVASCRIPT
-# include <osmium/javascript/template.hpp>
-#endif // OSMIUM_WITH_JAVASCRIPT
-
 #ifdef OSMIUM_WITH_GEOS
 # include <osmium/geometry_factory.hpp>
 #endif // OSMIUM_WITH_GEOS
@@ -121,11 +111,5 @@ namespace Osmium {
 #include <osmium/output.hpp>
 #include <osmium/export.hpp>
 #include <osmium/osmfile_impl.hpp>
-
-#ifdef OSMIUM_WITH_JAVASCRIPT
-# include <osmium/export/csv.hpp>
-# include <osmium/export/shapefile.hpp>
-# include <osmium/javascript/handler.hpp>
-#endif // OSMIUM_WITH_JAVASCRIPT
 
 #endif // OSMIUM_OSMIUM_HPP
