@@ -114,48 +114,6 @@ namespace Osmium {
                 throw std::range_error("no tag with this index");
             }
 
-#ifdef OSMIUM_WITH_JAVASCRIPT
-            v8::Local<v8::Object> js_instance() const {
-                return JavascriptTemplate::get<JavascriptTemplate>().create_instance((void*)this);
-            }
-
-            v8::Handle<v8::Value> js_get_tag_value_by_key(v8::Local<v8::String> property) const {
-                const char* key = Osmium::v8_String_to_utf8<Osmium::OSM::Tag::max_utf16_length_key>(property);
-                const char* value = get_tag_by_key(key);
-                if (value) {
-                    return Osmium::utf8_to_v8_String<Osmium::OSM::Tag::max_utf16_length_value>(value);
-                }
-                return v8::Undefined();
-            }
-
-            v8::Handle<v8::Array> js_enumerate_tag_keys() const {
-                v8::HandleScope scope;
-                v8::Local<v8::Array> array = v8::Array::New(m_tags.size());
-
-                const_iterator end = this->end();
-                int i = 0;
-                for (const_iterator it = begin(); it != end; ++it) {
-                    array->Set(i++, Osmium::utf8_to_v8_String<Osmium::OSM::Tag::max_utf16_length_key>(it->key()));
-                }
-
-                return scope.Close(array);
-            }
-
-            struct JavascriptTemplate : public Osmium::Javascript::Template {
-
-                JavascriptTemplate() : Osmium::Javascript::Template() {
-                    js_template->SetNamedPropertyHandler(
-                        named_property_getter<TagList, &TagList::js_get_tag_value_by_key>,
-                        0,
-                        0,
-                        0,
-                        property_enumerator<TagList, &TagList::js_enumerate_tag_keys>
-                    );
-                }
-
-            };
-#endif // OSMIUM_WITH_JAVASCRIPT
-
         private:
 
             std::vector<Tag> m_tags;

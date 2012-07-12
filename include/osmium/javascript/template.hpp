@@ -131,6 +131,16 @@ namespace Osmium {
                 return func( reinterpret_cast<Wrapped*>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()) );
             }
 
+            template<class Wrapped, v8::Handle<v8::Value> func(v8::Local<v8::String>, Wrapped*)>
+            static v8::Handle<v8::Value> named_property_getter_(v8::Local<v8::String> property, const v8::AccessorInfo &info) {
+                return func(property, reinterpret_cast<Wrapped*>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()));
+            }
+
+            template<class Wrapped, v8::Handle<v8::Array> func(Wrapped*)>
+            static v8::Handle<v8::Array> property_enumerator_(const v8::AccessorInfo &info) {
+                return func( reinterpret_cast<Wrapped*>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()) );
+            }
+
             template<class Wrapped, v8::Handle<v8::Value> (func)(const v8::Arguments&, Wrapped*)>
             static v8::Handle<v8::Value> function_template_(const v8::Arguments& args) {
                 return func(args, reinterpret_cast<Wrapped*>(v8::Local<v8::External>::Cast(args.Holder()->GetInternalField(0))->Value()) );

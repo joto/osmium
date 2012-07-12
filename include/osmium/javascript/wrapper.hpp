@@ -167,10 +167,6 @@ namespace Osmium {
 
             struct GeometryMultiPolygon : public Geometry {
 
-/*                v8::Local<v8::Object> js_instance() const {
-                    return JavascriptTemplate::get<JavascriptTemplate>().create_instance((void*)this);
-                }*/
-
                 static v8::Handle<v8::Array> ring_as_array(const geos::geom::LineString* ring) {
                     v8::HandleScope scope;
                     const geos::geom::CoordinateSequence* cs = ring->getCoordinatesRO();
@@ -228,6 +224,42 @@ namespace Osmium {
 
             };
 
+            struct OSMTagList : public Osmium::Javascript::Template {
+
+                static v8::Handle<v8::Value> get_tag_value_by_key(v8::Local<v8::String> property, Osmium::OSM::TagList* tag_list) {
+                    const char* key = Osmium::v8_String_to_utf8<Osmium::OSM::Tag::max_utf16_length_key>(property);
+                    const char* value = tag_list->get_tag_by_key(key);
+                    if (value) {
+                        return Osmium::utf8_to_v8_String<Osmium::OSM::Tag::max_utf16_length_value>(value);
+                    }
+                    return v8::Undefined();
+                }
+
+                static v8::Handle<v8::Array> enumerate_tag_keys(Osmium::OSM::TagList* tag_list) {
+                    v8::HandleScope scope;
+                    v8::Local<v8::Array> array = v8::Array::New(tag_list->size());
+
+                    Osmium::OSM::TagList::const_iterator end = tag_list->end();
+                    int i = 0;
+                    for (Osmium::OSM::TagList::const_iterator it = tag_list->begin(); it != end; ++it) {
+                        array->Set(i++, Osmium::utf8_to_v8_String<Osmium::OSM::Tag::max_utf16_length_key>(it->key()));
+                    }
+
+                    return scope.Close(array);
+                }
+
+                OSMTagList() : Osmium::Javascript::Template() {
+                    js_template->SetNamedPropertyHandler(
+                        named_property_getter_<Osmium::OSM::TagList, get_tag_value_by_key>,
+                        0,
+                        0,
+                        0,
+                        property_enumerator_<Osmium::OSM::TagList, enumerate_tag_keys>
+                    );
+                }
+
+            };
+
             struct OSMObject : public Osmium::Javascript::Template {
 
                 static v8::Handle<v8::Value> id(Osmium::OSM::Object* object) {
@@ -259,7 +291,7 @@ namespace Osmium {
                 }
 
                 static v8::Handle<v8::Value> tags(Osmium::OSM::Object* object) {
-                    return object->tags().js_instance();
+                    return OSMTagList::get<OSMTagList>().create_instance((void*)&(object->tags()));
                 }
 
                 OSMObject() : Osmium::Javascript::Template() {
