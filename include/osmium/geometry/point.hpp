@@ -162,12 +162,4 @@ namespace Osmium {
 
 } // namespace Osmium
 
-
-#ifdef OSMIUM_WITH_JAVASCRIPT
-v8::Handle<v8::Value> Osmium::OSM::Node::js_get_geom() const {
-    Osmium::Geometry::Point* geom = new Osmium::Geometry::Point(*this);
-    return Osmium::Javascript::Template::get<Osmium::Geometry::Point::JavascriptTemplate>().create_persistent_instance<Osmium::Geometry::Point>(geom);
-}
-#endif // OSMIUM_WITH_JAVASCRIPT
-
 #endif // OSMIUM_GEOMETRY_POINT_HPP

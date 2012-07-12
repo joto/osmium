@@ -264,42 +264,6 @@ namespace Osmium {
                 m_tags = tags;
             }
 
-#ifdef OSMIUM_WITH_JAVASCRIPT
-
-            v8::Handle<v8::Value> js_id() const {
-                return v8::Number::New(id());
-            }
-
-            v8::Handle<v8::Value> js_version() const {
-                return v8::Integer::New(version());
-            }
-
-            v8::Handle<v8::Value> js_timestamp_as_string() const {
-                return v8::String::New(timestamp_as_string().c_str());
-            }
-
-            v8::Handle<v8::Value> js_uid() const {
-                return v8::Integer::New(uid());
-            }
-
-            v8::Handle<v8::Value> js_user() const {
-                return Osmium::utf8_to_v8_String<max_utf16_length_username>(user());
-            }
-
-            v8::Handle<v8::Value> js_changeset() const {
-                return v8::Number::New(changeset());
-            }
-
-            v8::Handle<v8::Value> js_visible() const {
-                return v8::Boolean::New(visible());
-            }
-
-            v8::Handle<v8::Value> js_tags() const {
-                return tags().js_instance();
-            }
-
-#endif // OSMIUM_WITH_JAVASCRIPT
-
         protected:
 
             Object() :

@@ -194,16 +194,4 @@ namespace Osmium {
 
 } // namespace Osmium
 
-#ifdef OSMIUM_WITH_JAVASCRIPT
-v8::Handle<v8::Value> Osmium::OSM::Way::js_polygon_geom() const {
-    if (m_node_list.has_position() && m_node_list.is_closed()) {
-        Osmium::Geometry::Polygon* geom = new Osmium::Geometry::Polygon(*this);
-        return Osmium::Javascript::Template::get<Osmium::Geometry::Polygon::JavascriptTemplate>().create_persistent_instance<Osmium::Geometry::Polygon>(geom);
-    } else {
-        Osmium::Geometry::Null* geom = new Osmium::Geometry::Null();
-        return Osmium::Javascript::Template::get<Osmium::Geometry::Null::JavascriptTemplate>().create_persistent_instance<Osmium::Geometry::Null>(geom);
-    }
-}
-#endif // OSMIUM_WITH_JAVASCRIPT
-
 #endif // OSMIUM_GEOMETRY_POLYGON_HPP

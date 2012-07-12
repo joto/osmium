@@ -125,6 +125,12 @@ namespace Osmium {
                 return (( reinterpret_cast<TObject*>(v8::Local<v8::External>::Cast(args.Holder()->GetInternalField(0))->Value()) )->*(func))(args);
             }
 
+
+            template<class Wrapped, v8::Handle<v8::Value> (func)(Wrapped*)>
+            static v8::Handle<v8::Value> accessor_getter_(v8::Local<v8::String>, const v8::AccessorInfo &info) {
+                return func( reinterpret_cast<Wrapped*>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()) );
+            }
+
         protected:
 
             v8::Persistent<v8::ObjectTemplate> js_template;

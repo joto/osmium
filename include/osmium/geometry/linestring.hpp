@@ -202,26 +202,4 @@ namespace Osmium {
 
 } // namespace Osmium
 
-#ifdef OSMIUM_WITH_JAVASCRIPT
-v8::Handle<v8::Value> Osmium::OSM::Way::js_geom() const {
-    if (m_node_list.has_position()) {
-        Osmium::Geometry::LineString* geom = new Osmium::Geometry::LineString(*this);
-        return Osmium::Javascript::Template::get<Osmium::Geometry::LineString::JavascriptTemplate>().create_persistent_instance<Osmium::Geometry::LineString>(geom);
-    } else {
-        Osmium::Geometry::Null* geom = new Osmium::Geometry::Null();
-        return Osmium::Javascript::Template::get<Osmium::Geometry::Null::JavascriptTemplate>().create_persistent_instance<Osmium::Geometry::Null>(geom);
-    }
-}
-
-v8::Handle<v8::Value> Osmium::OSM::Way::js_reverse_geom() const {
-    if (m_node_list.has_position()) {
-        Osmium::Geometry::LineString* geom = new Osmium::Geometry::LineString(*this, true);
-        return Osmium::Javascript::Template::get<Osmium::Geometry::LineString::JavascriptTemplate>().create_persistent_instance<Osmium::Geometry::LineString>(geom);
-    } else {
-        Osmium::Geometry::Null* geom = new Osmium::Geometry::Null();
-        return Osmium::Javascript::Template::get<Osmium::Geometry::Null::JavascriptTemplate>().create_persistent_instance<Osmium::Geometry::Null>(geom);
-    }
-}
-#endif // OSMIUM_WITH_JAVASCRIPT
-
 #endif // OSMIUM_GEOMETRY_LINESTRING_HPP

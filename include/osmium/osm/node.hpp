@@ -76,11 +76,6 @@ namespace Osmium {
                 return m_position.lat();
             }
 
-#ifdef OSMIUM_WITH_JAVASCRIPT
-            v8::Handle<v8::Value> js_get_geom() const;
-
-#endif // OSMIUM_WITH_JAVASCRIPT
-
             /**
              * Nodes can be ordered by id and version.
              * Note that we use the absolute value of the id for a

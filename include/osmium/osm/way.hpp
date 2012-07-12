@@ -178,19 +178,6 @@ namespace Osmium {
             }
 #endif // OSMIUM_WITH_GEOS
 
-#ifdef OSMIUM_WITH_JAVASCRIPT
-            v8::Handle<v8::Value> js_nodes() const {
-                return m_node_list.js_instance();
-            }
-
-            v8::Handle<v8::Value> js_geom() const;
-
-            v8::Handle<v8::Value> js_reverse_geom() const;
-
-            v8::Handle<v8::Value> js_polygon_geom() const;
-
-#endif // OSMIUM_WITH_JAVASCRIPT
-
             /**
              * Ways can be ordered by id and version.
              * Note that we use the absolute value of the id for a
