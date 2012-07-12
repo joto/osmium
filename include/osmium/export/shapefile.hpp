@@ -35,12 +35,16 @@ namespace Osmium {
 
         class Shapefile : boost::noncopyable {
 
+        public:
+
             // the following limits are defined by the shapefile spec
             static const unsigned int max_dbf_field_name_length =  11;
             static const          int max_dbf_field_length      = 255;
 
             // this limit has been arrived at experimentally
             static const unsigned int max_dbf_fields = 2047;
+
+        private:
 
             class Field {
 
@@ -152,6 +156,14 @@ namespace Osmium {
                 add_field(name, ftype, width, decimals);
             }
 
+            const std::vector<Field>& fields() const {
+                return m_fields;
+            }
+
+            const Field& field(int n) const {
+                return m_fields[n];
+            }
+
             /**
              * Add a new geometry (shape object) to the Shapefile. You have to call
              * this first for every new shape. After that you call add_attribute()
@@ -238,145 +250,6 @@ namespace Osmium {
             void add_attribute_with_truncate(const int field, const std::string& value) {
                 add_attribute_with_truncate(field, value.c_str());
             }
-
-#ifdef OSMIUM_WITH_JAVASCRIPT
-            int add_string_attribute(int n, v8::Local<v8::Value> value) const {
-                uint16_t source[(max_dbf_field_length+2)*2];
-                char dest[(max_dbf_field_length+1)*4];
-                memset(source, 0, (max_dbf_field_length+2)*4);
-                memset(dest, 0, (max_dbf_field_length+1)*4);
-                int32_t dest_length;
-                UErrorCode error_code = U_ZERO_ERROR;
-                value->ToString()->Write(source, 0, max_dbf_field_length+1);
-                u_strToUTF8(dest, m_fields[n].width(), &dest_length, source, std::min(max_dbf_field_length+1, value->ToString()->Length()), &error_code);
-                if (error_code == U_BUFFER_OVERFLOW_ERROR) {
-                    // thats ok, it just means we clip the text at that point
-                } else if (U_FAILURE(error_code)) {
-                    throw std::runtime_error("UTF-16 to UTF-8 conversion failed");
-                }
-                return DBFWriteStringAttribute(m_dbf_handle, m_current_shape, n, dest);
-            }
-
-            int add_logical_attribute(int n, v8::Local<v8::Value> value) const {
-                v8::String::Utf8Value str(value);
-
-                if (atoi(*str) == 1 || !strncasecmp(*str, "T", 1) || !strncasecmp(*str, "Y", 1)) {
-                    return DBFWriteLogicalAttribute(m_dbf_handle, m_current_shape, n, 'T');
-                } else if ((!strcmp(*str, "0")) || !strncasecmp(*str, "F", 1) || !strncasecmp(*str, "N", 1)) {
-                    return DBFWriteLogicalAttribute(m_dbf_handle, m_current_shape, n, 'F');
-                } else {
-                    return DBFWriteNULLAttribute(m_dbf_handle, m_current_shape, n);
-                }
-            }
-
-            /**
-            * Add a geometry to the shapefile.
-            */
-            bool add(Osmium::Geometry::Geometry* geometry, ///< the geometry
-                     v8::Local<v8::Object> attributes) {   ///< a %Javascript object (hash) with the attributes
-
-                try {
-                    add_geometry(geometry->create_shp_object());
-                } catch (Osmium::Exception::IllegalGeometry) {
-                    return false;
-                }
-
-                int ok = 0;
-                for (size_t n=0; n < m_fields.size(); n++) {
-                    v8::Local<v8::String> key = v8::String::New(m_fields[n].name().c_str());
-                    if (attributes->HasRealNamedProperty(key)) {
-                        v8::Local<v8::Value> value = attributes->GetRealNamedProperty(key);
-                        if (value->IsUndefined() || value->IsNull()) {
-                            DBFWriteNULLAttribute(m_dbf_handle, m_current_shape, n);
-                        } else {
-                            switch (m_fields[n].type()) {
-                                case FTString:
-                                    ok = add_string_attribute(n, value);
-                                    break;
-                                case FTInteger:
-                                    ok = DBFWriteIntegerAttribute(m_dbf_handle, m_current_shape, n, value->Int32Value());
-                                    break;
-                                case FTDouble:
-                                    throw std::runtime_error("fields of type double not implemented");
-                                    break;
-                                case FTLogical:
-                                    ok = add_logical_attribute(n, value);
-                                    break;
-                                default:
-                                    ok = 0; // should never be here
-                                    break;
-                            }
-                            if (!ok) {
-                                std::string errmsg("failed to add attribute '");
-                                errmsg += m_fields[n].name();
-                                errmsg += "'\n";
-                                throw std::runtime_error(errmsg);
-                            }
-                        }
-                    } else {
-                        DBFWriteNULLAttribute(m_dbf_handle, m_current_shape, n);
-                    }
-                }
-                return true;
-            }
-
-            v8::Local<v8::Object> js_instance() const {
-                return JavascriptTemplate::get<JavascriptTemplate>().create_instance((void*)this);
-            }
-
-            v8::Handle<v8::Value> js_add_field(const v8::Arguments& args) {
-                if (args.Length() < 3 || args.Length() > 4) {
-                    throw std::runtime_error("Wrong number of arguments to add_field method.");
-                }
-
-                v8::String::Utf8Value name(args[0]);
-                std::string sname(*name);
-
-                v8::String::Utf8Value type(args[1]);
-                std::string stype(*type);
-
-                int width = args[2]->Int32Value();
-                int decimals = (args.Length() == 4) ? args[3]->Int32Value() : 0;
-
-                add_field(sname, stype, width, decimals);
-
-                return v8::Integer::New(1);
-            }
-
-            v8::Handle<v8::Value> js_add(const v8::Arguments& args) {
-                if (args.Length() != 2) {
-                    throw std::runtime_error("Wrong number of arguments to add method.");
-                }
-
-                v8::Local<v8::Object> xxx = v8::Local<v8::Object>::Cast(args[0]);
-                Osmium::Geometry::Geometry* geometry = (Osmium::Geometry::Geometry*) v8::Local<v8::External>::Cast(xxx->GetInternalField(0))->Value();
-
-                try {
-                    add(geometry, v8::Local<v8::Object>::Cast(args[1]));
-                } catch (Osmium::Exception::IllegalGeometry) {
-                    std::cerr << "Ignoring object with illegal geometry." << std::endl;
-                    return v8::Integer::New(0);
-                }
-
-                return v8::Integer::New(1);
-            }
-
-            v8::Handle<v8::Value> js_close(const v8::Arguments& /*args*/) {
-                close();
-                return v8::Undefined();
-            }
-
-            struct JavascriptTemplate : public Osmium::Javascript::Template {
-
-                JavascriptTemplate() : Osmium::Javascript::Template() {
-                    js_template->Set("add_field", v8::FunctionTemplate::New(function_template<Shapefile, &Shapefile::js_add_field>));
-                    js_template->Set("add",       v8::FunctionTemplate::New(function_template<Shapefile, &Shapefile::js_add>));
-                    js_template->Set("close",     v8::FunctionTemplate::New(function_template<Shapefile, &Shapefile::js_close>));
-                }
-
-            };
-
-#endif // OSMIUM_WITH_JAVASCRIPT
 
         protected:
 

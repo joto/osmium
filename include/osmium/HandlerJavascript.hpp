@@ -167,7 +167,7 @@ namespace Osmium {
                         throw std::runtime_error("unkown shapefile type");
                     }
 
-                    return oc->js_instance();
+                    return Osmium::Javascript::WrapperTemplate::ExportShapefile::get<Osmium::Javascript::WrapperTemplate::ExportShapefile>().create_instance((void*)(oc));
                 }
             }
 #endif // OSMIUM_WITH_SHPLIB
