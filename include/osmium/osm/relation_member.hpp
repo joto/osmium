@@ -83,37 +83,6 @@ namespace Osmium {
                 return *this;
             }
 
-#ifdef OSMIUM_WITH_JAVASCRIPT
-            v8::Local<v8::Object> js_instance() const {
-                return JavascriptTemplate::get<JavascriptTemplate>().create_instance((void*)this);
-            }
-
-            v8::Handle<v8::Value> js_ref() const {
-                return v8::Number::New(ref());
-            }
-
-            v8::Handle<v8::Value> js_type() const {
-                char t[2];
-                t[0] = type();
-                t[1] = 0;
-                return v8::String::NewSymbol(t);
-            }
-
-            v8::Handle<v8::Value> js_role() const {
-                return Osmium::utf8_to_v8_String<max_utf16_length_role>(role());
-            }
-
-            struct JavascriptTemplate : public Osmium::Javascript::Template {
-
-                JavascriptTemplate() : Osmium::Javascript::Template() {
-                    js_template->SetAccessor(v8::String::NewSymbol("type"), accessor_getter<Osmium::OSM::RelationMember, &Osmium::OSM::RelationMember::js_type>);
-                    js_template->SetAccessor(v8::String::NewSymbol("ref"),  accessor_getter<Osmium::OSM::RelationMember, &Osmium::OSM::RelationMember::js_ref>);
-                    js_template->SetAccessor(v8::String::NewSymbol("role"), accessor_getter<Osmium::OSM::RelationMember, &Osmium::OSM::RelationMember::js_role>);
-                }
-
-            };
-#endif // OSMIUM_WITH_JAVASCRIPT
-
         private:
 
             osm_object_id_t m_ref;

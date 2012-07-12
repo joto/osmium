@@ -294,10 +294,35 @@ namespace Osmium {
 
             };
 
+            struct OSMRelationMember : public Osmium::Javascript::Template {
+
+                static v8::Handle<v8::Value> ref(Osmium::OSM::RelationMember* member) {
+                    return v8::Number::New(member->ref());
+                }
+
+                static v8::Handle<v8::Value> type(Osmium::OSM::RelationMember* member) {
+                    char t[2];
+                    t[0] = member->type();
+                    t[1] = 0;
+                    return v8::String::NewSymbol(t);
+                }
+
+                static v8::Handle<v8::Value> role(Osmium::OSM::RelationMember* member) {
+                    return Osmium::utf8_to_v8_String<Osmium::OSM::RelationMember::max_utf16_length_role>(member->role());
+                }
+
+                OSMRelationMember() : Osmium::Javascript::Template() {
+                    js_template->SetAccessor(v8::String::NewSymbol("type"), accessor_getter_<Osmium::OSM::RelationMember, type>);
+                    js_template->SetAccessor(v8::String::NewSymbol("ref"),  accessor_getter_<Osmium::OSM::RelationMember, ref>);
+                    js_template->SetAccessor(v8::String::NewSymbol("role"), accessor_getter_<Osmium::OSM::RelationMember, role>);
+                }
+
+            };
+
             struct OSMRelationMemberList : public Osmium::Javascript::Template {
 
                 static v8::Handle<v8::Value> get_member(uint32_t index, Osmium::OSM::RelationMemberList* rml) {
-                    return (*rml)[index].js_instance();
+                    return OSMRelationMember::get<OSMRelationMember>().create_instance((void*)&((*rml)[index]));
                 }
 
                 static v8::Handle<v8::Array> enumerate_members(Osmium::OSM::RelationMemberList* rml) {
