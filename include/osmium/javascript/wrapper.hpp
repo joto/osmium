@@ -73,9 +73,9 @@ namespace Osmium {
                 }
 
                 Geometry() : Osmium::Javascript::Template() {
-                    js_template->Set("toWKT",    v8::FunctionTemplate::New(function_template_<Osmium::Geometry::Geometry, to_wkt>));
-                    js_template->Set("toWKB",    v8::FunctionTemplate::New(function_template_<Osmium::Geometry::Geometry, to_wkb>));
-                    js_template->Set("toHexWKB", v8::FunctionTemplate::New(function_template_<Osmium::Geometry::Geometry, to_hexwkb>));
+                    js_template->Set("toWKT",    v8::FunctionTemplate::New(function_template<Osmium::Geometry::Geometry, to_wkt>));
+                    js_template->Set("toWKB",    v8::FunctionTemplate::New(function_template<Osmium::Geometry::Geometry, to_wkb>));
+                    js_template->Set("toHexWKB", v8::FunctionTemplate::New(function_template<Osmium::Geometry::Geometry, to_hexwkb>));
                 }
 
             };
@@ -106,9 +106,9 @@ namespace Osmium {
                 }
 
                 GeometryPoint() : Geometry() {
-                    js_template->SetAccessor(v8::String::NewSymbol("lon"), accessor_getter_<Osmium::Geometry::Point, lon>);
-                    js_template->SetAccessor(v8::String::NewSymbol("lat"), accessor_getter_<Osmium::Geometry::Point, lat>);
-                    js_template->Set("toArray", v8::FunctionTemplate::New(function_template_<Osmium::Geometry::Point, to_array>));
+                    js_template->SetAccessor(v8::String::NewSymbol("lon"), accessor_getter<Osmium::Geometry::Point, lon>);
+                    js_template->SetAccessor(v8::String::NewSymbol("lat"), accessor_getter<Osmium::Geometry::Point, lat>);
+                    js_template->Set("toArray", v8::FunctionTemplate::New(function_template<Osmium::Geometry::Point, to_array>));
                 }
 
             };
@@ -133,7 +133,7 @@ namespace Osmium {
                 }
 
                 GeometryLineString() : Geometry() {
-                    js_template->Set("toArray", v8::FunctionTemplate::New(function_template_<Osmium::Geometry::LineString, to_array>));
+                    js_template->Set("toArray", v8::FunctionTemplate::New(function_template<Osmium::Geometry::LineString, to_array>));
                 }
 
             };
@@ -160,7 +160,7 @@ namespace Osmium {
                 }
 
                 GeometryPolygon() : Geometry() {
-                    js_template->Set("toArray", v8::FunctionTemplate::New(function_template_<Osmium::Geometry::Polygon, to_array>));
+                    js_template->Set("toArray", v8::FunctionTemplate::New(function_template<Osmium::Geometry::Polygon, to_array>));
                 }
 
             };
@@ -219,7 +219,7 @@ namespace Osmium {
                 }
 
                 GeometryMultiPolygon() : Geometry() {
-                    js_template->Set("toArray", v8::FunctionTemplate::New(function_template_<Osmium::Geometry::MultiPolygon, to_array>));
+                    js_template->Set("toArray", v8::FunctionTemplate::New(function_template<Osmium::Geometry::MultiPolygon, to_array>));
                 }
 
             };
@@ -250,11 +250,11 @@ namespace Osmium {
 
                 OSMTagList() : Osmium::Javascript::Template() {
                     js_template->SetNamedPropertyHandler(
-                        named_property_getter_<Osmium::OSM::TagList, get_tag_value_by_key>,
+                        named_property_getter<Osmium::OSM::TagList, get_tag_value_by_key>,
                         0,
                         0,
                         0,
-                        property_enumerator_<Osmium::OSM::TagList, enumerate_tag_keys>
+                        property_enumerator<Osmium::OSM::TagList, enumerate_tag_keys>
                     );
                 }
 
@@ -282,13 +282,13 @@ namespace Osmium {
                 }
 
                 OSMWayNodeList() : Osmium::Javascript::Template() {
-                    js_template->SetAccessor(v8::String::NewSymbol("length"), accessor_getter_<Osmium::OSM::WayNodeList, length>);
+                    js_template->SetAccessor(v8::String::NewSymbol("length"), accessor_getter<Osmium::OSM::WayNodeList, length>);
                     js_template->SetIndexedPropertyHandler(
-                        indexed_property_getter_<Osmium::OSM::WayNodeList, get_node_id>,
+                        indexed_property_getter<Osmium::OSM::WayNodeList, get_node_id>,
                         0,
                         0,
                         0,
-                        property_enumerator_<Osmium::OSM::WayNodeList, enumerate_nodes>
+                        property_enumerator<Osmium::OSM::WayNodeList, enumerate_nodes>
                     );
                 }
 
@@ -312,9 +312,9 @@ namespace Osmium {
                 }
 
                 OSMRelationMember() : Osmium::Javascript::Template() {
-                    js_template->SetAccessor(v8::String::NewSymbol("type"), accessor_getter_<Osmium::OSM::RelationMember, type>);
-                    js_template->SetAccessor(v8::String::NewSymbol("ref"),  accessor_getter_<Osmium::OSM::RelationMember, ref>);
-                    js_template->SetAccessor(v8::String::NewSymbol("role"), accessor_getter_<Osmium::OSM::RelationMember, role>);
+                    js_template->SetAccessor(v8::String::NewSymbol("type"), accessor_getter<Osmium::OSM::RelationMember, type>);
+                    js_template->SetAccessor(v8::String::NewSymbol("ref"),  accessor_getter<Osmium::OSM::RelationMember, ref>);
+                    js_template->SetAccessor(v8::String::NewSymbol("role"), accessor_getter<Osmium::OSM::RelationMember, role>);
                 }
 
             };
@@ -341,13 +341,13 @@ namespace Osmium {
                 }
 
                 OSMRelationMemberList() : Osmium::Javascript::Template() {
-                    js_template->SetAccessor(v8::String::NewSymbol("length"), accessor_getter_<Osmium::OSM::RelationMemberList, length>);
+                    js_template->SetAccessor(v8::String::NewSymbol("length"), accessor_getter<Osmium::OSM::RelationMemberList, length>);
                     js_template->SetIndexedPropertyHandler(
-                        indexed_property_getter_<Osmium::OSM::RelationMemberList, get_member>,
+                        indexed_property_getter<Osmium::OSM::RelationMemberList, get_member>,
                         0,
                         0,
                         0,
-                        property_enumerator_<Osmium::OSM::RelationMemberList, enumerate_members>
+                        property_enumerator<Osmium::OSM::RelationMemberList, enumerate_members>
                     );
                 }
 
@@ -388,14 +388,14 @@ namespace Osmium {
                 }
 
                 OSMObject() : Osmium::Javascript::Template() {
-                    js_template->SetAccessor(v8::String::NewSymbol("id"),        accessor_getter_<Osmium::OSM::Object, id>);
-                    js_template->SetAccessor(v8::String::NewSymbol("version"),   accessor_getter_<Osmium::OSM::Object, version>);
-                    js_template->SetAccessor(v8::String::NewSymbol("timestamp"), accessor_getter_<Osmium::OSM::Object, timestamp_as_string>);
-                    js_template->SetAccessor(v8::String::NewSymbol("uid"),       accessor_getter_<Osmium::OSM::Object, uid>);
-                    js_template->SetAccessor(v8::String::NewSymbol("user"),      accessor_getter_<Osmium::OSM::Object, user>);
-                    js_template->SetAccessor(v8::String::NewSymbol("changeset"), accessor_getter_<Osmium::OSM::Object, changeset>);
-                    js_template->SetAccessor(v8::String::NewSymbol("tags"),      accessor_getter_<Osmium::OSM::Object, tags>);
-                    js_template->SetAccessor(v8::String::NewSymbol("visible"),   accessor_getter_<Osmium::OSM::Object, visible>);
+                    js_template->SetAccessor(v8::String::NewSymbol("id"),        accessor_getter<Osmium::OSM::Object, id>);
+                    js_template->SetAccessor(v8::String::NewSymbol("version"),   accessor_getter<Osmium::OSM::Object, version>);
+                    js_template->SetAccessor(v8::String::NewSymbol("timestamp"), accessor_getter<Osmium::OSM::Object, timestamp_as_string>);
+                    js_template->SetAccessor(v8::String::NewSymbol("uid"),       accessor_getter<Osmium::OSM::Object, uid>);
+                    js_template->SetAccessor(v8::String::NewSymbol("user"),      accessor_getter<Osmium::OSM::Object, user>);
+                    js_template->SetAccessor(v8::String::NewSymbol("changeset"), accessor_getter<Osmium::OSM::Object, changeset>);
+                    js_template->SetAccessor(v8::String::NewSymbol("tags"),      accessor_getter<Osmium::OSM::Object, tags>);
+                    js_template->SetAccessor(v8::String::NewSymbol("visible"),   accessor_getter<Osmium::OSM::Object, visible>);
                 }
 
             };
@@ -408,7 +408,7 @@ namespace Osmium {
                 }
 
                 OSMNode() : OSMObject() {
-                    js_template->SetAccessor(v8::String::NewSymbol("geom"), accessor_getter_<Osmium::OSM::Node, get_geom>);
+                    js_template->SetAccessor(v8::String::NewSymbol("geom"), accessor_getter<Osmium::OSM::Node, get_geom>);
                 }
 
             };
@@ -450,10 +450,10 @@ namespace Osmium {
                 }
 
                 OSMWay() : OSMObject() {
-                    js_template->SetAccessor(v8::String::NewSymbol("nodes"),        accessor_getter_<Osmium::OSM::Way, nodes>);
-                    js_template->SetAccessor(v8::String::NewSymbol("geom"),         accessor_getter_<Osmium::OSM::Way, geom>);
-                    js_template->SetAccessor(v8::String::NewSymbol("reverse_geom"), accessor_getter_<Osmium::OSM::Way, reverse_geom>);
-                    js_template->SetAccessor(v8::String::NewSymbol("polygon_geom"), accessor_getter_<Osmium::OSM::Way, polygon_geom>);
+                    js_template->SetAccessor(v8::String::NewSymbol("nodes"),        accessor_getter<Osmium::OSM::Way, nodes>);
+                    js_template->SetAccessor(v8::String::NewSymbol("geom"),         accessor_getter<Osmium::OSM::Way, geom>);
+                    js_template->SetAccessor(v8::String::NewSymbol("reverse_geom"), accessor_getter<Osmium::OSM::Way, reverse_geom>);
+                    js_template->SetAccessor(v8::String::NewSymbol("polygon_geom"), accessor_getter<Osmium::OSM::Way, polygon_geom>);
                 }
 
             };
@@ -465,7 +465,7 @@ namespace Osmium {
                 }
 
                 OSMRelation() : OSMObject() {
-                    js_template->SetAccessor(v8::String::NewSymbol("members"), accessor_getter_<Osmium::OSM::Relation, members>);
+                    js_template->SetAccessor(v8::String::NewSymbol("members"), accessor_getter<Osmium::OSM::Relation, members>);
                 }
 
             };
@@ -488,8 +488,8 @@ namespace Osmium {
                 }
 
                 OSMArea() : OSMObject() {
-                    js_template->SetAccessor(v8::String::NewSymbol("from"), accessor_getter_<Osmium::OSM::Area, from>);
-                    js_template->SetAccessor(v8::String::NewSymbol("geom"), accessor_getter_<Osmium::OSM::Area, geom>);
+                    js_template->SetAccessor(v8::String::NewSymbol("from"), accessor_getter<Osmium::OSM::Area, from>);
+                    js_template->SetAccessor(v8::String::NewSymbol("geom"), accessor_getter<Osmium::OSM::Area, geom>);
                 }
 
             };
@@ -514,8 +514,8 @@ namespace Osmium {
                 }
 
                 ExportCSV() : Osmium::Javascript::Template() {
-                    js_template->Set("print", v8::FunctionTemplate::New(function_template_<Osmium::Export::CSV, print>));
-                    js_template->Set("close", v8::FunctionTemplate::New(function_template_<Osmium::Export::CSV, close>));
+                    js_template->Set("print", v8::FunctionTemplate::New(function_template<Osmium::Export::CSV, print>));
+                    js_template->Set("close", v8::FunctionTemplate::New(function_template<Osmium::Export::CSV, close>));
                 }
 
             };
@@ -639,9 +639,9 @@ namespace Osmium {
                 }
 
                 ExportShapefile() : Osmium::Javascript::Template() {
-                    js_template->Set("add_field", v8::FunctionTemplate::New(function_template_<Osmium::Export::Shapefile, add_field>));
-                    js_template->Set("add",       v8::FunctionTemplate::New(function_template_<Osmium::Export::Shapefile, add>));
-                    js_template->Set("close",     v8::FunctionTemplate::New(function_template_<Osmium::Export::Shapefile, close>));
+                    js_template->Set("add_field", v8::FunctionTemplate::New(function_template<Osmium::Export::Shapefile, add_field>));
+                    js_template->Set("add",       v8::FunctionTemplate::New(function_template<Osmium::Export::Shapefile, add>));
+                    js_template->Set("close",     v8::FunctionTemplate::New(function_template<Osmium::Export::Shapefile, close>));
                 }
 
             };
