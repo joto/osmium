@@ -151,53 +151,9 @@ namespace Osmium {
                 return *this;
             }
 
-#ifdef OSMIUM_WITH_JAVASCRIPT
-            v8::Local<v8::Object> js_instance() const {
-                return JavascriptTemplate::get<JavascriptTemplate>().create_instance((void *)this);
-            }
-
-            v8::Handle<v8::Value> js_length() const {
-                return v8::Number::New(m_list.size());
-            }
-
-            v8::Handle<v8::Value> js_get_node_id(uint32_t index) const {
-                return v8::Number::New(m_list[index].ref());
-            }
-
-            v8::Handle<v8::Array> js_enumerate_nodes() const {
-                v8::HandleScope scope;
-                v8::Local<v8::Array> array = v8::Array::New(m_list.size());
-
-                for (unsigned int i=0; i < m_list.size(); ++i) {
-                    array->Set(i, v8::Integer::New(i));
-                }
-
-                return scope.Close(array);
-            }
-
-            struct JavascriptTemplate : public Osmium::Javascript::Template {
-
-                JavascriptTemplate() : Osmium::Javascript::Template() {
-                    js_template->SetAccessor(v8::String::NewSymbol("length"), accessor_getter<WayNodeList, &WayNodeList::js_length>);
-                    js_template->SetIndexedPropertyHandler(
-                        indexed_property_getter<WayNodeList, &WayNodeList::js_get_node_id>,
-                        0,
-                        0,
-                        0,
-                        property_enumerator<WayNodeList, &WayNodeList::js_enumerate_nodes>
-                    );
-                }
-
-            };
-#endif // OSMIUM_WITH_JAVASCRIPT
-
         private:
 
             std::vector<WayNode> m_list;
-
-#ifdef OSMIUM_WITH_JAVASCRIPT
-            v8::Local<v8::Object> m_js_instance;
-#endif // OSMIUM_WITH_JAVASCRIPT
 
         }; // class WayNodeList
 

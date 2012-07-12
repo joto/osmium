@@ -260,6 +260,40 @@ namespace Osmium {
 
             };
 
+            struct OSMWayNodeList : public Osmium::Javascript::Template {
+
+                static v8::Handle<v8::Value> length(Osmium::OSM::WayNodeList* wnl) {
+                    return v8::Number::New(wnl->size());
+                }
+
+                static v8::Handle<v8::Value> get_node_id(uint32_t index, Osmium::OSM::WayNodeList* wnl) {
+                    return v8::Number::New((*wnl)[index].ref());
+                }
+
+                static v8::Handle<v8::Array> enumerate_nodes(Osmium::OSM::WayNodeList* wnl) {
+                    v8::HandleScope scope;
+                    v8::Local<v8::Array> array = v8::Array::New(wnl->size());
+
+                    for (unsigned int i=0; i < wnl->size(); ++i) {
+                        array->Set(i, v8::Integer::New(i));
+                    }
+
+                    return scope.Close(array);
+                }
+
+                OSMWayNodeList() : Osmium::Javascript::Template() {
+                    js_template->SetAccessor(v8::String::NewSymbol("length"), accessor_getter_<Osmium::OSM::WayNodeList, length>);
+                    js_template->SetIndexedPropertyHandler(
+                        indexed_property_getter_<Osmium::OSM::WayNodeList, get_node_id>,
+                        0,
+                        0,
+                        0,
+                        property_enumerator_<Osmium::OSM::WayNodeList, enumerate_nodes>
+                    );
+                }
+
+            };
+
             struct OSMObject : public Osmium::Javascript::Template {
 
                 static v8::Handle<v8::Value> id(Osmium::OSM::Object* object) {
@@ -323,7 +357,7 @@ namespace Osmium {
             struct OSMWay : public OSMObject {
 
                 static v8::Handle<v8::Value> nodes(Osmium::OSM::Way* way) {
-                    return way->nodes().js_instance();
+                    return OSMWayNodeList::get<OSMWayNodeList>().create_instance((void *)&(way->nodes()));
                 }
 
                 static v8::Handle<v8::Value> geom(Osmium::OSM::Way* way) {

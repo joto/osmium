@@ -128,7 +128,7 @@ namespace Osmium {
 
             template<class Wrapped, v8::Handle<v8::Value> (func)(Wrapped*)>
             static v8::Handle<v8::Value> accessor_getter_(v8::Local<v8::String>, const v8::AccessorInfo &info) {
-                return func( reinterpret_cast<Wrapped*>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()) );
+                return func(reinterpret_cast<Wrapped*>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()));
             }
 
             template<class Wrapped, v8::Handle<v8::Value> func(v8::Local<v8::String>, Wrapped*)>
@@ -136,14 +136,19 @@ namespace Osmium {
                 return func(property, reinterpret_cast<Wrapped*>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()));
             }
 
+            template<class Wrapped, v8::Handle<v8::Value> func(uint32_t, Wrapped*)>
+            static v8::Handle<v8::Value> indexed_property_getter_(uint32_t index, const v8::AccessorInfo &info) {
+                return func(index, reinterpret_cast<Wrapped*>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()));
+            }
+
             template<class Wrapped, v8::Handle<v8::Array> func(Wrapped*)>
             static v8::Handle<v8::Array> property_enumerator_(const v8::AccessorInfo &info) {
-                return func( reinterpret_cast<Wrapped*>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()) );
+                return func(reinterpret_cast<Wrapped*>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()));
             }
 
             template<class Wrapped, v8::Handle<v8::Value> (func)(const v8::Arguments&, Wrapped*)>
             static v8::Handle<v8::Value> function_template_(const v8::Arguments& args) {
-                return func(args, reinterpret_cast<Wrapped*>(v8::Local<v8::External>::Cast(args.Holder()->GetInternalField(0))->Value()) );
+                return func(args, reinterpret_cast<Wrapped*>(v8::Local<v8::External>::Cast(args.Holder()->GetInternalField(0))->Value()));
             }
 
         protected:
