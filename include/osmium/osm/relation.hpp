@@ -36,18 +36,10 @@ namespace Osmium {
         public:
 
             Relation() : Object(), m_members() {
-#ifdef OSMIUM_WITH_JAVASCRIPT
-                v8::HandleScope handle_scope;
-                js_object_instance = v8::Persistent<v8::Object>::New(JavascriptTemplate::get<JavascriptTemplate>().create_instance(this));
-#endif // OSMIUM_WITH_JAVASCRIPT
             }
 
             Relation(const Relation &r) : Object(r) {
                 m_members = r.members();
-#ifdef OSMIUM_WITH_JAVASCRIPT
-                v8::HandleScope handle_scope;
-                js_object_instance = v8::Persistent<v8::Object>::New(JavascriptTemplate::get<JavascriptTemplate>().create_instance(this));
-#endif // OSMIUM_WITH_JAVASCRIPT
             }
 
             const RelationMemberList& members() const {
@@ -74,13 +66,6 @@ namespace Osmium {
                 return members().js_instance();
             }
 
-            struct JavascriptTemplate : public Osmium::OSM::Object::JavascriptTemplate {
-
-                JavascriptTemplate() : Osmium::OSM::Object::JavascriptTemplate() {
-                    js_template->SetAccessor(v8::String::NewSymbol("members"), accessor_getter<Relation, &Relation::js_members>);
-                }
-
-            };
 #endif // OSMIUM_WITH_JAVASCRIPT
 
             /**

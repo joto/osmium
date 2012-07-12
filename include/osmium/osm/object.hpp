@@ -265,11 +265,6 @@ namespace Osmium {
             }
 
 #ifdef OSMIUM_WITH_JAVASCRIPT
-            v8::Persistent<v8::Object> js_object_instance;
-
-            v8::Persistent<v8::Object> get_instance() const {
-                return js_object_instance;
-            }
 
             v8::Handle<v8::Value> js_id() const {
                 return v8::Number::New(id());
@@ -303,20 +298,6 @@ namespace Osmium {
                 return tags().js_instance();
             }
 
-            struct JavascriptTemplate : public Osmium::Javascript::Template {
-
-                JavascriptTemplate() : Osmium::Javascript::Template() {
-                    js_template->SetAccessor(v8::String::NewSymbol("id"),        accessor_getter<Object, &Object::js_id>);
-                    js_template->SetAccessor(v8::String::NewSymbol("version"),   accessor_getter<Object, &Object::js_version>);
-                    js_template->SetAccessor(v8::String::NewSymbol("timestamp"), accessor_getter<Object, &Object::js_timestamp_as_string>);
-                    js_template->SetAccessor(v8::String::NewSymbol("uid"),       accessor_getter<Object, &Object::js_uid>);
-                    js_template->SetAccessor(v8::String::NewSymbol("user"),      accessor_getter<Object, &Object::js_user>);
-                    js_template->SetAccessor(v8::String::NewSymbol("changeset"), accessor_getter<Object, &Object::js_changeset>);
-                    js_template->SetAccessor(v8::String::NewSymbol("tags"),      accessor_getter<Object, &Object::js_tags>);
-                    js_template->SetAccessor(v8::String::NewSymbol("visible"),   accessor_getter<Object, &Object::js_visible>);
-                }
-
-            };
 #endif // OSMIUM_WITH_JAVASCRIPT
 
         protected:
@@ -346,9 +327,6 @@ namespace Osmium {
             }
 
             virtual ~Object() {
-#ifdef OSMIUM_WITH_JAVASCRIPT
-                js_object_instance.Dispose();
-#endif // OSMIUM_WITH_JAVASCRIPT
             }
 
         private:

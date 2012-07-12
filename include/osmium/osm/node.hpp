@@ -45,10 +45,6 @@ namespace Osmium {
         public:
 
             Node() : Object(), m_position() {
-#ifdef OSMIUM_WITH_JAVASCRIPT
-                v8::HandleScope handle_scope;
-                js_object_instance = v8::Persistent<v8::Object>::New(JavascriptTemplate::get<JavascriptTemplate>().create_instance(this));
-#endif // OSMIUM_WITH_JAVASCRIPT
             }
 
             const Position position() const {
@@ -83,13 +79,6 @@ namespace Osmium {
 #ifdef OSMIUM_WITH_JAVASCRIPT
             v8::Handle<v8::Value> js_get_geom() const;
 
-            struct JavascriptTemplate : public Osmium::OSM::Object::JavascriptTemplate {
-
-                JavascriptTemplate() : Osmium::OSM::Object::JavascriptTemplate() {
-                    js_template->SetAccessor(v8::String::NewSymbol("geom"), accessor_getter<Node, &Node::js_get_geom>);
-                }
-
-            };
 #endif // OSMIUM_WITH_JAVASCRIPT
 
             /**

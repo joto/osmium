@@ -27,6 +27,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <v8.h>
 
 #include <osmium/handler.hpp>
+#include <osmium/javascript/wrapper.hpp>
 
 extern v8::Persistent<v8::Context> global_context;
 
@@ -274,7 +275,9 @@ namespace Osmium {
 
             void node(const shared_ptr<Osmium::OSM::Node const>& node) {
                 if (!cb.node.IsEmpty()) {
-                    (void) cb.node->Call(node->get_instance(), 0, 0);
+                    v8::HandleScope handle_scope;
+                    v8::Handle<v8::Object> js_object_instance = v8::Local<v8::Object>::New(Osmium::Javascript::WrapperTemplate::OSMNode::get<Osmium::Javascript::WrapperTemplate::OSMNode>().create_instance((void*)(node.get())));
+                    (void) cb.node->Call(js_object_instance, 0, 0);
                 }
 #ifdef OSMIUM_V8_FORCE_GC
                 while (!v8::V8::IdleNotification()) { };
@@ -283,7 +286,9 @@ namespace Osmium {
 
             void way(const shared_ptr<Osmium::OSM::Way const>& way) {
                 if (!cb.way.IsEmpty()) {
-                    (void) cb.way->Call(way->get_instance(), 0, 0);
+                    v8::HandleScope handle_scope;
+                    v8::Handle<v8::Object> js_object_instance = v8::Local<v8::Object>::New(Osmium::Javascript::WrapperTemplate::OSMWay::get<Osmium::Javascript::WrapperTemplate::OSMWay>().create_instance((void*)(way.get())));
+                    (void) cb.way->Call(js_object_instance, 0, 0);
                 }
 #ifdef OSMIUM_V8_FORCE_GC
                 while (!v8::V8::IdleNotification()) { };
@@ -292,7 +297,9 @@ namespace Osmium {
 
             void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
                 if (!cb.relation.IsEmpty()) {
-                    (void) cb.relation->Call(relation->get_instance(), 0, 0);
+                    v8::HandleScope handle_scope;
+                    v8::Handle<v8::Object> js_object_instance = v8::Local<v8::Object>::New(Osmium::Javascript::WrapperTemplate::OSMRelation::get<Osmium::Javascript::WrapperTemplate::OSMRelation>().create_instance((void*)(relation.get())));
+                    (void) cb.relation->Call(js_object_instance, 0, 0);
                 }
 #ifdef OSMIUM_V8_FORCE_GC
                 while (!v8::V8::IdleNotification()) { };
@@ -301,7 +308,9 @@ namespace Osmium {
 
             void area(Osmium::OSM::Area* area) {
                 if (!cb.area.IsEmpty()) {
-                    (void) cb.area->Call(area->get_instance(), 0, 0);
+                    v8::HandleScope handle_scope;
+                    v8::Handle<v8::Object> js_object_instance = v8::Local<v8::Object>::New(Osmium::Javascript::WrapperTemplate::OSMArea::get<Osmium::Javascript::WrapperTemplate::OSMArea>().create_instance((void*)(area)));
+                    (void) cb.area->Call(js_object_instance, 0, 0);
                 }
 #ifdef OSMIUM_V8_FORCE_GC
                 while (!v8::V8::IdleNotification()) { };

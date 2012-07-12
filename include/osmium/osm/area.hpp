@@ -194,10 +194,6 @@ namespace Osmium {
 #else
             Area() {
 #endif // OSMIUM_WITH_GEOS
-# ifdef OSMIUM_WITH_JAVASCRIPT
-                v8::HandleScope handle_scope;
-                js_object_instance = v8::Persistent<v8::Object>::New(JavascriptTemplate::get<JavascriptTemplate>().create_instance(this));
-# endif // OSMIUM_WITH_JAVASCRIPT
             }
 
             ~Area() {
@@ -221,15 +217,6 @@ namespace Osmium {
             }
 
             v8::Handle<v8::Value> js_geom() const;
-
-            struct JavascriptTemplate : public Osmium::OSM::Object::JavascriptTemplate {
-
-                JavascriptTemplate() : Osmium::OSM::Object::JavascriptTemplate() {
-                    js_template->SetAccessor(v8::String::NewSymbol("from"), accessor_getter<Area, &Area::js_from>);
-                    js_template->SetAccessor(v8::String::NewSymbol("geom"), accessor_getter<Area, &Area::js_geom>);
-                }
-
-            };
 
 #endif // OSMIUM_WITH_JAVASCRIPT
 
