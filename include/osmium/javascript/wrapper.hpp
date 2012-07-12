@@ -294,6 +294,40 @@ namespace Osmium {
 
             };
 
+            struct OSMRelationMemberList : public Osmium::Javascript::Template {
+
+                static v8::Handle<v8::Value> get_member(uint32_t index, Osmium::OSM::RelationMemberList* rml) {
+                    return (*rml)[index].js_instance();
+                }
+
+                static v8::Handle<v8::Array> enumerate_members(Osmium::OSM::RelationMemberList* rml) {
+                    v8::HandleScope scope;
+                    v8::Local<v8::Array> array = v8::Array::New(rml->size());
+
+                    for (unsigned int i=0; i < rml->size(); i++) {
+                        array->Set(i, v8::Integer::New(i));
+                    }
+
+                    return scope.Close(array);
+                }
+
+                static v8::Handle<v8::Value> length(Osmium::OSM::RelationMemberList* rml) {
+                    return v8::Number::New(rml->size());
+                }
+
+                OSMRelationMemberList() : Osmium::Javascript::Template() {
+                    js_template->SetAccessor(v8::String::NewSymbol("length"), accessor_getter_<Osmium::OSM::RelationMemberList, length>);
+                    js_template->SetIndexedPropertyHandler(
+                        indexed_property_getter_<Osmium::OSM::RelationMemberList, get_member>,
+                        0,
+                        0,
+                        0,
+                        property_enumerator_<Osmium::OSM::RelationMemberList, enumerate_members>
+                    );
+                }
+
+            };
+
             struct OSMObject : public Osmium::Javascript::Template {
 
                 static v8::Handle<v8::Value> id(Osmium::OSM::Object* object) {
@@ -402,7 +436,7 @@ namespace Osmium {
             struct OSMRelation : public OSMObject {
 
                 static v8::Handle<v8::Value> members(Osmium::OSM::Relation* relation) {
-                    return relation->members().js_instance();
+                    return OSMRelationMemberList::get<OSMRelationMemberList>().create_instance((void *)&(relation->members()));
                 }
 
                 OSMRelation() : OSMObject() {
