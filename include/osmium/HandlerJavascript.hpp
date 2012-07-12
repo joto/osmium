@@ -144,7 +144,7 @@ namespace Osmium {
                 } else {
                     v8::String::Utf8Value str(args[0]);
                     Osmium::Export::CSV* oc = new Osmium::Export::CSV(*str);
-                    return Osmium::Javascript::WrapperTemplate::ExportCSV::get<Osmium::Javascript::WrapperTemplate::ExportCSV>().create_instance((void*)(oc));
+                    return Osmium::Javascript::Wrapper::ExportCSV::get<Osmium::Javascript::Wrapper::ExportCSV>().create_instance((void*)(oc));
                 }
             }
 
@@ -167,7 +167,7 @@ namespace Osmium {
                         throw std::runtime_error("unkown shapefile type");
                     }
 
-                    return Osmium::Javascript::WrapperTemplate::ExportShapefile::get<Osmium::Javascript::WrapperTemplate::ExportShapefile>().create_instance((void*)(oc));
+                    return Osmium::Javascript::Wrapper::ExportShapefile::get<Osmium::Javascript::Wrapper::ExportShapefile>().create_instance((void*)(oc));
                 }
             }
 #endif // OSMIUM_WITH_SHPLIB
@@ -276,7 +276,7 @@ namespace Osmium {
             void node(const shared_ptr<Osmium::OSM::Node const>& node) {
                 if (!cb.node.IsEmpty()) {
                     v8::HandleScope handle_scope;
-                    v8::Handle<v8::Object> js_object_instance = v8::Local<v8::Object>::New(Osmium::Javascript::WrapperTemplate::OSMNode::get<Osmium::Javascript::WrapperTemplate::OSMNode>().create_instance((void*)(node.get())));
+                    v8::Handle<v8::Object> js_object_instance = v8::Local<v8::Object>::New(Osmium::Javascript::Wrapper::OSMNode::get<Osmium::Javascript::Wrapper::OSMNode>().create_instance((void*)(node.get())));
                     (void) cb.node->Call(js_object_instance, 0, 0);
                 }
 #ifdef OSMIUM_V8_FORCE_GC
@@ -287,7 +287,7 @@ namespace Osmium {
             void way(const shared_ptr<Osmium::OSM::Way const>& way) {
                 if (!cb.way.IsEmpty()) {
                     v8::HandleScope handle_scope;
-                    v8::Handle<v8::Object> js_object_instance = v8::Local<v8::Object>::New(Osmium::Javascript::WrapperTemplate::OSMWay::get<Osmium::Javascript::WrapperTemplate::OSMWay>().create_instance((void*)(way.get())));
+                    v8::Handle<v8::Object> js_object_instance = v8::Local<v8::Object>::New(Osmium::Javascript::Wrapper::OSMWay::get<Osmium::Javascript::Wrapper::OSMWay>().create_instance((void*)(way.get())));
                     (void) cb.way->Call(js_object_instance, 0, 0);
                 }
 #ifdef OSMIUM_V8_FORCE_GC
@@ -298,7 +298,7 @@ namespace Osmium {
             void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
                 if (!cb.relation.IsEmpty()) {
                     v8::HandleScope handle_scope;
-                    v8::Handle<v8::Object> js_object_instance = v8::Local<v8::Object>::New(Osmium::Javascript::WrapperTemplate::OSMRelation::get<Osmium::Javascript::WrapperTemplate::OSMRelation>().create_instance((void*)(relation.get())));
+                    v8::Handle<v8::Object> js_object_instance = v8::Local<v8::Object>::New(Osmium::Javascript::Wrapper::OSMRelation::get<Osmium::Javascript::Wrapper::OSMRelation>().create_instance((void*)(relation.get())));
                     (void) cb.relation->Call(js_object_instance, 0, 0);
                 }
 #ifdef OSMIUM_V8_FORCE_GC
@@ -309,7 +309,7 @@ namespace Osmium {
             void area(Osmium::OSM::Area* area) {
                 if (!cb.area.IsEmpty()) {
                     v8::HandleScope handle_scope;
-                    v8::Handle<v8::Object> js_object_instance = v8::Local<v8::Object>::New(Osmium::Javascript::WrapperTemplate::OSMArea::get<Osmium::Javascript::WrapperTemplate::OSMArea>().create_instance((void*)(area)));
+                    v8::Handle<v8::Object> js_object_instance = v8::Local<v8::Object>::New(Osmium::Javascript::Wrapper::OSMArea::get<Osmium::Javascript::Wrapper::OSMArea>().create_instance((void*)(area)));
                     (void) cb.area->Call(js_object_instance, 0, 0);
                 }
 #ifdef OSMIUM_V8_FORCE_GC

@@ -26,7 +26,7 @@ namespace Osmium {
 
     namespace Javascript {
 
-        namespace WrapperTemplate {
+        namespace Wrapper {
 
             struct OSMPosition {
 
@@ -404,7 +404,7 @@ namespace Osmium {
 
                 static v8::Handle<v8::Value> get_geom(Osmium::OSM::Node* node) {
                     Osmium::Geometry::Point* geom = new Osmium::Geometry::Point(*node);
-                    return Osmium::Javascript::Template::get<Osmium::Javascript::WrapperTemplate::GeometryPoint>().create_persistent_instance<Osmium::Geometry::Point>(geom);
+                    return GeometryPoint::get<GeometryPoint>().create_persistent_instance<Osmium::Geometry::Point>(geom);
                 }
 
                 OSMNode() : OSMObject() {
@@ -422,17 +422,17 @@ namespace Osmium {
                 static v8::Handle<v8::Value> geom(Osmium::OSM::Way* way) {
                     if (way->nodes().has_position()) {
                         Osmium::Geometry::LineString* geom = new Osmium::Geometry::LineString(*way);
-                        return Osmium::Javascript::Template::get<Osmium::Javascript::WrapperTemplate::GeometryLineString>().create_persistent_instance<Osmium::Geometry::LineString>(geom);
+                        return GeometryLineString::get<GeometryLineString>().create_persistent_instance<Osmium::Geometry::LineString>(geom);
                     } else {
                         Osmium::Geometry::Null* geom = new Osmium::Geometry::Null();
-                        return Osmium::Javascript::Template::get<GeometryNull>().create_persistent_instance<Osmium::Geometry::Null>(geom);
+                        return GeometryNull::get<GeometryNull>().create_persistent_instance<Osmium::Geometry::Null>(geom);
                     }
                 }
 
                 static v8::Handle<v8::Value> reverse_geom(Osmium::OSM::Way* way) {
                     if (way->nodes().has_position()) {
                         Osmium::Geometry::LineString* geom = new Osmium::Geometry::LineString(*way, true);
-                        return Osmium::Javascript::Template::get<Osmium::Javascript::WrapperTemplate::GeometryLineString>().create_persistent_instance<Osmium::Geometry::LineString>(geom);
+                        return Osmium::Javascript::Template::get<GeometryLineString>().create_persistent_instance<Osmium::Geometry::LineString>(geom);
                     } else {
                         Osmium::Geometry::Null* geom = new Osmium::Geometry::Null();
                         return Osmium::Javascript::Template::get<GeometryNull>().create_persistent_instance<Osmium::Geometry::Null>(geom);
@@ -442,7 +442,7 @@ namespace Osmium {
                 static v8::Handle<v8::Value> polygon_geom(Osmium::OSM::Way* way) {
                     if (way->nodes().has_position() && way->nodes().is_closed()) {
                         Osmium::Geometry::Polygon* geom = new Osmium::Geometry::Polygon(*way);
-                        return Osmium::Javascript::Template::get<Osmium::Javascript::WrapperTemplate::GeometryPolygon>().create_persistent_instance<Osmium::Geometry::Polygon>(geom);
+                        return Osmium::Javascript::Template::get<GeometryPolygon>().create_persistent_instance<Osmium::Geometry::Polygon>(geom);
                     } else {
                         Osmium::Geometry::Null* geom = new Osmium::Geometry::Null();
                         return Osmium::Javascript::Template::get<GeometryNull>().create_persistent_instance<Osmium::Geometry::Null>(geom);
@@ -646,7 +646,7 @@ namespace Osmium {
 
             };
 
-        } // namespace WrapperTemplate
+        } // namespace Wrapper
 
     } // namespace Javascript
 
