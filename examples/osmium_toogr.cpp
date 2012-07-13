@@ -31,7 +31,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <ogrsf_frmts.h>
 
 #include <osmium.hpp>
-#include <osmium/storage/byid/sparsetable.hpp>
+#include <osmium/storage/byid/sparse_table.hpp>
 #include <osmium/storage/byid/mmap_file.hpp>
 #include <osmium/handler/coordinates_for_ways.hpp>
 #include <osmium/geometry/point.hpp>

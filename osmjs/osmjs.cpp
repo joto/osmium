@@ -26,7 +26,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <osmium.hpp>
 #include <osmium/javascript.hpp>
 #include <osmium/storage/byid/fixed_array.hpp>
-#include <osmium/storage/byid/sparsetable.hpp>
+#include <osmium/storage/byid/sparse_table.hpp>
 #include <osmium/storage/byid/mmap_file.hpp>
 #ifdef __linux__
 #  include <osmium/storage/byid/mmap_anon.hpp>
