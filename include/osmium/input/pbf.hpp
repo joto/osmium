@@ -123,9 +123,7 @@ namespace Osmium {
                                 this->meta().bounds().extend(Osmium::OSM::Position((double)bbox.right() / OSMPBF::lonlat_resolution, (double)bbox.top()    / OSMPBF::lonlat_resolution));
                             }
                         } else {
-                            if (Osmium::debug()) {
-                                std::cerr << "Ignoring unknown blob type (" << m_pbf_blob_header.type().data() << ").\n";
-                            }
+//                            std::cerr << "Ignoring unknown blob type (" << m_pbf_blob_header.type().data() << ").\n";
                         }
                     }
                     this->call_after_and_before_on_handler(UNKNOWN);
