@@ -26,6 +26,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <iostream>
 #include <v8.h>
 
+#include <osmium/javascript/wrapper.hpp>
 #include <osmium/handler.hpp>
 
 extern v8::Persistent<v8::Context> global_context;
