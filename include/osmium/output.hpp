@@ -34,8 +34,6 @@ namespace Osmium {
 
         class Base : public Osmium::Handler::Base {
 
-            int m_debug_level;
-
         protected:
 
             Osmium::OSMFile m_file;
@@ -47,17 +45,9 @@ namespace Osmium {
         public:
 
             Base(Osmium::OSMFile& file) :
-                m_debug_level(0),
+                Osmium::Handler::Base(),
                 m_file(file) {
                 m_file.open_for_output();
-            }
-
-            int debug_level() const {
-                return m_debug_level;
-            }
-
-            void debug_level(int debug_level) {
-                m_debug_level = debug_level;
             }
 
             virtual ~Base() {

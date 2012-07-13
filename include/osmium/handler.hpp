@@ -63,9 +63,19 @@ namespace Osmium {
          */
         class Base : boost::noncopyable {
 
+            int m_debug_level;
+
         public:
 
-            Base() {
+            Base() : m_debug_level(0) {
+            }
+
+            int debug_level() const {
+                return m_debug_level;
+            }
+
+            void debug_level(int debug_level) {
+                m_debug_level = debug_level;
             }
 
             void init(Osmium::OSM::Meta&) const {

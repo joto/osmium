@@ -190,6 +190,7 @@ int main(int argc, char *argv[]) {
 
     bool attempt_repair = true;
     Osmium::Handler::Multipolygon handler_multipolygon(attempt_repair, cbmp);
+    handler_multipolygon.debug_level(1);
 
     // first pass
     MyOGRHandlerPass1 handler_pass1(&handler_multipolygon);
