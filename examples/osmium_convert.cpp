@@ -34,13 +34,16 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 class ConvertHandler : public Osmium::Handler::Base {
 
     Osmium::OSMFile& m_outfile;
+    int m_debug_level;
     Osmium::Handler::Progress m_progress_handler;
 
     Osmium::Output::Base* output;
 
 public:
 
-    ConvertHandler(Osmium::OSMFile& osmfile) : m_outfile(osmfile) {
+    ConvertHandler(Osmium::OSMFile& osmfile, int debug_level) :
+        m_outfile(osmfile),
+        m_debug_level(debug_level) {
     }
 
     ~ConvertHandler() {
@@ -48,6 +51,7 @@ public:
 
     void init(Osmium::OSM::Meta& meta) {
         output = m_outfile.create_output_file();
+        output->debug_level(m_debug_level);
         output->init(meta);
         m_progress_handler.init(meta);
     }
@@ -178,7 +182,7 @@ int main(int argc, char *argv[]) {
         std::cerr << "Warning! Source and destination are not of the same type." << std::endl;
     }
 
-    ConvertHandler handler(outfile);
+    ConvertHandler handler(outfile, debug ? 1 : 0);
     infile.read(handler);
 }
 
