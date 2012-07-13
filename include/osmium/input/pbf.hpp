@@ -127,7 +127,7 @@ namespace Osmium {
                         }
                     }
                     this->call_after_and_before_on_handler(UNKNOWN);
-                } catch (Osmium::Input::StopReading) {
+                } catch (Osmium::Handler::StopReading) {
                     // if a handler says to stop reading, we do
                 }
                 this->call_final_on_handler();

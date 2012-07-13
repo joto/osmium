@@ -45,7 +45,7 @@ namespace Osmium {
             }
 
             void after_nodes() const {
-                throw Osmium::Input::StopReading();
+                throw StopReading();
             }
 
         private:

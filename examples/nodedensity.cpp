@@ -95,7 +95,7 @@ public:
 
         gdImagePng(im, stdout);
         gdImageDestroy(im);
-        throw Osmium::Input::StopReading();
+        throw Osmium::Handler::StopReading();
     }
 
 }; // class NodeDensityHandler
