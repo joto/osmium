@@ -62,16 +62,6 @@ namespace Osmium {
                 return id >= 0 ? m_storage_pos[id] : m_storage_neg[-id];
             }
 
-            void after_nodes() const {
-                if (Osmium::debug()) {
-                    std::cerr << "Memory used for node coordinates storage (approximate):\n  for positive IDs: "
-                              << m_storage_pos.used_memory() / (1024 * 1024)
-                              << " MiB\n  for negative IDs: "
-                              << m_storage_neg.used_memory() / (1024 * 1024)
-                              << " MiB\n";
-                }
-            }
-
             /**
              * Retrieve locations of all nodes in the way from storage and add
              * them to the way object.
