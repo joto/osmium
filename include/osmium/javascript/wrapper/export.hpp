@@ -28,7 +28,9 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <osmium/javascript/template.hpp>
 
 #include <osmium/export/csv.hpp>
-#include <osmium/export/shapefile.hpp>
+#ifdef OSMIUM_WITH_SHPLIB
+# include <osmium/export/shapefile.hpp>
+#endif
 
 namespace Osmium {
 
@@ -62,6 +64,7 @@ namespace Osmium {
 
             };
 
+#ifdef OSMIUM_WITH_SHPLIB
             struct ExportShapefile : public Osmium::Javascript::Template {
 
                 static void add_string_attribute(Osmium::Export::Shapefile* shapefile, int n, v8::Local<v8::Value> value) {
@@ -101,7 +104,7 @@ namespace Osmium {
                         v8::Local<v8::Object> attributes) {   ///< a %Javascript object (hash) with the attributes
 
                     try {
-                        shapefile->add_geometry(geometry->create_shp_object());
+                        shapefile->add_geometry(Osmium::Geometry::create_shp_object(*geometry));
                     } catch (Osmium::Exception::IllegalGeometry) {
                         return false;
                     }
@@ -187,6 +190,7 @@ namespace Osmium {
                 }
 
             };
+#endif // OSMIUM_WITH_SHPLIB
 
         } // namespace Wrapper
 

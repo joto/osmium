@@ -102,20 +102,6 @@ namespace Osmium {
             }
 #endif // OSMIUM_WITH_GEOS
 
-#ifdef OSMIUM_WITH_SHPLIB
-            /**
-             * Create Shapelib geometry of this Point.
-             *
-             * Caller takes ownership. You have to call
-             * SHPDestroyObject() with this geometry when you are done.
-             */
-            SHPObject* create_shp_object() const {
-                double x = lon();
-                double y = lat();
-                return SHPCreateSimpleObject(SHPT_POINT, 1, &x, &y, NULL);
-            }
-#endif // OSMIUM_WITH_SHPLIB
-
 #ifdef OSMIUM_WITH_OGR
             /**
              * Create OGR geometry of this Point.

@@ -22,12 +22,12 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
-#ifdef OSMIUM_WITH_SHPLIB
-
 #include <fstream>
 #include <sstream>
 #include <shapefil.h>
 #include <boost/utility.hpp>
+
+#include <osmium/geometry/shplib.hpp>
 
 namespace Osmium {
 
@@ -380,7 +380,5 @@ namespace Osmium {
     } // namespace Export
 
 } // namespace Osmium
-
-#endif // OSMIUM_WITH_SHPLIB
 
 #endif // OSMIUM_EXPORT_SHAPEFILE_HPP

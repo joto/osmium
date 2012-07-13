@@ -29,10 +29,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 # include <geos/geom/PrecisionModel.h>
 #endif // OSMIUM_WITH_GEOS
 
-#ifdef OSMIUM_WITH_SHPLIB
-# include <shapefil.h>
-#endif // OSMIUM_WITH_SHPLIB
-
 #ifdef OSMIUM_WITH_OGR
 # include <ogr_geometry.h>
 #endif // OSMIUM_WITH_OGR
@@ -226,12 +222,6 @@ namespace Osmium {
 
             /// Write geometry as hex encoded WKB to output stream.
             virtual std::ostream& write_to_stream(std::ostream& out, AsHexWKB, bool with_srid=false) const = 0;
-
-#ifdef  OSMIUM_WITH_SHPLIB
-            virtual SHPObject* create_shp_object() const {
-                return NULL;
-            }
-#endif // OSMIUM_WITH_SHPLIB
 
         private:
 

@@ -17,7 +17,6 @@ CXXFLAGS += -Wall -Wextra -Wredundant-decls -Wdisabled-optimization -pedantic -W
 #CXXFLAGS += -DOSMIUM_WITH_MULTIPOLYGON_PROFILING
 
 CXXFLAGS_GEOS    = -DOSMIUM_WITH_GEOS $(shell geos-config --cflags)
-CXXFLAGS_SHAPE   = -DOSMIUM_WITH_SHPLIB $(CXXFLAGS_GEOS)
 CXXFLAGS_LIBXML2 = -DOSMIUM_WITH_OUTPUT_OSM_XML $(shell xml2-config --cflags)
 CXXFLAGS_OGR     = -DOSMIUM_WITH_OGR $(shell gdal-config --cflags)
 
@@ -89,7 +88,7 @@ osmium_toogr2: osmium_toogr2.cpp
 	$(CXX) $(CXXFLAGS) $(CXXFLAGS_OGR) $(CXXFLAGS_GEOS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_OGR) $(LIB_GEOS)
 
 osmium_toshape: osmium_toshape.cpp
-	$(CXX) $(CXXFLAGS) $(CXXFLAGS_SHAPE) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_SHAPE)
+	$(CXX) $(CXXFLAGS) $(CXXFLAGS_GEOS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_SHAPE)
 
 nodedensity: nodedensity.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_GD)

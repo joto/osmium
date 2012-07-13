@@ -74,7 +74,7 @@ public:
         if (amenity && !strcmp(amenity, "post_box")) {
             try {
                 Osmium::Geometry::Point point(*node);
-                shapefile_point->add_geometry(point.create_shp_object());
+                shapefile_point->add_geometry(Osmium::Geometry::create_shp_object(point));
                 shapefile_point->add_attribute(0, node->id());
                 const char* op = node->tags().get_tag_by_key("operator");
                 if (op) {
@@ -96,7 +96,7 @@ public:
         if (highway) {
             try {
                 Osmium::Geometry::LineString linestring(*way);
-                shapefile_linestring->add_geometry(linestring.create_shp_object());
+                shapefile_linestring->add_geometry(Osmium::Geometry::create_shp_object(linestring));
                 shapefile_linestring->add_attribute(0, way->id());
                 shapefile_linestring->add_attribute(1, std::string(highway));
             } catch (Osmium::Exception::IllegalGeometry) {

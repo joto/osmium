@@ -70,10 +70,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 # include "../CGAlgorithms.h"
 #endif // OSMIUM_WITH_GEOS
 
-#ifdef OSMIUM_WITH_SHPLIB
-# include <shapefil.h>
-#endif // OSMIUM_WITH_SHPLIB
-
 #include <osmium/osm/way.hpp>
 #include <osmium/osm/relation.hpp>
 #include <osmium/geometry.hpp>

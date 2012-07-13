@@ -133,18 +133,6 @@ namespace Osmium {
             }
 #endif // OSMIUM_WITH_GEOS
 
-#ifdef OSMIUM_WITH_SHPLIB
-            /**
-             * Create Shapelib geometry of this LineString.
-             *
-             * Caller takes ownership. You have to call
-             * SHPDestroyObject() with this geometry when you are done.
-             */
-            SHPObject* create_shp_object() const {
-                return create_line_or_polygon(SHPT_ARC);
-            }
-#endif // OSMIUM_WITH_SHPLIB
-
 #ifdef OSMIUM_WITH_OGR
             /**
              * Create OGR geometry of this LineString;

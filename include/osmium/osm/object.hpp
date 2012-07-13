@@ -33,10 +33,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <boost/tr1/memory.hpp>
 using std::tr1::shared_ptr;
 
-#ifdef OSMIUM_WITH_SHPLIB
-# include <shapefil.h>
-#endif // OSMIUM_WITH_SHPLIB
-
 #include <osmium/osm/types.hpp>
 #include <osmium/osm/tag_list.hpp>
 #include <osmium/utils/timestamp.hpp>
