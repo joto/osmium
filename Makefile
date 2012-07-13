@@ -7,7 +7,7 @@
 all:
 
 clean:
-	rm -fr doc/html
+	rm -fr check-includes-report doc/html
 
 install: doc
 	install -m 755 -g root -o root -d $(DESTDIR)/usr/include
@@ -27,9 +27,11 @@ check:
 check-includes:
 	echo "check includes report:" >check-includes-report; \
 	for FILE in include/*.hpp include/*/*.hpp include/*/*/*.hpp include/*/*/*/*.hpp; do \
+        compile_with=`grep "  compile with: " $${FILE} | cut -d: -f2 | cut -c2-`; \
+        flags=`$${compile_with}`; \
         echo "$${FILE}:" >>check-includes-report; \
         echo -n "$${FILE} "; \
-        if `g++ -I include $${FILE} 2>>check-includes-report`; then \
+        if `g++ -I include $${flags} $${FILE} 2>>check-includes-report`; then \
             echo "[OK]"; \
         else \
             echo "[FAILED]"; \

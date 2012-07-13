@@ -22,6 +22,15 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+/*
+=======================================================
+  If you include this header file, you need to
+  compile with: xml2-config --cflags
+  and
+  link with: xml2-config --libs
+=======================================================
+*/
+
 // this is required to allow using libxml's xmlwriter in parallel to expat xml parser under debian
 #undef XMLCALL
 #include <libxml/xmlwriter.h>
