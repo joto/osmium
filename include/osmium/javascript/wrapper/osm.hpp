@@ -25,12 +25,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <osmium/javascript/unicode.hpp>
 #include <osmium/javascript/template.hpp>
+#include <osmium/javascript/wrapper/geometry.hpp>
 
-#include <osmium/geometry/null.hpp>
-#include <osmium/geometry/point.hpp>
-#include <osmium/geometry/linestring.hpp>
-#include <osmium/geometry/polygon.hpp>
-#include <osmium/geometry/multipolygon.hpp>
 #include <osmium/osm/node.hpp>
 #include <osmium/osm/way.hpp>
 #include <osmium/osm/relation.hpp>
