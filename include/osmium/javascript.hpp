@@ -22,13 +22,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
-#include <osmium/export/csv.hpp>
-#include <osmium/export/shapefile.hpp>
-#include <v8.h>
-#include <unicode/ustring.h>
-#include <osmium/utils/unicode.hpp>
-#include <osmium/javascript/template.hpp>
-#include <osmium/javascript/wrapper.hpp>
 #include <osmium/javascript/handler.hpp>
 
 #endif // OSMIUM_JAVASCRIPT_HPP
