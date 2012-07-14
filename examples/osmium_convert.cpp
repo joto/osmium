@@ -152,8 +152,6 @@ int main(int argc, char *argv[]) {
         input =  argv[optind];
     }
 
-    Osmium::init(debug);
-
     Osmium::OSMFile infile(input);
     if (!input_format.empty()) {
         try {

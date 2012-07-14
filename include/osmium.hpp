@@ -42,53 +42,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
  * @brief All %Osmium code is in this namespace.
  */
 namespace Osmium {
-
-    /**
-     * Internal class to manage global state.
-     */
-    class Framework {
-
-        Framework(bool d) : debug(d) {
-        }
-
-        ~Framework() {
-            // this is needed even if the protobuf lib was never used so that valgrind doesn't report any errors
-            google::protobuf::ShutdownProtobufLibrary();
-        }
-
-        bool debug;
-
-        friend Framework& init(bool debug);
-        friend void set_debug(bool d);
-        friend bool debug();
-
-    }; // class Framework
-
-    /**
-     * Initialize the Osmium library. Call this before using any of the Osmium
-     * functions.
-     *
-     * @param debug Enable or disable the debugging output.
-     */
-    Framework& init(bool debug=false) {
-        static Framework f(debug);
-        return f;
-    }
-
-    /**
-     * Enable or disable the debugging output.
-     */
-    void set_debug(bool d) {
-        init().debug = d;
-    }
-
-    /**
-     * Is debugging output set?
-     */
-    bool debug() {
-        return init().debug;
-    }
-
 } // namespace Osmium
 
 // check way geometry before making a shplib object from it

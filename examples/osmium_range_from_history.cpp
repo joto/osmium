@@ -31,8 +31,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <osmium/handler/range_from_history.hpp>
 
 int main(int argc, char *argv[]) {
-    Osmium::init();
-
     if (argc != 3) {
         std::cerr << "Usage: " << argv[0] << " INFILE OUTFILE\n";
         exit(1);

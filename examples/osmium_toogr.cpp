@@ -194,8 +194,6 @@ public:
 /* ================================================== */
 
 int main(int argc, char *argv[]) {
-    Osmium::init(true);
-
     if (argc != 2) {
         std::cerr << "Usage: " << argv[0] << " OSMFILE" << std::endl;
         exit(1);

@@ -103,8 +103,6 @@ public:
 /* ================================================== */
 
 int main(int argc, char *argv[]) {
-    Osmium::init();
-
     if (argc != 5) {
         std::cerr << "Usage: " << argv[0] << " OSMFILE SIZE MIN MAX\n\n";
         std::cerr << "  OSMFILE - OSM file of any type.\n";

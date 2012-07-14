@@ -372,7 +372,6 @@ int main(int argc, char *argv[]) {
         std::cerr << "Warning! The command line option -2 has changed its meaning.\nIt now only enables the two-pass mode, multipolygon assembly has to be enabled with -m.\n";
     }
 
-    Osmium::init(debug);
     Osmium::OSMFile infile(osm_filename);
 
     v8::HandleScope handle_scope;

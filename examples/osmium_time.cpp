@@ -62,8 +62,6 @@ public:
 /* ================================================== */
 
 int main(int argc, char *argv[]) {
-    Osmium::init(true);
-
     time_t t0 = time(NULL);
 
     if (argc != 2) {
