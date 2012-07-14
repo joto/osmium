@@ -98,7 +98,7 @@ namespace Osmium {
              * Caller takes ownership.
              */
             geos::geom::Point* create_geos_geometry() const {
-                return Osmium::Geometry::geos_geometry_factory()->createPoint(m_position);
+                return Osmium::Geometry::geos_geometry_factory()->createPoint(Osmium::Geometry::create_geos_coordinate(m_position));
             }
 #endif // OSMIUM_WITH_GEOS
 

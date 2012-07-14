@@ -104,11 +104,11 @@ namespace Osmium {
                     std::vector<geos::geom::Coordinate>* c = new std::vector<geos::geom::Coordinate>;
                     if (reverse()) {
                         for (Osmium::OSM::WayNodeList::const_reverse_iterator it = nodes().rbegin(); it != nodes().rend(); ++it) {
-                            c->push_back(it->position());
+                            c->push_back(Osmium::Geometry::create_geos_coordinate(it->position()));
                         }
                     } else {
                         for (Osmium::OSM::WayNodeList::const_iterator it = nodes().begin(); it != nodes().end(); ++it) {
-                            c->push_back(it->position());
+                            c->push_back(Osmium::Geometry::create_geos_coordinate(it->position()));
                         }
                     }
                     geos::geom::CoordinateSequence* cs = Osmium::Geometry::geos_geometry_factory()->getCoordinateSequenceFactory()->create(c);

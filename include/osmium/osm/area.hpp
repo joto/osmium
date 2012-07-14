@@ -76,6 +76,52 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 namespace Osmium {
 
+#ifdef OSMIUM_WITH_GEOS
+    namespace Geometry {
+
+        /**
+         * Returns the GEOS geometry of the first node.
+         * Caller takes ownership of the pointer.
+         */
+        inline geos::geom::Point* get_first_node_geometry(const Osmium::OSM::Way& way) {
+            if (!way.nodes().front().has_position()) {
+                throw std::range_error("geometry for nodes not available");
+            }
+            return geos_geometry_factory()->createPoint(create_geos_coordinate(way.nodes().front().position()));
+        }
+
+        /**
+         * Returns the GEOS geometry of the last node.
+         * Caller takes ownership of the pointer.
+         */
+        inline geos::geom::Point* get_last_node_geometry(const Osmium::OSM::Way& way) {
+            if (!way.nodes().back().has_position()) {
+                throw std::range_error("geometry for nodes not available");
+            }
+            return geos_geometry_factory()->createPoint(create_geos_coordinate(way.nodes().back().position()));
+        }
+
+        /**
+         * Returns the GEOS geometry of the way.
+         * Caller takes ownership of the pointer.
+         */
+        inline geos::geom::Geometry* create_geos_geometry(const Osmium::OSM::Way& way) {
+            try {
+                std::vector<geos::geom::Coordinate>* c = new std::vector<geos::geom::Coordinate>;
+                for (osm_sequence_id_t i=0; i < way.nodes().size(); ++i) {
+                    c->push_back(create_geos_coordinate(way.nodes()[i].position()));
+                }
+                geos::geom::CoordinateSequence* cs = Osmium::Geometry::geos_geometry_factory()->getCoordinateSequenceFactory()->create(c);
+                return (geos::geom::Geometry*) geos_geometry_factory()->createLineString(cs);
+            } catch (const geos::util::GEOSException& exc) {
+                std::cerr << "error building way geometry, leave it as NULL\n";
+                return NULL;
+            }
+        }
+
+    } // namespace Geometry
+#endif // OSMIUM_WITH_GEOS
+
     namespace OSM {
 
         enum innerouter_t { UNSET, INNER, OUTER };
@@ -115,7 +161,7 @@ namespace Osmium {
 
             WayInfo(Osmium::OSM::Way *w, innerouter_t io) {
                 way = w;
-                way_geom = w->create_geos_geometry();
+                way_geom = Osmium::Geometry::create_geos_geometry(*w);
                 orig_innerouter = io;
                 used = -1;
                 innerouter = UNSET;
@@ -147,11 +193,11 @@ namespace Osmium {
             }
 
             geos::geom::Point *get_firstnode_geom() {
-                return (way ? way->get_first_node_geometry() : NULL);
+                return (way ? Osmium::Geometry::get_first_node_geometry(*way) : NULL);
             }
 
             geos::geom::Point *get_lastnode_geom() {
-                return (way ? way->get_last_node_geometry() : NULL);
+                return (way ? Osmium::Geometry::get_last_node_geometry(*way) : NULL);
             }
 
         };

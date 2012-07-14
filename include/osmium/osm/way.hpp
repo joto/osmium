@@ -33,14 +33,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 *   @brief Contains the Osmium::OSM::Way class.
 */
 
-#ifdef OSMIUM_WITH_GEOS
-# include <geos/geom/Coordinate.h>
-# include <geos/geom/CoordinateSequenceFactory.h>
-# include <geos/geom/Geometry.h>
-# include <geos/geom/Point.h>
-# include <geos/util/GEOSException.h>
-#endif // OSMIUM_WITH_GEOS
-
 #include <osmium/geometry.hpp>
 
 namespace Osmium {
@@ -135,48 +127,6 @@ namespace Osmium {
             bool is_closed() const {
                 return m_node_list.is_closed();
             }
-
-#ifdef OSMIUM_WITH_GEOS
-            /**
-             * Returns the GEOS geometry of the first node.
-             * Caller takes ownership of the pointer.
-             */
-            geos::geom::Point* get_first_node_geometry() const {
-                if (!m_node_list.front().has_position()) {
-                    throw std::range_error("geometry for nodes not available");
-                }
-                return Osmium::Geometry::geos_geometry_factory()->createPoint(m_node_list.front().position());
-            }
-
-            /**
-             * Returns the GEOS geometry of the last node.
-             * Caller takes ownership of the pointer.
-             */
-            geos::geom::Point* get_last_node_geometry() const {
-                if (!m_node_list.back().has_position()) {
-                    throw std::range_error("geometry for nodes not available");
-                }
-                return Osmium::Geometry::geos_geometry_factory()->createPoint(m_node_list.back().position());
-            }
-
-            /**
-             * Returns the GEOS geometry of the way.
-             * Caller takes ownership of the pointer.
-             */
-            geos::geom::Geometry* create_geos_geometry() const {
-                try {
-                    std::vector<geos::geom::Coordinate>* c = new std::vector<geos::geom::Coordinate>;
-                    for (osm_sequence_id_t i=0; i < m_node_list.size(); ++i) {
-                        c->push_back(m_node_list[i].position());
-                    }
-                    geos::geom::CoordinateSequence* cs = Osmium::Geometry::geos_geometry_factory()->getCoordinateSequenceFactory()->create(c);
-                    return (geos::geom::Geometry*) Osmium::Geometry::geos_geometry_factory()->createLineString(cs);
-                } catch (const geos::util::GEOSException& exc) {
-                    std::cerr << "error building way geometry, leave it as NULL\n";
-                    return NULL;
-                }
-            }
-#endif // OSMIUM_WITH_GEOS
 
             /**
              * Ways can be ordered by id and version.

@@ -28,10 +28,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <math.h>
 #include <boost/operators.hpp>
 
-#ifdef OSMIUM_WITH_GEOS
-# include <geos/geom/Coordinate.h>
-#endif
-
 namespace Osmium {
 
     namespace OSM {
@@ -114,16 +110,6 @@ namespace Osmium {
 
                 return 360 * y + x;
             }
-
-#ifdef OSMIUM_WITH_GEOS
-            /**
-             * Conversion of Position to GEOS Coordinate.
-             */
-            operator geos::geom::Coordinate() const {
-                geos::geom::Coordinate c(lon(), lat());
-                return c;
-            }
-#endif
 
         private:
 
