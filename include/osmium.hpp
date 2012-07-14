@@ -36,33 +36,12 @@ You should have received a copy of the Licenses along with Osmium. If not, see
  * source code is at https://github.com/joto/osmium .
  */
 
-#include <osmpbf/osmpbf.h>
-
 /**
  * @brief All %Osmium code is in this namespace.
  */
 namespace Osmium {
 } // namespace Osmium
 
-// check way geometry before making a shplib object from it
-// normally this should be defined, otherwise you will generate invalid linestring geometries
-#define OSMIUM_CHECK_WAY_GEOMETRY
-
-#ifdef OSMIUM_WITH_GEOS
-# include <osmium/geometry_factory.hpp>
-#endif // OSMIUM_WITH_GEOS
-
-#include <osmium/exceptions.hpp>
-#include <osmium/osm.hpp>
-#include <osmium/geometry/null.hpp>
-#include <osmium/geometry/point.hpp>
-#include <osmium/geometry/linestring.hpp>
-#include <osmium/geometry/polygon.hpp>
-#include <osmium/geometry/multipolygon.hpp>
-#include <osmium/osmfile.hpp>
-#include <osmium/input.hpp>
-#include <osmium/output.hpp>
-#include <osmium/export.hpp>
 #include <osmium/osmfile_impl.hpp>
 
 #endif // OSMIUM_OSMIUM_HPP
