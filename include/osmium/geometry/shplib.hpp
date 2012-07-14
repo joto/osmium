@@ -32,6 +32,10 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 */
 
 #include <shapefil.h>
+#include <geos/geom/Geometry.h>
+#include <geos/geom/GeometryCollection.h>
+#include <geos/geom/Polygon.h>
+#include <geos/geom/LineString.h>
 
 #include <osmium/geometry/point.hpp>
 #include <osmium/geometry/linestring.hpp>
