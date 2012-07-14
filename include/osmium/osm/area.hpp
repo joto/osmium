@@ -1048,7 +1048,7 @@ namespace Osmium {
                             } else {
                                 // this is grey-area terrain in OSM - we have tags on
                                 // the relation and a different set of tags on the outer
-                                // way(s). Use tags from outer ring only if there is 
+                                // way(s). Use tags from outer ring only if there is
                                 // only one outer ring and it has only one way.
                                 if (outer_ring_count == 1 && ringlist[i]->ways.size() == 1) {
                                     merge_tags(relation, wi->way);

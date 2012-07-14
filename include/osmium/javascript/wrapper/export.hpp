@@ -100,8 +100,8 @@ namespace Osmium {
                 * Add a geometry to the shapefile.
                 */
                 static bool add(Osmium::Export::Shapefile* shapefile,
-                        Osmium::Geometry::Geometry* geometry, ///< the geometry
-                        v8::Local<v8::Object> attributes) {   ///< a %Javascript object (hash) with the attributes
+                                Osmium::Geometry::Geometry* geometry, ///< the geometry
+                                v8::Local<v8::Object> attributes) {   ///< a %Javascript object (hash) with the attributes
 
                     try {
                         shapefile->add_geometry(Osmium::Geometry::create_shp_object(*geometry));

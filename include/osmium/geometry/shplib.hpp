@@ -178,16 +178,16 @@ namespace Osmium {
             dump_geometry(multipolygon.area()->get_geometry(), part_start_list, x_list, y_list);
 
             return SHPCreateObject(
-                        SHPT_POLYGON,           // nSHPType
-                        -1,                     // iShape
-                        part_start_list.size(), // nParts
-                        &part_start_list[0],    // panPartStart
-                        NULL,                   // panPartType
-                        x_list.size(),          // nVertices,
-                        &x_list[0],             // padfX
-                        &y_list[0],             // padfY
-                        NULL,                   // padfZ
-                        NULL);                  // padfM
+                       SHPT_POLYGON,           // nSHPType
+                       -1,                     // iShape
+                       part_start_list.size(), // nParts
+                       &part_start_list[0],    // panPartStart
+                       NULL,                   // panPartType
+                       x_list.size(),          // nVertices,
+                       &x_list[0],             // padfX
+                       &y_list[0],             // padfY
+                       NULL,                   // padfZ
+                       NULL);                  // padfM
         }
 
         /**

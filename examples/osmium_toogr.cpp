@@ -157,10 +157,10 @@ public:
 
     void after_nodes() {
         std::cerr << "Memory used for node coordinates storage (approximate):\n  for positive IDs: "
-                    << store_pos.used_memory() / (1024 * 1024)
-                    << " MiB\n  for negative IDs: "
-                    << store_neg.used_memory() / (1024 * 1024)
-                    << " MiB\n";
+                  << store_pos.used_memory() / (1024 * 1024)
+                  << " MiB\n  for negative IDs: "
+                  << store_neg.used_memory() / (1024 * 1024)
+                  << " MiB\n";
         handler_cfw->after_nodes();
     }
 

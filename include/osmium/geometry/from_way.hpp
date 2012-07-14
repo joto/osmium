@@ -43,7 +43,7 @@ namespace Osmium {
 
             bool reverse() const {
                 return m_reverse;
-            } 
+            }
 
         protected:
 

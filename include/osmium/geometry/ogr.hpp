@@ -52,7 +52,7 @@ namespace Osmium {
         inline OGRPoint* create_ogr_geometry(const Osmium::Geometry::Point& point) {
             return new OGRPoint(point.lon(), point.lat());
         }
-        
+
         /**
          * Create OGR geometry of a LineString;
          *
