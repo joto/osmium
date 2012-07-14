@@ -110,26 +110,18 @@ namespace Osmium {
              * Caller takes ownership.
              */
             geos::geom::Geometry* create_geos_geometry() const {
-                try {
-                    std::vector<geos::geom::Coordinate>* c = new std::vector<geos::geom::Coordinate>;
-                    if (reverse()) {
-                        for (Osmium::OSM::WayNodeList::const_reverse_iterator it = nodes().rbegin(); it != nodes().rend(); ++it) {
-                            c->push_back(Osmium::Geometry::create_geos_coordinate(it->position()));
-                        }
-                    } else {
-                        for (Osmium::OSM::WayNodeList::const_iterator it = nodes().begin(); it != nodes().end(); ++it) {
-                            c->push_back(Osmium::Geometry::create_geos_coordinate(it->position()));
-                        }
+                std::vector<geos::geom::Coordinate>* c = new std::vector<geos::geom::Coordinate>;
+                if (reverse()) {
+                    for (Osmium::OSM::WayNodeList::const_reverse_iterator it = nodes().rbegin(); it != nodes().rend(); ++it) {
+                        c->push_back(Osmium::Geometry::create_geos_coordinate(it->position()));
                     }
-                    geos::geom::CoordinateSequence* cs = Osmium::Geometry::geos_geometry_factory()->getCoordinateSequenceFactory()->create(c);
-                    return static_cast<geos::geom::Geometry*>(Osmium::Geometry::geos_geometry_factory()->createLineString(cs));
-                } catch (const geos::util::GEOSException& exc) {
-                    if (Osmium::debug()) {
-                        std::cerr << "error building geometry for way #" << id() <<
-                                  " (returning NULL): " << exc.what();
+                } else {
+                    for (Osmium::OSM::WayNodeList::const_iterator it = nodes().begin(); it != nodes().end(); ++it) {
+                        c->push_back(Osmium::Geometry::create_geos_coordinate(it->position()));
                     }
-                    return NULL;
                 }
+                geos::geom::CoordinateSequence* cs = Osmium::Geometry::geos_geometry_factory()->getCoordinateSequenceFactory()->create(c);
+                return static_cast<geos::geom::Geometry*>(Osmium::Geometry::geos_geometry_factory()->createLineString(cs));
             }
 #endif // OSMIUM_WITH_GEOS
 

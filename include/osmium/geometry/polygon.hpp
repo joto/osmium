@@ -100,24 +100,19 @@ namespace Osmium {
              * Caller takes ownership.
              */
             geos::geom::Geometry* create_geos_geometry() const {
-                try {
-                    std::vector<geos::geom::Coordinate>* c = new std::vector<geos::geom::Coordinate>;
-                    if (reverse()) {
-                        for (Osmium::OSM::WayNodeList::const_reverse_iterator it = nodes().rbegin(); it != nodes().rend(); ++it) {
-                            c->push_back(Osmium::Geometry::create_geos_coordinate(it->position()));
-                        }
-                    } else {
-                        for (Osmium::OSM::WayNodeList::const_iterator it = nodes().begin(); it != nodes().end(); ++it) {
-                            c->push_back(Osmium::Geometry::create_geos_coordinate(it->position()));
-                        }
+                std::vector<geos::geom::Coordinate>* c = new std::vector<geos::geom::Coordinate>;
+                if (reverse()) {
+                    for (Osmium::OSM::WayNodeList::const_reverse_iterator it = nodes().rbegin(); it != nodes().rend(); ++it) {
+                        c->push_back(Osmium::Geometry::create_geos_coordinate(it->position()));
                     }
-                    geos::geom::CoordinateSequence* cs = Osmium::Geometry::geos_geometry_factory()->getCoordinateSequenceFactory()->create(c);
-                    geos::geom::LinearRing* lr = Osmium::Geometry::geos_geometry_factory()->createLinearRing(cs);
-                    return static_cast<geos::geom::Geometry*>(Osmium::Geometry::geos_geometry_factory()->createPolygon(lr, NULL));
-                } catch (const geos::util::GEOSException& exc) {
-                    std::cerr << "error building polygon geometry, leave it as NULL\n";
-                    return NULL;
+                } else {
+                    for (Osmium::OSM::WayNodeList::const_iterator it = nodes().begin(); it != nodes().end(); ++it) {
+                        c->push_back(Osmium::Geometry::create_geos_coordinate(it->position()));
+                    }
                 }
+                geos::geom::CoordinateSequence* cs = Osmium::Geometry::geos_geometry_factory()->getCoordinateSequenceFactory()->create(c);
+                geos::geom::LinearRing* lr = Osmium::Geometry::geos_geometry_factory()->createLinearRing(cs);
+                return static_cast<geos::geom::Geometry*>(Osmium::Geometry::geos_geometry_factory()->createPolygon(lr, NULL));
             }
 #endif // OSMIUM_WITH_GEOS
 
