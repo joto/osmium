@@ -67,15 +67,15 @@ namespace Osmium {
                 }
                 LonLatListWriter<Osmium::OSM::WayNode> writer(out);
                 out << "POLYGON((" << std::setprecision(10);
-                for_each(m_way_node_list->begin(), m_way_node_list->end(), writer);
+                for_each(nodes().begin(), nodes().end(), writer);
                 return out << "))";
             }
 
             std::ostream& write_to_stream(std::ostream& out, AsWKB, bool with_srid=false) const {
                 write_binary_wkb_header(out, with_srid, wkbPolygon);
                 write_binary<uint32_t>(out, 1); // ring count
-                write_binary<uint32_t>(out, m_way_node_list->size()); // ring #1 point count
-                for (Osmium::OSM::WayNodeList::const_iterator it = m_way_node_list->begin(); it != m_way_node_list->end(); ++it) {
+                write_binary<uint32_t>(out, nodes().size()); // ring #1 point count
+                for (Osmium::OSM::WayNodeList::const_iterator it = nodes().begin(); it != nodes().end(); ++it) {
                     write_binary<double>(out, it->lon());
                     write_binary<double>(out, it->lat());
                 }
@@ -85,8 +85,8 @@ namespace Osmium {
             std::ostream& write_to_stream(std::ostream& out, AsHexWKB, bool with_srid=false) const {
                 write_hex_wkb_header(out, with_srid, wkbPolygon);
                 write_hex<uint32_t>(out, 1); // ring count
-                write_hex<uint32_t>(out, m_way_node_list->size()); // ring #1 point count
-                for (Osmium::OSM::WayNodeList::const_iterator it = m_way_node_list->begin(); it != m_way_node_list->end(); ++it) {
+                write_hex<uint32_t>(out, nodes().size()); // ring #1 point count
+                for (Osmium::OSM::WayNodeList::const_iterator it = nodes().begin(); it != nodes().end(); ++it) {
                     write_hex<double>(out, it->lon());
                     write_hex<double>(out, it->lat());
                 }
@@ -102,12 +102,12 @@ namespace Osmium {
             geos::geom::Geometry* create_geos_geometry() const {
                 try {
                     std::vector<geos::geom::Coordinate>* c = new std::vector<geos::geom::Coordinate>;
-                    if (m_reverse) {
-                        for (Osmium::OSM::WayNodeList::const_reverse_iterator it = m_way_node_list->rbegin(); it != m_way_node_list->rend(); ++it) {
+                    if (reverse()) {
+                        for (Osmium::OSM::WayNodeList::const_reverse_iterator it = nodes().rbegin(); it != nodes().rend(); ++it) {
                             c->push_back(it->position());
                         }
                     } else {
-                        for (Osmium::OSM::WayNodeList::const_iterator it = m_way_node_list->begin(); it != m_way_node_list->end(); ++it) {
+                        for (Osmium::OSM::WayNodeList::const_iterator it = nodes().begin(); it != nodes().end(); ++it) {
                             c->push_back(it->position());
                         }
                     }

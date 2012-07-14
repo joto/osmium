@@ -121,9 +121,9 @@ namespace Osmium {
 
                 static v8::Handle<v8::Value> to_array(const v8::Arguments& /*args*/, Osmium::Geometry::LineString* ls) {
                     v8::HandleScope scope;
-                    v8::Local<v8::Array> linestring = v8::Array::New(ls->nodes()->size());
-                    unsigned int max = ls->nodes()->size() - 1;
-                    const Osmium::OSM::WayNodeList& wnl = *(ls->nodes());
+                    v8::Local<v8::Array> linestring = v8::Array::New(ls->nodes().size());
+                    unsigned int max = ls->nodes().size() - 1;
+                    const Osmium::OSM::WayNodeList& wnl = ls->nodes();
                     if (ls->reverse()) {
                         for (unsigned int i=0; i <= max; ++i) {
                             linestring->Set(max - i, OSMPosition::to_array(wnl[i].position()));
@@ -147,10 +147,10 @@ namespace Osmium {
                 static v8::Handle<v8::Value> to_array(const v8::Arguments& /*args*/, Osmium::Geometry::Polygon* p) {
                     v8::HandleScope scope;
                     v8::Local<v8::Array> polygon = v8::Array::New(1);
-                    v8::Local<v8::Array> linear_ring = v8::Array::New(p->nodes()->size());
+                    v8::Local<v8::Array> linear_ring = v8::Array::New(p->nodes().size());
                     polygon->Set(0, linear_ring);
-                    unsigned int max = p->nodes()->size() - 1;
-                    const Osmium::OSM::WayNodeList& wnl = *(p->nodes());
+                    unsigned int max = p->nodes().size() - 1;
+                    const Osmium::OSM::WayNodeList& wnl = p->nodes();
                     if (p->reverse()) {
                         for (unsigned int i=0; i <= max; ++i) {
                             linear_ring->Set(max - i, OSMPosition::to_array(wnl[i].position()));

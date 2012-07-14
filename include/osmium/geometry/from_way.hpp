@@ -33,12 +33,12 @@ namespace Osmium {
 
         public:
 
-            const Osmium::OSM::WayNodeList* nodes() const {
+            const Osmium::OSM::WayNodeList& nodes() const {
                 return m_way_node_list;
             }
 
             const Osmium::OSM::WayNode& operator[](int i) const {
-                return (*m_way_node_list)[i];
+                return m_way_node_list[i];
             }
 
             bool reverse() const {
@@ -51,11 +51,13 @@ namespace Osmium {
                     bool reverse=false,
                     osm_object_id_t id=0)
                 : Geometry(id),
-                  m_way_node_list(&way_node_list),
+                  m_way_node_list(way_node_list),
                   m_reverse(reverse) {
             }
 
-            const Osmium::OSM::WayNodeList* m_way_node_list;
+        private:
+
+            const Osmium::OSM::WayNodeList& m_way_node_list;
             const bool m_reverse;
 
         }; // class FromWay

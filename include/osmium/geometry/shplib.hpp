@@ -61,10 +61,10 @@ namespace Osmium {
          * SHPDestroyObject() with this geometry when you are done.
          */
         SHPObject* create_line_or_polygon(const Osmium::Geometry::FromWay& from_way, int shp_type) {
-            if (!from_way.nodes()->has_position()) {
+            if (!from_way.nodes().has_position()) {
                 throw std::runtime_error("node coordinates not available for building way geometry");
             }
-            int size = from_way.nodes()->size();
+            int size = from_way.nodes().size();
             if (size == 0 || size == 1) {
                 if (Osmium::debug()) {
                     std::cerr << "error building way geometry for way " << from_way.id() << ": must at least contain two nodes" << std::endl;

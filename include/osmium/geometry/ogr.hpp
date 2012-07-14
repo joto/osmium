@@ -31,6 +31,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 =======================================================
 */
 
+#include <boost/foreach.hpp>
+
 #include <ogr_geometry.h>
 
 #include <osmium/geometry/point.hpp>
@@ -59,12 +61,12 @@ namespace Osmium {
         inline OGRLineString* create_ogr_geometry(const Osmium::Geometry::LineString& linestring) {
             OGRLineString* ls = new OGRLineString();
             if (linestring.reverse()) {
-                for (Osmium::OSM::WayNodeList::const_reverse_iterator it = linestring.nodes()->rbegin(); it != linestring.nodes()->rend(); ++it) {
-                    ls->addPoint(it->lon(), it->lat());
+                BOOST_REVERSE_FOREACH(const Osmium::OSM::WayNode& wn, linestring.nodes()) {
+                    ls->addPoint(wn.lon(), wn.lat());
                 }
             } else {
-                for (Osmium::OSM::WayNodeList::const_iterator it = linestring.nodes()->begin(); it != linestring.nodes()->end(); ++it) {
-                    ls->addPoint(it->lon(), it->lat());
+                BOOST_FOREACH(const Osmium::OSM::WayNode& wn, linestring.nodes()) {
+                    ls->addPoint(wn.lon(), wn.lat());
                 }
             }
             return ls;
@@ -79,12 +81,12 @@ namespace Osmium {
             OGRPolygon* p = new OGRPolygon();
             OGRLinearRing* r = new OGRLinearRing();
             if (polygon.reverse()) {
-                for (Osmium::OSM::WayNodeList::const_reverse_iterator it = polygon.nodes()->rbegin(); it != polygon.nodes()->rend(); ++it) {
-                    r->addPoint(it->lon(), it->lat());
+                BOOST_REVERSE_FOREACH(const Osmium::OSM::WayNode& wn, polygon.nodes()) {
+                    r->addPoint(wn.lon(), wn.lat());
                 }
             } else {
-                for (Osmium::OSM::WayNodeList::const_iterator it = polygon.nodes()->begin(); it != polygon.nodes()->end(); ++it) {
-                    r->addPoint(it->lon(), it->lat());
+                BOOST_FOREACH(const Osmium::OSM::WayNode& wn, polygon.nodes()) {
+                    r->addPoint(wn.lon(), wn.lat());
                 }
             }
             p->addRingDirectly(r);
