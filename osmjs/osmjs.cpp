@@ -23,7 +23,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <getopt.h>
 #include <unistd.h>
 
-#include <osmium.hpp>
+#include <osmium/osmfile.hpp>
+#include <osmium/osmfile_impl.hpp>
 #include <osmium/javascript.hpp>
 #include <osmium/storage/byid/fixed_array.hpp>
 #include <osmium/storage/byid/sparse_table.hpp>

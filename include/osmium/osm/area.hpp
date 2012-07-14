@@ -68,6 +68,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 // this should come from /usr/include/geos/algorithm, but its missing there in some Ubuntu versions
 # include "../CGAlgorithms.h"
+
+# include <osmium/geometry_factory.hpp>
 #endif // OSMIUM_WITH_GEOS
 
 #include <osmium/osm/way.hpp>
