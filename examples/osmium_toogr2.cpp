@@ -38,6 +38,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <osmium/handler/coordinates_for_ways.hpp>
 #include <osmium/handler/multipolygon.hpp>
 #include <osmium/geometry/multipolygon.hpp>
+#include <osmium/geometry/ogr.hpp>
 
 typedef Osmium::Storage::ById::SparseTable<Osmium::OSM::Position> storage_sparsetable_t;
 typedef Osmium::Storage::ById::MmapFile<Osmium::OSM::Position> storage_mmap_t;
@@ -151,7 +152,7 @@ public:
                 Osmium::Geometry::MultiPolygon mp(*area);
 
                 OGRFeature* feature = OGRFeature::CreateFeature(m_layer_mp->GetLayerDefn());
-                OGRMultiPolygon* ogrmp = mp.create_ogr_geometry();
+                OGRMultiPolygon* ogrmp = Osmium::Geometry::create_ogr_geometry(mp);
                 feature->SetGeometry(ogrmp);
                 feature->SetField("id", area->id());
 

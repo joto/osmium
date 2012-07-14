@@ -35,6 +35,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <osmium/storage/byid/mmap_file.hpp>
 #include <osmium/handler/coordinates_for_ways.hpp>
 #include <osmium/geometry/point.hpp>
+#include <osmium/geometry/ogr.hpp>
 
 typedef Osmium::Storage::ById::SparseTable<Osmium::OSM::Position> storage_sparsetable_t;
 typedef Osmium::Storage::ById::MmapFile<Osmium::OSM::Position> storage_mmap_t;
@@ -136,7 +137,7 @@ public:
                 Osmium::Geometry::Point point(*node);
 
                 OGRFeature* feature = OGRFeature::CreateFeature(m_layer_point->GetLayerDefn());
-                OGRPoint* ogrpoint = point.create_ogr_geometry();
+                OGRPoint* ogrpoint = Osmium::Geometry::create_ogr_geometry(point);
                 feature->SetGeometry(ogrpoint);
                 feature->SetField("id", node->id());
                 feature->SetField("operator", node->tags().get_tag_by_key("operator"));
@@ -171,7 +172,7 @@ public:
                 Osmium::Geometry::LineString linestring(*way);
 
                 OGRFeature* feature = OGRFeature::CreateFeature(m_layer_linestring->GetLayerDefn());
-                OGRLineString* ogrlinestring = linestring.create_ogr_geometry();
+                OGRLineString* ogrlinestring = Osmium::Geometry::create_ogr_geometry(linestring);
                 feature->SetGeometry(ogrlinestring);
                 feature->SetField("id", way->id());
                 feature->SetField("type", highway);

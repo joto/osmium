@@ -18,7 +18,7 @@ CXXFLAGS += -Wall -Wextra -Wredundant-decls -Wdisabled-optimization -pedantic -W
 
 CXXFLAGS_GEOS    = -DOSMIUM_WITH_GEOS $(shell geos-config --cflags)
 CXXFLAGS_LIBXML2 = -DOSMIUM_WITH_OUTPUT_OSM_XML $(shell xml2-config --cflags)
-CXXFLAGS_OGR     = -DOSMIUM_WITH_OGR $(shell gdal-config --cflags)
+CXXFLAGS_OGR     = $(shell gdal-config --cflags)
 
 CXXFLAGS += -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 

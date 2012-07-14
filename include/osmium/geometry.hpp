@@ -29,10 +29,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 # include <geos/geom/PrecisionModel.h>
 #endif // OSMIUM_WITH_GEOS
 
-#ifdef OSMIUM_WITH_OGR
-# include <ogr_geometry.h>
-#endif // OSMIUM_WITH_OGR
-
 #include <osmium/exceptions.hpp>
 #include <osmium/osm/types.hpp>
 

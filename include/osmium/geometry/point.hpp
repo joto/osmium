@@ -102,18 +102,6 @@ namespace Osmium {
             }
 #endif // OSMIUM_WITH_GEOS
 
-#ifdef OSMIUM_WITH_OGR
-            /**
-             * Create OGR geometry of this Point.
-             *
-             * Caller takes ownership.
-             */
-            OGRPoint* create_ogr_geometry() const {
-                OGRPoint* p = new OGRPoint(lon(), lat());
-                return p;
-            }
-#endif // OSMIUM_WITH_OGR
-
         private:
 
             const Osmium::OSM::Position m_position;

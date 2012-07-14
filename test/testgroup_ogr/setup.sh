@@ -1,1 +1,1 @@
-FLAGS="-DOSMIUM_WITH_OGR `gdal-config --cflags` `gdal-config --libs`"
+FLAGS="`gdal-config --cflags` `gdal-config --libs`"

@@ -133,27 +133,6 @@ namespace Osmium {
             }
 #endif // OSMIUM_WITH_GEOS
 
-#ifdef OSMIUM_WITH_OGR
-            /**
-             * Create OGR geometry of this LineString;
-             *
-             * Caller takes ownership.
-             */
-            OGRLineString* create_ogr_geometry() const {
-                OGRLineString* p = new OGRLineString();
-                if (m_reverse) {
-                    for (Osmium::OSM::WayNodeList::const_reverse_iterator it = m_way_node_list->rbegin(); it != m_way_node_list->rend(); ++it) {
-                        p->addPoint(it->lon(), it->lat());
-                    }
-                } else {
-                    for (Osmium::OSM::WayNodeList::const_iterator it = m_way_node_list->begin(); it != m_way_node_list->end(); ++it) {
-                        p->addPoint(it->lon(), it->lat());
-                    }
-                }
-                return p;
-            }
-#endif // OSMIUM_WITH_OGR
-
         }; // class LineString
 
     } // namespace Geometry

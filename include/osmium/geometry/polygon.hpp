@@ -121,29 +121,6 @@ namespace Osmium {
             }
 #endif // OSMIUM_WITH_GEOS
 
-#ifdef OSMIUM_WITH_OGR
-            /**
-             * Create OGR geometry of this Polygon.
-             *
-             * Caller takes ownership.
-             */
-            OGRPolygon* create_ogr_geometry() const {
-                OGRPolygon* p = new OGRPolygon();
-                OGRLinearRing* r = new OGRLinearRing();
-                if (m_reverse) {
-                    for (Osmium::OSM::WayNodeList::const_reverse_iterator it = m_way_node_list->rbegin(); it != m_way_node_list->rend(); ++it) {
-                        r->addPoint(it->lon(), it->lat());
-                    }
-                } else {
-                    for (Osmium::OSM::WayNodeList::const_iterator it = m_way_node_list->begin(); it != m_way_node_list->end(); ++it) {
-                        r->addPoint(it->lon(), it->lat());
-                    }
-                }
-                p->addRingDirectly(r);
-                return p;
-            }
-#endif // OSMIUM_WITH_OGR
-
         }; // class Polygon
 
     } // namespace Geometry
