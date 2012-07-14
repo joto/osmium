@@ -48,7 +48,7 @@ namespace Osmium {
          * Caller takes ownership. You have to call
          * SHPDestroyObject() with this geometry when you are done.
          */
-        SHPObject* create_shp_object(const Osmium::Geometry::Point& point) {
+        inline SHPObject* create_shp_object(const Osmium::Geometry::Point& point) {
             double x = point.lon();
             double y = point.lat();
             return SHPCreateSimpleObject(SHPT_POINT, 1, &x, &y, NULL);
@@ -60,7 +60,7 @@ namespace Osmium {
          * Caller takes ownership. You have to call
          * SHPDestroyObject() with this geometry when you are done.
          */
-        SHPObject* create_line_or_polygon(const Osmium::Geometry::FromWay& from_way, int shp_type) {
+        inline SHPObject* create_line_or_polygon(const Osmium::Geometry::FromWay& from_way, int shp_type) {
             if (!from_way.nodes().has_position()) {
                 throw std::runtime_error("node coordinates not available for building way geometry");
             }
@@ -113,7 +113,7 @@ namespace Osmium {
          * Caller takes ownership. You have to call
          * SHPDestroyObject() with this geometry when you are done.
          */
-        SHPObject* create_shp_object(const Osmium::Geometry::LineString& linestring) {
+        inline SHPObject* create_shp_object(const Osmium::Geometry::LineString& linestring) {
             return create_line_or_polygon(linestring, SHPT_ARC);
         }
 
@@ -123,11 +123,11 @@ namespace Osmium {
          * Caller takes ownership. You have to call
          * SHPDestroyObject() with this geometry when you are done.
          */
-        SHPObject* create_shp_object(const Osmium::Geometry::Polygon& polygon) {
+        inline SHPObject* create_shp_object(const Osmium::Geometry::Polygon& polygon) {
             return create_line_or_polygon(polygon, SHPT_POLYGON);
         }
 
-        void dump_geometry(const geos::geom::Geometry* g, std::vector<int>& part_start_list, std::vector<double>& x_list, std::vector<double>& y_list) {
+        inline void dump_geometry(const geos::geom::Geometry* g, std::vector<int>& part_start_list, std::vector<double>& x_list, std::vector<double>& y_list) {
             switch (g->getGeometryTypeId()) {
                 case geos::geom::GEOS_MULTIPOLYGON:
                 case geos::geom::GEOS_MULTILINESTRING: {
@@ -166,7 +166,7 @@ namespace Osmium {
          * Caller takes ownership. You have to call
          * SHPDestroyObject() with this geometry when you are done.
          */
-        SHPObject* create_shp_object(const Osmium::Geometry::MultiPolygon& multipolygon) {
+        inline SHPObject* create_shp_object(const Osmium::Geometry::MultiPolygon& multipolygon) {
             if (!multipolygon.area()->get_geometry()) {
                 throw Osmium::Exception::IllegalGeometry();
             }
@@ -196,7 +196,9 @@ namespace Osmium {
          * Caller takes ownership. You have to call
          * SHPDestroyObject() with this geometry when you are done.
          */
-        SHPObject* create_shp_object(const Osmium::Geometry::Geometry& geometry) {
+        inline SHPObject* create_shp_object(const Osmium::Geometry::Geometry& geometry) {
+            /* this is rather ugly code but we have to do this here because we can't make this
+               free function into a member function where C++ would to the polymorphy thing for us. */
             const Osmium::Geometry::Point* point = dynamic_cast<const Osmium::Geometry::Point*>(&geometry);
             if (point) {
                 return create_shp_object(*point);
