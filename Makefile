@@ -25,13 +25,14 @@ check:
 # to be sure it will compile in production code. But if it reports [FAILED]
 # we know we are missing something.
 check-includes:
-	echo "check includes report:" >check-includes-report; \
+	echo "CHECK INCLUDES REPORT:" >check-includes-report; \
 	for FILE in include/*.hpp include/*/*.hpp include/*/*/*.hpp include/*/*/*/*.hpp; do \
-        compile_with=`grep "  compile with: " $${FILE} | cut -d: -f2 | cut -c2-`; \
-        flags=`$${compile_with}`; \
-        echo "$${FILE}:" >>check-includes-report; \
+        flags=`./get_options.sh --cflags $${FILE}`; \
+        eval eflags=$${flags}; \
+        compile="g++ -I include $${eflags} $${FILE}"; \
+        echo "\n======== $${FILE}:\n$${compile}" >>check-includes-report; \
         echo -n "$${FILE} "; \
-        if `g++ -I include $${flags} $${FILE} 2>>check-includes-report`; then \
+        if `$${compile} 2>>check-includes-report`; then \
             echo "[OK]"; \
         else \
             echo "[FAILED]"; \

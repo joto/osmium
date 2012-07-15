@@ -22,14 +22,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
-/*
-=======================================================
-  If you include this header file, you need to
-  compile with: geos-config --cflags
-  and
-  link with: -lshp `geos-config --libs`
-=======================================================
-*/
+#define OSMIUM_COMPILE_WITH_CFLAGS_SHP `geos-config --cflags`
+#define OSMIUM_LINK_WITH_LIBS_SHP -lshp `geos-config --libs`
 
 #include <shapefil.h>
 #include <geos/geom/Geometry.h>

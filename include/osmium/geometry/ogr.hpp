@@ -22,14 +22,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
-/*
-=======================================================
-  If you include this header file, you need to
-  compile with: gdal-config --cflags
-  and
-  link with: gdal-config --libs
-=======================================================
-*/
+#define OSMIUM_COMPILE_WITH_CFLAGS_OGR `gdal-config --cflags`
+#define OSMIUM_LINK_WITH_LIBS_OGR `gdal-config --libs`
 
 #include <boost/foreach.hpp>
 

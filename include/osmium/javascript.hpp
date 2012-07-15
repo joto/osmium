@@ -22,6 +22,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#define OSMIUM_LINK_WITH_LIBS_V8 -lv8 --licuuc
+
 #include <osmium/javascript/handler.hpp>
 
 #endif // OSMIUM_JAVASCRIPT_HPP
