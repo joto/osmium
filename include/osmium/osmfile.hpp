@@ -492,9 +492,9 @@ namespace Osmium {
         OSMFile(const OSMFile& orig) {
             m_fd       = -1;
             m_childpid = 0;
-            m_type     = orig.get_type();
-            m_encoding = orig.get_encoding();
-            m_filename = orig.get_filename();
+            m_type     = orig.type();
+            m_encoding = orig.encoding();
+            m_filename = orig.filename();
         }
 
         /**
@@ -505,9 +505,9 @@ namespace Osmium {
         OSMFile& operator=(const OSMFile& orig) {
             m_fd       = -1;
             m_childpid = 0;
-            m_type     = orig.get_type();
-            m_encoding = orig.get_encoding();
-            m_filename = orig.get_filename();
+            m_type     = orig.type();
+            m_encoding = orig.encoding();
+            m_filename = orig.filename();
             return *this;
         }
 
@@ -565,20 +565,20 @@ namespace Osmium {
             m_encoding = FileEncoding::XML();
         }
 
-        int get_fd() const {
+        int fd() const {
             return m_fd;
         }
 
-        FileType* get_type() const {
+        FileType* type() const {
             return m_type;
         }
 
-        OSMFile& set_type(FileType* type) {
+        OSMFile& type(FileType* type) {
             m_type = type;
             return *this;
         }
 
-        OSMFile& set_type(std::string& type) {
+        OSMFile& type(std::string& type) {
             if (type == "osm") {
                 m_type = FileType::OSM();
             } else if (type == "history" || type == "osh") {
@@ -595,16 +595,16 @@ namespace Osmium {
             return m_type->has_multiple_object_versions();
         }
 
-        FileEncoding* get_encoding() const {
+        FileEncoding* encoding() const {
             return m_encoding;
         }
 
-        OSMFile& set_encoding(FileEncoding* encoding) {
+        OSMFile& encoding(FileEncoding* encoding) {
             m_encoding = encoding;
             return *this;
         }
 
-        OSMFile& set_encoding(std::string& encoding) {
+        OSMFile& encoding(std::string& encoding) {
             if (encoding == "pbf") {
                 m_encoding = FileEncoding::PBF();
             } else if (encoding == "xml") {
@@ -619,7 +619,7 @@ namespace Osmium {
             return *this;
         }
 
-        OSMFile& set_filename(std::string& filename) {
+        OSMFile& filename(std::string& filename) {
             if (filename == "-") {
                 m_filename = "";
             } else {
@@ -628,16 +628,16 @@ namespace Osmium {
             return *this;
         }
 
-        std::string get_filename() const {
+        std::string filename() const {
             return m_filename;
         }
 
-        std::string get_filename_without_suffix() const {
+        std::string filename_without_suffix() const {
             return m_filename.substr(m_filename.find_first_of('.')+1);
         }
 
-        std::string get_filename_with_default_suffix() const {
-            std::string filename = get_filename_without_suffix();
+        std::string filename_with_default_suffix() const {
+            std::string filename = filename_without_suffix();
             filename += m_type->suffix() + m_encoding->suffix();
             return filename;
         }

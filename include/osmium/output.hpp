@@ -38,8 +38,8 @@ namespace Osmium {
 
             Osmium::OSMFile m_file;
 
-            int get_fd() {
-                return m_file.get_fd();
+            int fd() {
+                return m_file.fd();
             }
 
         public:

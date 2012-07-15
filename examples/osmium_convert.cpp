@@ -176,11 +176,11 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if (infile.get_type() == Osmium::OSMFile::FileType::OSM() && outfile.get_type() == Osmium::OSMFile::FileType::History()) {
+    if (infile.type() == Osmium::OSMFile::FileType::OSM() && outfile.type() == Osmium::OSMFile::FileType::History()) {
         std::cerr << "Warning! You are converting from an OSM file without history information to one with history information.\nThis will almost certainly not do what you want!" << std::endl;
-    } else if (infile.get_type() == Osmium::OSMFile::FileType::History() && outfile.get_type() == Osmium::OSMFile::FileType::OSM()) {
+    } else if (infile.type() == Osmium::OSMFile::FileType::History() && outfile.type() == Osmium::OSMFile::FileType::OSM()) {
         std::cerr << "Warning! You are converting from an OSM file with history information to one without history information.\nThis will almost certainly not do what you want!" << std::endl;
-    } else if (infile.get_type() != outfile.get_type()) {
+    } else if (infile.type() != outfile.type()) {
         std::cerr << "Warning! Source and destination are not of the same type." << std::endl;
     }
 

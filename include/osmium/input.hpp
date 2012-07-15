@@ -167,11 +167,11 @@ namespace Osmium {
                 return m_meta;
             }
 
-            int get_fd() const {
-                return m_file.get_fd();
+            int fd() const {
+                return m_file.fd();
             }
 
-            const Osmium::OSMFile& get_file() const {
+            const Osmium::OSMFile& file() const {
                 return m_file;
             }
 

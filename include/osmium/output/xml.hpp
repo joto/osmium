@@ -42,7 +42,7 @@ namespace Osmium {
         public:
 
             XML(const Osmium::OSMFile& file) : Base(file), m_last_op('\0') {
-                xml_writer = xmlNewTextWriter(xmlOutputBufferCreateFd(this->get_fd(), NULL));
+                xml_writer = xmlNewTextWriter(xmlOutputBufferCreateFd(this->fd(), NULL));
             }
 
             ~XML() {
@@ -53,7 +53,7 @@ namespace Osmium {
                 xmlTextWriterSetIndentString(xml_writer, BAD_CAST "  ");
                 xmlTextWriterStartDocument(xml_writer, NULL, "utf-8", NULL); // <?xml .. ?>
 
-                if (m_file.get_type() == Osmium::OSMFile::FileType::Change()) {
+                if (m_file.type() == Osmium::OSMFile::FileType::Change()) {
                     xmlTextWriterStartElement(xml_writer, BAD_CAST "osmChange");  // <osmChange>
                 } else {
                     xmlTextWriterStartElement(xml_writer, BAD_CAST "osm");  // <osm>
@@ -73,7 +73,7 @@ namespace Osmium {
             }
 
             void node(const shared_ptr<Osmium::OSM::Node const>& node) {
-                if (m_file.get_type() == Osmium::OSMFile::FileType::Change()) {
+                if (m_file.type() == Osmium::OSMFile::FileType::Change()) {
                     open_close_op_tag(node->visible() ? (node->version() == 1 ? 'c' : 'm') : 'd');
                 }
                 xmlTextWriterStartElement(xml_writer, BAD_CAST "node"); // <node>
@@ -90,7 +90,7 @@ namespace Osmium {
             }
 
             void way(const shared_ptr<Osmium::OSM::Way const>& way) {
-                if (m_file.get_type() == Osmium::OSMFile::FileType::Change()) {
+                if (m_file.type() == Osmium::OSMFile::FileType::Change()) {
                     open_close_op_tag(way->visible() ? (way->version() == 1 ? 'c' : 'm') : 'd');
                 }
                 xmlTextWriterStartElement(xml_writer, BAD_CAST "way"); // <way>
@@ -110,7 +110,7 @@ namespace Osmium {
             }
 
             void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
-                if (m_file.get_type() == Osmium::OSMFile::FileType::Change()) {
+                if (m_file.type() == Osmium::OSMFile::FileType::Change()) {
                     open_close_op_tag(relation->visible() ? (relation->version() == 1 ? 'c' : 'm') : 'd');
                 }
                 xmlTextWriterStartElement(xml_writer, BAD_CAST "relation"); // <relation>
@@ -134,7 +134,7 @@ namespace Osmium {
             }
 
             void final() {
-                if (m_file.get_type() == Osmium::OSMFile::FileType::Change()) {
+                if (m_file.type() == Osmium::OSMFile::FileType::Change()) {
                     open_close_op_tag('\0');
                 }
                 xmlTextWriterEndElement(xml_writer); // </osm> or </osmChange>
@@ -165,7 +165,7 @@ namespace Osmium {
                     xmlTextWriterWriteFormatAttribute(xml_writer, BAD_CAST "changeset", "%d", object->changeset());
                 }
 
-                if (m_file.has_multiple_object_versions() && m_file.get_type() != Osmium::OSMFile::FileType::Change()) {
+                if (m_file.has_multiple_object_versions() && m_file.type() != Osmium::OSMFile::FileType::Change()) {
                     xmlTextWriterWriteAttribute(xml_writer, BAD_CAST "visible", object->visible() ? BAD_CAST "true" : BAD_CAST "false");
                 }
             }

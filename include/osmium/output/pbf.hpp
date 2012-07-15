@@ -351,13 +351,13 @@ namespace Osmium {
                 uint32_t sz = htonl(blobhead.size());
 
                 // write to the file: the 4-byte BlobHeader-Size followed by the BlobHeader followed by the Blob
-                if (::write(get_fd(), &sz, sizeof(sz)) < 0) {
+                if (::write(fd(), &sz, sizeof(sz)) < 0) {
                     throw std::runtime_error("file error");
                 }
-                if (::write(get_fd(), blobhead.c_str(), blobhead.size()) < 0) {
+                if (::write(fd(), blobhead.c_str(), blobhead.size()) < 0) {
                     throw std::runtime_error("file error");
                 }
-                if (::write(get_fd(), data.c_str(), data.size()) < 0) {
+                if (::write(fd(), data.c_str(), data.size()) < 0) {
                     throw std::runtime_error("file error");
                 }
             }
@@ -875,7 +875,7 @@ namespace Osmium {
 
                 // when the resulting file will carry history information, add
                 // HistoricalInformation as required feature
-                if (m_file.get_type() == Osmium::OSMFile::FileType::History()) {
+                if (m_file.type() == Osmium::OSMFile::FileType::History()) {
                     pbf_header_block.add_required_features("HistoricalInformation");
                 }
 
