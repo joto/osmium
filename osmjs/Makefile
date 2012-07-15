@@ -25,19 +25,19 @@ CXXFLAGS += -DOSMIUM_WITH_SHPLIB
 
 CXXFLAGS += -I../include
 
-LDFLAGS = -L/usr/local/lib -lexpat -lpthread
+LDFLAGS = -L/usr/local/lib -lexpat
 LDFLAGS += $(shell geos-config --libs)
 
-LIB_V8       = -lv8 -licuuc
-LIB_SHAPE    = -lshp
-LIB_PROTOBUF = -lz -lprotobuf-lite -losmpbf
+LIB_V8    = -lv8 -licuuc
+LIB_SHAPE = -lshp
+LIB_PBF   = -lz -lpthread -lprotobuf-lite -losmpbf
 
 .PHONY: all clean install
 
 all: osmjs
 
 osmjs: osmjs.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_V8) $(LIB_SHAPE)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PBF) $(LIB_V8) $(LIB_SHAPE)
 
 install:
 	install -m 755 -g root -o root -d $(DESTDIR)/usr/bin

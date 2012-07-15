@@ -32,8 +32,8 @@ using std::tr1::const_pointer_cast;
 using std::tr1::dynamic_pointer_cast;
 using boost::make_shared;
 
-#include <osmium/handler.hpp>
 #include <osmium/osmfile.hpp>
+#include <osmium/handler.hpp>
 
 namespace Osmium {
 
@@ -97,7 +97,7 @@ namespace Osmium {
 
         protected:
 
-            Base(Osmium::OSMFile& file,
+            Base(const Osmium::OSMFile& file,
                  THandler& handler)
                 : m_last_object_type(UNKNOWN),
                   m_file(file),
@@ -245,8 +245,5 @@ namespace Osmium {
     } // namespace Input
 
 } // namespace Osmium
-
-#include <osmium/input/xml.hpp>
-#include <osmium/input/pbf.hpp>
 
 #endif // OSMIUM_INPUT_HPP

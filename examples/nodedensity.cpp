@@ -24,6 +24,9 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <cstdio>
 #include <gd.h>
 
+#define OSMIUM_WITH_PBF_INPUT
+#define OSMIUM_WITH_XML_INPUT
+
 #include <osmium.hpp>
 
 /* ================================================== */
@@ -119,6 +122,6 @@ int main(int argc, char *argv[]) {
 
     Osmium::OSMFile infile(argv[1]);
     NodeDensityHandler handler(size, min, max);
-    infile.read(handler);
+    Osmium::Input::read(infile, handler);
 }
 

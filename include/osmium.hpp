@@ -22,6 +22,22 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#ifdef OSMIUM_WITH_PBF_INPUT
+# include <osmium/input/pbf.hpp>
+#endif
+
+#ifdef OSMIUM_WITH_XML_INPUT
+# include <osmium/input/xml.hpp>
+#endif
+
+#ifdef OSMIUM_WITH_PBF_OUTPUT
+# include <osmium/output/pbf.hpp>
+#endif
+
+#ifdef OSMIUM_WITH_XML_OUTPUT
+# include <osmium/output/xml.hpp>
+#endif
+
 /**
  * @mainpage
  *
@@ -40,8 +56,61 @@ You should have received a copy of the Licenses along with Osmium. If not, see
  * @brief All %Osmium code is in this namespace.
  */
 namespace Osmium {
-} // namespace Osmium
 
-#include <osmium/osmfile_impl.hpp>
+#if defined(OSMIUM_WITH_PBF_INPUT) || defined(OSMIUM_WITH_XML_INPUT)
+    namespace Input {
+
+        template <class T>
+        inline void read(const Osmium::OSMFile& file, T& handler) {
+            Osmium::Input::Base<T>* input = NULL;
+            
+            if (file.get_encoding()->is_pbf()) {
+#ifdef OSMIUM_WITH_PBF_INPUT
+                input = static_cast<Osmium::Input::Base<T>*>(new Osmium::Input::PBF<T>(file, handler));
+#else
+                throw Osmium::OSMFile::FileEncodingNotSupported();
+#endif // OSMIUM_WITH_PBF_INPUT
+            } else {
+#ifdef OSMIUM_WITH_XML_INPUT
+                input = static_cast<Osmium::Input::Base<T>*>(new Osmium::Input::XML<T>(file, handler));
+#else
+                throw Osmium::OSMFile::FileEncodingNotSupported();
+#endif // OSMIUM_WITH_XML_INPUT
+            }
+
+            input->parse();
+            delete input;
+        }
+
+    } // namespace Input
+#endif
+
+#if defined(OSMIUM_WITH_PBF_OUTPUT) || defined(OSMIUM_WITH_XML_OUTPUT)
+    namespace Output {
+
+        inline Osmium::Output::Base* open(const Osmium::OSMFile& file) {
+            Osmium::Output::Base *output = NULL;
+
+            if (file.get_encoding()->is_pbf()) {
+#ifdef OSMIUM_WITH_PBF_OUTPUT
+                output = new Osmium::Output::PBF(file);
+#else
+                throw Osmium::OSMFile::FileEncodingNotSupported();
+#endif // OSMIUM_WITH_PBF_OUTPUT
+            } else {
+#ifdef OSMIUM_WITH_XML_OUTPUT
+                output = new Osmium::Output::XML(file);
+#else
+                throw Osmium::OSMFile::FileEncodingNotSupported();
+#endif // OSMIUM_WITH_XML_OUTPUT
+            }
+
+            return output;
+        }
+
+    } // namespace Output
+#endif
+
+} // namespace Osmium
 
 #endif // OSMIUM_OSMIUM_HPP

@@ -25,6 +25,11 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#define OSMIUM_WITH_PBF_INPUT
+#define OSMIUM_WITH_XML_INPUT
+#define OSMIUM_WITH_PBF_OUTPUT
+#define OSMIUM_WITH_XML_OUTPUT
+
 #include <osmium.hpp>
 #include <osmium/handler/debug.hpp>
 #include <osmium/handler/endtime.hpp>
@@ -38,8 +43,8 @@ int main(int argc, char *argv[]) {
 
     Osmium::OSMFile infile(argv[1]);
     Osmium::OSMFile outfile(argv[2]);
-    Osmium::Handler::RangeFromHistory<Osmium::Output::Base> range_handler(outfile.create_output_file(), time(0), time(0));
+    Osmium::Handler::RangeFromHistory<Osmium::Output::Base> range_handler(Osmium::Output::open(outfile), time(0), time(0));
     Osmium::Handler::EndTime<Osmium::Handler::RangeFromHistory<Osmium::Output::Base> > handler(&range_handler);
-    infile.read(handler);
+    Osmium::Input::read(infile, handler);
 }
 

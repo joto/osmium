@@ -32,11 +32,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 namespace Osmium {
 
-    // forward declaration
-    namespace Output {
-        class Base;
-    }
-
     /**
      * This class describes an %OSM file in one of several different formats.
      * It can be used as factory class for generating input and output OSM files.
@@ -154,6 +149,9 @@ namespace Osmium {
          * historic information, but the file opened had a different type.
          */
         struct FileTypeHistoryExpected : public FileTypeError {
+        };
+
+        class FileEncodingNotSupported {
         };
 
         /**
@@ -651,16 +649,6 @@ namespace Osmium {
         void open_for_output() {
             m_fd = m_encoding->compress() == "" ? open_output_file() : execute(m_encoding->compress(), 1);
         }
-
-        /**
-         * Read OSM file and call methods on handler object.
-         */
-        template <class T> void read(T& handler);
-
-        /**
-         * Create output file from OSMFile.
-         */
-        Osmium::Output::Base* create_output_file();
 
     };
 

@@ -27,9 +27,13 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 */
 
 #include <cstdlib>
+#include <osmpbf/osmpbf.h>
 
-#include <osmium.hpp>
-#include <osmium/output/xml.hpp>
+#include <osmium/osm/object.hpp>
+#include <osmium/osm/node.hpp>
+#include <osmium/osm/way.hpp>
+#include <osmium/osm/relation.hpp>
+#include <osmium/osm/area.hpp>
 
 int main() {
     std::cout << "sizeof(Osmium::OSM::Object)="           << sizeof(Osmium::OSM::Object) << "\n";
@@ -52,8 +56,5 @@ int main() {
     std::cout << "sizeof(OSMPBF::Relation)="       << sizeof(OSMPBF::Relation)       << "\n";
     std::cout << "sizeof(OSMPBF::DenseNodes)="     << sizeof(OSMPBF::DenseNodes)     << "\n";
     std::cout << "sizeof(OSMPBF::StringTable)="    << sizeof(OSMPBF::StringTable)    << "\n";
-
-    std::cout << "sizeof(Osmium::Output::PBF)="    << sizeof(Osmium::Output::PBF)    << "\n";
-    std::cout << "sizeof(Osmium::Output::XML)="    << sizeof(Osmium::Output::XML)    << "\n";
 }
 

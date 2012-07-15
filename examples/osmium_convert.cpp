@@ -28,6 +28,10 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <cstdlib>
 #include <getopt.h>
 
+#define OSMIUM_WITH_PBF_INPUT
+#define OSMIUM_WITH_XML_INPUT
+#define OSMIUM_WITH_PBF_OUTPUT
+#define OSMIUM_WITH_XML_OUTPUT
 #include <osmium.hpp>
 #include <osmium/handler/progress.hpp>
 
@@ -50,7 +54,7 @@ public:
     }
 
     void init(Osmium::OSM::Meta& meta) {
-        output = m_outfile.create_output_file();
+        output = Osmium::Output::open(m_outfile);
         output->debug_level(m_debug_level);
         output->init(meta);
         m_progress_handler.init(meta);
@@ -181,6 +185,6 @@ int main(int argc, char *argv[]) {
     }
 
     ConvertHandler handler(outfile, debug ? 1 : 0);
-    infile.read(handler);
+    Osmium::Input::read(infile, handler);
 }
 

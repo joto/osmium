@@ -29,6 +29,9 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <time.h>
 #include <sys/times.h>
 
+#define OSMIUM_WITH_PBF_INPUT
+#define OSMIUM_WITH_XML_INPUT
+
 #include <osmium.hpp>
 
 class MyTimerHandler : public Osmium::Handler::Base {
@@ -71,7 +74,7 @@ int main(int argc, char *argv[]) {
 
     Osmium::OSMFile infile(argv[1]);
     MyTimerHandler handler;
-    infile.read(handler);
+    Osmium::Input::read(infile, handler);
 
     struct tms tms;
     times(&tms);

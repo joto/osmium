@@ -32,6 +32,9 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <ogrsf_frmts.h>
 
+#define OSMIUM_WITH_PBF_INPUT
+#define OSMIUM_WITH_XML_INPUT
+
 #include <osmium.hpp>
 #include <osmium/storage/byid/sparse_table.hpp>
 #include <osmium/storage/byid/mmap_file.hpp>
@@ -193,12 +196,11 @@ int main(int argc, char *argv[]) {
 
     // first pass
     MyOGRHandlerPass1 handler_pass1(&handler_multipolygon);
-    infile.read(handler_pass1);
+    Osmium::Input::read(infile, handler_pass1);
 
     // second pass
     MyOGRHandlerPass2 handler_pass2(&handler_multipolygon);
     hpass2 = &handler_pass2;
-
-    infile.read(handler_pass2);
+    Osmium::Input::read(infile, handler_pass2);
 }
 

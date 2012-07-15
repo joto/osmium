@@ -28,6 +28,9 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#define OSMIUM_WITH_PBF_INPUT
+#define OSMIUM_WITH_XML_INPUT
+
 #include <osmium.hpp>
 #include <osmium/handler/debug.hpp>
 
@@ -50,6 +53,6 @@ int main(int argc, char *argv[]) {
 #else
     Osmium::Handler::Debug handler;
 #endif // OSMIUM_DEBUG_WITH_ENDTIME
-    infile.read(handler);
+    Osmium::Input::read(infile, handler);
 }
 

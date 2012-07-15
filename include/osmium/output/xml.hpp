@@ -47,7 +47,7 @@ namespace Osmium {
 
         public:
 
-            XML(Osmium::OSMFile& file) : Base(file), m_last_op('\0') {
+            XML(const Osmium::OSMFile& file) : Base(file), m_last_op('\0') {
                 xml_writer = xmlNewTextWriter(xmlOutputBufferCreateFd(this->get_fd(), NULL));
             }
 

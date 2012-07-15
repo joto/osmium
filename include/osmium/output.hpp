@@ -44,7 +44,7 @@ namespace Osmium {
 
         public:
 
-            Base(Osmium::OSMFile& file) :
+            Base(const Osmium::OSMFile& file) :
                 Osmium::Handler::Base(),
                 m_file(file) {
                 m_file.open_for_output();
@@ -64,10 +64,5 @@ namespace Osmium {
     } // namespace Output
 
 } // namespace Osmium
-
-#include <osmium/output/pbf.hpp>
-#ifdef OSMIUM_WITH_OUTPUT_OSM_XML
-# include <osmium/output/xml.hpp>
-#endif
 
 #endif // OSMIUM_OUTPUT_HPP

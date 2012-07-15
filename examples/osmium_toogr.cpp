@@ -30,6 +30,9 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <ogrsf_frmts.h>
 
+#define OSMIUM_WITH_PBF_INPUT
+#define OSMIUM_WITH_XML_INPUT
+
 #include <osmium.hpp>
 #include <osmium/storage/byid/sparse_table.hpp>
 #include <osmium/storage/byid/mmap_file.hpp>
@@ -201,6 +204,6 @@ int main(int argc, char *argv[]) {
 
     Osmium::OSMFile infile(argv[1]);
     MyOGRHandler handler;
-    infile.read(handler);
+    Osmium::Input::read(infile, handler);
 }
 

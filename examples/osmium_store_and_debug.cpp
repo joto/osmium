@@ -26,6 +26,9 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#define OSMIUM_WITH_PBF_INPUT
+#define OSMIUM_WITH_XML_INPUT
+
 #include <osmium.hpp>
 #include <osmium/handler/debug.hpp>
 #include <osmium/storage/objectstore.hpp>
@@ -40,11 +43,11 @@ int main(int argc, char *argv[]) {
     Osmium::OSMFile infile2(argv[2]);
 
     Osmium::Storage::ObjectStore os;
-    infile1.read(os);
+    Osmium::Input::read(infile1, os);
 
     Osmium::Handler::Debug debug;
     Osmium::OSM::Meta meta;
     Osmium::Storage::ObjectStore::ApplyHandler<Osmium::Handler::Debug> ah(os, &debug, meta);
-    infile2.read(ah);
+    Osmium::Input::read(infile2, ah);
 }
 

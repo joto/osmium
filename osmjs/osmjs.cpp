@@ -23,8 +23,10 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <getopt.h>
 #include <unistd.h>
 
-#include <osmium/osmfile.hpp>
-#include <osmium/osmfile_impl.hpp>
+#define OSMIUM_WITH_PBF_INPUT
+#define OSMIUM_WITH_XML_INPUT
+#include <osmium.hpp>
+
 #include <osmium/javascript.hpp>
 #include <osmium/storage/byid/fixed_array.hpp>
 #include <osmium/storage/byid/sparse_table.hpp>
@@ -416,13 +418,13 @@ int main(int argc, char *argv[]) {
             handler_multipolygon = new Osmium::Handler::Multipolygon(attempt_repair, cbmp);
         }
         DualPass1 handler1(handler_cfw, handler_multipolygon, handler_javascript);
-        infile.read(handler1);
+        Osmium::Input::read(infile, handler1);
         DualPass2 handler2(handler_cfw, handler_multipolygon, handler_javascript);
-        infile.read(handler2);
+        Osmium::Input::read(infile, handler2);
         delete handler_multipolygon;
     } else {
         SinglePass handler(handler_cfw, handler_javascript);
-        infile.read(handler);
+        Osmium::Input::read(infile, handler);
     }
 
     delete handler_javascript;

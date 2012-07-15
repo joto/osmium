@@ -27,6 +27,9 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <cstdlib>
 
+#define OSMIUM_WITH_PBF_INPUT
+#define OSMIUM_WITH_XML_INPUT
+
 #include <osmium.hpp>
 #include <osmium/handler/find_bbox.hpp>
 
@@ -40,7 +43,7 @@ int main(int argc, char *argv[]) {
 
     Osmium::OSMFile infile(argv[1]);
     Osmium::Handler::FindBbox handler;
-    infile.read(handler);
+    Osmium::Input::read(infile, handler);
 
     Osmium::OSM::Bounds b = handler.bounds();
     std::cout <<  "minlon=" << b.bl().lon()

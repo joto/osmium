@@ -17,20 +17,20 @@ CXXFLAGS += -Wall -Wextra -Wredundant-decls -Wdisabled-optimization -pedantic -W
 #CXXFLAGS += -DOSMIUM_WITH_MULTIPOLYGON_PROFILING
 
 CXXFLAGS_GEOS    = -DOSMIUM_WITH_GEOS $(shell geos-config --cflags)
-CXXFLAGS_LIBXML2 = -DOSMIUM_WITH_OUTPUT_OSM_XML $(shell xml2-config --cflags)
+CXXFLAGS_LIBXML2 = $(shell xml2-config --cflags)
 CXXFLAGS_OGR     = $(shell gdal-config --cflags)
 
 CXXFLAGS += -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 
 CXXFLAGS += -I../include
 
-LDFLAGS = -L/usr/local/lib -lexpat -lpthread
+LDFLAGS = -L/usr/local/lib -lexpat
 
 LIB_GD       = -lgd -lz -lm
 LIB_SQLITE   = -lsqlite3
 LIB_GEOS     = $(shell geos-config --libs)
 LIB_SHAPE    = -lshp $(LIB_GEOS)
-LIB_PROTOBUF = -lz -lprotobuf-lite -losmpbf
+LIB_PBF      = -lz -lpthread -lprotobuf-lite -losmpbf
 LIB_XML2     = $(shell xml2-config --libs)
 LIB_OGR      = $(shell gdal-config --libs)
 
@@ -54,44 +54,44 @@ PROGRAMS = \
 all: $(PROGRAMS)
 
 osmium_convert: osmium_convert.cpp
-	$(CXX) $(CXXFLAGS) $(CXXFLAGS_LIBXML2) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_XML2)
+	$(CXX) $(CXXFLAGS) $(CXXFLAGS_LIBXML2) -o $@ $< $(LDFLAGS) $(LIB_PBF) $(LIB_XML2)
 
 osmium_store_and_debug: osmium_store_and_debug.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PBF)
 
 osmium_debug: osmium_debug.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
-#	$(CXX) $(CXXFLAGS) -DOSMIUM_DEBUG_WITH_ENDTIME -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PBF)
+#	$(CXX) $(CXXFLAGS) -DOSMIUM_DEBUG_WITH_ENDTIME -o $@ $< $(LDFLAGS) $(LIB_PBF)
 
 osmium_find_bbox: osmium_find_bbox.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PBF)
 
 osmium_progress: osmium_progress.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PBF)
 
 osmium_range_from_history: osmium_range_from_history.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
+	$(CXX) $(CXXFLAGS) $(CXXFLAGS_LIBXML2) -o $@ $< $(LDFLAGS) $(LIB_PBF) $(LIB_XML2)
 
 osmium_sizeof: osmium_sizeof.cpp
-	$(CXX) $(CXXFLAGS) $(CXXFLAGS_LIBXML2) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_XML2)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS)
 
 osmium_stats: osmium_stats.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_SQLITE)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PBF) $(LIB_SQLITE)
 
 osmium_time: osmium_time.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PBF)
 
 osmium_toogr: osmium_toogr.cpp
-	$(CXX) $(CXXFLAGS) $(CXXFLAGS_OGR) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_OGR)
+	$(CXX) $(CXXFLAGS) $(CXXFLAGS_OGR) -o $@ $< $(LDFLAGS) $(LIB_PBF) $(LIB_OGR)
 
 osmium_toogr2: osmium_toogr2.cpp
-	$(CXX) $(CXXFLAGS) $(CXXFLAGS_OGR) $(CXXFLAGS_GEOS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_OGR) $(LIB_GEOS)
+	$(CXX) $(CXXFLAGS) $(CXXFLAGS_OGR) $(CXXFLAGS_GEOS) -o $@ $< $(LDFLAGS) $(LIB_PBF) $(LIB_OGR) $(LIB_GEOS)
 
 osmium_toshape: osmium_toshape.cpp
-	$(CXX) $(CXXFLAGS) $(CXXFLAGS_GEOS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_SHAPE)
+	$(CXX) $(CXXFLAGS) $(CXXFLAGS_GEOS) -o $@ $< $(LDFLAGS) $(LIB_PBF) $(LIB_SHAPE)
 
 nodedensity: nodedensity.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PROTOBUF) $(LIB_GD)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PBF) $(LIB_GD)
 
 clean:
 	rm -f *.o core $(PROGRAMS)
