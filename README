@@ -131,6 +131,27 @@ See "osmjs/README" for build instructions of osmjs.
 Call "make clean" in any of those places to clean up.
 
 
+USING OSMIUM IN YOUR C++ CODE
+-----------------------------
+
+To use Osmium in your code you just have to include the headers you are
+interested in. So, if you need the Way class for instance you include
+<osmium/osm/way.hpp>. If you need the Debug handler, you include
+<osmium/handler/debug.hpp>.
+
+If you need any OSM file input and/or output, then first define one or
+more of these macros and then include <osmium.hpp>:
+
+  #define OSMIUM_WITH_PBF_INPUT
+  #define OSMIUM_WITH_XML_INPUT
+  #define OSMIUM_WITH_PBF_OUTPUT
+  #define OSMIUM_WITH_XML_OUTPUT
+  #include <osmium.hpp>
+
+There are some parts of Osmium that are a bit more difficult to use.
+You'll find some examples in the 'example' and 'osmjs' directories.
+
+
 TESTING
 -------
 
