@@ -43,7 +43,7 @@ check-includes:
 indent:
 	astyle --style=java --indent-namespaces --indent-switches --pad-header --suffix=none --recursive include/\*.hpp examples/\*.cpp examples/\*.hpp osmjs/\*.cpp test/\*.cpp
 
-doc: doc/html/files.html
+doc: doc/html/files.html Doxyfile
 
 doc/html/files.html: include/*.hpp include/*/*.hpp include/*/*/*.hpp
 	doxygen >/dev/null

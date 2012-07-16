@@ -36,6 +36,9 @@ namespace Osmium {
 
     namespace Javascript {
 
+        /**
+         * @brief Functions wrapping %Osmium objects for use from %Javascript
+         */
         namespace Wrapper {
 
             struct OSMTagList : public Osmium::Javascript::Template {

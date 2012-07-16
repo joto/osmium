@@ -30,7 +30,7 @@ namespace Osmium {
     namespace Geometry {
 
         /**
-         * Functions to calculate arc distance on Earth using the haversine formula.
+         * @brief Functions to calculate arc distance on Earth using the haversine formula.
          *
          * See http://en.wikipedia.org/wiki/Haversine_formula
          *
