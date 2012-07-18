@@ -39,7 +39,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <osmium/storage/byid/sparse_table.hpp>
 #include <osmium/storage/byid/mmap_file.hpp>
 #include <osmium/handler/coordinates_for_ways.hpp>
-#include <osmium/handler/multipolygon.hpp>
+#include <osmium/relations/multipolygon_assembler.hpp>
 #include <osmium/geometry/multipolygon.hpp>
 #include <osmium/geometry/ogr.hpp>
 
@@ -47,6 +47,7 @@ typedef Osmium::Storage::ById::SparseTable<Osmium::OSM::Position> storage_sparse
 typedef Osmium::Storage::ById::MmapFile<Osmium::OSM::Position> storage_mmap_t;
 typedef Osmium::Handler::CoordinatesForWays<storage_sparsetable_t, storage_mmap_t> cfw_handler_t;
 
+#if 0
 class MyOGRHandlerPass1 : public Osmium::Handler::Base {
 
     Osmium::Handler::Multipolygon* handler_multipolygon;
@@ -73,7 +74,9 @@ public:
     }
 
 };
+#endif
 
+#if 0
 /* ================================================== */
 
 class MyOGRHandlerPass2 : public Osmium::Handler::Base {
@@ -175,12 +178,18 @@ public:
 };
 
 MyOGRHandlerPass2* hpass2;
+#endif
 
 /* ================================================== */
 
+#if 0
 void cbmp(Osmium::OSM::Area* area) {
     hpass2->area(area);
 }
+#endif
+
+class MPHandler : public Osmium::Handler::Base {
+};
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
@@ -191,16 +200,12 @@ int main(int argc, char *argv[]) {
     Osmium::OSMFile infile(argv[1]);
 
     bool attempt_repair = true;
-    Osmium::Handler::Multipolygon handler_multipolygon(attempt_repair, cbmp);
-    handler_multipolygon.debug_level(1);
+//    Osmium::Handler::Multipolygon handler_multipolygon(attempt_repair, cbmp);
 
-    // first pass
-    MyOGRHandlerPass1 handler_pass1(&handler_multipolygon);
-    Osmium::Input::read(infile, handler_pass1);
+    MPHandler mphandler;
+    Osmium::Relations::MultiPolygonAssembler<MPHandler> assembler(mphandler, attempt_repair);
 
-    // second pass
-    MyOGRHandlerPass2 handler_pass2(&handler_multipolygon);
-    hpass2 = &handler_pass2;
-    Osmium::Input::read(infile, handler_pass2);
+    Osmium::Input::read(infile, assembler.handler_pass1());
+    Osmium::Input::read(infile, assembler.handler_pass2());
 }
 

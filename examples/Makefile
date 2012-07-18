@@ -41,6 +41,7 @@ PROGRAMS = \
     osmium_find_bbox \
     osmium_progress \
     osmium_range_from_history \
+    osmium_relation_members \
     osmium_sizeof \
     osmium_stats \
     osmium_time \
@@ -62,6 +63,9 @@ osmium_store_and_debug: osmium_store_and_debug.cpp
 osmium_debug: osmium_debug.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PBF)
 #	$(CXX) $(CXXFLAGS) -DOSMIUM_DEBUG_WITH_ENDTIME -o $@ $< $(LDFLAGS) $(LIB_PBF)
+
+osmium_relation_members: osmium_relation_members.cpp
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PBF)
 
 osmium_find_bbox: osmium_find_bbox.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PBF)
