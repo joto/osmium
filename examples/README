@@ -29,6 +29,11 @@ FILES
 * osmium_range_from_history  
   Program to test the RangeFromHistory handler.
 
+* osmium_relation_members
+  Shows how the Osmium::Relations::Assembler class is used. Collects
+  all members of all relations in the input data and dumps the tags of
+  all relations and all their members to stdout.
+
 * osmium_sizeof  
   This is a small tool to find out the sizes of some basic classes.
   It is only used for Osmium development.

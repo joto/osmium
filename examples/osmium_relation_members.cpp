@@ -1,6 +1,8 @@
 /*
 
-  Example tool that dumps information about relations and their members.
+  Shows how the Osmium::Relations::Assembler class is used. Collects
+  all members of all relations in the input data and dumps the tags of
+  all relations and all their members to stdout.
 
 */
 
@@ -66,16 +68,21 @@ public:
     }
 
     void complete_relation(Osmium::Relations::RelationInfo& relation_info) {
-        std::cout << "Relation completed: " << relation_info.relation()->id() << "\n";
+        static const char* types[] = { "node", "way", "relation" };
+
+        std::cout << "Relation " << relation_info.relation()->id() << "\n";
         BOOST_FOREACH(const Osmium::OSM::Tag& tag, relation_info.relation()->tags()) {
             std::cout << "  " << tag.key() << "=" << tag.value() << "\n";
         }
 
+        int i = 0;
+        const Osmium::OSM::RelationMemberList& rml = relation_info.relation()->members();
         BOOST_FOREACH(shared_ptr<Osmium::OSM::Object const>& object, relation_info.members()) {
-            std::cout << "  Member: " << object->id() << "\n";
+            std::cout << "  Member " << types[object->get_type()] << " " << object->id() << " with role '" << rml[i].role() << "'\n";
             BOOST_FOREACH(const Osmium::OSM::Tag& tag, object->tags()) {
                 std::cout << "    " << tag.key() << "=" << tag.value() << "\n";
             }
+            ++i;
         }
         std::cout << "\n";
     }
