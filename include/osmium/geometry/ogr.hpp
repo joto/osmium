@@ -99,7 +99,7 @@ namespace Osmium {
             }
 
             ogrpolygon->addRingDirectly(ogrring);
-        };
+        }
 
         inline OGRPolygon* make_polygon(const geos::geom::Polygon* geospolygon) {
             OGRPolygon* ogrpolygon = new OGRPolygon;
