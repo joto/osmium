@@ -66,7 +66,7 @@ namespace Osmium {
 
         };
 
-        template <class TRelationInfo, class TAssembler, class THandler=Osmium::Handler::Base>
+        template <class TAssembler, class TRelationInfo, class THandler=Osmium::Handler::Base>
         class Assembler {
 
             typedef std::vector<TRelationInfo> relation_info_vector_t;

@@ -4,6 +4,7 @@ osmium_debug
 osmium_find_bbox
 osmium_progress
 osmium_range_from_history
+osmium_relation_members
 osmium_sizeof
 osmium_stats
 osmium_store_and_debug

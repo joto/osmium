@@ -31,9 +31,9 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <osmium.hpp>
 #include <osmium/relations/assembler.hpp>
 
-class DebugRelationsAssembler : public Osmium::Relations::Assembler<Osmium::Relations::RelationInfo, DebugRelationsAssembler> {
+class DebugRelationsAssembler : public Osmium::Relations::Assembler<DebugRelationsAssembler, Osmium::Relations::RelationInfo> {
 
-    typedef Osmium::Relations::Assembler<Osmium::Relations::RelationInfo, DebugRelationsAssembler> AssemblerType;
+    typedef Osmium::Relations::Assembler<DebugRelationsAssembler, Osmium::Relations::RelationInfo> AssemblerType;
 
     typedef AssemblerType::HandlerPass1                     HandlerPass1;
     typedef AssemblerType::HandlerPass2<true, false, false> HandlerPass2;
@@ -44,7 +44,7 @@ class DebugRelationsAssembler : public Osmium::Relations::Assembler<Osmium::Rela
 public:
 
     DebugRelationsAssembler() :
-        Osmium::Relations::Assembler<Osmium::Relations::RelationInfo, DebugRelationsAssembler>(),
+        Osmium::Relations::Assembler<DebugRelationsAssembler, Osmium::Relations::RelationInfo>(),
         m_handler_pass1(*this),
         m_handler_pass2(*this) {
     }

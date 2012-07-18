@@ -45,9 +45,9 @@ namespace Osmium {
         };
 
         template <class THandler>
-        class MultiPolygonAssembler : public Assembler<MultiPolygonRelationInfo, MultiPolygonAssembler<THandler>, THandler> {
+        class MultiPolygonAssembler : public Assembler<MultiPolygonAssembler<THandler>, MultiPolygonRelationInfo, THandler> {
 
-            typedef Assembler<MultiPolygonRelationInfo, MultiPolygonAssembler<THandler>, THandler> AssemblerType;
+            typedef Assembler<MultiPolygonAssembler, MultiPolygonRelationInfo, THandler> AssemblerType;
 
             typedef typename AssemblerType::HandlerPass1                              HandlerPass1;
             typedef typename AssemblerType::template HandlerPass2<false, true, false> HandlerPass2;
@@ -60,7 +60,7 @@ namespace Osmium {
         public:
 
             MultiPolygonAssembler(THandler& handler, bool attempt_repair) :
-                Assembler<MultiPolygonRelationInfo, MultiPolygonAssembler, THandler>(handler),
+                Assembler<MultiPolygonAssembler, MultiPolygonRelationInfo, THandler>(handler),
                 m_handler_pass1(*this),
                 m_handler_pass2(*this),
                 m_attempt_repair(attempt_repair) {
@@ -91,7 +91,7 @@ namespace Osmium {
                     return;
                 }
 
-                Assembler<MultiPolygonRelationInfo, MultiPolygonAssembler, THandler>::add_relation(MultiPolygonRelationInfo(relation, is_boundary));
+                Assembler<MultiPolygonAssembler, MultiPolygonRelationInfo, THandler>::add_relation(MultiPolygonRelationInfo(relation, is_boundary));
             }
 
             bool keep_member(MultiPolygonRelationInfo& relation_info, const Osmium::OSM::RelationMember& member) {
