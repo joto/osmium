@@ -47,7 +47,7 @@ namespace Osmium {
                 m_need_members(0) {
             }
 
-            const shared_ptr<Osmium::OSM::Relation const>& relation() {
+            const shared_ptr<Osmium::OSM::Relation const>& relation() const {
                 return m_relation;
             }
 
