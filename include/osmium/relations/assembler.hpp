@@ -122,7 +122,6 @@ namespace Osmium {
             void add_relation(TRelationInfo relation_info) {
                 BOOST_FOREACH(const Osmium::OSM::RelationMember& member, relation_info.relation()->members()) {
                     bool add = static_cast<TAssembler*>(this)->keep_member(relation_info, member);
-                    std::cerr << "  member type=" << member.type() << " ref=" << member.ref() << " keep=" << (add ? "yes" : "no") << "\n";
                     if (add) {
                         object_id_2_relation_info_num_t entry = std::make_pair(member.ref(), m_relations.size());
                         switch (member.type()) {
@@ -196,15 +195,12 @@ namespace Osmium {
                             return;
                         } 
 
-                        std::cerr << "XXX Add node " << node->id() << " to relations:";
                         BOOST_FOREACH(object_id_2_relation_info_num_t x, range) {
                             TRelationInfo& relation_info = m_assembler.m_relations[x.second];
-                            std::cerr << " " << relation_info.relation()->id();
                             if (relation_info.add_member(node)) {
                                 m_assembler.complete_relation(relation_info);
                             }
                         }
-                        std::cerr << "\n";
                     }
                     m_assembler.m_handler.node(node);
                 }
@@ -232,15 +228,12 @@ namespace Osmium {
                             return;
                         } 
 
-                        std::cerr << "XXX Add way " << way->id() << " to relations:";
                         BOOST_FOREACH(object_id_2_relation_info_num_t x, range) {
                             TRelationInfo& relation_info = m_assembler.m_relations[x.second];
-                            std::cerr << " " << relation_info.relation()->id();
                             if (relation_info.add_member(way)) {
                                 m_assembler.complete_relation(relation_info);
                             }
                         }
-                        std::cerr << "\n";
                     }
                     m_assembler.m_handler.way(way);
                 }
@@ -268,15 +261,12 @@ namespace Osmium {
                             return;
                         } 
 
-                        std::cerr << "XXX Add relation " << relation->id() << " to relations:";
                         BOOST_FOREACH(object_id_2_relation_info_num_t x, range) {
                             TRelationInfo& relation_info = m_assembler.m_relations[x.second];
-                            std::cerr << " " << relation_info.relation()->id();
                             if (relation_info.add_member(relation)) {
                                 m_assembler.complete_relation(relation_info);
                             }
                         }
-                        std::cerr << "\n";
                     }
                     m_assembler.m_handler.relation(relation);
                 }
