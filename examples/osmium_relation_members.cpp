@@ -35,8 +35,8 @@ class DebugRelationsAssembler : public Osmium::Relations::Assembler<DebugRelatio
 
     typedef Osmium::Relations::Assembler<DebugRelationsAssembler, Osmium::Relations::RelationInfo> AssemblerType;
 
-    typedef AssemblerType::HandlerPass1                     HandlerPass1;
-    typedef AssemblerType::HandlerPass2<true, false, false> HandlerPass2;
+    typedef AssemblerType::HandlerPass1                   HandlerPass1;
+    typedef AssemblerType::HandlerPass2<true, true, true> HandlerPass2;
 
     HandlerPass1 m_handler_pass1;
     HandlerPass2 m_handler_pass2;
@@ -58,30 +58,26 @@ public:
     }
 
     void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
-        if (relation->id() == 2952) {
-            return;
-        }
-        std::cerr << "Relation found: " << relation->id() << " with " << relation->members().size() << " members\n";
         add_relation(Osmium::Relations::RelationInfo(relation));
     }
 
-    bool keep_member(Osmium::Relations::RelationInfo& /*relation_info*/, const Osmium::OSM::RelationMember& member) {
-        if (member.type() == 'n') {
-            return true;
-        }
-        return false;
-    }
-
-    void node_not_in_any_relation(const shared_ptr<Osmium::OSM::Node const>& node) {
-//        std::cerr << "Node " << node->id() << " not in any relation\n";
+    bool keep_member(Osmium::Relations::RelationInfo& /*relation_info*/, const Osmium::OSM::RelationMember& /*member*/) {
+        return true;
     }
 
     void complete_relation(Osmium::Relations::RelationInfo& relation_info) {
-        std::cerr << "Relation completed: " << relation_info.relation()->id() << "\n";
+        std::cout << "Relation completed: " << relation_info.relation()->id() << "\n";
+        BOOST_FOREACH(const Osmium::OSM::Tag& tag, relation_info.relation()->tags()) {
+            std::cout << "  " << tag.key() << "=" << tag.value() << "\n";
+        }
 
         BOOST_FOREACH(shared_ptr<Osmium::OSM::Object const>& object, relation_info.members()) {
-            std::cerr << "  Member: " << object->id() << "\n";
+            std::cout << "  Member: " << object->id() << "\n";
+            BOOST_FOREACH(const Osmium::OSM::Tag& tag, object->tags()) {
+                std::cout << "    " << tag.key() << "=" << tag.value() << "\n";
+            }
         }
+        std::cout << "\n";
     }
 
 };
