@@ -63,7 +63,7 @@ namespace Osmium {
         template <class T>
         inline void read(const Osmium::OSMFile& file, T& handler) {
             Osmium::Input::Base<T>* input = NULL;
-            
+
             if (file.encoding()->is_pbf()) {
 #ifdef OSMIUM_WITH_PBF_INPUT
                 input = static_cast<Osmium::Input::Base<T>*>(new Osmium::Input::PBF<T>(file, handler));

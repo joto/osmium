@@ -193,7 +193,7 @@ namespace Osmium {
                         if (range.first == range.second) {
                             m_assembler.node_not_in_any_relation(node);
                             return;
-                        } 
+                        }
 
                         BOOST_FOREACH(object_id_2_relation_info_num_t x, range) {
                             TRelationInfo& relation_info = m_assembler.m_relations[x.second];
@@ -226,7 +226,7 @@ namespace Osmium {
                         if (range.first == range.second) {
                             m_assembler.way_not_in_any_relation(way);
                             return;
-                        } 
+                        }
 
                         BOOST_FOREACH(object_id_2_relation_info_num_t x, range) {
                             TRelationInfo& relation_info = m_assembler.m_relations[x.second];
@@ -259,7 +259,7 @@ namespace Osmium {
                         if (range.first == range.second) {
                             m_assembler.relation_not_in_any_relation(relation);
                             return;
-                        } 
+                        }
 
                         BOOST_FOREACH(object_id_2_relation_info_num_t x, range) {
                             TRelationInfo& relation_info = m_assembler.m_relations[x.second];
