@@ -30,20 +30,20 @@ namespace Osmium {
      */
     class WithDebugLevel {
 
-            int m_debug_level;
+        int m_debug_level;
 
-        public:
+    public:
 
-            WithDebugLevel() : m_debug_level(0) {
-            }
+        WithDebugLevel() : m_debug_level(0) {
+        }
 
-            int debug_level() const {
-                return m_debug_level;
-            }
+        int debug_level() const {
+            return m_debug_level;
+        }
 
-            void debug_level(int debug_level) {
-                m_debug_level = debug_level;
-            }
+        void debug_level(int debug_level) {
+            m_debug_level = debug_level;
+        }
 
     };
 
