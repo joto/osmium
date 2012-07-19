@@ -117,60 +117,62 @@ namespace Osmium {
 
         public:
 
-            Forward(THandler* handler) : Base(), m_handler(handler) {
+            Forward(THandler& next_handler) :
+                Base(),
+                m_next_handler(next_handler) {
             }
 
             void init(Osmium::OSM::Meta& meta) const {
-                m_handler->init(meta);
+                m_next_handler.init(meta);
             }
 
             void before_nodes() const {
-                m_handler->before_nodes();
+                m_next_handler.before_nodes();
             }
 
             void node(const shared_ptr<Osmium::OSM::Node>& node) const {
-                m_handler->node(node);
+                m_next_handler.node(node);
             }
 
             void after_nodes() const {
-                m_handler->after_nodes();
+                m_next_handler.after_nodes();
             }
 
             void before_ways() const {
-                m_handler->before_ways();
+                m_next_handler.before_ways();
             }
 
             void way(const shared_ptr<Osmium::OSM::Way>& way) const {
-                m_handler->way(way);
+                m_next_handler.way(way);
             }
 
             void after_ways() const {
-                m_handler->after_ways();
+                m_next_handler.after_ways();
             }
 
             void before_relations() const {
-                m_handler->before_relations();
+                m_next_handler.before_relations();
             }
 
             void relation(const shared_ptr<Osmium::OSM::Relation>& relation) const {
-                m_handler->relation(relation);
+                m_next_handler.relation(relation);
             }
 
             void after_relations() const {
-                m_handler->after_relations();
+                m_next_handler.after_relations();
             }
 
             void area(Osmium::OSM::Area* area) const {
-                m_handler->area(area);
+                m_next_handler.area(area);
             }
 
             void final() const {
-                m_handler->final();
+                m_next_handler.final();
             }
 
         private:
 
-            THandler* m_handler;
+            THandler& m_next_handler;
 
         }; // class Forward
 

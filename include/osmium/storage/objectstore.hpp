@@ -167,7 +167,7 @@ namespace Osmium {
 
             public:
 
-                ApplyHandler(ObjectStore& os, THandler* handler, Osmium::OSM::Meta& meta) :
+                ApplyHandler(ObjectStore& os, THandler& handler, Osmium::OSM::Meta& meta) :
                     Osmium::Handler::Forward<THandler>(handler),
                     m_object_store(os),
                     m_handler(handler),
@@ -181,58 +181,58 @@ namespace Osmium {
                 }
 
                 void init(const Osmium::OSM::Meta&) {
-                    m_handler->init(m_meta);
+                    m_handler.init(m_meta);
                 }
 
                 void node(const shared_ptr<Osmium::OSM::Node>& node) {
                     while (m_nodes_iter != m_nodes_end && **m_nodes_iter < *node) {
-                        m_handler->node(*m_nodes_iter++);
+                        m_handler.node(*m_nodes_iter++);
                     }
-                    m_handler->node(node);
+                    m_handler.node(node);
                 }
 
                 void after_nodes() {
                     while (m_nodes_iter != m_nodes_end) {
-                        m_handler->node(*m_nodes_iter++);
+                        m_handler.node(*m_nodes_iter++);
                     }
-                    m_handler->after_nodes();
+                    m_handler.after_nodes();
                     m_object_store.clear_nodes();
                 }
 
                 void way(const shared_ptr<Osmium::OSM::Way>& way) {
                     while (m_ways_iter != m_ways_end && **m_ways_iter < *way) {
-                        m_handler->way(*m_ways_iter++);
+                        m_handler.way(*m_ways_iter++);
                     }
-                    m_handler->way(way);
+                    m_handler.way(way);
                 }
 
                 void after_ways() {
                     while (m_ways_iter != m_ways_end) {
-                        m_handler->way(*m_ways_iter++);
+                        m_handler.way(*m_ways_iter++);
                     }
-                    m_handler->after_ways();
+                    m_handler.after_ways();
                     m_object_store.clear_ways();
                 }
 
                 void relation(const shared_ptr<Osmium::OSM::Relation>& relation) {
                     while (m_relations_iter != m_relations_end && **m_relations_iter < *relation) {
-                        m_handler->relation(*m_relations_iter++);
+                        m_handler.relation(*m_relations_iter++);
                     }
-                    m_handler->relation(relation);
+                    m_handler.relation(relation);
                 }
 
                 void after_relations() {
                     while (m_relations_iter != m_relations_end) {
-                        m_handler->relation(*m_relations_iter++);
+                        m_handler.relation(*m_relations_iter++);
                     }
-                    m_handler->after_relations();
+                    m_handler.after_relations();
                     m_object_store.clear_relations();
                 }
 
             private:
 
                 ObjectStore& m_object_store;
-                THandler* m_handler;
+                THandler& m_handler;
                 Osmium::OSM::Meta& m_meta;
 
                 ObjectStore::nodeset::iterator     m_nodes_iter;
