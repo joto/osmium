@@ -176,6 +176,87 @@ namespace Osmium {
 
         }; // class Forward
 
+        /**
+         * This handler calls the two handlers given as argument in sequence
+         * in each method.
+         */
+        template <class THandler1, class THandler2>
+        class Sequence {
+
+        public:
+
+            Sequence(THandler1& handler1, THandler2& handler2) :
+                m_handler1(handler1),
+                m_handler2(handler2) {
+            }
+
+            void init(Osmium::OSM::Meta& meta) const {
+                m_handler1.init(meta);
+                m_handler2.init(meta);
+            }
+
+            void before_nodes() const {
+                m_handler1.before_nodes();
+                m_handler2.before_nodes();
+            }
+
+            void node(const shared_ptr<Osmium::OSM::Node>& node) const {
+                m_handler1.node(node);
+                m_handler2.node(node);
+            }
+
+            void after_nodes() const {
+                m_handler1.after_nodes();
+                m_handler2.after_nodes();
+            }
+
+            void before_ways() const {
+                m_handler1.before_ways();
+                m_handler2.before_ways();
+            }
+
+            void way(const shared_ptr<Osmium::OSM::Way>& way) const {
+                m_handler1.way(way);
+                m_handler2.way(way);
+            }
+
+            void after_ways() const {
+                m_handler1.after_ways();
+                m_handler2.after_ways();
+            }
+
+            void before_relations() const {
+                m_handler1.before_relations();
+                m_handler2.before_relations();
+            }
+
+            void relation(const shared_ptr<Osmium::OSM::Relation>& relation) const {
+                m_handler1.relation(relation);
+                m_handler2.relation(relation);
+            }
+
+            void after_relations() const {
+                m_handler1.after_relations();
+                m_handler2.after_relations();
+            }
+
+            void area(Osmium::OSM::Area* area) const {
+                m_handler1.area(area);
+                m_handler2.area(area);
+            }
+
+            void final() const {
+                m_handler1.final();
+                m_handler2.final();
+            }
+
+        private:
+
+            THandler1& m_handler1;
+            THandler2& m_handler2;
+
+        }; // class Sequence
+
     } // namespace Handler
 
 } // namespace Osmium
