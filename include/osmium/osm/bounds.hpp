@@ -67,12 +67,6 @@ namespace Osmium {
                 return Position(m_max_x, m_max_y);
             }
 
-            friend std::ostream& operator<<(std::ostream& out, const Bounds& bounds) {
-                out << '(' << bounds.bl().lon() << ',' << bounds.bl().lat() << ','
-                    << bounds.tr().lon() << ',' << bounds.tr().lat() << ')';
-                return out;
-            }
-
         private:
 
             int32_t m_min_x;
@@ -81,6 +75,12 @@ namespace Osmium {
             int32_t m_max_y;
 
         }; // class Bounds
+
+        inline std::ostream& operator<<(std::ostream& out, const Bounds& bounds) {
+            out << '(' << bounds.bl().lon() << ',' << bounds.bl().lat() << ','
+                << bounds.tr().lon() << ',' << bounds.tr().lat() << ')';
+            return out;
+        }
 
     } // namespace OSM
 
