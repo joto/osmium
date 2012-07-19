@@ -47,36 +47,6 @@ typedef Osmium::Storage::ById::SparseTable<Osmium::OSM::Position> storage_sparse
 typedef Osmium::Storage::ById::MmapFile<Osmium::OSM::Position> storage_mmap_t;
 typedef Osmium::Handler::CoordinatesForWays<storage_sparsetable_t, storage_mmap_t> cfw_handler_t;
 
-#if 0
-class MyOGRHandlerPass1 : public Osmium::Handler::Base {
-
-    Osmium::Handler::Multipolygon* handler_multipolygon;
-
-public:
-
-    MyOGRHandlerPass1(Osmium::Handler::Multipolygon* hmp) : handler_multipolygon(hmp) {
-    }
-
-    ~MyOGRHandlerPass1() {
-    }
-
-    void before_relations() {
-        handler_multipolygon->before_relations();
-    }
-
-    void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
-        handler_multipolygon->relation(relation);
-    }
-
-    void after_relations() {
-        handler_multipolygon->after_relations();
-        std::cerr << "1st pass finished" << std::endl;
-    }
-
-};
-#endif
-
-#if 0
 /* ================================================== */
 
 class MyOGRHandlerPass2 : public Osmium::Handler::Base {
@@ -84,17 +54,9 @@ class MyOGRHandlerPass2 : public Osmium::Handler::Base {
     OGRDataSource* m_data_source;
     OGRLayer* m_layer_mp;
 
-    storage_sparsetable_t store_pos;
-    storage_mmap_t store_neg;
-    cfw_handler_t* handler_cfw;
-
-    Osmium::Handler::Multipolygon* handler_multipolygon;
-
 public:
 
-    MyOGRHandlerPass2(Osmium::Handler::Multipolygon* hmp) : handler_multipolygon(hmp) {
-        handler_cfw = new cfw_handler_t(store_pos, store_neg);
-
+    MyOGRHandlerPass2() {
         OGRRegisterAll();
 
         const char* driver_name = "SQLite";
@@ -131,24 +93,6 @@ public:
 
     ~MyOGRHandlerPass2() {
         OGRDataSource::DestroyDataSource(m_data_source);
-        delete handler_cfw;
-    }
-
-    void init(Osmium::OSM::Meta& meta) {
-        handler_cfw->init(meta);
-    }
-
-    void node(const shared_ptr<Osmium::OSM::Node const>& node) {
-        handler_cfw->node(node);
-    }
-
-    void after_nodes() {
-        handler_cfw->after_nodes();
-    }
-
-    void way(const shared_ptr<Osmium::OSM::Way>& way) {
-        handler_cfw->way(way);
-        handler_multipolygon->way(way);
     }
 
     void area(Osmium::OSM::Area* area) {
@@ -178,17 +122,58 @@ public:
 };
 
 MyOGRHandlerPass2* hpass2;
-#endif
 
 /* ================================================== */
 
-#if 0
 void cbmp(Osmium::OSM::Area* area) {
+    std::cout << "cbmp\n";
     hpass2->area(area);
 }
-#endif
 
-class MPHandler : public Osmium::Handler::Base {
+template <class T>
+class PrepHandler : public Osmium::Handler::Base {
+
+    storage_sparsetable_t store_pos;
+    storage_mmap_t store_neg;
+    cfw_handler_t* handler_cfw;
+    T& m_handler_multipolygon;
+
+public:
+
+    PrepHandler(T& handler_multipolygon) :
+        m_handler_multipolygon(handler_multipolygon) {
+        handler_cfw = new cfw_handler_t(store_pos, store_neg);
+    }
+
+    ~PrepHandler() {
+        delete handler_cfw;
+    }
+
+    void init(Osmium::OSM::Meta& meta) {
+        handler_cfw->init(meta);
+    }
+
+    void node(const shared_ptr<Osmium::OSM::Node const>& node) {
+        handler_cfw->node(node);
+    }
+
+    void after_nodes() {
+        handler_cfw->after_nodes();
+    }
+
+    void before_ways() {
+        m_handler_multipolygon.before_ways();
+    }
+
+    void way(const shared_ptr<Osmium::OSM::Way>& way) {
+        handler_cfw->way(way);
+        m_handler_multipolygon.way(way);
+    }
+
+    void after_ways() {
+        m_handler_multipolygon.after_ways();
+    }
+
 };
 
 int main(int argc, char *argv[]) {
@@ -200,12 +185,15 @@ int main(int argc, char *argv[]) {
     Osmium::OSMFile infile(argv[1]);
 
     bool attempt_repair = true;
-//    Osmium::Handler::Multipolygon handler_multipolygon(attempt_repair, cbmp);
 
-    MPHandler mphandler;
-    Osmium::Relations::MultiPolygonAssembler<MPHandler> assembler(mphandler, attempt_repair);
+    MyOGRHandlerPass2 mphandler;
+    hpass2 = &mphandler;
+    Osmium::Relations::MultiPolygonAssembler<MyOGRHandlerPass2> assembler(mphandler, attempt_repair, cbmp);
+    PrepHandler<Osmium::Relations::MultiPolygonAssembler<MyOGRHandlerPass2>::HandlerPass2> prephandler(assembler.handler_pass2());
 
+    std::cerr << "First pass...\n";
     Osmium::Input::read(infile, assembler.handler_pass1());
-    Osmium::Input::read(infile, assembler.handler_pass2());
+    std::cerr << "Second pass...\n";
+    Osmium::Input::read(infile, prephandler);
 }
 

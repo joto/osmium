@@ -60,7 +60,7 @@ namespace Osmium {
                 return --m_need_members == 0;
             }
 
-            std::vector< shared_ptr<Osmium::OSM::Object const> >& members() {
+            const std::vector< shared_ptr<Osmium::OSM::Object const> >& members() const {
                 return m_members;
             }
 
@@ -141,6 +141,10 @@ namespace Osmium {
                 m_relations.push_back(relation_info);
             }
 
+            THandler& nested_handler() {
+                return m_handler;
+            }
+
         public:
 
             class HandlerPass1 : public Osmium::Handler::Base {
@@ -181,7 +185,7 @@ namespace Osmium {
 
                 void before_nodes() {
                     if (N) {
-                        std::sort(m_assembler.m_member_nodes.begin(), m_assembler.m_member_nodes.end());
+                        std::sort(m_assembler.m_member_nodes.begin(), m_assembler.m_member_nodes.end(), compare_first);
                     }
                     m_assembler.m_handler.before_nodes();
                 }
@@ -214,7 +218,7 @@ namespace Osmium {
 
                 void before_ways() {
                     if (W) {
-                        std::sort(m_assembler.m_member_ways.begin(), m_assembler.m_member_ways.end());
+                        std::sort(m_assembler.m_member_ways.begin(), m_assembler.m_member_ways.end(), compare_first);
                     }
                     m_assembler.m_handler.before_ways();
                 }
@@ -247,7 +251,7 @@ namespace Osmium {
 
                 void before_relations() {
                     if (R) {
-                        std::sort(m_assembler.m_member_relations.begin(), m_assembler.m_member_relations.end());
+                        std::sort(m_assembler.m_member_relations.begin(), m_assembler.m_member_relations.end(), compare_first);
                     }
                     m_assembler.m_handler.before_relations();
                 }
@@ -286,8 +290,8 @@ namespace Osmium {
 
         private:
 
-            const Osmium::Handler::Base m_base_handler;
-            const THandler& m_handler;
+            Osmium::Handler::Base m_base_handler;
+            THandler& m_handler;
             relation_info_vector_t m_relations;
             id2rel_vector_t m_member_nodes;
             id2rel_vector_t m_member_ways;

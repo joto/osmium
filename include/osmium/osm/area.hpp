@@ -268,9 +268,9 @@ namespace Osmium {
             WayNodeList m_node_list;
 
 #ifdef OSMIUM_WITH_GEOS
-            AreaFromWay(Way* way, geos::geom::Geometry* geom) : Area(geom) {
+            AreaFromWay(const Way* way, geos::geom::Geometry* geom) : Area(geom) {
 #else
-            AreaFromWay(Way* way) : Area() {
+            AreaFromWay(const Way* way) : Area() {
 #endif // OSMIUM_WITH_GEOS
                 id(way->id());
                 version(way->version());

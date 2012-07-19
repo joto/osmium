@@ -77,7 +77,7 @@ public:
 
         int i = 0;
         const Osmium::OSM::RelationMemberList& rml = relation_info.relation()->members();
-        BOOST_FOREACH(shared_ptr<Osmium::OSM::Object const>& object, relation_info.members()) {
+        BOOST_FOREACH(const shared_ptr<Osmium::OSM::Object const>& object, relation_info.members()) {
             std::cout << "  Member " << types[object->get_type()] << " " << object->id() << " with role '" << rml[i].role() << "'\n";
             BOOST_FOREACH(const Osmium::OSM::Tag& tag, object->tags()) {
                 std::cout << "    " << tag.key() << "=" << tag.value() << "\n";

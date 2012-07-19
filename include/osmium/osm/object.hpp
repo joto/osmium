@@ -256,7 +256,7 @@ namespace Osmium {
                 return m_tags;
             }
 
-            void tags(TagList& tags) {
+            void tags(const TagList& tags) {
                 m_tags = tags;
             }
 
