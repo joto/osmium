@@ -59,7 +59,7 @@ public:
 		STRAIGHT
 	};
 
-	CGAlgorithms(){};
+	CGAlgorithms(){}
 
 	/** \brief
 	 * Test whether a point lies inside a ring.
