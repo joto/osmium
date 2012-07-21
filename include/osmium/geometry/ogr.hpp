@@ -95,7 +95,7 @@ namespace Osmium {
             ogrring->setNumPoints(cs->getSize());
 
             for (size_t i = 0; i < cs->getSize(); ++i) {
-                ogrring->setPoint(i, cs->getX(i), cs->getY(i), 0);
+                ogrring->setPoint(i, cs->getX(i), cs->getY(i));
             }
 
             ogrpolygon->addRingDirectly(ogrring);
