@@ -169,9 +169,11 @@ namespace Osmium {
 
                 TAssembler& m_assembler;
 
-                static bool compare_first(object_id_2_relation_info_num_t a, object_id_2_relation_info_num_t b) {
-                    return a.first < b.first;
-                }
+                struct compare_first : public std::binary_function<object_id_2_relation_info_num_t, object_id_2_relation_info_num_t, bool> {
+                    bool operator()(const object_id_2_relation_info_num_t& a, const object_id_2_relation_info_num_t& b) const {
+                        return a.first < b.first;
+                    }
+                };
 
             public:
 
@@ -185,14 +187,14 @@ namespace Osmium {
 
                 void before_nodes() {
                     if (N) {
-                        std::sort(m_assembler.m_member_nodes.begin(), m_assembler.m_member_nodes.end(), compare_first);
+                        std::sort(m_assembler.m_member_nodes.begin(), m_assembler.m_member_nodes.end(), compare_first());
                     }
                     m_assembler.m_handler.before_nodes();
                 }
 
                 void node(const shared_ptr<Osmium::OSM::Node const>& node) {
                     if (N) {
-                        id2rel_range_t range = std::equal_range(m_assembler.m_member_nodes.begin(), m_assembler.m_member_nodes.end(), std::make_pair(node->id(), 0), compare_first);
+                        id2rel_range_t range = std::equal_range(m_assembler.m_member_nodes.begin(), m_assembler.m_member_nodes.end(), std::make_pair(node->id(), 0), compare_first());
 
                         if (range.first == range.second) {
                             m_assembler.node_not_in_any_relation(node);
@@ -218,14 +220,14 @@ namespace Osmium {
 
                 void before_ways() {
                     if (W) {
-                        std::sort(m_assembler.m_member_ways.begin(), m_assembler.m_member_ways.end(), compare_first);
+                        std::sort(m_assembler.m_member_ways.begin(), m_assembler.m_member_ways.end(), compare_first());
                     }
                     m_assembler.m_handler.before_ways();
                 }
 
                 void way(const shared_ptr<Osmium::OSM::Way const>& way) {
                     if (W) {
-                        id2rel_range_t range = std::equal_range(m_assembler.m_member_ways.begin(), m_assembler.m_member_ways.end(), std::make_pair(way->id(), 0), compare_first);
+                        id2rel_range_t range = std::equal_range(m_assembler.m_member_ways.begin(), m_assembler.m_member_ways.end(), std::make_pair(way->id(), 0), compare_first());
 
                         if (range.first == range.second) {
                             m_assembler.way_not_in_any_relation(way);
@@ -251,14 +253,14 @@ namespace Osmium {
 
                 void before_relations() {
                     if (R) {
-                        std::sort(m_assembler.m_member_relations.begin(), m_assembler.m_member_relations.end(), compare_first);
+                        std::sort(m_assembler.m_member_relations.begin(), m_assembler.m_member_relations.end(), compare_first());
                     }
                     m_assembler.m_handler.before_relations();
                 }
 
                 void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
                     if (R) {
-                        id2rel_range_t range = std::equal_range(m_assembler.m_member_relations.begin(), m_assembler.m_member_relations.end(), std::make_pair(relation->id(), 0), compare_first);
+                        id2rel_range_t range = std::equal_range(m_assembler.m_member_relations.begin(), m_assembler.m_member_relations.end(), std::make_pair(relation->id(), 0), compare_first());
 
                         if (range.first == range.second) {
                             m_assembler.relation_not_in_any_relation(relation);
