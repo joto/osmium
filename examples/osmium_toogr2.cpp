@@ -43,20 +43,16 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <osmium/geometry/multipolygon.hpp>
 #include <osmium/geometry/ogr.hpp>
 
-typedef Osmium::Storage::ById::SparseTable<Osmium::OSM::Position> storage_sparsetable_t;
-typedef Osmium::Storage::ById::MmapFile<Osmium::OSM::Position> storage_mmap_t;
-typedef Osmium::Handler::CoordinatesForWays<storage_sparsetable_t, storage_mmap_t> cfw_handler_t;
-
 /* ================================================== */
 
-class MyOGRHandlerPass2 : public Osmium::Handler::Base {
+class OGROutHandler : public Osmium::Handler::Base {
 
     OGRDataSource* m_data_source;
     OGRLayer* m_layer_mp;
 
 public:
 
-    MyOGRHandlerPass2() {
+    OGROutHandler() : Osmium::Handler::Base() {
         OGRRegisterAll();
 
         const char* driver_name = "SQLite";
@@ -91,7 +87,7 @@ public:
         }
     }
 
-    ~MyOGRHandlerPass2() {
+    ~OGROutHandler() {
         OGRDataSource::DestroyDataSource(m_data_source);
     }
 
@@ -121,7 +117,7 @@ public:
 
 };
 
-MyOGRHandlerPass2* hpass2;
+OGROutHandler* hpass2;
 
 /* ================================================== */
 
@@ -130,51 +126,9 @@ void cbmp(Osmium::OSM::Area* area) {
     hpass2->area(area);
 }
 
-template <class T>
-class PrepHandler : public Osmium::Handler::Base {
-
-    storage_sparsetable_t store_pos;
-    storage_mmap_t store_neg;
-    cfw_handler_t* handler_cfw;
-    T& m_handler_multipolygon;
-
-public:
-
-    PrepHandler(T& handler_multipolygon) :
-        m_handler_multipolygon(handler_multipolygon) {
-        handler_cfw = new cfw_handler_t(store_pos, store_neg);
-    }
-
-    ~PrepHandler() {
-        delete handler_cfw;
-    }
-
-    void init(Osmium::OSM::Meta& meta) {
-        handler_cfw->init(meta);
-    }
-
-    void node(const shared_ptr<Osmium::OSM::Node const>& node) {
-        handler_cfw->node(node);
-    }
-
-    void after_nodes() {
-        handler_cfw->after_nodes();
-    }
-
-    void before_ways() {
-        m_handler_multipolygon.before_ways();
-    }
-
-    void way(const shared_ptr<Osmium::OSM::Way>& way) {
-        handler_cfw->way(way);
-        m_handler_multipolygon.way(way);
-    }
-
-    void after_ways() {
-        m_handler_multipolygon.after_ways();
-    }
-
-};
+typedef Osmium::Storage::ById::SparseTable<Osmium::OSM::Position> storage_sparsetable_t;
+typedef Osmium::Storage::ById::MmapFile<Osmium::OSM::Position> storage_mmap_t;
+typedef Osmium::Handler::CoordinatesForWays<storage_sparsetable_t, storage_mmap_t> cfw_handler_t;
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
@@ -186,14 +140,25 @@ int main(int argc, char *argv[]) {
 
     bool attempt_repair = true;
 
-    MyOGRHandlerPass2 mphandler;
-    hpass2 = &mphandler;
-    Osmium::Relations::MultiPolygonAssembler<MyOGRHandlerPass2> assembler(mphandler, attempt_repair, cbmp);
-    PrepHandler<Osmium::Relations::MultiPolygonAssembler<MyOGRHandlerPass2>::HandlerPass2> prephandler(assembler.handler_pass2());
+    storage_sparsetable_t store_pos;
+    storage_mmap_t store_neg;
+
+    OGROutHandler ogr_out_handler;
+    hpass2 = &ogr_out_handler;
+
+    typedef Osmium::Relations::MultiPolygonAssembler<OGROutHandler> assembler_t;
+    assembler_t assembler(ogr_out_handler, attempt_repair, cbmp);
+
+    typedef Osmium::Handler::CoordinatesForWays<storage_sparsetable_t, storage_mmap_t> cfw_handler_t;
+    cfw_handler_t cfw_handler(store_pos, store_neg);
+
+    typedef Osmium::Handler::Sequence<cfw_handler_t, assembler_t::HandlerPass2> sequence_handler_t;
+    sequence_handler_t sequence_handler(cfw_handler, assembler.handler_pass2());
 
     std::cerr << "First pass...\n";
     Osmium::Input::read(infile, assembler.handler_pass1());
+
     std::cerr << "Second pass...\n";
-    Osmium::Input::read(infile, prephandler);
+    Osmium::Input::read(infile, sequence_handler);
 }
 

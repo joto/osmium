@@ -650,7 +650,7 @@ namespace Osmium {
             m_fd = m_encoding->compress() == "" ? open_output_file() : execute(m_encoding->compress(), 1);
         }
 
-    };
+    }; // class OSMFile
 
 } // namespace Osmium
 

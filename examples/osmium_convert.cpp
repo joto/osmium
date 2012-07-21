@@ -35,56 +35,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <osmium.hpp>
 #include <osmium/handler/progress.hpp>
 
-class ConvertHandler : public Osmium::Handler::Base {
-
-    Osmium::OSMFile& m_outfile;
-    int m_debug_level;
-    Osmium::Handler::Progress m_progress_handler;
-
-    Osmium::Output::Base* output;
-
-public:
-
-    ConvertHandler(Osmium::OSMFile& osmfile, int debug_level) :
-        m_outfile(osmfile),
-        m_debug_level(debug_level) {
-    }
-
-    ~ConvertHandler() {
-    }
-
-    void init(Osmium::OSM::Meta& meta) {
-        output = Osmium::Output::open(m_outfile);
-        output->debug_level(m_debug_level);
-        output->init(meta);
-        m_progress_handler.init(meta);
-    }
-
-    void node(const shared_ptr<Osmium::OSM::Node const>& node) {
-        output->node(node);
-        m_progress_handler.node(node);
-    }
-
-    void way(const shared_ptr<Osmium::OSM::Way const>& way) {
-        output->way(way);
-        m_progress_handler.way(way);
-    }
-
-    void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
-        output->relation(relation);
-        m_progress_handler.relation(relation);
-    }
-
-    void final() {
-        output->final();
-        m_progress_handler.final();
-        delete output;
-    }
-
-};
-
-/* ================================================== */
-
 void print_help() {
     std::cout << "osmium_convert [OPTIONS] [INFILE [OUTFILE]]\n\n" \
               << "If INFILE or OUTFILE is not given stdin/stdout is assumed.\n" \
@@ -184,7 +134,16 @@ int main(int argc, char *argv[]) {
         std::cerr << "Warning! Source and destination are not of the same type." << std::endl;
     }
 
-    ConvertHandler handler(outfile, debug ? 1 : 0);
-    Osmium::Input::read(infile, handler);
+    Osmium::Output::Base* out = Osmium::Output::open(outfile);
+    out->debug_level(debug ? 1 : 0);
+
+    Osmium::Handler::Progress progress_handler;
+
+    typedef Osmium::Handler::Sequence<Osmium::Output::Base, Osmium::Handler::Progress> sequence_handler_t;
+    sequence_handler_t sequence_handler(*out, progress_handler);
+
+    Osmium::Input::read(infile, sequence_handler);
+
+    delete out;
 }
 
