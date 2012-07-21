@@ -1,7 +1,7 @@
 /*
 
-  This is an example tool that converts OSM data to a spatialite database using
-  the OGR library.
+  This is an example tool that converts OSM data to some output format
+  like Spatialite or Shapefiles using the OGR library.
 
 */
 
@@ -27,6 +27,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 */
 
 #include <cstdlib>
+#include <getopt.h>
 
 #include <ogrsf_frmts.h>
 
@@ -56,13 +57,12 @@ class MyOGRHandler : public Osmium::Handler::Base {
 
 public:
 
-    MyOGRHandler() {
+    MyOGRHandler(const std::string& driver_name, const std::string& filename) {
         handler_cfw = new cfw_handler_t(store_pos, store_neg);
 
         OGRRegisterAll();
 
-        const char* driver_name = "SQLite";
-        OGRSFDriver* driver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName(driver_name);
+        OGRSFDriver* driver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName(driver_name.c_str());
         if (driver == NULL) {
             std::cerr << driver_name << " driver not available.\n";
             exit(1);
@@ -70,7 +70,7 @@ public:
 
         CPLSetConfigOption("OGR_SQLITE_SYNCHRONOUS", "FALSE");
         const char* options[] = { "SPATIALITE=TRUE", NULL };
-        m_data_source = driver->CreateDataSource("ogr_out.sqlite", const_cast<char**>(options));
+        m_data_source = driver->CreateDataSource(filename.c_str(), const_cast<char**>(options));
         if (m_data_source == NULL) {
             std::cerr << "Creation of output file failed.\n";
             exit(1);
@@ -100,6 +100,10 @@ public:
             exit(1);
         }
 
+        /* Transactions might make things faster, then again they might not.
+           Feel free to experiment and benchmark and report back. */
+//        m_layer_point->StartTransaction();
+
         m_layer_linestring = m_data_source->CreateLayer("roads", &sparef, wkbLineString, NULL);
         if (m_layer_linestring == NULL) {
             std::cerr << "Layer creation failed.\n";
@@ -121,6 +125,8 @@ public:
             std::cerr << "Creating type field failed.\n";
             exit(1);
         }
+
+//        m_layer_linestring->StartTransaction();
     }
 
     ~MyOGRHandler() {
@@ -159,6 +165,7 @@ public:
     }
 
     void after_nodes() {
+//        m_layer_point->CommitTransaction();
         std::cerr << "Memory used for node coordinates storage (approximate):\n  for positive IDs: "
                   << store_pos.used_memory() / (1024 * 1024)
                   << " MiB\n  for negative IDs: "
@@ -192,18 +199,75 @@ public:
             }
         }
     }
+
+/*    void after_ways() {
+        m_layer_linestring->CommitTransaction();
+    }*/
+
 };
 
 /* ================================================== */
 
+void print_help() {
+    std::cout << "osmium_toogr [OPTIONS] [INFILE [OUTFILE]]\n\n" \
+              << "If INFILE is not given stdin is assumed.\n" \
+              << "If OUTFILE is not given 'ogr_out' is used.\n" \
+              << "\nOptions:\n" \
+              << "  -h, --help           This help message\n" \
+              << "  -d, --debug          Enable debugging output\n" \
+              << "  -f, --format=FORMAT  Output OGR format (Default: 'SQLite')\n";
+}
+
 int main(int argc, char *argv[]) {
-    if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " OSMFILE" << std::endl;
-        exit(1);
+    static struct option long_options[] = {
+        {"debug",  no_argument, 0, 'd'},
+        {"help",   no_argument, 0, 'h'},
+        {"format", required_argument, 0, 'f'},
+        {0, 0, 0, 0}
+    };
+
+    bool debug = false;
+
+    std::string output_format("SQLite");
+
+    while (true) {
+        int c = getopt_long(argc, argv, "dhf:", long_options, 0);
+        if (c == -1) {
+            break;
+        }
+
+        switch (c) {
+            case 'd':
+                debug = true;
+                break;
+            case 'h':
+                print_help();
+                exit(0);
+            case 'f':
+                output_format = optarg;
+                break;
+            default:
+                exit(1);
+        }
     }
 
-    Osmium::OSMFile infile(argv[1]);
-    MyOGRHandler handler;
+    std::string input_filename;
+    std::string output_filename("ogr_out");
+    int remaining_args = argc - optind;
+    if (remaining_args > 2) {
+        std::cerr << "Usage: " << argv[0] << " [OPTIONS] [INFILE [OUTFILE]]" << std::endl;
+        exit(1);
+    } else if (remaining_args == 2) {
+        input_filename =  argv[optind];
+        output_filename = argv[optind+1];
+    } else if (remaining_args == 1) {
+        input_filename =  argv[optind];
+    } else {
+        input_filename = "-";
+    }
+
+    Osmium::OSMFile infile(input_filename);
+    MyOGRHandler handler(output_format, output_filename);
     Osmium::Input::read(infile, handler);
 }
 
