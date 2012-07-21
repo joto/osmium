@@ -100,6 +100,10 @@ public:
             exit(1);
         }
 
+        /* Transactions might make things faster, then again they might not.
+           Feel free to experiment and benchmark and report back. */
+//        m_layer_point->StartTransaction();
+
         m_layer_linestring = m_data_source->CreateLayer("roads", &sparef, wkbLineString, NULL);
         if (m_layer_linestring == NULL) {
             std::cerr << "Layer creation failed.\n";
@@ -121,6 +125,8 @@ public:
             std::cerr << "Creating type field failed.\n";
             exit(1);
         }
+
+//        m_layer_linestring->StartTransaction();
     }
 
     ~MyOGRHandler() {
@@ -159,6 +165,7 @@ public:
     }
 
     void after_nodes() {
+//        m_layer_point->CommitTransaction();
         std::cerr << "Memory used for node coordinates storage (approximate):\n  for positive IDs: "
                   << store_pos.used_memory() / (1024 * 1024)
                   << " MiB\n  for negative IDs: "
@@ -192,6 +199,11 @@ public:
             }
         }
     }
+
+/*    void after_ways() {
+        m_layer_linestring->CommitTransaction();
+    }*/
+
 };
 
 /* ================================================== */
