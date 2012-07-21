@@ -128,7 +128,6 @@ void cbmp(Osmium::OSM::Area* area) {
 
 typedef Osmium::Storage::ById::SparseTable<Osmium::OSM::Position> storage_sparsetable_t;
 typedef Osmium::Storage::ById::MmapFile<Osmium::OSM::Position> storage_mmap_t;
-typedef Osmium::Handler::CoordinatesForWays<storage_sparsetable_t, storage_mmap_t> cfw_handler_t;
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {

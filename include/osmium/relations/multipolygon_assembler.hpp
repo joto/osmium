@@ -38,6 +38,11 @@ namespace Osmium {
 
         public:
 
+            MultiPolygonRelationInfo() :
+                RelationInfo(),
+                m_is_boundary(false) {
+            }
+
             MultiPolygonRelationInfo(const shared_ptr<Osmium::OSM::Relation const>& relation, bool is_boundary) :
                 RelationInfo(relation),
                 m_is_boundary(is_boundary) {
@@ -142,6 +147,17 @@ namespace Osmium {
 
                 area->handle_complete_multipolygon();
                 delete area;
+            }
+
+            void all_members_available() {
+                AssemblerType::clean_assembled_relations();
+                if (! AssemblerType::relations().empty()) {
+                    std::cerr << "Warning! Some member ways missing for these multipolygon relations:";
+                    BOOST_FOREACH(const MultiPolygonRelationInfo& relation_info, AssemblerType::relations()) {
+                        std::cerr << " " << relation_info.relation()->id();
+                    }
+                    std::cerr << "\n";
+                }
             }
 
         };

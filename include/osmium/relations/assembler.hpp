@@ -41,6 +41,12 @@ namespace Osmium {
 
         public:
 
+            RelationInfo() :
+                m_relation(),
+                m_members(),
+                m_need_members(0) {
+            }
+
             RelationInfo(const shared_ptr<Osmium::OSM::Relation const>& relation) :
                 m_relation(relation),
                 m_members(),
@@ -49,6 +55,10 @@ namespace Osmium {
 
             const shared_ptr<Osmium::OSM::Relation const>& relation() const {
                 return m_relation;
+            }
+
+            int need_members() const {
+                return m_need_members;
             }
 
             void need_member() {
@@ -64,6 +74,15 @@ namespace Osmium {
                 return m_members;
             }
 
+            bool has_all_members() const {
+                return m_need_members == 0;
+            }
+        };
+
+        struct has_all_members : public std::unary_function<RelationInfo, bool> {
+            bool operator()(RelationInfo& relation_info) const {
+                return relation_info.has_all_members();
+            }
         };
 
         template <class TAssembler, class TRelationInfo, class THandler=Osmium::Handler::Base>
@@ -97,6 +116,10 @@ namespace Osmium {
 
         protected:
 
+            const relation_info_vector_t& relations() const {
+                return m_relations;
+            }
+
             // overwrite in child class
             void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
                 add_relation(TRelationInfo(relation));
@@ -117,6 +140,14 @@ namespace Osmium {
 
             // overwrite in child class
             void relation_not_in_any_relation(const shared_ptr<Osmium::OSM::Relation const>& /*relation*/) {
+            }
+
+            // overwrite in child class
+            void all_members_available() {
+            }
+
+            void clean_assembled_relations() {
+                m_relations.erase(std::remove_if(m_relations.begin(), m_relations.end(), has_all_members()), m_relations.end());
             }
 
             void add_relation(TRelationInfo relation_info) {
@@ -162,12 +193,18 @@ namespace Osmium {
                     m_assembler.relation(relation);
                 }
 
+                void after_relations() const {
+                    throw Osmium::Handler::StopReading();
+                }
+
             }; // class HandlerPass1
 
             template<bool N, bool W, bool R>
             class HandlerPass2 {
 
                 TAssembler& m_assembler;
+
+                int m_want_types;
 
                 struct compare_first : public std::binary_function<object_id_2_relation_info_num_t, object_id_2_relation_info_num_t, bool> {
                     bool operator()(const object_id_2_relation_info_num_t& a, const object_id_2_relation_info_num_t& b) const {
@@ -178,7 +215,8 @@ namespace Osmium {
             public:
 
                 HandlerPass2(TAssembler& assembler) :
-                    m_assembler(assembler) {
+                    m_assembler(assembler),
+                    m_want_types(N?1:0 + W?1:0 + R?1:0) {
                 }
 
                 void init(Osmium::OSM::Meta& meta) const {
@@ -205,6 +243,7 @@ namespace Osmium {
                             TRelationInfo& relation_info = m_assembler.m_relations[x.second];
                             if (relation_info.add_member(node)) {
                                 m_assembler.complete_relation(relation_info);
+                                m_assembler.m_relations[x.second] = TRelationInfo();
                             }
                         }
                     }
@@ -215,6 +254,9 @@ namespace Osmium {
                     if (N) {
                         // clear all memory used by m_member_nodes
                         id2rel_vector_t().swap(m_assembler.m_member_nodes);
+                        if (--m_want_types == 0) {
+                            m_assembler.all_members_available();
+                        }
                     }
                     m_assembler.m_handler.after_nodes();
                 }
@@ -239,6 +281,7 @@ namespace Osmium {
                             TRelationInfo& relation_info = m_assembler.m_relations[x.second];
                             if (relation_info.add_member(way)) {
                                 m_assembler.complete_relation(relation_info);
+                                m_assembler.m_relations[x.second] = TRelationInfo();
                             }
                         }
                     }
@@ -249,6 +292,9 @@ namespace Osmium {
                     if (W) {
                         // clear all memory used by m_member_ways
                         id2rel_vector_t().swap(m_assembler.m_member_ways);
+                        if (--m_want_types == 0) {
+                            m_assembler.all_members_available();
+                        }
                     }
                     m_assembler.m_handler.after_ways();
                 }
@@ -273,6 +319,7 @@ namespace Osmium {
                             TRelationInfo& relation_info = m_assembler.m_relations[x.second];
                             if (relation_info.add_member(relation)) {
                                 m_assembler.complete_relation(relation_info);
+                                m_assembler.m_relations[x.second] = TRelationInfo();
                             }
                         }
                     }
@@ -283,6 +330,9 @@ namespace Osmium {
                     if (R) {
                         // clear all memory used by m_member_relations
                         id2rel_vector_t().swap(m_assembler.m_member_relations);
+                        if (--m_want_types == 0) {
+                            m_assembler.all_members_available();
+                        }
                     }
                     m_assembler.m_handler.after_relations();
                 }
