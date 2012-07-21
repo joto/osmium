@@ -118,7 +118,7 @@ namespace Osmium {
 
             Assembler() :
                 m_base_handler(),
-                m_handler(m_base_handler),
+                m_next_handler(m_base_handler),
                 m_relations(),
                 m_member_nodes(),
                 m_member_ways(),
@@ -127,7 +127,7 @@ namespace Osmium {
 
             Assembler(THandler& handler) :
                 m_base_handler(),
-                m_handler(handler),
+                m_next_handler(handler),
                 m_relations(),
                 m_member_nodes(),
                 m_member_ways(),
@@ -195,7 +195,7 @@ namespace Osmium {
             }
 
             THandler& nested_handler() {
-                return m_handler;
+                return m_next_handler;
             }
 
         public:
@@ -236,14 +236,14 @@ namespace Osmium {
                 }
 
                 void init(Osmium::OSM::Meta& meta) const {
-                    m_assembler.m_handler.init(meta);
+                    m_assembler.m_next_handler.init(meta);
                 }
 
                 void before_nodes() {
                     if (N) {
                         std::sort(m_assembler.m_member_nodes.begin(), m_assembler.m_member_nodes.end());
                     }
-                    m_assembler.m_handler.before_nodes();
+                    m_assembler.m_next_handler.before_nodes();
                 }
 
                 void node(const shared_ptr<Osmium::OSM::Node const>& node) {
@@ -266,7 +266,7 @@ namespace Osmium {
                             }
                         }
                     }
-                    m_assembler.m_handler.node(node);
+                    m_assembler.m_next_handler.node(node);
                 }
 
                 void after_nodes() {
@@ -277,14 +277,14 @@ namespace Osmium {
                             m_assembler.all_members_available();
                         }
                     }
-                    m_assembler.m_handler.after_nodes();
+                    m_assembler.m_next_handler.after_nodes();
                 }
 
                 void before_ways() {
                     if (W) {
                         std::sort(m_assembler.m_member_ways.begin(), m_assembler.m_member_ways.end());
                     }
-                    m_assembler.m_handler.before_ways();
+                    m_assembler.m_next_handler.before_ways();
                 }
 
                 void way(const shared_ptr<Osmium::OSM::Way const>& way) {
@@ -307,7 +307,7 @@ namespace Osmium {
                             }
                         }
                     }
-                    m_assembler.m_handler.way(way);
+                    m_assembler.m_next_handler.way(way);
                 }
 
                 void after_ways() {
@@ -318,14 +318,14 @@ namespace Osmium {
                             m_assembler.all_members_available();
                         }
                     }
-                    m_assembler.m_handler.after_ways();
+                    m_assembler.m_next_handler.after_ways();
                 }
 
                 void before_relations() {
                     if (R) {
                         std::sort(m_assembler.m_member_relations.begin(), m_assembler.m_member_relations.end());
                     }
-                    m_assembler.m_handler.before_relations();
+                    m_assembler.m_next_handler.before_relations();
                 }
 
                 void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
@@ -348,7 +348,7 @@ namespace Osmium {
                             }
                         }
                     }
-                    m_assembler.m_handler.relation(relation);
+                    m_assembler.m_next_handler.relation(relation);
                 }
 
                 void after_relations() {
@@ -359,11 +359,11 @@ namespace Osmium {
                             m_assembler.all_members_available();
                         }
                     }
-                    m_assembler.m_handler.after_relations();
+                    m_assembler.m_next_handler.after_relations();
                 }
 
                 void final() const {
-                    m_assembler.m_handler.final();
+                    m_assembler.m_next_handler.final();
                 }
 
             }; // class HandlerPass2
@@ -371,7 +371,7 @@ namespace Osmium {
         private:
 
             Osmium::Handler::Base m_base_handler;
-            THandler& m_handler;
+            THandler& m_next_handler;
             relation_info_vector_t m_relations;
             member_info_vector_t m_member_nodes;
             member_info_vector_t m_member_ways;
