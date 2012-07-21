@@ -222,9 +222,7 @@ namespace Osmium {
                 m_base_handler(),
                 m_next_handler(m_base_handler),
                 m_relations(),
-                m_member_nodes(),
-                m_member_ways(),
-                m_member_relations() {
+                m_member_infos() {
             }
 
             /**
@@ -234,9 +232,7 @@ namespace Osmium {
                 m_base_handler(),
                 m_next_handler(handler),
                 m_relations(),
-                m_member_nodes(),
-                m_member_ways(),
-                m_member_relations() {
+                m_member_infos() {
             }
 
         protected:
@@ -322,13 +318,13 @@ namespace Osmium {
                         MemberInfo member_info(member.ref(), m_relations.size(), n);
                         switch (member.type()) {
                             case 'n':
-                                m_member_nodes.push_back(member_info);
+                                m_member_infos[NODE].push_back(member_info);
                                 break;
                             case 'w':
-                                m_member_ways.push_back(member_info);
+                                m_member_infos[WAY].push_back(member_info);
                                 break;
                             case 'r':
-                                m_member_relations.push_back(member_info);
+                                m_member_infos[RELATION].push_back(member_info);
                                 break;
                         }
                         relation_info.need_member();
@@ -363,6 +359,9 @@ namespace Osmium {
                 }
 
                 void after_relations() const {
+                    std::sort(m_assembler.m_member_infos[NODE].begin(), m_assembler.m_member_infos[NODE].end());
+                    std::sort(m_assembler.m_member_infos[WAY].begin(), m_assembler.m_member_infos[WAY].end());
+                    std::sort(m_assembler.m_member_infos[RELATION].begin(), m_assembler.m_member_infos[RELATION].end());
                     throw Osmium::Handler::StopReading();
                 }
 
@@ -396,72 +395,65 @@ namespace Osmium {
                     m_assembler.m_next_handler.init(meta);
                 }
 
-                void before_nodes() {
-                    if (N) {
-                        std::sort(m_assembler.m_member_nodes.begin(), m_assembler.m_member_nodes.end());
-                    }
+                void before_nodes() const {
                     m_assembler.m_next_handler.before_nodes();
                 }
 
-                void node(const shared_ptr<Osmium::OSM::Node const>& node) {
-                    if (N) {
-                        member_info_range_t range = std::equal_range(m_assembler.m_member_nodes.begin(), m_assembler.m_member_nodes.end(), MemberInfo(node->id()));
+                bool find_and_add_object(const shared_ptr<Osmium::OSM::Object const>& object) const {
+                    member_info_vector_t& miv = m_assembler.m_member_infos[object->get_type()];
+                    const member_info_range_t range = std::equal_range(miv.begin(), miv.end(), MemberInfo(object->id()));
 
-                        if (range.first == range.second) {
-                            m_assembler.node_not_in_any_relation(node);
-                            return;
+                    if (range.first == range.second) {
+                        // nothing found
+                        return false;
+                    }
+
+                    BOOST_FOREACH(const MemberInfo& member_info, range) {
+                        assert(member_info.m_member_id == object->id());
+                        assert(member_info.m_relation_pos < m_assembler.m_relations.size());
+                        TRelationInfo& relation_info = m_assembler.m_relations[member_info.m_relation_pos];
+                        assert(member_info.m_member_pos < relation_info.relation()->members().size());
+                        if (relation_info.add_member(object, member_info.m_member_pos)) {
+                            m_assembler.complete_relation(relation_info);
+                            m_assembler.m_relations[member_info.m_relation_pos] = TRelationInfo();
                         }
+                    }
 
-                        BOOST_FOREACH(const MemberInfo& member_info, range) {
-                            assert(member_info.m_member_id == node->id());
-                            assert(member_info.m_relation_pos < m_assembler.m_relations.size());
-                            TRelationInfo& relation_info = m_assembler.m_relations[member_info.m_relation_pos];
-                            assert(member_info.m_member_pos < relation_info.relation()->members().size());
-                            if (relation_info.add_member(node, member_info.m_member_pos)) {
-                                m_assembler.complete_relation(relation_info);
-                                m_assembler.m_relations[member_info.m_relation_pos] = TRelationInfo();
-                            }
+                    return true;
+                }
+
+                void node(const shared_ptr<Osmium::OSM::Node const>& node) const {
+                    if (N) {
+                        if (! find_and_add_object(node)) {
+                            m_assembler.node_not_in_any_relation(node);
                         }
                     }
                     m_assembler.m_next_handler.node(node);
                 }
 
+                void after(osm_object_type_t type) {
+                    // clear all memory used by m_member_info of this type
+                    member_info_vector_t().swap(m_assembler.m_member_infos[type]);
+                    if (--m_want_types == 0) {
+                        m_assembler.all_members_available();
+                    }
+                }
+
                 void after_nodes() {
                     if (N) {
-                        // clear all memory used by m_member_nodes
-                        member_info_vector_t().swap(m_assembler.m_member_nodes);
-                        if (--m_want_types == 0) {
-                            m_assembler.all_members_available();
-                        }
+                        after(NODE);
                     }
                     m_assembler.m_next_handler.after_nodes();
                 }
 
-                void before_ways() {
-                    if (W) {
-                        std::sort(m_assembler.m_member_ways.begin(), m_assembler.m_member_ways.end());
-                    }
+                void before_ways() const {
                     m_assembler.m_next_handler.before_ways();
                 }
 
-                void way(const shared_ptr<Osmium::OSM::Way const>& way) {
+                void way(const shared_ptr<Osmium::OSM::Way const>& way) const {
                     if (W) {
-                        member_info_range_t range = std::equal_range(m_assembler.m_member_ways.begin(), m_assembler.m_member_ways.end(), MemberInfo(way->id()));
-
-                        if (range.first == range.second) {
+                        if (! find_and_add_object(way)) {
                             m_assembler.way_not_in_any_relation(way);
-                            return;
-                        }
-
-                        BOOST_FOREACH(const MemberInfo& member_info, range) {
-                            assert(member_info.m_member_id == way->id());
-                            assert(member_info.m_relation_pos < m_assembler.m_relations.size());
-                            TRelationInfo& relation_info = m_assembler.m_relations[member_info.m_relation_pos];
-                            assert(member_info.m_member_pos < relation_info.relation()->members().size());
-                            if (relation_info.add_member(way, member_info.m_member_pos)) {
-                                m_assembler.complete_relation(relation_info);
-                                m_assembler.m_relations[member_info.m_relation_pos] = TRelationInfo();
-                            }
                         }
                     }
                     m_assembler.m_next_handler.way(way);
@@ -469,40 +461,19 @@ namespace Osmium {
 
                 void after_ways() {
                     if (W) {
-                        // clear all memory used by m_member_ways
-                        member_info_vector_t().swap(m_assembler.m_member_ways);
-                        if (--m_want_types == 0) {
-                            m_assembler.all_members_available();
-                        }
+                        after(WAY);
                     }
                     m_assembler.m_next_handler.after_ways();
                 }
 
-                void before_relations() {
-                    if (R) {
-                        std::sort(m_assembler.m_member_relations.begin(), m_assembler.m_member_relations.end());
-                    }
+                void before_relations() const {
                     m_assembler.m_next_handler.before_relations();
                 }
 
-                void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
+                void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) const {
                     if (R) {
-                        member_info_range_t range = std::equal_range(m_assembler.m_member_relations.begin(), m_assembler.m_member_relations.end(), MemberInfo(relation->id()));
-
-                        if (range.first == range.second) {
+                        if (! find_and_add_object(relation)) {
                             m_assembler.relation_not_in_any_relation(relation);
-                            return;
-                        }
-
-                        BOOST_FOREACH(const MemberInfo& member_info, range) {
-                            assert(member_info.m_member_id == relation->id());
-                            assert(member_info.m_relation_pos < m_assembler.m_relations.size());
-                            TRelationInfo& relation_info = m_assembler.m_relations[member_info.m_relation_pos];
-                            assert(member_info.m_member_pos < relation_info.relation()->members().size());
-                            if (relation_info.add_member(relation, member_info.m_member_pos)) {
-                                m_assembler.complete_relation(relation_info);
-                                m_assembler.m_relations[member_info.m_relation_pos] = TRelationInfo();
-                            }
                         }
                     }
                     m_assembler.m_next_handler.relation(relation);
@@ -510,11 +481,7 @@ namespace Osmium {
 
                 void after_relations() {
                     if (R) {
-                        // clear all memory used by m_member_relations
-                        member_info_vector_t().swap(m_assembler.m_member_relations);
-                        if (--m_want_types == 0) {
-                            m_assembler.all_members_available();
-                        }
+                        after(RELATION);
                     }
                     m_assembler.m_next_handler.after_relations();
                 }
@@ -530,9 +497,7 @@ namespace Osmium {
             Osmium::Handler::Base m_base_handler;
             THandler& m_next_handler;
             relation_info_vector_t m_relations;
-            member_info_vector_t m_member_nodes;
-            member_info_vector_t m_member_ways;
-            member_info_vector_t m_member_relations;
+            member_info_vector_t m_member_infos[3];
 
         }; // class Assembler
 
