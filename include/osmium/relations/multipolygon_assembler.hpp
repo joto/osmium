@@ -141,8 +141,10 @@ namespace Osmium {
                     m_attempt_repair);
 
                 BOOST_FOREACH(const shared_ptr<Osmium::OSM::Object const>& way, relation_info.members()) {
-                    std::cerr << "  way " << way->id() << "\n";
-                    area->add_member_way(static_cast<Osmium::OSM::Way*>(const_cast<Osmium::OSM::Object*>(way.get())));
+                    if (way) {
+                        std::cerr << "  way " << way->id() << "\n";
+                        area->add_member_way(static_cast<Osmium::OSM::Way*>(const_cast<Osmium::OSM::Object*>(way.get()))); // XXX argh
+                    }
                 }
 
                 area->handle_complete_multipolygon();

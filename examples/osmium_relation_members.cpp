@@ -43,23 +43,33 @@ class DebugRelationsAssembler : public Osmium::Relations::Assembler<DebugRelatio
     HandlerPass1 m_handler_pass1;
     HandlerPass2 m_handler_pass2;
 
-    void dump_relation(const Osmium::Relations::RelationInfo& relation_info, const char* msg) const {
-        static const char* types[] = { "node", "way", "relation" };
-
-        std::cout << msg << " " << relation_info.relation()->id() << "\n";
+    void dump_relation(const Osmium::Relations::RelationInfo& relation_info, bool complete) const {
+        std::cout << "Relation " << relation_info.relation()->id() << (complete ? "\n" : " (INCOMPLETE)\n");
         BOOST_FOREACH(const Osmium::OSM::Tag& tag, relation_info.relation()->tags()) {
             std::cout << "  " << tag.key() << "=" << tag.value() << "\n";
         }
 
         int i = 0;
         const Osmium::OSM::RelationMemberList& rml = relation_info.relation()->members();
-        BOOST_FOREACH(const shared_ptr<Osmium::OSM::Object const>& object, relation_info.members()) {
-            std::cout << "  [" << i << "] Member " << types[object->get_type()] << " " << object->id() << " with role '" << rml[i].role() << "'\n";
-            BOOST_FOREACH(const Osmium::OSM::Tag& tag, object->tags()) {
-                std::cout << "      " << tag.key() << "=" << tag.value() << "\n";
+        BOOST_FOREACH(const Osmium::OSM::RelationMember& rm, rml) {
+            std::cout << "  [" << i << "] Member ";
+            switch (rm.type()) {
+                case 'n': std::cout << "node"; break;
+                case 'w': std::cout << "way"; break;
+                case 'r': std::cout << "relation"; break;
+            }
+            std::cout << " " << rm.ref() << " with role '" << rm.role() << "'";
+            if (relation_info.members()[i]) {
+                std::cout << "\n";
+                BOOST_FOREACH(const Osmium::OSM::Tag& tag, relation_info.members()[i]->tags()) {
+                    std::cout << "      " << tag.key() << "=" << tag.value() << "\n";
+                }
+            } else {
+                std::cout << " (NOT IN INPUT FILE)\n";
             }
             ++i;
         }
+        std::cout << "\n";
     }
 
 public:
@@ -87,15 +97,13 @@ public:
     }
 
     void complete_relation(Osmium::Relations::RelationInfo& relation_info) {
-        dump_relation(relation_info, "Relation");
-        std::cout << "\n";
+        dump_relation(relation_info, true);
     }
 
     void all_members_available() {
         AssemblerType::clean_assembled_relations();
         BOOST_FOREACH(const Osmium::Relations::RelationInfo& relation_info, AssemblerType::relations()) {
-            dump_relation(relation_info, "Incomplete relation");
-            std::cout << "  Relation is missing " << relation_info.need_members() << " additional member(s)\n\n";
+            dump_relation(relation_info, false);
         }
     }
 
