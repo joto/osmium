@@ -32,16 +32,43 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 namespace Osmium {
 
+    /**
+     * @brief Namespace for code related to OSM relations
+     */
     namespace Relations {
 
+        /**
+         * Helper class for the Assembler class.
+         *
+         * Stores a shared pointer to a relation plus the information needed to
+         * add members to this relation.
+         *
+         * You can derive from this class in a child class of Assembler if you
+         * need to store more information about a relation. See the MultiPolygonRelationInfo
+         * class for an example.
+         */
         class RelationInfo {
 
+            /// The relation we are assembling.
             shared_ptr<Osmium::OSM::Relation const> m_relation;
+
+            /// Vector for relation members. Is initialized with the right size and empty objects.
             std::vector< shared_ptr<Osmium::OSM::Object const> > m_members;
+
+            /**
+             * The number of members still needed before the relation is complete.
+             * This will be set to the number of members we are interested in and
+             * then count down for every member we find. When it is 0, the relation
+             * is complete.
+             */
             int m_need_members;
 
         public:
 
+            /**
+             * Initialize an empty RelationInfo. This is needed to zero out relations that
+             * have been completed and thus are removed from the m_relations vector.
+             */
             RelationInfo() :
                 m_relation(),
                 m_members(),
@@ -62,10 +89,19 @@ namespace Osmium {
                 return m_need_members;
             }
 
+            /**
+             * There is one more member we need.
+             */
             void need_member() {
                 ++m_need_members;
             }
 
+            /**
+             * Add new member. This stores a shared pointer to the member object
+             * in the RelationInfo. It also decrements the members needed counter.
+             *
+             * @return true if relation is complete, false otherwise
+             */
             bool add_member(const shared_ptr<Osmium::OSM::Object const>& object, osm_sequence_id_t n) {
                 assert(m_need_members > 0);
                 assert(n < m_relation->members().size());
@@ -82,29 +118,90 @@ namespace Osmium {
             }
         };
 
+        /**
+         * Function object to check if a relation is complete.
+         *
+         * @return true if this relation is complete, false otherwise.
+         */
         struct has_all_members : public std::unary_function<RelationInfo, bool> {
             bool operator()(RelationInfo& relation_info) const {
                 return relation_info.has_all_members();
             }
         };
 
+        /**
+         * The Assembler class assembles relations and their members. This is a generic
+         * base class that can be used to assemble all kinds of relations. It has numerous
+         * hooks you can implement in child classes to customize its behaviour.
+         *
+         * The assembler provides two handlers (HandlerPass1 and HandlerPass2) for a first
+         * and second pass through an input file, respectively. In the first pass all
+         * relations we are interested in are stored in TRelationInfo objects in the
+         * m_relations vector. All members we are interested in are stored in MemberInfo
+         * objects in the m_member_nodes, m_member_ways, and m_member_relations vectors.
+         * The MemberInfo objects also store the information where the relations containing
+         * those members are to be found.
+         *
+         * Later the m_member_(nodes|ways|relations) vectors are sorted according to the
+         * member ids so that a binary search (with range_equal) can be used in the second
+         * pass to find the relations for each node, way, or relation coming along. The
+         * member objects are stored together with their relation and once a relation is
+         * complete the complete_relation() method is called which you can overwrite in
+         * a child class of Assembler.
+         *
+         * @tparam TAssembler Child class of this class.
+         *
+         * @tparam TRelationInfo RelationInfo or a child class of it.
+         *
+         * @tparam THandler Nested handler that is called at the end of each method in
+         *         HandlerPass2. Defaults to Osmium::Handler::Base which does nothing.
+         */
         template <class TAssembler, class TRelationInfo, class THandler=Osmium::Handler::Base>
         class Assembler {
 
+            /// Vector of RelationInfo objects used to store relations we are interested in.
             typedef std::vector<TRelationInfo> relation_info_vector_t;
 
+            /**
+             *
+             */
             struct MemberInfo {
 
+                /**
+                 * Object ID of this relation member. Can be a node, way, or relation ID.
+                 * It depends on the vector in which this object is stored which kind of
+                 * object is referenced here.
+                 */
                 osm_object_id_t m_member_id;
+
+                /**
+                 * Position of the relation this member is a part of in the
+                 * m_relations vector.
+                 */
                 typename relation_info_vector_t::size_type m_relation_pos;
+
+                /**
+                 * Position of this member in the list of members of the
+                 * relation this member if a part of.
+                 */
                 osm_sequence_id_t m_member_pos;
 
+                /**
+                 * Create new MemberInfo. The variant with zeros for relation_pos and
+                 * member_pos is used to create dummy MemberInfo that can be compared
+                 * to the MemberInfo in the vectors using the equal_range algorithm.
+                 */
                 MemberInfo(osm_object_id_t member_id, typename relation_info_vector_t::size_type relation_pos=0, osm_sequence_id_t member_pos=0) :
                     m_member_id(member_id),
                     m_relation_pos(relation_pos),
                     m_member_pos(member_pos) {
                 }
 
+                /**
+                 * Compares two MemberInfo objects by only looking at the member id.
+                 * Used to sort a vector of MemberInfo objects and to later find
+                 * them using binary search.
+                 */
                 friend operator<(const MemberInfo& a, const MemberInfo& b) {
                     return a.m_member_id < b.m_member_id;
                 }
@@ -112,10 +209,15 @@ namespace Osmium {
             };
 
             typedef std::vector<MemberInfo> member_info_vector_t;
+
+            /// This is the type used for results of the equal_range algorithm.
             typedef std::pair<typename member_info_vector_t::iterator, typename member_info_vector_t::iterator> member_info_range_t;
 
         public:
 
+            /**
+             * Create an Assembler without nested handler.
+             */
             Assembler() :
                 m_base_handler(),
                 m_next_handler(m_base_handler),
@@ -125,6 +227,9 @@ namespace Osmium {
                 m_member_relations() {
             }
 
+            /**
+             * Create an Assembler with nested handler.
+             */
             Assembler(THandler& handler) :
                 m_base_handler(),
                 m_next_handler(handler),
@@ -140,32 +245,71 @@ namespace Osmium {
                 return m_relations;
             }
 
-            // overwrite in child class
+            /**
+             * This method is called from the first pass handler for every
+             * relation in the input. It calls add_relation() to add this
+             * relation to the list of relations we are interested in.
+             *
+             * Overwrite this method in a child class to only call add_relation
+             * on the relations you are interested in, for instance depending
+             * on the type tag. Storing relations takes a lot of memory, so
+             * it makes sense to filter this as much as possible.
+             */
             void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
                 add_relation(TRelationInfo(relation));
             }
 
-            // overwrite in child class
+            /**
+             * This method is called for every member of every relation that
+             * is added with add_relation(). It should decide if the member
+             * is interesting or not and return true or false to signal that.
+             * Only interesting members are later added to the relation.
+             *
+             * Overwrite this method in a child class. In the MultiPolygonAssembler
+             * this is for instance used to only keep members of type way and
+             * ignore all others.
+             */
             bool keep_member(Osmium::Relations::RelationInfo& /*relation_info*/, const Osmium::OSM::RelationMember& /*member*/) {
                 return true;
             }
 
-            // overwrite in child class
+            /**
+             * This method is called for all nodes that are not a member of
+             * any relation.
+             *
+             * Overwrite this method in a child class if you are interested
+             * in this.
+             */
             void node_not_in_any_relation(const shared_ptr<Osmium::OSM::Node const>& /*node*/) {
             }
 
-            // overwrite in child class
+            /**
+             * This method is called for all ways that are not a member of
+             * any relation.
+             *
+             * Overwrite this method in a child class if you are interested
+             * in this.
+             */
             void way_not_in_any_relation(const shared_ptr<Osmium::OSM::Way const>& /*way*/) {
             }
 
-            // overwrite in child class
+            /**
+             * This method is called for all relations that are not a member of
+             * any relation.
+             *
+             * Overwrite this method in a child class if you are interested
+             * in this.
+             */
             void relation_not_in_any_relation(const shared_ptr<Osmium::OSM::Relation const>& /*relation*/) {
             }
 
-            // overwrite in child class
             void all_members_available() {
             }
 
+            /**
+             * This removes all relations that have already been assembled
+             * from the m_relations vector.
+             */
             void clean_assembled_relations() {
                 m_relations.erase(std::remove_if(m_relations.begin(), m_relations.end(), has_all_members()), m_relations.end());
             }
@@ -200,6 +344,9 @@ namespace Osmium {
 
         public:
 
+            /**
+             * This is the handler class for the first pass of the Assembler.
+             */
             class HandlerPass1 : public Osmium::Handler::Base {
 
                 TAssembler& m_assembler;
@@ -221,6 +368,16 @@ namespace Osmium {
 
             }; // class HandlerPass1
 
+            /**
+             * This is the handler class for the second pass of the Assembler.
+             *
+             * Instantiate this with the right template parameters in a child
+             * class of Assembler.
+             *
+             * @tparam N Are we interested in member nodes?
+             * @tparam W Are we interested in member ways?
+             * @tparam R Are we interested in member relations?
+             */
             template<bool N, bool W, bool R>
             class HandlerPass2 {
 
