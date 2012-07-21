@@ -213,7 +213,8 @@ namespace Osmium {
 
                 void after_nodes() {
                     if (N) {
-                        m_assembler.m_member_nodes.clear();
+                        // clear all memory used by m_member_nodes
+                        id2rel_vector_t().swap(m_assembler.m_member_nodes);
                     }
                     m_assembler.m_handler.after_nodes();
                 }
@@ -246,7 +247,8 @@ namespace Osmium {
 
                 void after_ways() {
                     if (W) {
-                        m_assembler.m_member_ways.clear();
+                        // clear all memory used by m_member_ways
+                        id2rel_vector_t().swap(m_assembler.m_member_ways);
                     }
                     m_assembler.m_handler.after_ways();
                 }
@@ -279,7 +281,8 @@ namespace Osmium {
 
                 void after_relations() {
                     if (R) {
-                        m_assembler.m_member_relations.clear();
+                        // clear all memory used by m_member_relations
+                        id2rel_vector_t().swap(m_assembler.m_member_relations);
                     }
                     m_assembler.m_handler.after_relations();
                 }
