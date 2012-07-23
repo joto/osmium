@@ -64,7 +64,7 @@ Expat (for parsing XML files)
 
 GEOS (for assembling multipolygons etc.)
     http://trac.osgeo.org/geos/
-    Debian/Ubuntu: libgeos-dev, neuer Versions also libgeos++-dev
+    Debian/Ubuntu: libgeos-dev, newer Versions also libgeos++-dev
 
 Google sparsehash
     http://code.google.com/p/google-sparsehash/
