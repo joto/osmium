@@ -64,7 +64,7 @@ Expat (for parsing XML files)
 
 GEOS (for assembling multipolygons etc.)
     http://trac.osgeo.org/geos/
-    Debian/Ubuntu: libgeos-dev, neuer Versions also libgeos++-dev
+    Debian/Ubuntu: libgeos-dev, newer versions also libgeos++-dev
 
 Google sparsehash
     http://code.google.com/p/google-sparsehash/
@@ -79,7 +79,7 @@ LibICU (for UTF-8/UTF-16 conversion, only for Javascript support)
     Debian/Ubuntu: libicu-dev
 
 Google protocol buffers (for PBF support)
-    http://code.google.com/p/protobuf/ (at least Version 2.3.0 needed)
+    http://code.google.com/p/protobuf/ (at least version 2.3.0 needed)
     Debian/Ubuntu: libprotobuf-dev protobuf-compiler
     Also see http://wiki.openstreetmap.org/wiki/PBF_Format
 
