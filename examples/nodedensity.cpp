@@ -19,9 +19,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
-#include <string>
 #include <limits>
-#include <cstdio>
+#include <iostream>
 #include <gd.h>
 
 #define OSMIUM_WITH_PBF_INPUT

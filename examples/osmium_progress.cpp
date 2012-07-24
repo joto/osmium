@@ -25,7 +25,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
-#include <cstdlib>
+#include <iostream>
 
 #define OSMIUM_WITH_PBF_INPUT
 #define OSMIUM_WITH_XML_INPUT

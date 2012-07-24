@@ -26,7 +26,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
-#include <cstdlib>
+#include <iostream>
 #include <osmpbf/osmpbf.h>
 
 #include <osmium/osm/object.hpp>
