@@ -46,17 +46,19 @@ namespace Osmium {
         public:
 
             /// Construct a Way object.
-            Way() : Object(), m_node_list() {
-                init();
+            Way() :
+                Object(),
+                m_node_list() {
             }
 
-            Way(int size_of_node_list) : Object(), m_node_list(size_of_node_list) {
-                init();
+            Way(int size_of_node_list) :
+                Object(),
+                m_node_list(size_of_node_list) {
             }
 
             /// Copy a Way object.
-            Way(const Way& w) : Object(w) {
-                init();
+            Way(const Way& w) :
+                Object(w) {
                 m_node_list = w.m_node_list;
             }
 
@@ -66,11 +68,6 @@ namespace Osmium {
 
             WayNodeList& nodes() {
                 return m_node_list;
-            }
-
-        private:
-
-            void init() {
             }
 
         public:
