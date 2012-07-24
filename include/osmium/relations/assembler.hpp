@@ -113,6 +113,9 @@ namespace Osmium {
                 return m_members;
             }
 
+            /**
+             * Returns true if all members for this relation are available.
+             */
             bool has_all_members() const {
                 return m_need_members == 0;
             }
@@ -299,6 +302,16 @@ namespace Osmium {
             void relation_not_in_any_relation(const shared_ptr<Osmium::OSM::Relation const>& /*relation*/) {
             }
 
+            /**
+             * This method is called from the handler when all objects that are
+             * wanted as relation members are available.
+             *
+             * Overwrite this method in a child class if you are interested
+             * in this.
+             *
+             * Note that even after this call members might be missing if they
+             * were not in the input file!
+             */
             void all_members_available() {
             }
 
@@ -310,6 +323,11 @@ namespace Osmium {
                 m_relations.erase(std::remove_if(m_relations.begin(), m_relations.end(), has_all_members()), m_relations.end());
             }
 
+            /**
+             * Tell the Assembler that you are interested in this relation
+             * and want it kept until all members have been assembled and
+             * it is handed back to you.
+             */
             void add_relation(TRelationInfo relation_info) {
                 osm_sequence_id_t n=0;
                 BOOST_FOREACH(const Osmium::OSM::RelationMember& member, relation_info.relation()->members()) {
@@ -334,8 +352,22 @@ namespace Osmium {
                 m_relations.push_back(relation_info);
             }
 
+            /**
+             * Return a reference to the nested handler that is called
+             * in the second pass after the Assembler's own handler.
+             */
             THandler& nested_handler() {
                 return m_next_handler;
+            }
+
+            /**
+             * Sort the vectors with the member infos so that we can do binary
+             * search on them.
+             */
+            void sort_member_infos() {
+                std::sort(m_member_infos[NODE].begin(),     m_member_infos[NODE].end());
+                std::sort(m_member_infos[WAY].begin(),      m_member_infos[WAY].end());
+                std::sort(m_member_infos[RELATION].begin(), m_member_infos[RELATION].end());
             }
 
         public:
@@ -359,9 +391,7 @@ namespace Osmium {
                 }
 
                 void after_relations() const {
-                    std::sort(m_assembler.m_member_infos[NODE].begin(), m_assembler.m_member_infos[NODE].end());
-                    std::sort(m_assembler.m_member_infos[WAY].begin(), m_assembler.m_member_infos[WAY].end());
-                    std::sort(m_assembler.m_member_infos[RELATION].begin(), m_assembler.m_member_infos[RELATION].end());
+                    m_assembler.sort_member_infos();
                     throw Osmium::Handler::StopReading();
                 }
 
@@ -382,23 +412,26 @@ namespace Osmium {
 
                 TAssembler& m_assembler;
 
+                /**
+                 * This variable is initialized with the number of different
+                 * kinds of OSM objects we are interested in. If we only need
+                 * way members (for instance for the multipolygon assembler)
+                 * it is intialized with 1 for instance. If node and way
+                 * members are needed, it is initialized with 2.
+                 *
+                 * In the after_* methods of this handler, it is decremented
+                 * and once it reaches 0, we know we have all members available
+                 * that we are ever going to get.
+                 */
                 int m_want_types;
 
-            public:
-
-                HandlerPass2(TAssembler& assembler) :
-                    m_assembler(assembler),
-                    m_want_types((N?1:0) + (W?1:0) + (R?1:0)) {
-                }
-
-                void init(Osmium::OSM::Meta& meta) const {
-                    m_assembler.m_next_handler.init(meta);
-                }
-
-                void before_nodes() const {
-                    m_assembler.m_next_handler.before_nodes();
-                }
-
+                /**
+                 * Find this object in the member vectors and add it to all
+                 * relations that need it.
+                 *
+                 * @returns true if the member was added to at least one
+                 *          relation and false otherwise
+                 */
                 bool find_and_add_object(const shared_ptr<Osmium::OSM::Object const>& object) const {
                     member_info_vector_t& miv = m_assembler.m_member_infos[object->get_type()];
                     const member_info_range_t range = std::equal_range(miv.begin(), miv.end(), MemberInfo(object->id()));
@@ -422,6 +455,34 @@ namespace Osmium {
                     return true;
                 }
 
+                /**
+                 * This method is called from the after_* methods. It reclaimes
+                 * memory that's not needed any more and calls
+                 * all_members_available() if they are.
+                 */
+                void after(osm_object_type_t type) {
+                    // clear all memory used by m_member_info of this type
+                    member_info_vector_t().swap(m_assembler.m_member_infos[type]);
+                    if (--m_want_types == 0) {
+                        m_assembler.all_members_available();
+                    }
+                }
+
+            public:
+
+                HandlerPass2(TAssembler& assembler) :
+                    m_assembler(assembler),
+                    m_want_types((N?1:0) + (W?1:0) + (R?1:0)) {
+                }
+
+                void init(Osmium::OSM::Meta& meta) const {
+                    m_assembler.m_next_handler.init(meta);
+                }
+
+                void before_nodes() const {
+                    m_assembler.m_next_handler.before_nodes();
+                }
+
                 void node(const shared_ptr<Osmium::OSM::Node const>& node) const {
                     if (N) {
                         if (! find_and_add_object(node)) {
@@ -429,14 +490,6 @@ namespace Osmium {
                         }
                     }
                     m_assembler.m_next_handler.node(node);
-                }
-
-                void after(osm_object_type_t type) {
-                    // clear all memory used by m_member_info of this type
-                    member_info_vector_t().swap(m_assembler.m_member_infos[type]);
-                    if (--m_want_types == 0) {
-                        m_assembler.all_members_available();
-                    }
                 }
 
                 void after_nodes() {
@@ -494,9 +547,22 @@ namespace Osmium {
 
         private:
 
+            /**
+             * This base handler is used as default if no chained handler was
+             * given to the Assembler.
+             */
             Osmium::Handler::Base m_base_handler;
+
+            /// Reference to chained handler
             THandler& m_next_handler;
+
+            /// Vector with all relations we are interested in
             relation_info_vector_t m_relations;
+
+            /**
+             * One vector each for nodes, ways, and relations containing all
+             * mappings from member ids to their relations.
+             */
             member_info_vector_t m_member_infos[3];
 
         }; // class Assembler

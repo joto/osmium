@@ -32,6 +32,9 @@ namespace Osmium {
 
     namespace Relations {
 
+        /**
+         * Information about a Relation needed for MultiPolygon assembly.
+         */
         class MultiPolygonRelationInfo : public RelationInfo {
 
             bool m_is_boundary;
@@ -54,6 +57,10 @@ namespace Osmium {
 
         };
 
+        /**
+         * This class assembles MultiPolygons from relations tagged with
+         * type=multipolygon or type=boundary.
+         */
         template <class THandler>
         class MultiPolygonAssembler : public Assembler<MultiPolygonAssembler<THandler>, MultiPolygonRelationInfo, THandler> {
 
@@ -104,12 +111,18 @@ namespace Osmium {
                 } else if (strcmp(type, "boundary") == 0) {
                     is_boundary = true;
                 } else {
+                    // ignore relations that are not of type "multipolygon" or "boundary"
                     return;
                 }
 
                 Assembler<MultiPolygonAssembler, MultiPolygonRelationInfo, THandler>::add_relation(MultiPolygonRelationInfo(relation, is_boundary));
             }
 
+            /**
+             * We are only interested in members of type way.
+             *
+             * Overwritten from the Assembler class.
+             */
             bool keep_member(MultiPolygonRelationInfo& relation_info, const Osmium::OSM::RelationMember& member) {
                 if (member.type() == 'w') {
                     return true;
