@@ -26,6 +26,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #define OSMIUM_LINK_WITH_LIBS_GEOS `geos-config --libs`
 
 #include <osmium/relations/assembler.hpp>
+#include <osmium/debug.hpp>
 #include <osmium/geometry/polygon.hpp>
 
 namespace Osmium {
@@ -62,7 +63,7 @@ namespace Osmium {
          * type=multipolygon or type=boundary.
          */
         template <class THandler>
-        class MultiPolygonAssembler : public Assembler<MultiPolygonAssembler<THandler>, MultiPolygonRelationInfo, false, true, false, THandler> {
+        class MultiPolygonAssembler : public Assembler<MultiPolygonAssembler<THandler>, MultiPolygonRelationInfo, false, true, false, THandler>, public WithDebugLevel {
 
             typedef Assembler<MultiPolygonAssembler, MultiPolygonRelationInfo, false, true, false, THandler> AssemblerType;
 
@@ -107,7 +108,7 @@ namespace Osmium {
                 if (member.type() == 'w') {
                     return true;
                 }
-                std::cerr << "Ignored non-way member of multipolygon relation with id " << relation_info.relation()->id() << "\n";
+                OSMIUM_DEBUG(1, "Ignored non-way member of multipolygon/boundary relation " << relation_info.relation()->id() << "\n");
                 return false;
             }
 
@@ -115,16 +116,16 @@ namespace Osmium {
                 if (way->is_closed() && way->node_count() >= 4) { // way is closed and has enough nodes, build simple multipolygon
                     Osmium::Geometry::Polygon polygon(*way);
                     Osmium::OSM::AreaFromWay* area = new Osmium::OSM::AreaFromWay(way.get(), polygon.create_geos_geometry());
-                    //    if (debug_level() > 1) {
-                    std::cerr << "MP simple way_id=" << way->id() << "\n";
-                    //    }
+
+                    OSMIUM_DEBUG(2, "MultiPolygon from way " << way->id() << "\n");
+
                     AssemblerType::nested_handler().area(area);
                     delete area;
                 }
             }
 
             void complete_relation(MultiPolygonRelationInfo& relation_info) {
-                std::cerr << "MP Rel completed: " << relation_info.relation()->id() << "\n";
+                OSMIUM_DEBUG(2, "MultiPolygon from relation " << relation_info.relation()->id() << "\n");
 
                 Osmium::OSM::AreaFromRelation* area = new Osmium::OSM::AreaFromRelation(
                     new Osmium::OSM::Relation(*relation_info.relation()),
@@ -135,7 +136,7 @@ namespace Osmium {
 
                 BOOST_FOREACH(const shared_ptr<Osmium::OSM::Object const>& way, relation_info.members()) {
                     if (way) {
-                        std::cerr << "  way " << way->id() << "\n";
+                        OSMIUM_DEBUG(2, "  with member way " << way->id() << "\n");
                         area->add_member_way(static_cast<Osmium::OSM::Way*>(const_cast<Osmium::OSM::Object*>(way.get()))); // XXX argh
                     }
                 }
@@ -144,16 +145,22 @@ namespace Osmium {
                 delete area;
             }
 
+#ifdef OSMIUM_WITH_DEBUG
             void all_members_available() {
+                if (debug_level() == 0) {
+                    return;
+                }
+
                 AssemblerType::clean_assembled_relations();
                 if (! AssemblerType::relations().empty()) {
-                    std::cerr << "Warning! Some member ways missing for these multipolygon relations:";
+                    std::cout << "Warning! Some member ways missing for these multipolygon relations:";
                     BOOST_FOREACH(const MultiPolygonRelationInfo& relation_info, AssemblerType::relations()) {
-                        std::cerr << " " << relation_info.relation()->id();
+                        std::cout << " " << relation_info.relation()->id();
                     }
-                    std::cerr << "\n";
+                    std::cout << "\n";
                 }
             }
+#endif // OSMIUM_WITH_DEBUG
 
         };
 

@@ -49,4 +49,18 @@ namespace Osmium {
 
 } // namespace Osmium
 
+/**
+ * If Osmium is compiled with OSMIUM_WITH_DEBUG, the OSMIUM_DEBUG macro is
+ * defined to check the debug_level() set on the current object and if it
+ * is high enough to send the debug message to stdout.
+ */
+#ifdef OSMIUM_WITH_DEBUG
+# define OSMIUM_DEBUG(lvl, msg) \
+    if (debug_level() >= lvl) { \
+        std::cout << msg; \
+    } else // eats the semikolon after the call
+#else
+# define OSMIUM_DEBUG(level, msg)
+#endif // OSMIUM_WITH_DEBUG
+
 #endif // OSMIUM_DEBUG_LEVEL_HPP

@@ -21,8 +21,10 @@ CXXFLAGS_LIBXML2 = $(shell xml2-config --cflags)
 CXXFLAGS_OGR     = $(shell gdal-config --cflags)
 
 CXXFLAGS += -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
-
 CXXFLAGS += -I../include
+
+# remove this if you do not want debugging to be compiled in
+CXXFLAGS += -DOSMIUM_WITH_DEBUG
 
 LDFLAGS = -L/usr/local/lib -lexpat
 

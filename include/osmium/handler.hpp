@@ -24,7 +24,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <boost/utility.hpp>
 
-#include <osmium/debug_level.hpp>
+#include <osmium/debug.hpp>
+
 #include <osmium/osm/meta.hpp>
 #include <osmium/osm/node.hpp>
 #include <osmium/osm/way.hpp>
