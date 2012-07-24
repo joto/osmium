@@ -35,6 +35,13 @@ namespace Osmium {
 
         public:
 
+            RelationMember() :
+                m_type('x'),
+                m_ref(0),
+                m_role() {
+                m_role[0] = '\0';
+            }
+
             static const int max_characters_role = 255;
 
             static const int max_utf16_length_role = 2 * (max_characters_role + 1); ///< maximum number of UTF-16 units
