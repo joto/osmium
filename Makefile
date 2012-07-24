@@ -7,7 +7,7 @@
 all:
 
 clean:
-	rm -fr check-includes-report doc/html
+	rm -fr check-includes-report doc/html test/tests
 
 install: doc
 	install -m 755 -g root -o root -d $(DESTDIR)/usr/include
