@@ -151,7 +151,7 @@ namespace Osmium {
              * Position of the relation this member is a part of in the
              * m_relations vector.
              */
-            int m_relation_pos;
+            unsigned int m_relation_pos;
 
             /**
              * Position of this member in the list of members of the
