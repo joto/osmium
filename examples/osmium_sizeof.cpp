@@ -41,10 +41,6 @@ int main() {
     std::cout << "sizeof(Osmium::OSM::Way)="              << sizeof(Osmium::OSM::Way)              << "  (Object+" << sizeof(Osmium::OSM::Way)              - sizeof(Osmium::OSM::Object) << ")\n";
     std::cout << "sizeof(Osmium::OSM::Relation)="         << sizeof(Osmium::OSM::Relation)         << "  (Object+" << sizeof(Osmium::OSM::Relation)         - sizeof(Osmium::OSM::Object) << ")\n";
     std::cout << "sizeof(Osmium::OSM::Area)="             << sizeof(Osmium::OSM::Area)             << "  (Object+" << sizeof(Osmium::OSM::Area)             - sizeof(Osmium::OSM::Object) << ")\n";
-    std::cout << "sizeof(Osmium::OSM::AreaFromWay)="      << sizeof(Osmium::OSM::AreaFromWay)      << "  (Object+" << sizeof(Osmium::OSM::AreaFromWay)      - sizeof(Osmium::OSM::Object) << ")\n";
-    std::cout << "sizeof(Osmium::OSM::AreaFromRelation)=" << sizeof(Osmium::OSM::AreaFromRelation) << "  (Object+" << sizeof(Osmium::OSM::AreaFromRelation) - sizeof(Osmium::OSM::Object) << ")\n";
-//    std::cout << "sizeof(Osmium::OSM::WayInfo)="                  << sizeof(Osmium::OSM::WayInfo) << "\n";
-//    std::cout << "sizeof(Osmium::OSM::RingInfo)="                 << sizeof(Osmium::OSM::RingInfo) << "\n";
 
     std::cout << "sizeof(OSMPBF::BlobHeader)="     << sizeof(OSMPBF::BlobHeader)     << "\n";
     std::cout << "sizeof(OSMPBF::Blob)="           << sizeof(OSMPBF::Blob)           << "\n";

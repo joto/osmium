@@ -187,7 +187,7 @@ namespace Osmium {
 
                 static v8::Handle<v8::Value> to_array(const v8::Arguments& /*args*/, Osmium::Geometry::MultiPolygon* mp) {
                     v8::HandleScope scope;
-                    geos::geom::Geometry* geometry = mp->area()->get_geometry();
+                    geos::geom::Geometry* geometry = mp->geos_geometry();
 
                     if (geometry->getGeometryTypeId() == geos::geom::GEOS_MULTIPOLYGON) {
                         v8::Local<v8::Array> multipolygon_array = v8::Array::New(geometry->getNumGeometries());
@@ -203,12 +203,10 @@ namespace Osmium {
                         }
                         return scope.Close(multipolygon_array);
                     } else if (geometry->getGeometryTypeId() == geos::geom::GEOS_POLYGON) {
-                        const Osmium::OSM::AreaFromWay* area_from_way = dynamic_cast<const Osmium::OSM::AreaFromWay*>(mp->area());
-                        if (area_from_way) {
                             v8::Local<v8::Array> polygon = v8::Array::New(1);
-                            v8::Local<v8::Array> ring = v8::Array::New(area_from_way->nodes().size());
+                            v8::Local<v8::Array> ring = v8::Array::New(mp->nodes().size());
                             int n = 0;
-                            for (Osmium::OSM::WayNodeList::const_iterator it = area_from_way->nodes().begin(); it != area_from_way->nodes().end(); ++it) {
+                            for (Osmium::OSM::WayNodeList::const_iterator it = mp->nodes().begin(); it != mp->nodes().end(); ++it) {
                                 v8::Local<v8::Array> coord = v8::Array::New(2);
                                 coord->Set(0, v8::Number::New(it->lon()));
                                 coord->Set(1, v8::Number::New(it->lat()));
@@ -216,7 +214,6 @@ namespace Osmium {
                             }
                             polygon->Set(0, ring);
                             return scope.Close(polygon);
-                        }
                     }
 
                     return scope.Close(v8::Undefined());

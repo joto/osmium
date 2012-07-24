@@ -24,8 +24,10 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <algorithm>
 #include <iomanip>
+#include <geos/geom/CoordinateSequenceFactory.h>
 
 #include <osmium/geometry/from_way.hpp>
+#include <osmium/geometry_factory.hpp>
 
 namespace Osmium {
 

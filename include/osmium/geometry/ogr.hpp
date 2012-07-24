@@ -120,8 +120,8 @@ namespace Osmium {
         inline OGRMultiPolygon* create_ogr_geometry(const Osmium::Geometry::MultiPolygon& multipolygon) {
             OGRMultiPolygon* ogrmp = new OGRMultiPolygon;
 
-            if (multipolygon.area()->get_geometry()->getGeometryTypeId() == geos::geom::GEOS_POLYGON) {
-                OGRPolygon* ogrpolygon = make_polygon(dynamic_cast<const geos::geom::Polygon*>(multipolygon.area()->get_geometry()));
+            if (multipolygon.geos_geometry()->getGeometryTypeId() == geos::geom::GEOS_POLYGON) {
+                OGRPolygon* ogrpolygon = make_polygon(dynamic_cast<const geos::geom::Polygon*>(multipolygon.geos_geometry()));
 
                 OGRErr result = ogrmp->addGeometryDirectly(ogrpolygon);
                 if (result != OGRERR_NONE) {
@@ -130,11 +130,11 @@ namespace Osmium {
                 return ogrmp;
             }
 
-            if (multipolygon.area()->get_geometry()->getGeometryTypeId() != geos::geom::GEOS_MULTIPOLYGON) {
+            if (multipolygon.geos_geometry()->getGeometryTypeId() != geos::geom::GEOS_MULTIPOLYGON) {
                 throw Osmium::Exception::IllegalGeometry();
             }
 
-            const geos::geom::GeometryCollection* geosgeom = dynamic_cast<const geos::geom::GeometryCollection*>(multipolygon.area()->get_geometry());
+            const geos::geom::GeometryCollection* geosgeom = dynamic_cast<const geos::geom::GeometryCollection*>(multipolygon.geos_geometry());
             for (geos::geom::GeometryCollection::const_iterator it = geosgeom->begin(); it != geosgeom->end(); ++it) {
 
                 OGRPolygon* ogrpolygon = make_polygon(dynamic_cast<const geos::geom::Polygon*>(*it));

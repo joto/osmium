@@ -290,12 +290,12 @@ namespace Osmium {
             struct OSMArea : public OSMObject {
 
                 static v8::Handle<v8::Value> from(Osmium::OSM::Area* area) {
-                    const char* value = (area->get_type() == AREA_FROM_WAY) ? "way" : "relation";
+                    const char* value = area->nodes().size() == 0 ? "relation" : "way";
                     return v8::String::NewSymbol(value);
                 }
 
                 static v8::Handle<v8::Value> geom(Osmium::OSM::Area* area) {
-                    if (area->get_geometry()) {
+                    if (area->geos_geometry()) {
                         Osmium::Geometry::MultiPolygon* geom = new Osmium::Geometry::MultiPolygon(*area);
                         return Osmium::Javascript::Template::get<GeometryMultiPolygon>().create_persistent_instance<Osmium::Geometry::MultiPolygon>(geom);
                     } else {

@@ -27,7 +27,9 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <osmium/relations/assembler.hpp>
 #include <osmium/debug.hpp>
-#include <osmium/geometry/polygon.hpp>
+#include <osmium/osm/area.hpp>
+
+#include <osmium/relations/area.hpp>
 
 namespace Osmium {
 
@@ -114,20 +116,21 @@ namespace Osmium {
 
             void way_not_in_any_relation(const shared_ptr<Osmium::OSM::Way const>& way) {
                 if (way->is_closed() && way->node_count() >= 4) { // way is closed and has enough nodes, build simple multipolygon
-                    Osmium::Geometry::Polygon polygon(*way);
-                    Osmium::OSM::AreaFromWay* area = new Osmium::OSM::AreaFromWay(way.get(), polygon.create_geos_geometry());
+/*                    Osmium::Geometry::Polygon polygon(*way);
+                    Osmium::OSM::AreaFromWay* area = new Osmium::OSM::AreaFromWay(way.get(), polygon.create_geos_geometry());*/
+                    Osmium::OSM::Area area(*way);
 
                     OSMIUM_DEBUG(2, "MultiPolygon from way " << way->id() << "\n");
 
-                    AssemblerType::nested_handler().area(area);
-                    delete area;
+                    AssemblerType::nested_handler().area(&area);
+//                    delete area;
                 }
             }
 
             void complete_relation(MultiPolygonRelationInfo& relation_info) {
                 OSMIUM_DEBUG(2, "MultiPolygon from relation " << relation_info.relation()->id() << "\n");
 
-                Osmium::OSM::AreaFromRelation* area = new Osmium::OSM::AreaFromRelation(
+                Osmium::Relations::AreaFromRelation* rarea = new Osmium::Relations::AreaFromRelation(
                     new Osmium::OSM::Relation(*relation_info.relation()),
                     relation_info.is_boundary(),
                     relation_info.members().size(),
@@ -137,12 +140,12 @@ namespace Osmium {
                 BOOST_FOREACH(const shared_ptr<Osmium::OSM::Object const>& way, relation_info.members()) {
                     if (way) {
                         OSMIUM_DEBUG(2, "  with member way " << way->id() << "\n");
-                        area->add_member_way(static_cast<Osmium::OSM::Way*>(const_cast<Osmium::OSM::Object*>(way.get()))); // XXX argh
+                        rarea->add_member_way(static_cast<Osmium::OSM::Way*>(const_cast<Osmium::OSM::Object*>(way.get()))); // XXX argh
                     }
                 }
 
-                area->handle_complete_multipolygon();
-                delete area;
+                rarea->handle_complete_multipolygon();
+                delete rarea;
             }
 
 #ifdef OSMIUM_WITH_DEBUG

@@ -29,8 +29,7 @@ enum osm_object_type_t {
     NODE               = 0,
     WAY                = 1,
     RELATION           = 2,
-    AREA_FROM_WAY      = 3,
-    AREA_FROM_RELATION = 4
+    AREA               = 3
 };
 
 /*

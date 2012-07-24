@@ -31,6 +31,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #endif // OSMIUM_WITH_GEOS
 
 #include <osmium/geometry.hpp>
+#include <osmium/geometry_factory.hpp>
 #include <osmium/osm/node.hpp>
 
 namespace Osmium {

@@ -22,10 +22,19 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+// XXX
+#define OSMIUM_WITH_GEOS
+#include <geos/geom/CoordinateSequence.h>
+#include <geos/geom/CoordinateSequenceFactory.h>
+#include <geos/geom/LinearRing.h>
+#include <geos/geom/Polygon.h>
+#include <geos/geom/MultiPolygon.h>
+
 #include <iomanip>
 #include <algorithm>
 
 #include <osmium/geometry/from_way.hpp>
+#include <osmium/geometry_factory.hpp>
 #include <osmium/exceptions.hpp>
 
 namespace Osmium {
