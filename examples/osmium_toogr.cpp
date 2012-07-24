@@ -200,9 +200,9 @@ public:
         }
     }
 
-/*    void after_ways() {
-        m_layer_linestring->CommitTransaction();
-    }*/
+//    void after_ways() {
+//        m_layer_linestring->CommitTransaction();
+//    }
 
 };
 

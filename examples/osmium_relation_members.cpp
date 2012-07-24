@@ -43,6 +43,9 @@ class DebugRelationsAssembler : public Osmium::Relations::Assembler<DebugRelatio
     HandlerPass1 m_handler_pass1;
     HandlerPass2 m_handler_pass2;
 
+    /**
+     * Dump information about a relation with all its members to stdout.
+     */
     void dump_relation(const Osmium::Relations::RelationInfo& relation_info, bool complete) const {
         std::cout << "Relation " << relation_info.relation()->id() << (complete ? "\n" : " (INCOMPLETE)\n");
         BOOST_FOREACH(const Osmium::OSM::Tag& tag, relation_info.relation()->tags()) {
@@ -54,9 +57,15 @@ class DebugRelationsAssembler : public Osmium::Relations::Assembler<DebugRelatio
         BOOST_FOREACH(const Osmium::OSM::RelationMember& rm, rml) {
             std::cout << "  [" << i << "] Member ";
             switch (rm.type()) {
-                case 'n': std::cout << "node"; break;
-                case 'w': std::cout << "way"; break;
-                case 'r': std::cout << "relation"; break;
+                case 'n':
+                    std::cout << "node";
+                    break;
+                case 'w':
+                    std::cout << "way";
+                    break;
+                case 'r':
+                    std::cout << "relation";
+                    break;
             }
             std::cout << " " << rm.ref() << " with role '" << rm.role() << "'";
             if (relation_info.members()[i]) {

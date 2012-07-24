@@ -135,9 +135,9 @@ namespace Osmium {
                 if (way->is_closed() && way->node_count() >= 4) { // way is closed and has enough nodes, build simple multipolygon
                     Osmium::Geometry::Polygon polygon(*way);
                     Osmium::OSM::AreaFromWay* area = new Osmium::OSM::AreaFromWay(way.get(), polygon.create_geos_geometry());
-                //    if (debug_level() > 1) {
-                        std::cerr << "MP simple way_id=" << way->id() << "\n";
-                //    }
+                    //    if (debug_level() > 1) {
+                    std::cerr << "MP simple way_id=" << way->id() << "\n";
+                    //    }
                     AssemblerType::nested_handler().area(area);
                     delete area;
                 }
