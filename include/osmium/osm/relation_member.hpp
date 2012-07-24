@@ -36,8 +36,8 @@ namespace Osmium {
         public:
 
             RelationMember() :
-                m_type('x'),
                 m_ref(0),
+                m_type('x'),
                 m_role() {
                 m_role[0] = '\0';
             }
