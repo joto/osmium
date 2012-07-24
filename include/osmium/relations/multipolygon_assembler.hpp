@@ -130,7 +130,15 @@ namespace Osmium {
             void complete_relation(MultiPolygonRelationInfo& relation_info) {
                 OSMIUM_DEBUG(2, "MultiPolygon from relation " << relation_info.relation()->id() << "\n");
 
-                Osmium::Relations::AreaFromRelation* rarea = new Osmium::Relations::AreaFromRelation(
+                Osmium::OSM::Area area;
+                area.id(relation_info.relation()->id());
+                area.version(relation_info.relation()->version());
+                area.timestamp(relation_info.relation()->timestamp());
+                area.uid(relation_info.relation()->uid());
+                area.user(relation_info.relation()->user());
+
+                Osmium::Relations::AreaBuilder builder(
+                    area,
                     new Osmium::OSM::Relation(*relation_info.relation()),
                     relation_info.is_boundary(),
                     relation_info.members().size(),
@@ -140,12 +148,11 @@ namespace Osmium {
                 BOOST_FOREACH(const shared_ptr<Osmium::OSM::Object const>& way, relation_info.members()) {
                     if (way) {
                         OSMIUM_DEBUG(2, "  with member way " << way->id() << "\n");
-                        rarea->add_member_way(static_cast<Osmium::OSM::Way*>(const_cast<Osmium::OSM::Object*>(way.get()))); // XXX argh
+                        builder.add_member_way(static_cast<Osmium::OSM::Way*>(const_cast<Osmium::OSM::Object*>(way.get()))); // XXX argh
                     }
                 }
 
-                rarea->handle_complete_multipolygon();
-                delete rarea;
+                builder.handle_complete_multipolygon();
             }
 
 #ifdef OSMIUM_WITH_DEBUG

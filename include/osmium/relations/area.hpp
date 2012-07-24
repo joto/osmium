@@ -127,7 +127,7 @@ namespace Osmium {
 
         class WayInfo {
 
-            friend class AreaFromRelation;
+            friend class AreaBuilder;
 
             Osmium::OSM::Way *way;
             int used;
@@ -201,7 +201,7 @@ namespace Osmium {
 
         class RingInfo {
 
-            friend class AreaFromRelation;
+            friend class AreaBuilder;
 
             geos::geom::Polygon *polygon;
             direction_t direction;
@@ -223,7 +223,9 @@ namespace Osmium {
         /***
         * Area created from a relation with tag type=multipolygon or type=boundary
         */
-        class AreaFromRelation : public Osmium::OSM::Object {
+        class AreaBuilder {
+
+            Osmium::OSM::Area m_area;
 
             geos::geom::Geometry *geometry;
 
@@ -314,10 +316,13 @@ namespace Osmium {
 
         public:
 
-            AreaFromRelation(Osmium::OSM::Relation* r, bool b, int n, void (*callback)(Osmium::OSM::Area*), bool repair) : boundary(b), relation(r), callback(callback) {
+            AreaBuilder(Osmium::OSM::Area& area, Osmium::OSM::Relation* r, bool b, int n, void (*callback)(Osmium::OSM::Area*), bool repair) :
+                m_area(area),
+                boundary(b),
+                relation(r),
+                callback(callback) {
                 num_ways = n;
                 geometry = NULL;
-                id(r->id());
                 attempt_repair = repair;
             }
 
@@ -361,7 +366,7 @@ namespace Osmium {
             }
 #endif // OSMIUM_WITH_MULTIPOLYGON_PROFILING
 
-            ~AreaFromRelation() {
+            ~AreaBuilder() {
                 delete(geometry);
                 delete relation;
                 member_ways.erase(member_ways.begin(), member_ways.end());
@@ -385,15 +390,9 @@ namespace Osmium {
                     std::cerr << "  geom build error: " << geometry_error_message << "\n";
                 }
 
-                Osmium::OSM::Area area;
+                m_area.geos_geometry(static_cast<geos::geom::MultiPolygon*>(get_geometry()));
 
-                area.id(id());
-                area.version(version());
-                area.timestamp(timestamp());
-                area.tags(tags());
-                area.geos_geometry(static_cast<geos::geom::MultiPolygon*>(get_geometry()));
-
-                callback(&area);
+                callback(&m_area);
             }
 
         private:
@@ -697,7 +696,7 @@ namespace Osmium {
                 std::vector<WayInfo *> ways;
 
                 // the timestamp of the multipolygon will be the maximum of the timestamp from the relation and from all member ways
-                timestamp(relation->timestamp());
+                m_area.timestamp(relation->timestamp());
 
                 // assemble all ways which are members of this relation into a
                 // vector of WayInfo elements. this holds room for the way pointer
@@ -705,8 +704,8 @@ namespace Osmium {
 
                 START_TIMER(assemble_ways);
                 for (std::vector<Osmium::OSM::Way>::iterator i(member_ways.begin()); i != member_ways.end(); i++) {
-                    if (i->timestamp() > timestamp()) {
-                        timestamp(i->timestamp());
+                    if (i->timestamp() > m_area.timestamp()) {
+                        m_area.timestamp(i->timestamp());
                     }
                     WayInfo *wi = new WayInfo(&(*i), UNSET);
                     if (wi->way_geom) {
@@ -1026,7 +1025,7 @@ namespace Osmium {
                             }
                         }
                         // copy tags from relation into area
-                        tags(relation->tags());
+                        m_area.tags(relation->tags());
                     }
                     // later delete ringlist[i];
                     // ringlist[i] = NULL;
@@ -1063,7 +1062,7 @@ namespace Osmium {
             }
 
 
-        }; // class AreaFromRelation
+        }; // class AreaBuilder
 
     } // namespace Relations
 
