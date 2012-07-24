@@ -33,15 +33,9 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <osmium.hpp>
 #include <osmium/relations/assembler.hpp>
 
-class DebugRelationsAssembler : public Osmium::Relations::Assembler<DebugRelationsAssembler, Osmium::Relations::RelationInfo> {
+class DebugRelationsAssembler : public Osmium::Relations::Assembler<DebugRelationsAssembler, Osmium::Relations::RelationInfo, true, true, true> {
 
-    typedef Osmium::Relations::Assembler<DebugRelationsAssembler, Osmium::Relations::RelationInfo> AssemblerType;
-
-    typedef AssemblerType::HandlerPass1                   HandlerPass1;
-    typedef AssemblerType::HandlerPass2<true, true, true> HandlerPass2;
-
-    HandlerPass1 m_handler_pass1;
-    HandlerPass2 m_handler_pass2;
+    typedef Osmium::Relations::Assembler<DebugRelationsAssembler, Osmium::Relations::RelationInfo, true, true, true> AssemblerType;
 
     /**
      * Dump information about a relation with all its members to stdout.
@@ -84,17 +78,7 @@ class DebugRelationsAssembler : public Osmium::Relations::Assembler<DebugRelatio
 public:
 
     DebugRelationsAssembler() :
-        Osmium::Relations::Assembler<DebugRelationsAssembler, Osmium::Relations::RelationInfo>(),
-        m_handler_pass1(*this),
-        m_handler_pass2(*this) {
-    }
-
-    HandlerPass1& handler_pass1() {
-        return m_handler_pass1;
-    }
-
-    HandlerPass2& handler_pass2() {
-        return m_handler_pass2;
+        AssemblerType() {
     }
 
     void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {

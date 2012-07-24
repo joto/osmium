@@ -207,10 +207,16 @@ namespace Osmium {
          *
          * @tparam TRelationInfo RelationInfo or a child class of it.
          *
+         * @tparam N Are we interested in member nodes?
+         *
+         * @tparam W Are we interested in member ways?
+         *
+         * @tparam R Are we interested in member relations?
+         *
          * @tparam THandler Nested handler that is called at the end of each method in
          *         HandlerPass2. Defaults to Osmium::Handler::Base which does nothing.
          */
-        template <class TAssembler, class TRelationInfo, class THandler=Osmium::Handler::Base>
+        template <class TAssembler, class TRelationInfo, bool N, bool W, bool R, class THandler=Osmium::Handler::Base>
         class Assembler {
 
             /// Vector of RelationInfo objects used to store relations we are interested in.
@@ -227,6 +233,8 @@ namespace Osmium {
             Assembler() :
                 m_base_handler(),
                 m_next_handler(m_base_handler),
+                m_handler_pass1(*static_cast<TAssembler*>(this)),
+                m_handler_pass2(*static_cast<TAssembler*>(this)),
                 m_relations(),
                 m_member_infos() {
             }
@@ -237,6 +245,8 @@ namespace Osmium {
             Assembler(THandler& handler) :
                 m_base_handler(),
                 m_next_handler(handler),
+                m_handler_pass1(*static_cast<TAssembler*>(this)),
+                m_handler_pass2(*static_cast<TAssembler*>(this)),
                 m_relations(),
                 m_member_infos() {
             }
@@ -402,15 +412,7 @@ namespace Osmium {
 
             /**
              * This is the handler class for the second pass of the Assembler.
-             *
-             * Instantiate this with the right template parameters in a child
-             * class of Assembler.
-             *
-             * @tparam N Are we interested in member nodes?
-             * @tparam W Are we interested in member ways?
-             * @tparam R Are we interested in member relations?
              */
-            template<bool N, bool W, bool R>
             class HandlerPass2 {
 
                 TAssembler& m_assembler;
@@ -548,6 +550,20 @@ namespace Osmium {
 
             }; // class HandlerPass2
 
+            /**
+             * Return reference to first pass handler.
+             */
+            HandlerPass1& handler_pass1() {
+                return m_handler_pass1;
+            }
+
+            /**
+             * Return reference to second pass handler.
+             */
+            HandlerPass2& handler_pass2() {
+                return m_handler_pass2;
+            }
+
         private:
 
             /**
@@ -558,6 +574,9 @@ namespace Osmium {
 
             /// Reference to chained handler
             THandler& m_next_handler;
+
+            HandlerPass1 m_handler_pass1;
+            HandlerPass2 m_handler_pass2;
 
             /// Vector with all relations we are interested in
             relation_info_vector_t m_relations;

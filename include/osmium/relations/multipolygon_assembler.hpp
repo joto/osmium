@@ -62,19 +62,9 @@ namespace Osmium {
          * type=multipolygon or type=boundary.
          */
         template <class THandler>
-        class MultiPolygonAssembler : public Assembler<MultiPolygonAssembler<THandler>, MultiPolygonRelationInfo, THandler> {
+        class MultiPolygonAssembler : public Assembler<MultiPolygonAssembler<THandler>, MultiPolygonRelationInfo, false, true, false, THandler> {
 
-        public:
-
-            typedef Assembler<MultiPolygonAssembler, MultiPolygonRelationInfo, THandler> AssemblerType;
-
-            typedef typename AssemblerType::HandlerPass1                              HandlerPass1;
-            typedef typename AssemblerType::template HandlerPass2<false, true, false> HandlerPass2;
-
-        private:
-
-            HandlerPass1 m_handler_pass1;
-            HandlerPass2 m_handler_pass2;
+            typedef Assembler<MultiPolygonAssembler, MultiPolygonRelationInfo, false, true, false, THandler> AssemblerType;
 
             bool m_attempt_repair;
             void(*m_callback)(Osmium::OSM::Area*);
@@ -82,19 +72,9 @@ namespace Osmium {
         public:
 
             MultiPolygonAssembler(THandler& handler, bool attempt_repair, void(*callback)(Osmium::OSM::Area*)) :
-                Assembler<MultiPolygonAssembler, MultiPolygonRelationInfo, THandler>(handler),
-                m_handler_pass1(*this),
-                m_handler_pass2(*this),
+                AssemblerType(handler),
                 m_attempt_repair(attempt_repair),
                 m_callback(callback) {
-            }
-
-            HandlerPass1& handler_pass1() {
-                return m_handler_pass1;
-            }
-
-            HandlerPass2& handler_pass2() {
-                return m_handler_pass2;
             }
 
             void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
@@ -115,7 +95,7 @@ namespace Osmium {
                     return;
                 }
 
-                Assembler<MultiPolygonAssembler, MultiPolygonRelationInfo, THandler>::add_relation(MultiPolygonRelationInfo(relation, is_boundary));
+                AssemblerType::add_relation(MultiPolygonRelationInfo(relation, is_boundary));
             }
 
             /**
