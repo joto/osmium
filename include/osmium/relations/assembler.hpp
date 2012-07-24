@@ -44,8 +44,8 @@ namespace Osmium {
          * add members to this relation.
          *
          * You can derive from this class in a child class of Assembler if you
-         * need to store more information about a relation. See the MultiPolygonRelationInfo
-         * class for an example.
+         * need to store more information about a relation. See the
+         * MultiPolygonRelationInfo class for an example.
          */
         class RelationInfo {
 
@@ -133,6 +133,57 @@ namespace Osmium {
         };
 
         /**
+         * Helper class for the Assembler class.
+         *
+         * Stores an object ID and information where the object should be
+         * stored.
+         */
+        struct MemberInfo {
+
+            /**
+             * Object ID of this relation member. Can be a node, way, or relation ID.
+             * It depends on the vector in which this object is stored which kind of
+             * object is referenced here.
+             */
+            osm_object_id_t m_member_id;
+
+            /**
+             * Position of the relation this member is a part of in the
+             * m_relations vector.
+             */
+            int m_relation_pos;
+
+            /**
+             * Position of this member in the list of members of the
+             * relation this member if a part of.
+             */
+            osm_sequence_id_t m_member_pos;
+
+            /**
+             * Create new MemberInfo. The variant with zeros for relation_pos and
+             * member_pos is used to create dummy MemberInfo that can be compared
+             * to the MemberInfo in the vectors using the equal_range algorithm.
+             */
+            MemberInfo(osm_object_id_t member_id, int relation_pos=0, osm_sequence_id_t member_pos=0) :
+                m_member_id(member_id),
+                m_relation_pos(relation_pos),
+                m_member_pos(member_pos) {
+            }
+
+        };
+
+        /**
+         * Compares two MemberInfo objects by only looking at the member id.
+         * Used to sort a vector of MemberInfo objects and to later find
+         * them using binary search.
+         */
+        bool operator<(const MemberInfo& a, const MemberInfo& b) {
+            return a.m_member_id < b.m_member_id;
+        }
+
+        typedef std::vector<MemberInfo> member_info_vector_t;
+
+        /**
          * The Assembler class assembles relations and their members. This is a generic
          * base class that can be used to assemble all kinds of relations. It has numerous
          * hooks you can implement in child classes to customize its behaviour.
@@ -164,54 +215,6 @@ namespace Osmium {
 
             /// Vector of RelationInfo objects used to store relations we are interested in.
             typedef std::vector<TRelationInfo> relation_info_vector_t;
-
-            /**
-             *
-             */
-            struct MemberInfo {
-
-                /**
-                 * Object ID of this relation member. Can be a node, way, or relation ID.
-                 * It depends on the vector in which this object is stored which kind of
-                 * object is referenced here.
-                 */
-                osm_object_id_t m_member_id;
-
-                /**
-                 * Position of the relation this member is a part of in the
-                 * m_relations vector.
-                 */
-                typename relation_info_vector_t::size_type m_relation_pos;
-
-                /**
-                 * Position of this member in the list of members of the
-                 * relation this member if a part of.
-                 */
-                osm_sequence_id_t m_member_pos;
-
-                /**
-                 * Create new MemberInfo. The variant with zeros for relation_pos and
-                 * member_pos is used to create dummy MemberInfo that can be compared
-                 * to the MemberInfo in the vectors using the equal_range algorithm.
-                 */
-                MemberInfo(osm_object_id_t member_id, typename relation_info_vector_t::size_type relation_pos=0, osm_sequence_id_t member_pos=0) :
-                    m_member_id(member_id),
-                    m_relation_pos(relation_pos),
-                    m_member_pos(member_pos) {
-                }
-
-                /**
-                 * Compares two MemberInfo objects by only looking at the member id.
-                 * Used to sort a vector of MemberInfo objects and to later find
-                 * them using binary search.
-                 */
-                friend operator<(const MemberInfo& a, const MemberInfo& b) {
-                    return a.m_member_id < b.m_member_id;
-                }
-
-            };
-
-            typedef std::vector<MemberInfo> member_info_vector_t;
 
             /// This is the type used for results of the equal_range algorithm.
             typedef std::pair<typename member_info_vector_t::iterator, typename member_info_vector_t::iterator> member_info_range_t;
