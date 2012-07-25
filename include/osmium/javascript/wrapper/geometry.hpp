@@ -203,17 +203,17 @@ namespace Osmium {
                         }
                         return scope.Close(multipolygon_array);
                     } else if (geometry->getGeometryTypeId() == geos::geom::GEOS_POLYGON) {
-                            v8::Local<v8::Array> polygon = v8::Array::New(1);
-                            v8::Local<v8::Array> ring = v8::Array::New(mp->nodes().size());
-                            int n = 0;
-                            for (Osmium::OSM::WayNodeList::const_iterator it = mp->nodes().begin(); it != mp->nodes().end(); ++it) {
-                                v8::Local<v8::Array> coord = v8::Array::New(2);
-                                coord->Set(0, v8::Number::New(it->lon()));
-                                coord->Set(1, v8::Number::New(it->lat()));
-                                ring->Set(n++, coord);
-                            }
-                            polygon->Set(0, ring);
-                            return scope.Close(polygon);
+                        v8::Local<v8::Array> polygon = v8::Array::New(1);
+                        v8::Local<v8::Array> ring = v8::Array::New(mp->nodes().size());
+                        int n = 0;
+                        for (Osmium::OSM::WayNodeList::const_iterator it = mp->nodes().begin(); it != mp->nodes().end(); ++it) {
+                            v8::Local<v8::Array> coord = v8::Array::New(2);
+                            coord->Set(0, v8::Number::New(it->lon()));
+                            coord->Set(1, v8::Number::New(it->lat()));
+                            ring->Set(n++, coord);
+                        }
+                        polygon->Set(0, ring);
+                        return scope.Close(polygon);
                     }
 
                     return scope.Close(v8::Undefined());

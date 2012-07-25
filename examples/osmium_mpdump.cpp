@@ -48,11 +48,18 @@ public:
 
     void area(const shared_ptr<Osmium::OSM::Area const>& area) {
         Osmium::Geometry::MultiPolygon mp(*area);
-        std::cout << "Area " << (area->nodes().size() == 0 ? "from relation" : "from way") << " id=" << area->id() << " version=" << area->version() << " timestamp=" << area->timestamp() << " uid=" << area->uid() << " user=" << area->user() << "\n";
-        std::cout << "  " << mp.as_WKT() << "\n";
+        std::cout << "Area " << (area->nodes().size() == 0 ? "from relation" : "from way")
+                  << " id=" << area->id()
+                  << " version=" << area->version()
+                  << " timestamp=" << area->timestamp()
+                  << " uid=" << area->uid()
+                  << " user=" << area->user()
+                  << "\n  " << mp.as_WKT() << "\n";
+
         BOOST_FOREACH(const Osmium::OSM::Tag& tag, area->tags()) {
             std::cout << "  " << tag.key() << "=" << tag.value() << "\n";
         }
+
         std::cout << "\n";
     }
 

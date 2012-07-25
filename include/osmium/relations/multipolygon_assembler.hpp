@@ -114,8 +114,6 @@ namespace Osmium {
 
             void way_not_in_any_relation(const shared_ptr<Osmium::OSM::Way const>& way) {
                 if (way->is_closed() && way->node_count() >= 4) { // way is closed and has enough nodes, build simple multipolygon
-/*                    Osmium::Geometry::Polygon polygon(*way);
-                    Osmium::OSM::AreaFromWay* area = new Osmium::OSM::AreaFromWay(way.get(), polygon.create_geos_geometry());*/
                     shared_ptr<Osmium::OSM::Area> area(make_shared<Osmium::OSM::Area>(*way));
 
                     OSMIUM_DEBUG(2, "MultiPolygon from way " << way->id() << "\n");
