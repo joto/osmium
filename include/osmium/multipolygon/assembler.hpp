@@ -101,11 +101,9 @@ namespace Osmium {
             void complete_relation(RelationInfo& relation_info) {
                 OSMIUM_DEBUG(2, "MultiPolygon from relation " << relation_info.relation()->id() << "\n");
 
-                std::vector<shared_ptr<Osmium::OSM::Area> > areas;
+                Osmium::MultiPolygon::Builder builder(relation_info, m_attempt_repair);
 
-                Osmium::MultiPolygon::Builder builder(relation_info, areas, m_attempt_repair);
-
-                BOOST_FOREACH(shared_ptr<Osmium::OSM::Area>& area, areas) {
+                BOOST_FOREACH(shared_ptr<Osmium::OSM::Area>& area, builder.build()) {
                     AssemblerType::nested_handler().area(area);
                 }
             }

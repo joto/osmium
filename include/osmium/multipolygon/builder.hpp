@@ -196,15 +196,13 @@ namespace Osmium {
             const RelationInfo& m_relation_info;
 
             /// All areas generated will end up in this vector.
-            std::vector<shared_ptr<Osmium::OSM::Area> >& m_areas;
+            std::vector< shared_ptr<Osmium::OSM::Area> > m_areas;
 
             /// Do we want to attempt repair of a broken geometry?
             const bool m_attempt_repair;
 
             /// This is the new area we are building.
             shared_ptr<Osmium::OSM::Area> m_new_area;
-
-            std::string geometry_error_message;
 
             /**
              * Return true if the given tag key is in a fixed list of keys we are
@@ -297,9 +295,9 @@ namespace Osmium {
 
         public:
 
-            Builder(const Osmium::MultiPolygon::RelationInfo& relation_info, std::vector<shared_ptr<Osmium::OSM::Area> >& areas, bool attempt_repair) :
+            Builder(const Osmium::MultiPolygon::RelationInfo& relation_info, bool attempt_repair) :
                 m_relation_info(relation_info),
-                m_areas(areas),
+                m_areas(),
                 m_attempt_repair(attempt_repair),
                 m_new_area(make_shared<Osmium::OSM::Area>()) {
 
@@ -310,12 +308,18 @@ namespace Osmium {
                 m_new_area->user(relation_info.relation()->user());
                 m_new_area->tags(relation_info.relation()->tags());
 
-                if (! build_geometry()) {
-                    std::cerr << "  geom build error: " << geometry_error_message << "\n";
-                    return;
-                }
+            }
 
-                m_areas.push_back(m_new_area);
+            /**
+             * Build the area object(s) and return it/them.
+             *
+             * @returns All areas built.
+             */
+            std::vector< shared_ptr<Osmium::OSM::Area> >& build() {
+                if (build_geometry()) {
+                    m_areas.push_back(m_new_area);
+                }
+                return m_areas;
             }
 
 #ifdef OSMIUM_WITH_MULTIPOLYGON_PROFILING
@@ -649,7 +653,6 @@ namespace Osmium {
 
                 return true;
             }
-
 
             /**
             * Tries to build a multipolygon from the given relation.
@@ -1014,11 +1017,9 @@ namespace Osmium {
             }
 
             bool geometry_error(const char* message) {
-                geometry_error_message = message;
-                std::cerr << "building mp failed: " << geometry_error_message << std::endl;
+                std::cerr << "Building multipolygon based on relation " << m_relation_info.relation()->id() << " failed: " << message << "\n";
                 return false;
             }
-
 
         }; // class Builder
 
