@@ -192,19 +192,19 @@ namespace Osmium {
          */
         class Builder {
 
+            /// Relation information (including members) to build the area from.
             const RelationInfo& m_relation_info;
 
+            /// All areas generated will end up in this vector.
             std::vector<shared_ptr<Osmium::OSM::Area> >& m_areas;
 
-            /// whether we want to repair a broken geometry
+            /// Do we want to attempt repair of a broken geometry?
             const bool m_attempt_repair;
 
+            /// This is the new area we are building.
             shared_ptr<Osmium::OSM::Area> m_new_area;
 
             geos::geom::Geometry* geometry;
-
-            /// the relation this area was build from
-            Osmium::OSM::Relation* relation;
 
             std::string geometry_error_message;
 
@@ -250,37 +250,6 @@ namespace Osmium {
             }
 
             /**
-             * Merge tags from second object into first object.
-             *
-             * @returns false if there was a collision, true otherwise
-             */
-            bool merge_tags(Osmium::OSM::Object* a, const Osmium::OSM::Object* b) const {
-                bool rv = true;
-
-                Osmium::OSM::TagList& at = a->tags();
-                std::map<std::string, std::string> tag_map;
-
-                BOOST_FOREACH(const Osmium::OSM::Tag& tag, a->tags()) {
-                    if (!ignore_tag(tag.key())) {
-                        tag_map[tag.key()] = tag.value();
-                    }
-                }
-
-                BOOST_FOREACH(const Osmium::OSM::Tag& tag, b->tags()) {
-                    if (ignore_tag(tag.key())) continue;
-
-                    if (tag_map.find(tag.key()) != tag_map.end()) {
-                        if (tag_map[tag.key()] != tag.value()) rv = false;
-                    } else {
-                        at.add(tag.key(), tag.value());
-                        tag_map[tag.key()] = tag.value();
-                    }
-                }
-
-                return rv;
-            }
-
-            /**
              * Check if the object is without tags ignoring tags with certain
              * keys defined in the ignore_tag() method.
              *
@@ -298,21 +267,51 @@ namespace Osmium {
                 return true;
             }
 
+            /**
+             * Merge tags from way into the new area.
+             *
+             * @returns false if there was a collision, true otherwise
+             */
+            bool merge_tags(const Osmium::OSM::Way* way) {
+                bool rv = true;
+
+                std::map<std::string, std::string> tag_map;
+
+                BOOST_FOREACH(const Osmium::OSM::Tag& tag, m_new_area->tags()) {
+                    if (!ignore_tag(tag.key())) {
+                        tag_map[tag.key()] = tag.value();
+                    }
+                }
+
+                BOOST_FOREACH(const Osmium::OSM::Tag& tag, way->tags()) {
+                    if (ignore_tag(tag.key())) continue;
+
+                    if (tag_map.find(tag.key()) != tag_map.end()) {
+                        if (tag_map[tag.key()] != tag.value()) rv = false;
+                    } else {
+                        m_new_area->tags().add(tag.key(), tag.value());
+                        tag_map[tag.key()] = tag.value();
+                    }
+                }
+
+                return rv;
+            }
+
         public:
 
             Builder(const Osmium::MultiPolygon::RelationInfo& relation_info, std::vector<shared_ptr<Osmium::OSM::Area> >& areas, bool attempt_repair) :
                 m_relation_info(relation_info),
                 m_areas(areas),
                 m_attempt_repair(attempt_repair),
-                m_new_area(make_shared<Osmium::OSM::Area>()),
-                relation(new Osmium::OSM::Relation(*relation_info.relation())) {
+                m_new_area(make_shared<Osmium::OSM::Area>()) {
                 geometry = NULL;
 
-                m_new_area->id(relation->id());
-                m_new_area->version(relation->version());
-                m_new_area->timestamp(relation->timestamp());
-                m_new_area->uid(relation->uid());
-                m_new_area->user(relation->user());
+                m_new_area->id(relation_info.relation()->id());
+                m_new_area->version(relation_info.relation()->version());
+                m_new_area->timestamp(relation_info.relation()->timestamp());
+                m_new_area->uid(relation_info.relation()->uid());
+                m_new_area->user(relation_info.relation()->user());
+                m_new_area->tags(relation_info.relation()->tags());
 
                 if (! build_geometry()) {
                     std::cerr << "  geom build error: " << geometry_error_message << "\n";
@@ -365,7 +364,6 @@ namespace Osmium {
 
             ~Builder() {
                 delete geometry;
-                delete relation;
             }
 
             geos::geom::Geometry* get_geometry() const {
@@ -672,9 +670,6 @@ namespace Osmium {
             bool build_geometry() {
                 std::vector<WayInfo*> ways;
 
-                // the timestamp of the multipolygon will be the maximum of the timestamp from the relation and from all member ways
-                m_new_area->timestamp(relation->timestamp());
-
                 // assemble all ways which are members of this relation into a
                 // vector of WayInfo elements. this holds room for the way pointer
                 // and some extra flags.
@@ -853,7 +848,7 @@ namespace Osmium {
 
                             geos::geom::MultiPolygon* special_mp = Osmium::Geometry::geos_geometry_factory()->createMultiPolygon(g);
 
-                            if (same_tags(ringlist[i]->ways[0]->way, relation)) {
+                            if (same_tags(ringlist[i]->ways[0]->way, m_new_area.get())) {
                                 // warning
                                 // warnings.insert("duplicate_tags_on_inner");
                             } else if (ringlist[i]->contained_by->ways.size() == 1 && same_tags(ringlist[i]->ways[0]->way, ringlist[i]->contained_by->ways[0]->way)) {
@@ -964,7 +959,7 @@ namespace Osmium {
                         if (p) valid = p->isValid();
                     } catch (const geos::util::GEOSException& exc) {
                         // nop
-                        std::cerr << "Exception during creation of polygon for relation #" << relation->id() << ": " << exc.what() << " (treating as invalid polygon)" << std::endl;
+                        std::cerr << "Exception during creation of polygon for relation #" << m_relation_info.relation()->id() << ": " << exc.what() << " (treating as invalid polygon)" << std::endl;
                     }
                     if (!valid) {
                         // polygon is invalid.
@@ -982,18 +977,18 @@ namespace Osmium {
                             if (wi->way == NULL) continue;
                             if (untagged(wi->way)) {
                                 // way not tagged - ok
-                            } else if (same_tags(relation, wi->way)) {
+                            } else if (same_tags(m_new_area.get(), wi->way)) {
                                 // way tagged the same as relation/previous ways, ok
-                            } else if (untagged(relation)) {
+                            } else if (untagged(m_new_area.get())) {
                                 // relation untagged; use tags from way; ok
-                                merge_tags(relation, wi->way);
+                                merge_tags(wi->way);
                             } else {
                                 // this is grey-area terrain in OSM - we have tags on
                                 // the relation and a different set of tags on the outer
                                 // way(s). Use tags from outer ring only if there is
                                 // only one outer ring and it has only one way.
                                 if (outer_ring_count == 1 && ringlist[i]->ways.size() == 1) {
-                                    merge_tags(relation, wi->way);
+                                    merge_tags(wi->way);
                                 }
                             }
 
@@ -1002,8 +997,6 @@ namespace Osmium {
                                 // warning: inner/outer mismatch
                             }
                         }
-                        // copy tags from relation into area
-                        m_new_area->tags(relation->tags());
                     }
                     // later delete ringlist[i];
                     // ringlist[i] = NULL;
