@@ -22,6 +22,9 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#define OSMIUM_COMPILE_WITH_CFLAGS_GEOS `geos-config --cflags`
+#define OSMIUM_LINK_WITH_LIBS_GEOS `geos-config --libs`
+
 #include <assert.h>
 #include <sys/types.h>
 #include <string.h>
@@ -73,7 +76,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <osmium/osm/relation.hpp>
 #include <osmium/geometry.hpp>
 #include <osmium/geometry/linestring.hpp>
-#include <osmium/multipolygon/relation_info.hpp>
+#include <osmium/relations/relation_info.hpp>
 
 namespace Osmium {
 
@@ -193,7 +196,7 @@ namespace Osmium {
         class Builder {
 
             /// Relation information (including members) to build the area from.
-            const RelationInfo& m_relation_info;
+            const Osmium::Relations::RelationInfo& m_relation_info;
 
             /// All areas generated will end up in this vector.
             std::vector< shared_ptr<Osmium::OSM::Area> > m_areas;
@@ -295,7 +298,7 @@ namespace Osmium {
 
         public:
 
-            Builder(const Osmium::MultiPolygon::RelationInfo& relation_info, bool attempt_repair) :
+            Builder(const Osmium::Relations::RelationInfo& relation_info, bool attempt_repair) :
                 m_relation_info(relation_info),
                 m_areas(),
                 m_attempt_repair(attempt_repair),

@@ -22,14 +22,11 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
-#define OSMIUM_COMPILE_WITH_CFLAGS_GEOS `geos-config --cflags`
-#define OSMIUM_LINK_WITH_LIBS_GEOS `geos-config --libs`
-
 #include <osmium/relations/assembler.hpp>
 #include <osmium/debug.hpp>
 #include <osmium/osm/area.hpp>
 
-#include <osmium/multipolygon/relation_info.hpp>
+#include <osmium/relations/relation_info.hpp>
 #include <osmium/multipolygon/builder.hpp>
 
 namespace Osmium {
@@ -39,11 +36,14 @@ namespace Osmium {
         /**
          * This class assembles MultiPolygons from relations tagged with
          * type=multipolygon or type=boundary.
+         *
+         * @tparam THandler Chained handler class.
+         * @tparam TBuilder MultiPolygon Builder class.
          */
-        template <class THandler>
-        class Assembler : public Osmium::Relations::Assembler<Osmium::MultiPolygon::Assembler<THandler>, Osmium::MultiPolygon::RelationInfo, false, true, false, THandler>, public Osmium::WithDebugLevel {
+        template <class THandler, class TBuilder = Osmium::MultiPolygon::Builder>
+        class Assembler : public Osmium::Relations::Assembler<Osmium::MultiPolygon::Assembler<THandler>, Osmium::Relations::RelationInfo, false, true, false, THandler>, public Osmium::WithDebugLevel {
 
-            typedef typename Osmium::Relations::Assembler<Osmium::MultiPolygon::Assembler<THandler>, Osmium::MultiPolygon::RelationInfo, false, true, false, THandler> AssemblerType;
+            typedef typename Osmium::Relations::Assembler<Osmium::MultiPolygon::Assembler<THandler>, Osmium::Relations::RelationInfo, false, true, false, THandler> AssemblerType;
 
             bool m_attempt_repair;
 
@@ -62,17 +62,9 @@ namespace Osmium {
                     return;
                 }
 
-                bool is_boundary;
-                if (strcmp(type, "multipolygon") == 0) {
-                    is_boundary = false;
-                } else if (strcmp(type, "boundary") == 0) {
-                    is_boundary = true;
-                } else {
-                    // ignore relations that are not of type "multipolygon" or "boundary"
-                    return;
+                if ((!strcmp(type, "multipolygon")) || (!strcmp(type, "boundary"))) {
+                    AssemblerType::add_relation(Osmium::Relations::RelationInfo(relation));
                 }
-
-                AssemblerType::add_relation(RelationInfo(relation, is_boundary));
             }
 
             /**
@@ -80,7 +72,7 @@ namespace Osmium {
              *
              * Overwritten from the Assembler class.
              */
-            bool keep_member(RelationInfo& relation_info, const Osmium::OSM::RelationMember& member) {
+            bool keep_member(Osmium::Relations::RelationInfo& relation_info, const Osmium::OSM::RelationMember& member) {
                 if (member.type() == 'w') {
                     return true;
                 }
@@ -98,10 +90,10 @@ namespace Osmium {
                 }
             }
 
-            void complete_relation(RelationInfo& relation_info) {
+            void complete_relation(Osmium::Relations::RelationInfo& relation_info) {
                 OSMIUM_DEBUG(2, "MultiPolygon from relation " << relation_info.relation()->id() << "\n");
 
-                Osmium::MultiPolygon::Builder builder(relation_info, m_attempt_repair);
+                TBuilder builder(relation_info, m_attempt_repair);
 
                 BOOST_FOREACH(shared_ptr<Osmium::OSM::Area>& area, builder.build()) {
                     AssemblerType::nested_handler().area(area);
@@ -117,7 +109,7 @@ namespace Osmium {
                 AssemblerType::clean_assembled_relations();
                 if (! AssemblerType::relations().empty()) {
                     std::cout << "Warning! Some member ways missing for these multipolygon relations:";
-                    BOOST_FOREACH(const RelationInfo& relation_info, AssemblerType::relations()) {
+                    BOOST_FOREACH(const Osmium::Relations::RelationInfo& relation_info, AssemblerType::relations()) {
                         std::cout << " " << relation_info.relation()->id();
                     }
                     std::cout << "\n";
