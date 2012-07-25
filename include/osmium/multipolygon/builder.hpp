@@ -72,31 +72,10 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <osmium/osm/way.hpp>
 #include <osmium/osm/relation.hpp>
 #include <osmium/geometry.hpp>
+#include <osmium/geometry/linestring.hpp>
 #include <osmium/multipolygon/relation_info.hpp>
 
 namespace Osmium {
-
-    namespace Geometry {
-
-        /**
-         * Returns the GEOS geometry of the way.
-         * Caller takes ownership of the pointer.
-         */
-        inline geos::geom::Geometry* create_geos_geometry(const Osmium::OSM::Way& way) {
-            try {
-                std::vector<geos::geom::Coordinate>* c = new std::vector<geos::geom::Coordinate>;
-                for (osm_sequence_id_t i=0; i < way.nodes().size(); ++i) {
-                    c->push_back(create_geos_coordinate(way.nodes()[i].position()));
-                }
-                geos::geom::CoordinateSequence* cs = Osmium::Geometry::geos_geometry_factory()->getCoordinateSequenceFactory()->create(c);
-                return (geos::geom::Geometry*) geos_geometry_factory()->createLineString(cs);
-            } catch (const geos::util::GEOSException& exc) {
-                std::cerr << "error building way geometry, leave it as NULL\n";
-                return NULL;
-            }
-        }
-
-    } // namespace Geometry
 
     namespace MultiPolygon {
 
@@ -141,10 +120,12 @@ namespace Osmium {
                 duplicate(false),
                 innerouter(UNSET),
                 orig_innerouter(io),
-                way_geom(Osmium::Geometry::create_geos_geometry(*w)),
+                way_geom(NULL),
                 firstnode(w->get_first_node_id()),
                 lastnode(w->get_last_node_id()),
                 tried(false) {
+                Osmium::Geometry::LineString linestring(*w);
+                way_geom = linestring.create_geos_geometry();
             }
 
             /** Special version with a synthetic way, not backed by real way object. */
