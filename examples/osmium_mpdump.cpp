@@ -46,7 +46,7 @@ public:
     DumpHandler() : Osmium::Handler::Base() {
     }
 
-    void area(const Osmium::OSM::Area* area) {
+    void area(const shared_ptr<Osmium::OSM::Area const>& area) {
         Osmium::Geometry::MultiPolygon mp(*area);
         std::cout << "Area " << (area->nodes().size() == 0 ? "from relation" : "from way") << " id=" << area->id() << " version=" << area->version() << " timestamp=" << area->timestamp() << " uid=" << area->uid() << " user=" << area->user() << "\n";
         std::cout << "  " << mp.as_WKT() << "\n";
@@ -58,14 +58,7 @@ public:
 
 };
 
-DumpHandler* hpass2;
-
 /* ================================================== */
-
-void cbmp(Osmium::OSM::Area* area) {
-    std::cout << "cbmp\n";
-    hpass2->area(area);
-}
 
 typedef Osmium::Storage::ById::SparseTable<Osmium::OSM::Position> storage_sparsetable_t;
 typedef Osmium::Storage::ById::MmapFile<Osmium::OSM::Position> storage_mmap_t;
@@ -84,10 +77,9 @@ int main(int argc, char *argv[]) {
     storage_mmap_t store_neg;
 
     DumpHandler dump_handler;
-    hpass2 = &dump_handler;
 
     typedef Osmium::Relations::MultiPolygonAssembler<DumpHandler> assembler_t;
-    assembler_t assembler(dump_handler, attempt_repair, cbmp);
+    assembler_t assembler(dump_handler, attempt_repair);
     assembler.debug_level(1);
 
     typedef Osmium::Handler::CoordinatesForWays<storage_sparsetable_t, storage_mmap_t> cfw_handler_t;

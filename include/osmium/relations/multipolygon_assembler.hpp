@@ -70,14 +70,12 @@ namespace Osmium {
             typedef Assembler<MultiPolygonAssembler, MultiPolygonRelationInfo, false, true, false, THandler> AssemblerType;
 
             bool m_attempt_repair;
-            void(*m_callback)(Osmium::OSM::Area*);
 
         public:
 
-            MultiPolygonAssembler(THandler& handler, bool attempt_repair, void(*callback)(Osmium::OSM::Area*)) :
+            MultiPolygonAssembler(THandler& handler, bool attempt_repair) :
                 AssemblerType(handler),
-                m_attempt_repair(attempt_repair),
-                m_callback(callback) {
+                m_attempt_repair(attempt_repair) {
             }
 
             void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
@@ -118,12 +116,11 @@ namespace Osmium {
                 if (way->is_closed() && way->node_count() >= 4) { // way is closed and has enough nodes, build simple multipolygon
 /*                    Osmium::Geometry::Polygon polygon(*way);
                     Osmium::OSM::AreaFromWay* area = new Osmium::OSM::AreaFromWay(way.get(), polygon.create_geos_geometry());*/
-                    Osmium::OSM::Area area(*way);
+                    shared_ptr<Osmium::OSM::Area> area(make_shared<Osmium::OSM::Area>(*way));
 
                     OSMIUM_DEBUG(2, "MultiPolygon from way " << way->id() << "\n");
 
-                    AssemblerType::nested_handler().area(&area);
-//                    delete area;
+                    AssemblerType::nested_handler().area(area);
                 }
             }
 
@@ -149,7 +146,7 @@ namespace Osmium {
                 builder.handle_complete_multipolygon();
 
                 BOOST_FOREACH(shared_ptr<Osmium::OSM::Area>& area, areas) {
-                    m_callback(area.get());
+                    AssemblerType::nested_handler().area(area);
                 }
             }
 

@@ -91,7 +91,7 @@ public:
         OGRDataSource::DestroyDataSource(m_data_source);
     }
 
-    void area(Osmium::OSM::Area* area) {
+    void area(const shared_ptr<Osmium::OSM::Area const>& area) {
         const char* building = area->tags().get_tag_by_key("building");
         if (building) {
             try {
@@ -117,14 +117,7 @@ public:
 
 };
 
-OGROutHandler* hpass2;
-
 /* ================================================== */
-
-void cbmp(Osmium::OSM::Area* area) {
-    std::cout << "cbmp\n";
-    hpass2->area(area);
-}
 
 typedef Osmium::Storage::ById::SparseTable<Osmium::OSM::Position> storage_sparsetable_t;
 typedef Osmium::Storage::ById::MmapFile<Osmium::OSM::Position> storage_mmap_t;
@@ -143,10 +136,9 @@ int main(int argc, char *argv[]) {
     storage_mmap_t store_neg;
 
     OGROutHandler ogr_out_handler;
-    hpass2 = &ogr_out_handler;
 
     typedef Osmium::Relations::MultiPolygonAssembler<OGROutHandler> assembler_t;
-    assembler_t assembler(ogr_out_handler, attempt_repair, cbmp);
+    assembler_t assembler(ogr_out_handler, attempt_repair);
     assembler.debug_level(1);
 
     typedef Osmium::Handler::CoordinatesForWays<storage_sparsetable_t, storage_mmap_t> cfw_handler_t;
