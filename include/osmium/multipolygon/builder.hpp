@@ -93,7 +93,7 @@ namespace Osmium {
             bool duplicate;
             innerouter_t innerouter;
             innerouter_t orig_innerouter;
-            geos::geom::Geometry *way_geom;
+            geos::geom::Geometry* way_geom;
             int firstnode;
             int lastnode;
             bool tried;
@@ -201,10 +201,10 @@ namespace Osmium {
 
             shared_ptr<Osmium::OSM::Area> m_new_area;
 
-            geos::geom::Geometry *geometry;
+            geos::geom::Geometry* geometry;
 
             /// the relation this area was build from
-            Osmium::OSM::Relation *relation;
+            Osmium::OSM::Relation* relation;
 
             std::string geometry_error_message;
 
@@ -324,7 +324,7 @@ namespace Osmium {
             }
 
 #ifdef OSMIUM_WITH_MULTIPOLYGON_PROFILING
-            static std::vector<std::pair<std::string, timer *> > timers;
+            static std::vector<std::pair<std::string, timer*> > timers;
 
             static timer write_complex_poly_timer;
             static timer assemble_ways_timer;
@@ -342,38 +342,34 @@ namespace Osmium {
             static timer error_write_timer;
 
             static void init_timings() {
-                timers.push_back(std::pair<std::string, timer *> ("   thereof assemble_ways", &assemble_ways_timer));
-                timers.push_back(std::pair<std::string, timer *> ("   thereof make_one_ring", &make_one_ring_timer));
-                timers.push_back(std::pair<std::string, timer *> ("      thereof union", &mor_union_timer));
-                timers.push_back(std::pair<std::string, timer *> ("      thereof polygonizer", &mor_polygonizer_timer));
-                timers.push_back(std::pair<std::string, timer *> ("   thereof contains", &contains_timer));
-                timers.push_back(std::pair<std::string, timer *> ("   thereof extra_polygons", &extra_polygons_timer));
-                timers.push_back(std::pair<std::string, timer *> ("   thereof polygon_build", &polygon_build_timer));
-                timers.push_back(std::pair<std::string, timer *> ("      thereof inner_ring_touch", &inner_ring_touch_timer));
-                timers.push_back(std::pair<std::string, timer *> ("      thereof intersections", &polygon_intersection_timer));
-                timers.push_back(std::pair<std::string, timer *> ("   thereof multipolygon_build", &multipolygon_build_timer));
-                timers.push_back(std::pair<std::string, timer *> ("   thereof multipolygon_write", &multipolygon_write_timer));
-                timers.push_back(std::pair<std::string, timer *> ("   thereof error_write", &error_write_timer));
+                timers.push_back(std::pair<std::string, timer*> ("   thereof assemble_ways", &assemble_ways_timer));
+                timers.push_back(std::pair<std::string, timer*> ("   thereof make_one_ring", &make_one_ring_timer));
+                timers.push_back(std::pair<std::string, timer*> ("      thereof union", &mor_union_timer));
+                timers.push_back(std::pair<std::string, timer*> ("      thereof polygonizer", &mor_polygonizer_timer));
+                timers.push_back(std::pair<std::string, timer*> ("   thereof contains", &contains_timer));
+                timers.push_back(std::pair<std::string, timer*> ("   thereof extra_polygons", &extra_polygons_timer));
+                timers.push_back(std::pair<std::string, timer*> ("   thereof polygon_build", &polygon_build_timer));
+                timers.push_back(std::pair<std::string, timer*> ("      thereof inner_ring_touch", &inner_ring_touch_timer));
+                timers.push_back(std::pair<std::string, timer*> ("      thereof intersections", &polygon_intersection_timer));
+                timers.push_back(std::pair<std::string, timer*> ("   thereof multipolygon_build", &multipolygon_build_timer));
+                timers.push_back(std::pair<std::string, timer*> ("   thereof multipolygon_write", &multipolygon_write_timer));
+                timers.push_back(std::pair<std::string, timer*> ("   thereof error_write", &error_write_timer));
             }
 
             static void print_timings() {
-                for (unsigned int i=0; i<timers.size(); i++) {
+                for (unsigned int i=0; i<timers.size(); ++i) {
                     std::cerr << timers[i].first << ": " << *(timers[i].second) << std::endl;
                 }
             }
 #endif // OSMIUM_WITH_MULTIPOLYGON_PROFILING
 
             ~Builder() {
-                delete(geometry);
+                delete geometry;
                 delete relation;
             }
 
             geos::geom::Geometry* get_geometry() const {
                 return geometry;
-            }
-
-            osm_object_type_t get_type() const {
-                return AREA; //AREA_FROM_RELATION;
             }
 
         private:
@@ -389,7 +385,7 @@ namespace Osmium {
             * limitation is that this method does not deliver results for
             * linear rings with more than one self-intersection.
             */
-            geos::geom::LinearRing *create_non_intersecting_linear_ring(geos::geom::CoordinateSequence *orig_cs) {
+            geos::geom::LinearRing* create_non_intersecting_linear_ring(geos::geom::CoordinateSequence* orig_cs) {
                 const std::vector<geos::geom::Coordinate>* coords = orig_cs->toVector();
                 int inv = coords->size();
                 int val = 0;
@@ -398,10 +394,10 @@ namespace Osmium {
 
                 // find the longest non-intersecting stretch from the beginning
                 // of the way.
-                while (1) {
-                    std::vector<geos::geom::Coordinate> *vv = new std::vector<geos::geom::Coordinate>(coords->begin(), coords->begin() + current);
-                    geos::geom::CoordinateSequence *cs = geos::geom::CoordinateArraySequenceFactory::instance()->create(vv);
-                    geos::geom::LineString *a = Osmium::Geometry::geos_geometry_factory()->createLineString(cs);
+                while (true) {
+                    std::vector<geos::geom::Coordinate>* vv = new std::vector<geos::geom::Coordinate>(coords->begin(), coords->begin() + current);
+                    geos::geom::CoordinateSequence* cs = geos::geom::CoordinateArraySequenceFactory::instance()->create(vv);
+                    geos::geom::LineString* a = Osmium::Geometry::geos_geometry_factory()->createLineString(cs);
                     if (!(simple = a->isSimple())) {
                         inv = current;
                     } else {
@@ -412,7 +408,7 @@ namespace Osmium {
                     current = (inv + val) / 2;
                 }
 
-                if (!simple) current--;
+                if (!simple) --current;
 
                 unsigned int cutoutstart = current;
 
@@ -426,10 +422,10 @@ namespace Osmium {
                 // and 7 are identical, then we will find the sequence 0..6
                 // above, and 4..9 here!
 
-                while (1) {
-                    std::vector<geos::geom::Coordinate> *vv = new std::vector<geos::geom::Coordinate>(coords->begin() + current, coords->end());
-                    geos::geom::CoordinateSequence *cs = geos::geom::CoordinateArraySequenceFactory::instance()->create(vv);
-                    geos::geom::LineString *a = Osmium::Geometry::geos_geometry_factory()->createLineString(cs);
+                while (true) {
+                    std::vector<geos::geom::Coordinate>* vv = new std::vector<geos::geom::Coordinate>(coords->begin() + current, coords->end());
+                    geos::geom::CoordinateSequence* cs = geos::geom::CoordinateArraySequenceFactory::instance()->create(vv);
+                    geos::geom::LineString* a = Osmium::Geometry::geos_geometry_factory()->createLineString(cs);
                     if (!(simple = a->isSimple())) {
                         inv = current;
                     } else {
@@ -439,14 +435,14 @@ namespace Osmium {
                     if (current == (inv+val)/2) break;
                     current = (inv + val) / 2;
                 }
-                if (!simple) current++;
+                if (!simple) ++current;
                 unsigned int cutoutend = current;
 
                 // assemble a new linear ring by cutting out the problematic bit.
                 // if the "problematic bit" however is longer than half the way,
                 // then try using the "problematic bit" by itself.
 
-                std::vector<geos::geom::Coordinate> *vv = new std::vector<geos::geom::Coordinate>();
+                std::vector<geos::geom::Coordinate>* vv = new std::vector<geos::geom::Coordinate>();
                 if (cutoutstart < cutoutend) {
                     unsigned int t = cutoutstart;
                     cutoutstart = cutoutend;
@@ -465,7 +461,7 @@ namespace Osmium {
                 // if this results in a valid ring, return it; else return NULL.
 
                 if (!a->isValid()) return NULL;
-                geos::geom::LinearRing* b = dynamic_cast<geos::geom::LinearRing *>(a->clone());
+                geos::geom::LinearRing* b = dynamic_cast<geos::geom::LinearRing*>(a->clone());
                 //delete a;
                 return b;
             }
@@ -477,22 +473,22 @@ namespace Osmium {
             * may be called again to find further rings.) If this is not possible,
             * return NULL.
             */
-            RingInfo *make_one_ring(std::vector<WayInfo *> &ways, osm_object_id_t first, osm_object_id_t last, int ringcount, int sequence) {
+            RingInfo* make_one_ring(std::vector<WayInfo*>& ways, osm_object_id_t first, osm_object_id_t last, int ringcount, int sequence) {
 
                 // have we found a loop already?
                 if (first && first == last) {
-                    geos::geom::CoordinateSequence *cs = geos::geom::CoordinateArraySequenceFactory::instance()->create((size_t)0, (size_t)0);
-                    geos::geom::LinearRing *lr = NULL;
+                    geos::geom::CoordinateSequence* cs = geos::geom::CoordinateArraySequenceFactory::instance()->create((size_t)0, (size_t)0);
+                    geos::geom::LinearRing* lr = NULL;
                     try {
                         START_TIMER(mor_polygonizer);
-                        WayInfo **sorted_ways = new WayInfo*[sequence];
-                        for (unsigned int i=0; i<ways.size(); i++) {
+                        WayInfo** sorted_ways = new WayInfo*[sequence];
+                        for (unsigned int i=0; i<ways.size(); ++i) {
                             if (ways[i]->used == ringcount) {
                                 sorted_ways[ways[i]->sequence] = ways[i];
                             }
                         }
-                        for (int i=0; i<sequence; i++) {
-                            geos::geom::LineString* linestring = dynamic_cast<geos::geom::LineString *>(sorted_ways[i]->way_geom);
+                        for (int i=0; i<sequence; ++i) {
+                            geos::geom::LineString* linestring = dynamic_cast<geos::geom::LineString*>(sorted_ways[i]->way_geom);
                             assert(linestring);
                             cs->add(linestring->getCoordinatesRO(), false, !sorted_ways[i]->invert);
                         }
@@ -511,7 +507,7 @@ namespace Osmium {
                             if (!lr) return NULL;
                         }
                         bool ccw = geos::algorithm::CGAlgorithms::isCCW(lr->getCoordinatesRO());
-                        RingInfo *rl = new RingInfo();
+                        RingInfo* rl = new RingInfo();
                         rl->direction = ccw ? COUNTERCLOCKWISE : CLOCKWISE;
                         rl->polygon = Osmium::Geometry::geos_geometry_factory()->createPolygon(lr, NULL);
                         return rl;
@@ -524,12 +520,12 @@ namespace Osmium {
                 // have we not allocated anything yet, then simply start with first available way,
                 // or return NULL if all are taken.
                 if (!first) {
-                    for (unsigned int i=0; i<ways.size(); i++) {
+                    for (unsigned int i=0; i<ways.size(); ++i) {
                         if (ways[i]->used != -1) continue;
                         ways[i]->used = ringcount;
                         ways[i]->sequence = 0;
                         ways[i]->invert = false;
-                        RingInfo *rl = make_one_ring(ways, ways[i]->firstnode, ways[i]->lastnode, ringcount, 1);
+                        RingInfo* rl = make_one_ring(ways, ways[i]->firstnode, ways[i]->lastnode, ringcount, 1);
                         if (rl) {
                             rl->ways.push_back(ways[i]);
                             return rl;
@@ -544,11 +540,11 @@ namespace Osmium {
                 // since we are looking for a LOOP, no sense to try extending it at both ends
                 // as we'll eventually get there anyway!
 
-                for (unsigned int i=0; i<ways.size(); i++) {
+                for (unsigned int i=0; i<ways.size(); ++i) {
                     if (ways[i]->used < 0) ways[i]->tried = false;
                 }
 
-                for (unsigned int i=0; i<ways.size(); i++) {
+                for (unsigned int i=0; i<ways.size(); ++i) {
                     // ignore used ways
                     if (ways[i]->used >= 0) continue;
                     if (ways[i]->tried) continue;
@@ -560,7 +556,7 @@ namespace Osmium {
                         ways[i]->used = ringcount;
                         ways[i]->sequence = sequence;
                         ways[i]->invert = false;
-                        RingInfo *result = make_one_ring(ways, first, ways[i]->lastnode, ringcount, sequence+1);
+                        RingInfo* result = make_one_ring(ways, first, ways[i]->lastnode, ringcount, sequence+1);
                         if (result) {
                             result->ways.push_back(ways[i]);
                             return result;
@@ -571,7 +567,7 @@ namespace Osmium {
                         ways[i]->used = ringcount;
                         ways[i]->sequence = sequence;
                         ways[i]->invert = true;
-                        RingInfo *result = make_one_ring(ways, first, ways[i]->firstnode, ringcount, sequence+1);
+                        RingInfo* result = make_one_ring(ways, first, ways[i]->firstnode, ringcount, sequence+1);
                         if (result) {
                             result->ways.push_back(ways[i]);
                             return result;
@@ -594,15 +590,15 @@ namespace Osmium {
             * (This implementation always succeeds because it is impossible for
             * there to be only one dangling end in a collection of lines.)
             */
-            bool find_and_repair_holes_in_rings(std::vector<WayInfo *> *ways) {
+            bool find_and_repair_holes_in_rings(std::vector<WayInfo*>* ways) {
                 // collect the remaining debris (=unused ways) and find dangling nodes.
 
-                std::map<int,geos::geom::Point *> dangling_node_map;
-                for (std::vector<WayInfo *>::iterator i(ways->begin()); i != ways->end(); i++) {
+                std::map<int, geos::geom::Point*> dangling_node_map;
+                for (std::vector<WayInfo*>::iterator i(ways->begin()); i != ways->end(); ++i) {
                     if ((*i)->used < 0) {
                         (*i)->innerouter = UNSET;
                         (*i)->used = -1;
-                        for (int j=0; j<2; j++) {
+                        for (int j=0; j<2; ++j) {
                             int nid = j ? (*i)->firstnode : (*i)->lastnode;
                             if (dangling_node_map[nid]) {
                                 delete dangling_node_map[nid];
@@ -618,12 +614,12 @@ namespace Osmium {
                     int mindist_id = 0;
                     double mindist = -1;
                     int node1_id = 0;
-                    geos::geom::Point *node1 = NULL;
-                    geos::geom::Point *node2 = NULL;
+                    geos::geom::Point* node1 = NULL;
+                    geos::geom::Point* node2 = NULL;
 
                     // find one pair consisting of a random node from the list (node1)
                     // plus the node that lies closest to it.
-                    for (std::map<int,geos::geom::Point *>::iterator i(dangling_node_map.begin()); i!= dangling_node_map.end(); i++) {
+                    for (std::map<int, geos::geom::Point*>::iterator i(dangling_node_map.begin()); i != dangling_node_map.end(); ++i) {
                         if (!i->second) continue;
                         if (node1 == NULL) {
                             node1 = i->second;
@@ -653,11 +649,11 @@ namespace Osmium {
                         node2 = dangling_node_map[mindist_id];
                         dangling_node_map[mindist_id] = NULL;
 
-                        std::vector<geos::geom::Coordinate> *c = new std::vector<geos::geom::Coordinate>;
+                        std::vector<geos::geom::Coordinate>* c = new std::vector<geos::geom::Coordinate>;
                         c->push_back(*(node1->getCoordinate()));
                         c->push_back(*(node2->getCoordinate()));
-                        geos::geom::CoordinateSequence *cs = Osmium::Geometry::geos_geometry_factory()->getCoordinateSequenceFactory()->create(c);
-                        geos::geom::Geometry *geometry = (geos::geom::Geometry *) Osmium::Geometry::geos_geometry_factory()->createLineString(cs);
+                        geos::geom::CoordinateSequence* cs = Osmium::Geometry::geos_geometry_factory()->getCoordinateSequenceFactory()->create(c);
+                        geos::geom::Geometry* geometry = (geos::geom::Geometry*) Osmium::Geometry::geos_geometry_factory()->createLineString(cs);
                         ways->push_back(new WayInfo(geometry, node1_id, mindist_id, UNSET));
                         std::cerr << "fill gap between nodes " << node1_id << " and " << mindist_id << std::endl;
                     } else {
@@ -674,7 +670,7 @@ namespace Osmium {
             *
             */
             bool build_geometry() {
-                std::vector<WayInfo *> ways;
+                std::vector<WayInfo*> ways;
 
                 // the timestamp of the multipolygon will be the maximum of the timestamp from the relation and from all member ways
                 m_new_area->timestamp(relation->timestamp());
@@ -692,7 +688,7 @@ namespace Osmium {
                         m_new_area->timestamp(way->timestamp());
                     }
 
-                    WayInfo *wi = new WayInfo(way, UNSET);
+                    WayInfo* wi = new WayInfo(way, UNSET);
                     if (!wi->way_geom) {
                         delete wi;
                         return geometry_error("invalid way geometry in multipolygon relation member");
@@ -704,13 +700,13 @@ namespace Osmium {
 
                 STOP_TIMER(assemble_ways);
 
-                std::vector<RingInfo *> ringlist;
+                std::vector<RingInfo*> ringlist;
 
                 // convenience defines to aid in clearing up on error return.
 #define clear_ringlist() \
-                for (std::vector<RingInfo *>::const_iterator rli(ringlist.begin()); rli != ringlist.end(); rli++) delete *rli;
+                for (std::vector<RingInfo*>::const_iterator rli(ringlist.begin()); rli != ringlist.end(); ++rli) delete *rli;
 #define clear_wayinfo() \
-                for (std::vector<WayInfo *>::const_iterator win(ways.begin()); win != ways.end(); win++) delete *win;
+                for (std::vector<WayInfo*>::const_iterator win(ways.begin()); win != ways.end(); ++win) delete *win;
 
                 // try and create as many closed rings as possible from the assortment
                 // of ways. make_one_ring will automatically flag those that have been
@@ -718,7 +714,7 @@ namespace Osmium {
 
                 do {
                     START_TIMER(make_one_ring);
-                    RingInfo *r = make_one_ring(ways, 0, 0, ringlist.size(), 0);
+                    RingInfo* r = make_one_ring(ways, 0, 0, ringlist.size(), 0);
                     STOP_TIMER(make_one_ring);
                     if (r == NULL) break;
                     r->ring_id = ringlist.size();
@@ -739,12 +735,12 @@ namespace Osmium {
                 // (in case there were no dangling bits, make_one_ring terminates quickly.)
                 do {
                     START_TIMER(make_one_ring);
-                    RingInfo *r = make_one_ring(ways, 0, 0, ringlist.size(), 0);
+                    RingInfo* r = make_one_ring(ways, 0, 0, ringlist.size(), 0);
                     STOP_TIMER(make_one_ring);
                     if (r == NULL) break;
                     r->ring_id = ringlist.size();
                     ringlist.push_back(r);
-                } while (1);
+                } while (true);
 
                 if (ringlist.empty()) {
                     clear_ringlist();
@@ -752,9 +748,9 @@ namespace Osmium {
                     return geometry_error("no rings");
                 }
 
-                std::vector<geos::geom::Geometry *> *polygons = new std::vector<geos::geom::Geometry *>();
+                std::vector<geos::geom::Geometry*>* polygons = new std::vector<geos::geom::Geometry*>();
 
-                geos::geom::MultiPolygon *mp = NULL;
+                geos::geom::MultiPolygon* mp = NULL;
 
                 // find out which ring contains which other ring, so we know
                 // which are inner rings and which outer. don't trust the "role"
@@ -762,14 +758,14 @@ namespace Osmium {
 
                 START_TIMER(contains);
 
-                bool **contains = new bool*[ringlist.size()];
-                bool *contained_by_even_number = new bool[ringlist.size()];
+                bool** contains = new bool*[ringlist.size()];
+                bool* contained_by_even_number = new bool[ringlist.size()];
 
                 // reset array
-                for (unsigned int i=0; i<ringlist.size(); i++) {
+                for (unsigned int i=0; i<ringlist.size(); ++i) {
                     contains[i] = new bool[ringlist.size()];
                     contained_by_even_number[i] = true;
-                    for (unsigned int j=0; j<ringlist.size(); j++) {
+                    for (unsigned int j=0; j<ringlist.size(); ++j) {
                         contains[i][j] = false;
                     }
                 }
@@ -778,9 +774,9 @@ namespace Osmium {
                 // we use contained_by_even_number as a helper for us to determine
                 // whether something is an inner (false) or outer (true) ring.
 
-                for (unsigned int i=0; i<ringlist.size(); i++) {
-                    const geos::geom::prep::PreparedPolygon *pp = new geos::geom::prep::PreparedPolygon(ringlist[i]->polygon);
-                    for (unsigned int j=0; j<ringlist.size(); j++) {
+                for (unsigned int i=0; i<ringlist.size(); ++i) {
+                    const geos::geom::prep::PreparedPolygon* pp = new geos::geom::prep::PreparedPolygon(ringlist[i]->polygon);
+                    for (unsigned int j=0; j<ringlist.size(); ++j) {
                         if (i==j) continue;
                         if (contains[j][i]) continue;
                         contains[i][j] = pp->contains(ringlist[j]->polygon);
@@ -795,11 +791,11 @@ namespace Osmium {
                 // thin out the array so that only direct relationships remain (and
                 // the "a contains c" is dropped).
 
-                for (unsigned int i=0; i<ringlist.size(); i++) {
-                    for (unsigned j=0; j<ringlist.size(); j++) {
+                for (unsigned int i=0; i<ringlist.size(); ++i) {
+                    for (unsigned j=0; j<ringlist.size(); ++j) {
                         if (contains[i][j]) {
                             // see if there is an intermediary relationship
-                            for (unsigned int k=0; k<ringlist.size(); k++) {
+                            for (unsigned int k=0; k<ringlist.size(); ++k) {
                                 if (k==i) continue;
                                 if (k==j) continue;
                                 if (contains[i][k] && contains[k][j]) {
@@ -818,8 +814,8 @@ namespace Osmium {
                 // in the ring list based on the data collected. the "contains"
                 // array can be thrown away afterwards.
 
-                for (unsigned int i=0; i<ringlist.size(); i++) {
-                    for (unsigned int j=0; j<ringlist.size(); j++) {
+                for (unsigned int i=0; i<ringlist.size(); ++i) {
+                    for (unsigned int j=0; j<ringlist.size(); ++j) {
                         if (contains[i][j] && !contained_by_even_number[j]) {
                             ringlist[j]->contained_by = ringlist[i];
                             ringlist[i]->inner_rings.push_back(ringlist[j]);
@@ -841,22 +837,21 @@ namespace Osmium {
 
                 START_TIMER(extra_polygons);
                 int outer_ring_count = 0;
-                for (unsigned int i=0; i<ringlist.size(); i++) {
+                for (unsigned int i=0; i<ringlist.size(); ++i) {
                     if (ringlist[i]->contained_by) {
                         if (ringlist[i]->ways.size() == 1 && !untagged(ringlist[i]->ways[0]->way)) {
-                            std::vector<geos::geom::Geometry *> *g = new std::vector<geos::geom::Geometry *>;
+                            std::vector<geos::geom::Geometry*>* g = new std::vector<geos::geom::Geometry*>;
                             if (ringlist[i]->direction == CLOCKWISE) {
                                 g->push_back(ringlist[i]->polygon->clone());
                             } else {
-                                geos::geom::LineString* tmp = dynamic_cast<geos::geom::LineString *>(ringlist[i]->polygon->getExteriorRing()->reverse());
+                                geos::geom::LineString* tmp = dynamic_cast<geos::geom::LineString*>(ringlist[i]->polygon->getExteriorRing()->reverse());
                                 assert(tmp);
-                                geos::geom::LinearRing* reversed_ring =
-                                    Osmium::Geometry::geos_geometry_factory()->createLinearRing(tmp->getCoordinates());
+                                geos::geom::LinearRing* reversed_ring = Osmium::Geometry::geos_geometry_factory()->createLinearRing(tmp->getCoordinates());
                                 delete tmp;
                                 g->push_back(Osmium::Geometry::geos_geometry_factory()->createPolygon(reversed_ring, NULL));
                             }
 
-                            geos::geom::MultiPolygon *special_mp = Osmium::Geometry::geos_geometry_factory()->createMultiPolygon(g);
+                            geos::geom::MultiPolygon* special_mp = Osmium::Geometry::geos_geometry_factory()->createMultiPolygon(g);
 
                             if (same_tags(ringlist[i]->ways[0]->way, relation)) {
                                 // warning
@@ -876,7 +871,7 @@ namespace Osmium {
                             delete special_mp;
                         }
                     } else {
-                        outer_ring_count++;
+                        ++outer_ring_count;
                     }
                 }
                 STOP_TIMER(extra_polygons);
@@ -884,24 +879,24 @@ namespace Osmium {
                 // for all non-enclosed rings, assemble holes and build polygon.
 
                 START_TIMER(polygon_build)
-                for (unsigned int i=0; i<ringlist.size(); i++) {
+                for (unsigned int i=0; i<ringlist.size(); ++i) {
                     // look only at outer, i.e. non-contained rings. each ends up as one polygon.
                     if (ringlist[i] == NULL) continue; // can happen if ring has been deleted
                     if (ringlist[i]->contained_by) continue;
 
-                    std::vector<geos::geom::Geometry *> *holes = new std::vector<geos::geom::Geometry *>(); // ownership is later transferred to polygon
+                    std::vector<geos::geom::Geometry*>* holes = new std::vector<geos::geom::Geometry*>(); // ownership is later transferred to polygon
 
                     START_TIMER(inner_ring_touch)
-                    for (int j=0; j<((int)ringlist[i]->inner_rings.size()-1); j++) {
+                    for (int j=0; j<((int)ringlist[i]->inner_rings.size()-1); ++j) {
                         if (!ringlist[i]->inner_rings[j]->polygon) continue;
-                        geos::geom::LinearRing *ring = (geos::geom::LinearRing *) ringlist[i]->inner_rings[j]->polygon->getExteriorRing();
+                        geos::geom::LinearRing* ring = (geos::geom::LinearRing*) ringlist[i]->inner_rings[j]->polygon->getExteriorRing();
 
                         // check if some of the rings touch another ring.
 
-                        for (unsigned int k=j + 1; k<ringlist[i]->inner_rings.size(); k++) {
+                        for (unsigned int k=j + 1; k<ringlist[i]->inner_rings.size(); ++k) {
                             if (!ringlist[i]->inner_rings[k]->polygon) continue;
-                            const geos::geom::Geometry *compare = ringlist[i]->inner_rings[k]->polygon->getExteriorRing();
-                            geos::geom::Geometry *inter = NULL;
+                            const geos::geom::Geometry* compare = ringlist[i]->inner_rings[k]->polygon->getExteriorRing();
+                            geos::geom::Geometry* inter = NULL;
                             try {
                                 if (!ring->intersects(compare)) continue;
                                 inter = ring->intersection(compare);
@@ -912,8 +907,8 @@ namespace Osmium {
                                 // touching inner rings
                                 // this is allowed, but we must fix them up into a valid
                                 // geometry
-                                geos::geom::Geometry *diff = ring->symDifference(compare);
-                                geos::operation::polygonize::Polygonizer *p = new geos::operation::polygonize::Polygonizer();
+                                geos::geom::Geometry* diff = ring->symDifference(compare);
+                                geos::operation::polygonize::Polygonizer* p = new geos::operation::polygonize::Polygonizer();
                                 p->add(diff);
                                 std::vector<geos::geom::Polygon*>* polys = p->getPolygons();
                                 if (polys && polys->size() == 1) {
@@ -921,7 +916,7 @@ namespace Osmium {
                                     bool ccw = geos::algorithm::CGAlgorithms::isCCW(polys->at(0)->getExteriorRing()->getCoordinatesRO());
                                     ringlist[i]->inner_rings[j]->direction = ccw ? COUNTERCLOCKWISE : CLOCKWISE;
                                     ringlist[i]->inner_rings[k]->polygon = NULL;
-                                    j=-1;
+                                    j = -1;
                                     break;
                                 }
                             } else {
@@ -933,16 +928,15 @@ namespace Osmium {
                     }
                     STOP_TIMER(inner_ring_touch)
 
-                    for (unsigned int j=0; j<ringlist[i]->inner_rings.size(); j++) {
+                    for (unsigned int j=0; j<ringlist[i]->inner_rings.size(); ++j) {
                         if (!ringlist[i]->inner_rings[j]->polygon) continue;
-                        geos::geom::LinearRing *ring = (geos::geom::LinearRing *) ringlist[i]->inner_rings[j]->polygon->getExteriorRing(); // XXX cast is not const-correct!
+                        geos::geom::LinearRing* ring = (geos::geom::LinearRing*) ringlist[i]->inner_rings[j]->polygon->getExteriorRing(); // XXX cast is not const-correct!
 
                         if (ringlist[i]->inner_rings[j]->direction == CLOCKWISE) {
                             // reverse ring
                             geos::geom::LineString* tmp = dynamic_cast<geos::geom::LineString*>(ring->reverse());
                             assert(tmp);
-                            geos::geom::LinearRing* reversed_ring =
-                                Osmium::Geometry::geos_geometry_factory()->createLinearRing(tmp->getCoordinates());
+                            geos::geom::LinearRing* reversed_ring = Osmium::Geometry::geos_geometry_factory()->createLinearRing(tmp->getCoordinates());
                             delete tmp;
                             holes->push_back(reversed_ring);
                         } else {
@@ -962,7 +956,7 @@ namespace Osmium {
                     }
                     delete ringlist[i]->polygon;
                     ringlist[i]->polygon = NULL;
-                    geos::geom::Polygon *p = NULL;
+                    geos::geom::Polygon* p = NULL;
                     bool valid = false;
 
                     try {
@@ -981,8 +975,8 @@ namespace Osmium {
                         return geometry_error("invalid ring");
                     } else {
                         polygons->push_back(p);
-                        for (unsigned int k=0; k<ringlist[i]->ways.size(); k++) {
-                            WayInfo *wi = ringlist[i]->ways[k];
+                        for (unsigned int k=0; k<ringlist[i]->ways.size(); ++k) {
+                            WayInfo* wi = ringlist[i]->ways[k];
                             // may have "hole filler" ways in there, not backed by
                             // proper way and thus no tags:
                             if (wi->way == NULL) continue;
@@ -1038,7 +1032,7 @@ namespace Osmium {
                 return geometry_error("multipolygon invalid");
             }
 
-            bool geometry_error(const char *message) {
+            bool geometry_error(const char* message) {
                 geometry_error_message = message;
                 std::cerr << "building mp failed: " << geometry_error_message << std::endl;
                 geometry = NULL;
