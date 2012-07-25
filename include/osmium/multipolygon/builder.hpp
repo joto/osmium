@@ -204,8 +204,6 @@ namespace Osmium {
             /// This is the new area we are building.
             shared_ptr<Osmium::OSM::Area> m_new_area;
 
-            geos::geom::Geometry* geometry;
-
             std::string geometry_error_message;
 
             /**
@@ -304,7 +302,6 @@ namespace Osmium {
                 m_areas(areas),
                 m_attempt_repair(attempt_repair),
                 m_new_area(make_shared<Osmium::OSM::Area>()) {
-                geometry = NULL;
 
                 m_new_area->id(relation_info.relation()->id());
                 m_new_area->version(relation_info.relation()->version());
@@ -318,7 +315,6 @@ namespace Osmium {
                     return;
                 }
 
-                m_new_area->geos_geometry(static_cast<geos::geom::MultiPolygon*>(get_geometry()));
                 m_areas.push_back(m_new_area);
             }
 
@@ -361,14 +357,6 @@ namespace Osmium {
                 }
             }
 #endif // OSMIUM_WITH_MULTIPOLYGON_PROFILING
-
-            ~Builder() {
-                delete geometry;
-            }
-
-            geos::geom::Geometry* get_geometry() const {
-                return geometry;
-            }
 
         private:
 
@@ -1019,7 +1007,7 @@ namespace Osmium {
                 };
                 STOP_TIMER(multipolygon_build);
                 if (valid) {
-                    geometry = mp;
+                    m_new_area->geos_geometry(mp);
                     return true;
                 }
                 return geometry_error("multipolygon invalid");
@@ -1028,7 +1016,6 @@ namespace Osmium {
             bool geometry_error(const char* message) {
                 geometry_error_message = message;
                 std::cerr << "building mp failed: " << geometry_error_message << std::endl;
-                geometry = NULL;
                 return false;
             }
 
