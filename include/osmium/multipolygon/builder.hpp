@@ -130,7 +130,7 @@ namespace Osmium {
 
             friend class Builder;
 
-            Osmium::OSM::Way *way;
+            const Osmium::OSM::Way* way;
             int used;
             int sequence;
             bool invert;
@@ -157,7 +157,7 @@ namespace Osmium {
                 tried = false;
             }
 
-            WayInfo(Osmium::OSM::Way *w, innerouter_t io) {
+            WayInfo(const Osmium::OSM::Way* w, innerouter_t io) {
                 way = w;
                 way_geom = Osmium::Geometry::create_geos_geometry(*w);
                 orig_innerouter = io;
@@ -239,9 +239,6 @@ namespace Osmium {
 
             /// the relation this area was build from
             Osmium::OSM::Relation *relation;
-
-            /// the member ways of this area
-            std::vector<Osmium::OSM::Way> member_ways;
 
             std::string geometry_error_message;
 
@@ -372,7 +369,6 @@ namespace Osmium {
             ~Builder() {
                 delete(geometry);
                 delete relation;
-                member_ways.erase(member_ways.begin(), member_ways.end());
             }
 
             geos::geom::Geometry* get_geometry() const {
@@ -381,11 +377,6 @@ namespace Osmium {
 
             osm_object_type_t get_type() const {
                 return AREA; //AREA_FROM_RELATION;
-            }
-
-            /// Add way to list of member ways. This will create a copy of the way.
-            void add_member_way(Osmium::OSM::Way *way) {
-                member_ways.push_back(*way);
             }
 
             void handle_complete_multipolygon() {
@@ -706,11 +697,15 @@ namespace Osmium {
                 // and some extra flags.
 
                 START_TIMER(assemble_ways);
-                for (std::vector<Osmium::OSM::Way>::iterator i(member_ways.begin()); i != member_ways.end(); i++) {
-                    if (i->timestamp() > m_new_area->timestamp()) {
-                        m_new_area->timestamp(i->timestamp());
+
+                BOOST_FOREACH(const shared_ptr<Osmium::OSM::Object const>& object, m_relation_info.members()) {
+                    const Osmium::OSM::Way* way = dynamic_cast<const Osmium::OSM::Way*>(object.get());
+
+                    if (way->timestamp() > m_new_area->timestamp()) {
+                        m_new_area->timestamp(way->timestamp());
                     }
-                    WayInfo *wi = new WayInfo(&(*i), UNSET);
+
+                    WayInfo *wi = new WayInfo(way, UNSET);
                     if (wi->way_geom) {
                         geos::io::WKTWriter wkt;
                     } else {
@@ -721,6 +716,7 @@ namespace Osmium {
                     // TODO drop duplicate ways automatically in repair mode?
                     // TODO maybe add INNER/OUTER instead of UNSET to enable later warnings on role mismatch
                 }
+
                 STOP_TIMER(assemble_ways);
 
                 std::vector<RingInfo *> ringlist;

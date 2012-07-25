@@ -105,13 +105,6 @@ namespace Osmium {
 
                 Osmium::MultiPolygon::Builder builder(relation_info, areas, m_attempt_repair);
 
-                BOOST_FOREACH(const shared_ptr<Osmium::OSM::Object const>& way, relation_info.members()) {
-                    if (way) {
-                        OSMIUM_DEBUG(2, "  with member way " << way->id() << "\n");
-                        builder.add_member_way(static_cast<Osmium::OSM::Way*>(const_cast<Osmium::OSM::Object*>(way.get()))); // XXX argh
-                    }
-                }
-
                 builder.handle_complete_multipolygon();
 
                 BOOST_FOREACH(shared_ptr<Osmium::OSM::Area>& area, areas) {
