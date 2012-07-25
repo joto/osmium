@@ -324,6 +324,13 @@ namespace Osmium {
                 m_new_area->uid(relation->uid());
                 m_new_area->user(relation->user());
 
+                if (! build_geometry()) {
+                    std::cerr << "  geom build error: " << geometry_error_message << "\n";
+                    return;
+                }
+
+                m_new_area->geos_geometry(static_cast<geos::geom::MultiPolygon*>(get_geometry()));
+                m_areas.push_back(m_new_area);
             }
 
 #ifdef OSMIUM_WITH_MULTIPOLYGON_PROFILING
@@ -377,16 +384,6 @@ namespace Osmium {
 
             osm_object_type_t get_type() const {
                 return AREA; //AREA_FROM_RELATION;
-            }
-
-            void handle_complete_multipolygon() {
-                if (! build_geometry()) {
-                    std::cerr << "  geom build error: " << geometry_error_message << "\n";
-                    return;
-                }
-
-                m_new_area->geos_geometry(static_cast<geos::geom::MultiPolygon*>(get_geometry()));
-                m_areas.push_back(m_new_area);
             }
 
         private:

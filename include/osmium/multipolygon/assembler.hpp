@@ -105,8 +105,6 @@ namespace Osmium {
 
                 Osmium::MultiPolygon::Builder builder(relation_info, areas, m_attempt_repair);
 
-                builder.handle_complete_multipolygon();
-
                 BOOST_FOREACH(shared_ptr<Osmium::OSM::Area>& area, areas) {
                     AssemblerType::nested_handler().area(area);
                 }
