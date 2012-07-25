@@ -208,69 +208,93 @@ namespace Osmium {
 
             std::string geometry_error_message;
 
-            bool ignore_tag(const std::string &s) {
-                if (s=="type") return true;
-                if (s=="created_by") return true;
-                if (s=="source") return true;
-                if (s=="note") return true;
+            /**
+             * Return true if the given tag key is in a fixed list of keys we are
+             * not interested in.
+             */
+            bool ignore_tag(const std::string& key) const {
+                if (key == "type") return true;
+                if (key == "created_by") return true;
+                if (key == "source") return true;
+                if (key == "note") return true;
                 return false;
             }
 
-            bool same_tags(const Osmium::OSM::Object* a, const Osmium::OSM::Object* b) {
+            /**
+             * Compare tags on two OSM objects ignoring tags with certain keys
+             * defined in the ignore_tag() method.
+             *
+             * @returns true if all tags are the same, false otherwise.
+             */
+            bool same_tags(const Osmium::OSM::Object* a, const Osmium::OSM::Object* b) const {
                 if ((a == NULL) || (b == NULL)) return false;
-                const Osmium::OSM::TagList& at = a->tags();
-                const Osmium::OSM::TagList& bt = b->tags();
-                std::map<std::string, std::string> aTags;
 
-                Osmium::OSM::TagList::const_iterator end = at.end();
-                for (Osmium::OSM::TagList::const_iterator it = at.begin(); it != end; ++it) {
-                    if (ignore_tag(it->key())) continue;
-                    aTags[it->key()] = it->value();
+                std::map<std::string, std::string> tag_map;
+
+                BOOST_FOREACH(const Osmium::OSM::Tag& tag, a->tags()) {
+                    if (!ignore_tag(tag.key())) {
+                        tag_map[tag.key()] = tag.value();
+                    }
                 }
-                end = bt.end();
-                for (Osmium::OSM::TagList::const_iterator it = bt.begin(); it != end; ++it) {
-                    if (ignore_tag(it->key())) continue;
-                    if (aTags[it->key()] != it->value()) return false;
-                    aTags.erase(it->key());
+
+                BOOST_FOREACH(const Osmium::OSM::Tag& tag, b->tags()) {
+                    if (!ignore_tag(tag.key())) {
+                        if (tag_map[tag.key()] != tag.value()) return false;
+                        tag_map.erase(tag.key());
+                    }
                 }
-                if (!aTags.empty()) return false;
+
+                if (!tag_map.empty()) return false;
+
                 return true;
             }
 
-            /** returns false if there was a collision, true otherwise */
-            bool merge_tags(Osmium::OSM::Object* a, const Osmium::OSM::Object* b) {
+            /**
+             * Merge tags from second object into first object.
+             *
+             * @returns false if there was a collision, true otherwise
+             */
+            bool merge_tags(Osmium::OSM::Object* a, const Osmium::OSM::Object* b) const {
                 bool rv = true;
+
                 Osmium::OSM::TagList& at = a->tags();
-                const Osmium::OSM::TagList& bt = b->tags();
-                std::map<std::string, std::string> aTags;
-                Osmium::OSM::TagList::const_iterator end = at.end();
-                for (Osmium::OSM::TagList::const_iterator it = at.begin(); it != end; ++it) {
-                    if (ignore_tag(it->key())) continue;
-                    aTags[it->key()] = it->value();
-                }
-                end = bt.end();
-                for (Osmium::OSM::TagList::const_iterator it = bt.begin(); it != end; ++it) {
-                    if (ignore_tag(it->key())) continue;
-                    if (aTags.find(it->key()) != aTags.end()) {
-                        if (aTags[it->key()] != it->value()) rv = false;
-                    } else {
-                        at.add(it->key(), it->value());
-                        aTags[it->key()] = it->value();
+                std::map<std::string, std::string> tag_map;
+
+                BOOST_FOREACH(const Osmium::OSM::Tag& tag, a->tags()) {
+                    if (!ignore_tag(tag.key())) {
+                        tag_map[tag.key()] = tag.value();
                     }
                 }
+
+                BOOST_FOREACH(const Osmium::OSM::Tag& tag, b->tags()) {
+                    if (ignore_tag(tag.key())) continue;
+
+                    if (tag_map.find(tag.key()) != tag_map.end()) {
+                        if (tag_map[tag.key()] != tag.value()) rv = false;
+                    } else {
+                        at.add(tag.key(), tag.value());
+                        tag_map[tag.key()] = tag.value();
+                    }
+                }
+
                 return rv;
             }
 
-            bool untagged(const Osmium::OSM::Object* r) {
-                if (r == NULL) return true;
-                const Osmium::OSM::TagList& tags = r->tags();
-                if (tags.empty()) return true;
-                Osmium::OSM::TagList::const_iterator end = tags.end();
-                for (Osmium::OSM::TagList::const_iterator it = tags.begin(); it != end; ++it) {
-                    if (! ignore_tag(it->key()) ) {
+            /**
+             * Check if the object is without tags ignoring tags with certain
+             * keys defined in the ignore_tag() method.
+             *
+             * @returns true if this object has no tags, false otherwise
+             */
+            bool untagged(const Osmium::OSM::Object* object) const {
+                if (object == NULL) return true;
+
+                BOOST_FOREACH(const Osmium::OSM::Tag& tag, object->tags()) {
+                    if (!ignore_tag(tag.key()) ) {
                         return false;
                     }
                 }
+
                 return true;
             }
 
