@@ -73,6 +73,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <osmium/osm/way.hpp>
 #include <osmium/osm/relation.hpp>
 #include <osmium/geometry.hpp>
+#include <osmium/relations/multipolygon_relationinfo.hpp>
 
 namespace Osmium {
 
@@ -312,11 +313,11 @@ namespace Osmium {
 
         public:
 
-            AreaBuilder(std::vector<shared_ptr<Osmium::OSM::Area> >& areas, Osmium::OSM::Relation* r, bool b, bool repair) :
+            AreaBuilder(Osmium::Relations::MultiPolygonRelationInfo& relation_info, std::vector<shared_ptr<Osmium::OSM::Area> >& areas, bool repair) :
                 m_areas(areas),
                 m_new_area(make_shared<Osmium::OSM::Area>()),
-                boundary(b),
-                relation(r) {
+                boundary(relation_info.is_boundary()),
+                relation(new Osmium::OSM::Relation(*relation_info.relation())) {
                 geometry = NULL;
                 attempt_repair = repair;
 

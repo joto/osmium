@@ -29,36 +29,12 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <osmium/debug.hpp>
 #include <osmium/osm/area.hpp>
 
+#include <osmium/relations/multipolygon_relationinfo.hpp>
 #include <osmium/relations/area.hpp>
 
 namespace Osmium {
 
     namespace Relations {
-
-        /**
-         * Information about a Relation needed for MultiPolygon assembly.
-         */
-        class MultiPolygonRelationInfo : public RelationInfo {
-
-            bool m_is_boundary;
-
-        public:
-
-            MultiPolygonRelationInfo() :
-                RelationInfo(),
-                m_is_boundary(false) {
-            }
-
-            MultiPolygonRelationInfo(const shared_ptr<Osmium::OSM::Relation const>& relation, bool is_boundary) :
-                RelationInfo(relation),
-                m_is_boundary(is_boundary) {
-            }
-
-            bool is_boundary() const {
-                return m_is_boundary;
-            }
-
-        };
 
         /**
          * This class assembles MultiPolygons from relations tagged with
@@ -127,11 +103,7 @@ namespace Osmium {
 
                 std::vector<shared_ptr<Osmium::OSM::Area> > areas;
 
-                Osmium::Relations::AreaBuilder builder(
-                    areas,
-                    new Osmium::OSM::Relation(*relation_info.relation()),
-                    relation_info.is_boundary(),
-                    m_attempt_repair);
+                Osmium::Relations::AreaBuilder builder(relation_info, areas, m_attempt_repair);
 
                 BOOST_FOREACH(const shared_ptr<Osmium::OSM::Object const>& way, relation_info.members()) {
                     if (way) {
