@@ -2,6 +2,7 @@ nodedensity
 osmium_convert
 osmium_debug
 osmium_find_bbox
+osmium_mpdump
 osmium_progress
 osmium_range_from_history
 osmium_relation_members

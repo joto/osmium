@@ -388,6 +388,7 @@ namespace Osmium {
             void handle_complete_multipolygon() {
                 if (! build_geometry()) {
                     std::cerr << "  geom build error: " << geometry_error_message << "\n";
+                    return;
                 }
 
                 m_area.geos_geometry(static_cast<geos::geom::MultiPolygon*>(get_geometry()));

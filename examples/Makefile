@@ -41,6 +41,7 @@ PROGRAMS = \
     osmium_debug \
     osmium_store_and_debug \
     osmium_find_bbox \
+    osmium_mpdump \
     osmium_progress \
     osmium_range_from_history \
     osmium_relation_members \
@@ -71,6 +72,9 @@ osmium_relation_members: osmium_relation_members.cpp
 
 osmium_find_bbox: osmium_find_bbox.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PBF)
+
+osmium_mpdump: osmium_mpdump.cpp
+	$(CXX) $(CXXFLAGS) $(CXXFLAGS_OGR) $(CXXFLAGS_GEOS) -o $@ $< $(LDFLAGS) $(LIB_PBF) $(LIB_OGR) $(LIB_GEOS)
 
 osmium_progress: osmium_progress.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PBF)
