@@ -239,9 +239,6 @@ namespace Osmium {
             /// the member ways of this area
             std::vector<Osmium::OSM::Way> member_ways;
 
-            /// number of ways in this area
-            int num_ways;
-
             std::string geometry_error_message;
 
             /// whether we want to repair a broken geometry
@@ -315,12 +312,11 @@ namespace Osmium {
 
         public:
 
-            AreaBuilder(std::vector<shared_ptr<Osmium::OSM::Area> >& areas, Osmium::OSM::Relation* r, bool b, int n, bool repair) :
+            AreaBuilder(std::vector<shared_ptr<Osmium::OSM::Area> >& areas, Osmium::OSM::Relation* r, bool b, bool repair) :
                 m_areas(areas),
                 m_new_area(make_shared<Osmium::OSM::Area>()),
                 boundary(b),
                 relation(r) {
-                num_ways = n;
                 geometry = NULL;
                 attempt_repair = repair;
 

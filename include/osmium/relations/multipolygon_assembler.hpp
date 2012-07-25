@@ -131,7 +131,6 @@ namespace Osmium {
                     areas,
                     new Osmium::OSM::Relation(*relation_info.relation()),
                     relation_info.is_boundary(),
-                    relation_info.members().size(),
                     m_attempt_repair);
 
                 BOOST_FOREACH(const shared_ptr<Osmium::OSM::Object const>& way, relation_info.members()) {
