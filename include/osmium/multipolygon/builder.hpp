@@ -55,7 +55,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <geos/geom/MultiPolygon.h>
 #include <geos/geom/MultiLineString.h>
 #include <geos/geom/prep/PreparedPolygon.h>
-#include <geos/io/WKTWriter.h>
 #include <geos/util/GEOSException.h>
 #include <geos/opLinemerge.h>
 #include <geos/operation/polygonize/Polygonizer.h>
@@ -78,28 +77,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 namespace Osmium {
 
     namespace Geometry {
-
-        /**
-         * Returns the GEOS geometry of the first node.
-         * Caller takes ownership of the pointer.
-         */
-        inline geos::geom::Point* get_first_node_geometry(const Osmium::OSM::Way& way) {
-            if (!way.nodes().front().has_position()) {
-                throw std::range_error("geometry for nodes not available");
-            }
-            return geos_geometry_factory()->createPoint(create_geos_coordinate(way.nodes().front().position()));
-        }
-
-        /**
-         * Returns the GEOS geometry of the last node.
-         * Caller takes ownership of the pointer.
-         */
-        inline geos::geom::Point* get_last_node_geometry(const Osmium::OSM::Way& way) {
-            if (!way.nodes().back().has_position()) {
-                throw std::range_error("geometry for nodes not available");
-            }
-            return geos_geometry_factory()->createPoint(create_geos_coordinate(way.nodes().back().position()));
-        }
 
         /**
          * Returns the GEOS geometry of the way.
@@ -135,7 +112,6 @@ namespace Osmium {
             int sequence;
             bool invert;
             bool duplicate;
-            std::string errorhint;
             innerouter_t innerouter;
             innerouter_t orig_innerouter;
             geos::geom::Geometry *way_geom;
@@ -143,83 +119,92 @@ namespace Osmium {
             int lastnode;
             bool tried;
 
-            WayInfo() {
-                way = NULL;
-                used = -1;
-                innerouter = UNSET;
-                orig_innerouter = UNSET;
-                sequence = 0;
-                invert = false;
-                duplicate = false;
-                way_geom = NULL;
-                firstnode = -1;
-                lastnode = -1;
-                tried = false;
+            WayInfo() :
+                way(NULL),
+                used(-1),
+                sequence(0),
+                invert(false),
+                duplicate(false),
+                innerouter(UNSET),
+                orig_innerouter(UNSET),
+                way_geom(NULL),
+                firstnode(-1),
+                lastnode(-1),
+                tried(false) {
             }
 
-            WayInfo(const Osmium::OSM::Way* w, innerouter_t io) {
-                way = w;
-                way_geom = Osmium::Geometry::create_geos_geometry(*w);
-                orig_innerouter = io;
-                used = -1;
-                innerouter = UNSET;
-                sequence = 0;
-                invert = false;
-                duplicate = false;
-                tried = false;
-                firstnode = w->get_first_node_id();
-                lastnode = w->get_last_node_id();
+            WayInfo(const Osmium::OSM::Way* w, innerouter_t io) :
+                way(w),
+                used(-1),
+                sequence(0),
+                invert(false),
+                duplicate(false),
+                innerouter(UNSET),
+                orig_innerouter(io),
+                way_geom(Osmium::Geometry::create_geos_geometry(*w)),
+                firstnode(w->get_first_node_id()),
+                lastnode(w->get_last_node_id()),
+                tried(false) {
             }
 
             /** Special version with a synthetic way, not backed by real way object. */
-            WayInfo(geos::geom::Geometry *g, int first, int last, innerouter_t io) {
-                way = NULL;
-                way_geom = g;
-                orig_innerouter = io;
-                used = -1;
-                innerouter = UNSET;
-                sequence = 0;
-                invert = false;
-                duplicate = false;
-                tried = false;
-                firstnode = first;
-                lastnode = last;
+            WayInfo(geos::geom::Geometry* geom, int first, int last, innerouter_t io) :
+                way(NULL),
+                used(-1),
+                sequence(0),
+                invert(false),
+                duplicate(false),
+                innerouter(UNSET),
+                orig_innerouter(io),
+                way_geom(geom),
+                firstnode(first),
+                lastnode(last),
+                tried(false) {
             }
 
             ~WayInfo() {
                 delete way_geom;
             }
 
-            geos::geom::Point *get_firstnode_geom() {
-                return (way ? Osmium::Geometry::get_first_node_geometry(*way) : NULL);
+            geos::geom::Point* get_firstnode_geom() const {
+                if (!way) {
+                    return NULL;
+                }
+                return Osmium::Geometry::geos_geometry_factory()->createPoint(Osmium::Geometry::create_geos_coordinate(way->nodes().front().position()));
             }
 
-            geos::geom::Point *get_lastnode_geom() {
-                return (way ? Osmium::Geometry::get_last_node_geometry(*way) : NULL);
+            geos::geom::Point* get_lastnode_geom() const {
+                if (!way) {
+                    return NULL;
+                }
+                return Osmium::Geometry::geos_geometry_factory()->createPoint(Osmium::Geometry::create_geos_coordinate(way->nodes().back().position()));
             }
 
-        };
+        }; // class WayInfo
 
         class RingInfo {
 
             friend class Builder;
 
-            geos::geom::Polygon *polygon;
+            geos::geom::Polygon* polygon;
             direction_t direction;
-            std::vector<WayInfo *> ways;
-            std::vector<RingInfo *> inner_rings;
+            std::vector<WayInfo*> ways;
+            std::vector<RingInfo*> inner_rings;
             bool nested;
-            RingInfo *contained_by;
+            RingInfo* contained_by;
             int ring_id;
 
-            RingInfo() {
-                polygon = NULL;
-                direction = NO_DIRECTION;
-                nested = false;
-                contained_by = NULL;
-                ring_id = -1;
+            RingInfo() :
+                polygon(NULL),
+                direction(NO_DIRECTION),
+                ways(),
+                inner_rings(),
+                nested(false),
+                contained_by(NULL),
+                ring_id(-1) {
             }
-        };
+
+        }; // class RingInfo
 
         /**
          *
@@ -703,9 +688,7 @@ namespace Osmium {
                     }
 
                     WayInfo *wi = new WayInfo(way, UNSET);
-                    if (wi->way_geom) {
-                        geos::io::WKTWriter wkt;
-                    } else {
+                    if (!wi->way_geom) {
                         delete wi;
                         return geometry_error("invalid way geometry in multipolygon relation member");
                     }
@@ -1016,7 +999,7 @@ namespace Osmium {
                             }
 
                             wi->innerouter = OUTER;
-                            if (wi->orig_innerouter == INNER && wi->errorhint.empty()) {
+                            if (wi->orig_innerouter == INNER) {
                                 // warning: inner/outer mismatch
                             }
                         }

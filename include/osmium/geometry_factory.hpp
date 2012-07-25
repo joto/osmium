@@ -8,6 +8,7 @@
 #include <osmium/osm/position.hpp>
 
 namespace Osmium {
+
     namespace Geometry {
 
         /**
@@ -28,7 +29,8 @@ namespace Osmium {
             return geos::geom::Coordinate(position.lon(), position.lat());
         }
 
-    }
-}
+    } // namespace Geometry
+
+} // namespace Osmium
 
 #endif // OSMIUM_GEOMETRY_FACTORY_HPP
