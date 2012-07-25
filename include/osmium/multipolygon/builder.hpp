@@ -221,18 +221,21 @@ namespace Osmium {
             }
         };
 
-        /***
-        * Area created from a relation with tag type=multipolygon or type=boundary
-        */
+        /**
+         *
+         */
         class Builder {
 
+            const RelationInfo& m_relation_info;
+
             std::vector<shared_ptr<Osmium::OSM::Area> >& m_areas;
+
+            /// whether we want to repair a broken geometry
+            const bool m_attempt_repair;
 
             shared_ptr<Osmium::OSM::Area> m_new_area;
 
             geos::geom::Geometry *geometry;
-
-            bool boundary; ///< was this area created from relation with tag type=boundary?
 
             /// the relation this area was build from
             Osmium::OSM::Relation *relation;
@@ -241,9 +244,6 @@ namespace Osmium {
             std::vector<Osmium::OSM::Way> member_ways;
 
             std::string geometry_error_message;
-
-            /// whether we want to repair a broken geometry
-            bool attempt_repair;
 
             bool ignore_tag(const std::string &s) {
                 if (s=="type") return true;
@@ -313,13 +313,13 @@ namespace Osmium {
 
         public:
 
-            Builder(Osmium::MultiPolygon::RelationInfo& relation_info, std::vector<shared_ptr<Osmium::OSM::Area> >& areas, bool repair) :
+            Builder(const Osmium::MultiPolygon::RelationInfo& relation_info, std::vector<shared_ptr<Osmium::OSM::Area> >& areas, bool attempt_repair) :
+                m_relation_info(relation_info),
                 m_areas(areas),
+                m_attempt_repair(attempt_repair),
                 m_new_area(make_shared<Osmium::OSM::Area>()),
-                boundary(relation_info.is_boundary()),
                 relation(new Osmium::OSM::Relation(*relation_info.relation())) {
                 geometry = NULL;
-                attempt_repair = repair;
 
                 m_new_area->id(relation->id());
                 m_new_area->version(relation->version());
@@ -524,7 +524,7 @@ namespace Osmium {
                         if (!lr->isSimple() || !lr->isValid()) {
                             //delete lr;
                             lr = NULL;
-                            if (attempt_repair) {
+                            if (m_attempt_repair) {
                                 lr = create_non_intersecting_linear_ring(cs);
                                 if (lr) {
                                     std::cerr << "successfully repaired an invalid ring" << std::endl;
@@ -669,7 +669,7 @@ namespace Osmium {
                     if (node1 && mindist > -1) {
                         // if we find that there are dangling nodes but aren't
                         // repairing - break out.
-                        if (!attempt_repair) return false;
+                        if (!m_attempt_repair) return false;
 
                         // drop node2 from dangling map
                         node2 = dangling_node_map[mindist_id];
