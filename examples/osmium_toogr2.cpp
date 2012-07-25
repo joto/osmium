@@ -39,7 +39,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <osmium/storage/byid/sparse_table.hpp>
 #include <osmium/storage/byid/mmap_file.hpp>
 #include <osmium/handler/coordinates_for_ways.hpp>
-#include <osmium/relations/multipolygon_assembler.hpp>
+#include <osmium/multipolygon/assembler.hpp>
 #include <osmium/geometry/multipolygon.hpp>
 #include <osmium/geometry/ogr.hpp>
 
@@ -137,7 +137,7 @@ int main(int argc, char *argv[]) {
 
     OGROutHandler ogr_out_handler;
 
-    typedef Osmium::Relations::MultiPolygonAssembler<OGROutHandler> assembler_t;
+    typedef Osmium::MultiPolygon::Assembler<OGROutHandler> assembler_t;
     assembler_t assembler(ogr_out_handler, attempt_repair);
     assembler.debug_level(1);
 

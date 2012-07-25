@@ -34,7 +34,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <osmium/storage/byid/sparse_table.hpp>
 #include <osmium/storage/byid/mmap_file.hpp>
 #include <osmium/handler/coordinates_for_ways.hpp>
-#include <osmium/relations/multipolygon_assembler.hpp>
+#include <osmium/multipolygon/assembler.hpp>
 #include <osmium/geometry/multipolygon.hpp>
 
 /* ================================================== */
@@ -85,7 +85,7 @@ int main(int argc, char *argv[]) {
 
     DumpHandler dump_handler;
 
-    typedef Osmium::Relations::MultiPolygonAssembler<DumpHandler> assembler_t;
+    typedef Osmium::MultiPolygon::Assembler<DumpHandler> assembler_t;
     assembler_t assembler(dump_handler, attempt_repair);
     assembler.debug_level(1);
 

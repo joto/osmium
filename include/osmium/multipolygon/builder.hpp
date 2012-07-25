@@ -1,5 +1,5 @@
-#ifndef OSMIUM_RELATIONS_AREA_HPP
-#define OSMIUM_RELATIONS_AREA_HPP
+#ifndef OSMIUM_MULTIPOLYGON_BUILDER_HPP
+#define OSMIUM_MULTIPOLYGON_BUILDER_HPP
 
 /*
 
@@ -73,7 +73,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <osmium/osm/way.hpp>
 #include <osmium/osm/relation.hpp>
 #include <osmium/geometry.hpp>
-#include <osmium/relations/multipolygon_relationinfo.hpp>
+#include <osmium/multipolygon/relation_info.hpp>
 
 namespace Osmium {
 
@@ -121,14 +121,14 @@ namespace Osmium {
 
     } // namespace Geometry
 
-    namespace Relations {
+    namespace MultiPolygon {
 
         enum innerouter_t { UNSET, INNER, OUTER };
         enum direction_t { NO_DIRECTION, CLOCKWISE, COUNTERCLOCKWISE };
 
         class WayInfo {
 
-            friend class AreaBuilder;
+            friend class Builder;
 
             Osmium::OSM::Way *way;
             int used;
@@ -202,7 +202,7 @@ namespace Osmium {
 
         class RingInfo {
 
-            friend class AreaBuilder;
+            friend class Builder;
 
             geos::geom::Polygon *polygon;
             direction_t direction;
@@ -224,7 +224,7 @@ namespace Osmium {
         /***
         * Area created from a relation with tag type=multipolygon or type=boundary
         */
-        class AreaBuilder {
+        class Builder {
 
             std::vector<shared_ptr<Osmium::OSM::Area> >& m_areas;
 
@@ -313,7 +313,7 @@ namespace Osmium {
 
         public:
 
-            AreaBuilder(Osmium::Relations::MultiPolygonRelationInfo& relation_info, std::vector<shared_ptr<Osmium::OSM::Area> >& areas, bool repair) :
+            Builder(Osmium::MultiPolygon::RelationInfo& relation_info, std::vector<shared_ptr<Osmium::OSM::Area> >& areas, bool repair) :
                 m_areas(areas),
                 m_new_area(make_shared<Osmium::OSM::Area>()),
                 boundary(relation_info.is_boundary()),
@@ -369,7 +369,7 @@ namespace Osmium {
             }
 #endif // OSMIUM_WITH_MULTIPOLYGON_PROFILING
 
-            ~AreaBuilder() {
+            ~Builder() {
                 delete(geometry);
                 delete relation;
                 member_ways.erase(member_ways.begin(), member_ways.end());
@@ -1065,10 +1065,10 @@ namespace Osmium {
             }
 
 
-        }; // class AreaBuilder
+        }; // class Builder
 
-    } // namespace Relations
+    } // namespace MultiPolygon
 
 } // namespace Osmium
 
-#endif // OSMIUM_RELATIONS_AREA_HPP
+#endif // OSMIUM_MULTIPOLYGON_BUILDER_HPP

@@ -1,5 +1,5 @@
-#ifndef OSMIUM_RELATIONS_MULTIPOLYGON_ASSEMBLER_HPP
-#define OSMIUM_RELATIONS_MULTIPOLYGON_ASSEMBLER_HPP
+#ifndef OSMIUM_MULTIPOLYGON_ASSEMBLER_HPP
+#define OSMIUM_MULTIPOLYGON_ASSEMBLER_HPP
 
 /*
 
@@ -29,27 +29,27 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <osmium/debug.hpp>
 #include <osmium/osm/area.hpp>
 
-#include <osmium/relations/multipolygon_relationinfo.hpp>
-#include <osmium/relations/area.hpp>
+#include <osmium/multipolygon/relation_info.hpp>
+#include <osmium/multipolygon/builder.hpp>
 
 namespace Osmium {
 
-    namespace Relations {
+    namespace MultiPolygon {
 
         /**
          * This class assembles MultiPolygons from relations tagged with
          * type=multipolygon or type=boundary.
          */
         template <class THandler>
-        class MultiPolygonAssembler : public Assembler<MultiPolygonAssembler<THandler>, MultiPolygonRelationInfo, false, true, false, THandler>, public WithDebugLevel {
+        class Assembler : public Osmium::Relations::Assembler<Osmium::MultiPolygon::Assembler<THandler>, Osmium::MultiPolygon::RelationInfo, false, true, false, THandler>, public Osmium::WithDebugLevel {
 
-            typedef Assembler<MultiPolygonAssembler, MultiPolygonRelationInfo, false, true, false, THandler> AssemblerType;
+            typedef typename Osmium::Relations::Assembler<Osmium::MultiPolygon::Assembler<THandler>, Osmium::MultiPolygon::RelationInfo, false, true, false, THandler> AssemblerType;
 
             bool m_attempt_repair;
 
         public:
 
-            MultiPolygonAssembler(THandler& handler, bool attempt_repair) :
+            Assembler(THandler& handler, bool attempt_repair) :
                 AssemblerType(handler),
                 m_attempt_repair(attempt_repair) {
             }
@@ -72,7 +72,7 @@ namespace Osmium {
                     return;
                 }
 
-                AssemblerType::add_relation(MultiPolygonRelationInfo(relation, is_boundary));
+                AssemblerType::add_relation(RelationInfo(relation, is_boundary));
             }
 
             /**
@@ -80,7 +80,7 @@ namespace Osmium {
              *
              * Overwritten from the Assembler class.
              */
-            bool keep_member(MultiPolygonRelationInfo& relation_info, const Osmium::OSM::RelationMember& member) {
+            bool keep_member(RelationInfo& relation_info, const Osmium::OSM::RelationMember& member) {
                 if (member.type() == 'w') {
                     return true;
                 }
@@ -98,12 +98,12 @@ namespace Osmium {
                 }
             }
 
-            void complete_relation(MultiPolygonRelationInfo& relation_info) {
+            void complete_relation(RelationInfo& relation_info) {
                 OSMIUM_DEBUG(2, "MultiPolygon from relation " << relation_info.relation()->id() << "\n");
 
                 std::vector<shared_ptr<Osmium::OSM::Area> > areas;
 
-                Osmium::Relations::AreaBuilder builder(relation_info, areas, m_attempt_repair);
+                Osmium::MultiPolygon::Builder builder(relation_info, areas, m_attempt_repair);
 
                 BOOST_FOREACH(const shared_ptr<Osmium::OSM::Object const>& way, relation_info.members()) {
                     if (way) {
@@ -128,7 +128,7 @@ namespace Osmium {
                 AssemblerType::clean_assembled_relations();
                 if (! AssemblerType::relations().empty()) {
                     std::cout << "Warning! Some member ways missing for these multipolygon relations:";
-                    BOOST_FOREACH(const MultiPolygonRelationInfo& relation_info, AssemblerType::relations()) {
+                    BOOST_FOREACH(const RelationInfo& relation_info, AssemblerType::relations()) {
                         std::cout << " " << relation_info.relation()->id();
                     }
                     std::cout << "\n";
@@ -138,8 +138,8 @@ namespace Osmium {
 
         };
 
-    } // namespace Relations
+    } // namespace MultiPolygon
 
 } // namespace Osmium
 
-#endif // OSMIUM_RELATIONS_MULTIPOLYGON_ASSEMBLER_HPP
+#endif // OSMIUM_MULTIPOLYGON_ASSEMBLER_HPP
