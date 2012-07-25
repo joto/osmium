@@ -26,15 +26,12 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #define OSMIUM_LINK_WITH_LIBS_GEOS `geos-config --libs`
 
 #include <assert.h>
-#include <sys/types.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
 #include <vector>
-#include <sstream>
-#include <iomanip>
 #include <map>
+
+#include <boost/foreach.hpp>
+#include <boost/make_shared.hpp>
+using boost::make_shared;
 
 #ifdef OSMIUM_WITH_MULTIPOLYGON_PROFILING
 # include <osmium/utils/timer.h>
@@ -59,13 +56,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <geos/geom/MultiLineString.h>
 #include <geos/geom/prep/PreparedPolygon.h>
 #include <geos/util/GEOSException.h>
-#include <geos/opLinemerge.h>
 #include <geos/operation/polygonize/Polygonizer.h>
 #include <geos/operation/distance/DistanceOp.h>
-#include <geos/opPolygonize.h>
-#include <geos/algorithm/LineIntersector.h>
-#include <geos/geomgraph/GeometryGraph.h>
-#include <geos/geomgraph/index/SegmentIntersector.h>
 
 // this should come from /usr/include/geos/algorithm, but its missing there in some Ubuntu versions
 #include "../CGAlgorithms.h"
@@ -73,6 +65,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <osmium/geometry_factory.hpp>
 
 #include <osmium/osm/way.hpp>
+#include <osmium/osm/area.hpp>
 #include <osmium/osm/relation.hpp>
 #include <osmium/geometry.hpp>
 #include <osmium/geometry/linestring.hpp>

@@ -30,7 +30,7 @@ check-includes:
         flags=`./get_options.sh --cflags $${FILE}`; \
         eval eflags=$${flags}; \
         compile="g++ -I include $${eflags} $${FILE}"; \
-        echo "\n======== $${FILE}:\n$${compile}" >>check-includes-report; \
+        echo "\n======== $${FILE}\n$${compile}" >>check-includes-report; \
         echo -n "$${FILE} "; \
         if `$${compile} 2>>check-includes-report`; then \
             echo "[OK]"; \

@@ -22,6 +22,9 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#include <boost/make_shared.hpp>
+using boost::make_shared;
+
 #include <osmium/relations/assembler.hpp>
 #include <osmium/debug.hpp>
 #include <osmium/osm/area.hpp>
