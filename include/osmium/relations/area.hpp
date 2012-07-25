@@ -225,7 +225,9 @@ namespace Osmium {
         */
         class AreaBuilder {
 
-            Osmium::OSM::Area m_area;
+            std::vector<shared_ptr<Osmium::OSM::Area> >& m_areas;
+
+            shared_ptr<Osmium::OSM::Area> m_new_area;
 
             geos::geom::Geometry *geometry;
 
@@ -241,9 +243,6 @@ namespace Osmium {
             int num_ways;
 
             std::string geometry_error_message;
-
-            /// callback we should call when a multipolygon was completed
-            void (*callback)(Osmium::OSM::Area*);
 
             /// whether we want to repair a broken geometry
             bool attempt_repair;
@@ -316,14 +315,21 @@ namespace Osmium {
 
         public:
 
-            AreaBuilder(Osmium::OSM::Area& area, Osmium::OSM::Relation* r, bool b, int n, void (*callback)(Osmium::OSM::Area*), bool repair) :
-                m_area(area),
+            AreaBuilder(std::vector<shared_ptr<Osmium::OSM::Area> >& areas, Osmium::OSM::Relation* r, bool b, int n, bool repair) :
+                m_areas(areas),
+                m_new_area(make_shared<Osmium::OSM::Area>()),
                 boundary(b),
-                relation(r),
-                callback(callback) {
+                relation(r) {
                 num_ways = n;
                 geometry = NULL;
                 attempt_repair = repair;
+
+                m_new_area->id(relation->id());
+                m_new_area->version(relation->version());
+                m_new_area->timestamp(relation->timestamp());
+                m_new_area->uid(relation->uid());
+                m_new_area->user(relation->user());
+
             }
 
 #ifdef OSMIUM_WITH_MULTIPOLYGON_PROFILING
@@ -391,9 +397,8 @@ namespace Osmium {
                     return;
                 }
 
-                m_area.geos_geometry(static_cast<geos::geom::MultiPolygon*>(get_geometry()));
-
-                callback(&m_area);
+                m_new_area->geos_geometry(static_cast<geos::geom::MultiPolygon*>(get_geometry()));
+                m_areas.push_back(m_new_area);
             }
 
         private:
@@ -697,7 +702,7 @@ namespace Osmium {
                 std::vector<WayInfo *> ways;
 
                 // the timestamp of the multipolygon will be the maximum of the timestamp from the relation and from all member ways
-                m_area.timestamp(relation->timestamp());
+                m_new_area->timestamp(relation->timestamp());
 
                 // assemble all ways which are members of this relation into a
                 // vector of WayInfo elements. this holds room for the way pointer
@@ -705,8 +710,8 @@ namespace Osmium {
 
                 START_TIMER(assemble_ways);
                 for (std::vector<Osmium::OSM::Way>::iterator i(member_ways.begin()); i != member_ways.end(); i++) {
-                    if (i->timestamp() > m_area.timestamp()) {
-                        m_area.timestamp(i->timestamp());
+                    if (i->timestamp() > m_new_area->timestamp()) {
+                        m_new_area->timestamp(i->timestamp());
                     }
                     WayInfo *wi = new WayInfo(&(*i), UNSET);
                     if (wi->way_geom) {
@@ -882,11 +887,11 @@ namespace Osmium {
                                 // warning
                                 // warnings.insert("duplicate_tags_on_inner");
                             } else {
-                                Osmium::OSM::Area internal_area(*(ringlist[i]->ways[0]->way));
-                                internal_area.geos_geometry(special_mp);
-                                callback(&internal_area);
+                                shared_ptr<Osmium::OSM::Area> internal_area = make_shared<Osmium::OSM::Area>(*(ringlist[i]->ways[0]->way));
+                                internal_area->geos_geometry(special_mp);
+                                m_areas.push_back(internal_area);
 
-                                // AreaFromWay destructor deletes the
+                                // Area destructor deletes the
                                 // geometry, so avoid to delete it again.
                                 special_mp = NULL;
                             }
@@ -1026,7 +1031,7 @@ namespace Osmium {
                             }
                         }
                         // copy tags from relation into area
-                        m_area.tags(relation->tags());
+                        m_new_area->tags(relation->tags());
                     }
                     // later delete ringlist[i];
                     // ringlist[i] = NULL;

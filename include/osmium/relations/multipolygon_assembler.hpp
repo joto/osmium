@@ -130,19 +130,13 @@ namespace Osmium {
             void complete_relation(MultiPolygonRelationInfo& relation_info) {
                 OSMIUM_DEBUG(2, "MultiPolygon from relation " << relation_info.relation()->id() << "\n");
 
-                Osmium::OSM::Area area;
-                area.id(relation_info.relation()->id());
-                area.version(relation_info.relation()->version());
-                area.timestamp(relation_info.relation()->timestamp());
-                area.uid(relation_info.relation()->uid());
-                area.user(relation_info.relation()->user());
+                std::vector<shared_ptr<Osmium::OSM::Area> > areas;
 
                 Osmium::Relations::AreaBuilder builder(
-                    area,
+                    areas,
                     new Osmium::OSM::Relation(*relation_info.relation()),
                     relation_info.is_boundary(),
                     relation_info.members().size(),
-                    m_callback,
                     m_attempt_repair);
 
                 BOOST_FOREACH(const shared_ptr<Osmium::OSM::Object const>& way, relation_info.members()) {
@@ -153,6 +147,10 @@ namespace Osmium {
                 }
 
                 builder.handle_complete_multipolygon();
+
+                BOOST_FOREACH(shared_ptr<Osmium::OSM::Area>& area, areas) {
+                    m_callback(area.get());
+                }
             }
 
 #ifdef OSMIUM_WITH_DEBUG

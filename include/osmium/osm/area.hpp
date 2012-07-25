@@ -65,6 +65,10 @@ namespace Osmium {
                 m_geos_geometry(area.m_geos_geometry) {
             }
 
+            ~Area() {
+//                delete m_geos_geometry;
+            }
+
             osm_object_type_t get_type() const {
                 return AREA;
             }
