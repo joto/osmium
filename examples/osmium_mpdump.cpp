@@ -71,6 +71,8 @@ typedef Osmium::Storage::ById::SparseTable<Osmium::OSM::Position> storage_sparse
 typedef Osmium::Storage::ById::MmapFile<Osmium::OSM::Position> storage_mmap_t;
 
 int main(int argc, char *argv[]) {
+    std::ios_base::sync_with_stdio(false);
+
     if (argc != 2) {
         std::cerr << "Usage: " << argv[0] << " OSMFILE" << std::endl;
         exit(1);

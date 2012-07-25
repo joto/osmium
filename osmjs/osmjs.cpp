@@ -35,7 +35,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #  include <osmium/storage/byid/mmap_anon.hpp>
 #endif
 #include <osmium/handler/coordinates_for_ways.hpp>
-#include <osmium/handler/multipolygon.hpp>
+#include <osmium/multipolygon/assembler.hpp>
 
 #ifdef OSMIUM_WITH_MULTIPOLYGON_PROFILING
 std::vector<std::pair<std::string, timer *> > Osmium::OSM::AreaFromRelation::timers;
@@ -59,164 +59,6 @@ timer Osmium::OSM::AreaFromRelation::error_write_timer;
 typedef Osmium::Storage::ById::Base<Osmium::OSM::Position> storage_byid_t;
 typedef Osmium::Storage::ById::MmapFile<Osmium::OSM::Position> storage_mmap_t;
 typedef Osmium::Handler::CoordinatesForWays<storage_byid_t, storage_mmap_t> cfw_handler_t;
-
-class SinglePass : public Osmium::Handler::Base {
-
-    cfw_handler_t* handler_cfw;
-    Osmium::Javascript::Handler* handler_javascript;
-
-public:
-
-    SinglePass(cfw_handler_t* cfw = NULL,
-               Osmium::Javascript::Handler* js  = NULL)
-        : Base(),
-          handler_cfw(cfw),
-          handler_javascript(js) {
-    }
-
-    void init(Osmium::OSM::Meta& meta) {
-        if (handler_cfw) {
-            handler_cfw->init(meta);
-        }
-        handler_javascript->init(meta);
-    }
-
-    void node(const shared_ptr<Osmium::OSM::Node const>& node) {
-        if (handler_cfw) {
-            handler_cfw->node(node);
-        }
-        handler_javascript->node(node);
-    }
-
-    void after_nodes() {
-        if (handler_cfw)
-            handler_cfw->after_nodes();
-    }
-
-    void way(const shared_ptr<Osmium::OSM::Way>& way) {
-        if (handler_cfw) {
-            handler_cfw->way(way);
-        }
-        handler_javascript->way(way);
-    }
-
-    void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
-        handler_javascript->relation(relation);
-    }
-
-    void final() {
-        handler_javascript->final();
-    }
-
-};
-
-class DualPass1 : public Osmium::Handler::Base {
-
-    cfw_handler_t* handler_cfw;
-    Osmium::Handler::Multipolygon* handler_multipolygon;
-    Osmium::Javascript::Handler* handler_javascript;
-
-public:
-
-    DualPass1(cfw_handler_t* cfw = NULL,
-              Osmium::Handler::Multipolygon* mp  = NULL,
-              Osmium::Javascript::Handler* js  = NULL)
-        : Base(),
-          handler_cfw(cfw),
-          handler_multipolygon(mp),
-          handler_javascript(js) {
-    }
-
-    void init(Osmium::OSM::Meta& meta) {
-        if (handler_multipolygon) {
-            handler_multipolygon->init(meta);
-        }
-        if (handler_cfw) {
-            handler_cfw->init(meta);
-        }
-        handler_javascript->init(meta);
-    }
-
-    void node(const shared_ptr<Osmium::OSM::Node const>& node) {
-        handler_javascript->node(node);
-    }
-
-    void before_relations() {
-        if (handler_multipolygon) {
-            handler_multipolygon->before_relations();
-        }
-    }
-
-    void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
-        if (handler_multipolygon) {
-            handler_multipolygon->relation(relation);
-        }
-        handler_javascript->relation(relation);
-    }
-
-    void after_relations() {
-        if (handler_multipolygon) {
-            handler_multipolygon->after_relations();
-        }
-        std::cerr << "1st pass finished" << std::endl;
-    }
-
-};
-
-class DualPass2 : public Osmium::Handler::Base {
-
-    cfw_handler_t* handler_cfw;
-    Osmium::Handler::Multipolygon* handler_multipolygon;
-    Osmium::Javascript::Handler* handler_javascript;
-
-public:
-
-    DualPass2(cfw_handler_t* cfw = NULL,
-              Osmium::Handler::Multipolygon* mp  = NULL,
-              Osmium::Javascript::Handler* js  = NULL)
-        : Base(),
-          handler_cfw(cfw),
-          handler_multipolygon(mp),
-          handler_javascript(js) {
-    }
-
-    void node(const shared_ptr<Osmium::OSM::Node const>& node) {
-        if (handler_cfw) {
-            handler_cfw->node(node);
-        }
-    }
-
-    void after_nodes() {
-        if (handler_cfw) {
-            handler_cfw->after_nodes();
-        }
-    }
-
-    void way(const shared_ptr<Osmium::OSM::Way>& way) {
-        if (handler_cfw) {
-            handler_cfw->way(way);
-        }
-        if (handler_multipolygon) {
-            handler_multipolygon->way(way);
-        }
-        handler_javascript->way(way);
-    }
-
-    void after_ways() {
-        if (handler_multipolygon) {
-            handler_multipolygon->after_ways();
-        }
-    }
-
-    void final() {
-        handler_javascript->final();
-        if (handler_multipolygon) {
-            handler_multipolygon->final();
-        }
-    }
-};
-
-/* ================================================== */
 
 v8::Persistent<v8::Context> global_context;
 
@@ -267,12 +109,6 @@ std::string find_include_file(std::string filename) {
     }
     std::cerr << ")" << std::endl;
     exit(1);
-}
-
-Osmium::Javascript::Handler* handler_javascript;
-
-void cbmp(Osmium::OSM::Area* area) {
-    handler_javascript->area(area);
 }
 
 int main(int argc, char *argv[]) {
@@ -409,26 +245,30 @@ int main(int argc, char *argv[]) {
         store_pos = new Osmium::Storage::ById::SparseTable<Osmium::OSM::Position>();
     }
     Osmium::Storage::ById::MmapFile<Osmium::OSM::Position> store_neg;
-    cfw_handler_t* handler_cfw = (store_pos == NULL) ? NULL : new cfw_handler_t(*store_pos, store_neg);
-    handler_javascript = new Osmium::Javascript::Handler(include_files, javascript_filename.c_str());
+    Osmium::Javascript::Handler handler_javascript(include_files, javascript_filename.c_str());
 
     if (two_passes) {
-        Osmium::Handler::Multipolygon* handler_multipolygon = NULL;
-        if (multipolygon) {
-            handler_multipolygon = new Osmium::Handler::Multipolygon(attempt_repair, cbmp);
-        }
-        DualPass1 handler1(handler_cfw, handler_multipolygon, handler_javascript);
-        Osmium::Input::read(infile, handler1);
-        DualPass2 handler2(handler_cfw, handler_multipolygon, handler_javascript);
-        Osmium::Input::read(infile, handler2);
-        delete handler_multipolygon;
+        typedef Osmium::MultiPolygon::Assembler<Osmium::Javascript::Handler> assembler_t;
+        assembler_t assembler(handler_javascript, attempt_repair);
+
+        cfw_handler_t handler_cfw(*store_pos, store_neg);
+
+        typedef Osmium::Handler::Sequence<cfw_handler_t, assembler_t::HandlerPass2> sequence_handler_t;
+        sequence_handler_t sequence_handler(handler_cfw, assembler.handler_pass2());
+
+        Osmium::Input::read(infile, assembler.handler_pass1());
+        Osmium::Input::read(infile, sequence_handler);
+    } else if (store_pos) {
+        cfw_handler_t handler_cfw(*store_pos, store_neg);
+
+        typedef Osmium::Handler::Sequence<cfw_handler_t, Osmium::Javascript::Handler> sequence_handler_t;
+        sequence_handler_t sequence_handler(handler_cfw, handler_javascript);
+
+        Osmium::Input::read(infile, sequence_handler);
     } else {
-        SinglePass handler(handler_cfw, handler_javascript);
-        Osmium::Input::read(infile, handler);
+        Osmium::Input::read(infile, handler_javascript);
     }
 
-    delete handler_javascript;
-    delete handler_cfw;
     delete store_pos;
 
     global_context.Dispose();

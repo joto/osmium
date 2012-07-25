@@ -310,10 +310,10 @@ namespace Osmium {
 #endif // OSMIUM_V8_FORCE_GC
             }
 
-            void area(Osmium::OSM::Area* area) {
+            void area(const shared_ptr<Osmium::OSM::Area const>& area) {
                 if (!cb.area.IsEmpty()) {
                     v8::HandleScope handle_scope;
-                    v8::Handle<v8::Object> js_object_instance = v8::Local<v8::Object>::New(Osmium::Javascript::Wrapper::OSMArea::get<Osmium::Javascript::Wrapper::OSMArea>().create_instance((void*)(area)));
+                    v8::Handle<v8::Object> js_object_instance = v8::Local<v8::Object>::New(Osmium::Javascript::Wrapper::OSMArea::get<Osmium::Javascript::Wrapper::OSMArea>().create_instance((void*)(area.get())));
                     (void) cb.area->Call(js_object_instance, 0, 0);
                 }
 #ifdef OSMIUM_V8_FORCE_GC
