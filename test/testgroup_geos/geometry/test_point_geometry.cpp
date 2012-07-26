@@ -6,7 +6,6 @@
 
 #include <osmium/osm/position.hpp>
 #include <osmium/geometry/point.hpp>
-#include <osmium/geometry/geos_factory.hpp>
 #include <osmium/geometry/geos.hpp>
 
 BOOST_AUTO_TEST_SUITE(PointGeometry)
