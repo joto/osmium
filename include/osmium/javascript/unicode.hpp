@@ -1,5 +1,5 @@
-#ifndef OSMIUM_UTILS_UNICODE_HPP
-#define OSMIUM_UTILS_UNICODE_HPP
+#ifndef OSMIUM_JAVASCRIPT_UNICODE_HPP
+#define OSMIUM_JAVASCRIPT_UNICODE_HPP
 
 /*
 
@@ -139,4 +139,4 @@ namespace Osmium {
 
 } // namespace Osmium
 
-#endif // OSMIUM_UTILS_UNICODE_HPP
+#endif // OSMIUM_JAVASCRIPT_UNICODE_HPP

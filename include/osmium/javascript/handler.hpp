@@ -31,7 +31,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <osmium/javascript/wrapper/position.hpp>
 #include <osmium/javascript/wrapper/geometry.hpp>
 #include <osmium/javascript/wrapper/osm.hpp>
-#include <osmium/javascript/wrapper/export.hpp>
+#include <osmium/javascript/wrapper/export_csv.hpp>
+#include <osmium/javascript/wrapper/export_shapefile.hpp>
 
 extern v8::Persistent<v8::Context> global_context;
 
@@ -142,40 +143,6 @@ namespace Osmium {
                 return v8::Undefined();
             }
 
-            static v8::Handle<v8::Value> OutputCSVOpen(const v8::Arguments& args) {
-                if (args.Length() != 1) {
-                    return v8::Undefined();
-                } else {
-                    v8::String::Utf8Value str(args[0]);
-                    Osmium::Export::CSV* oc = new Osmium::Export::CSV(*str);
-                    return Osmium::Javascript::Wrapper::ExportCSV::get<Osmium::Javascript::Wrapper::ExportCSV>().create_instance((void*)(oc));
-                }
-            }
-
-#ifdef OSMIUM_WITH_SHPLIB
-            static v8::Handle<v8::Value> OutputShapefileOpen(const v8::Arguments& args) {
-                if (args.Length() != 2) {
-                    return v8::Undefined();
-                } else {
-                    v8::String::Utf8Value str(args[0]);
-                    v8::String::AsciiValue type(args[1]);
-                    std::string filename(*str);
-                    Osmium::Export::Shapefile* oc;
-                    if (!strcmp(*type, "point")) {
-                        oc = new Osmium::Export::PointShapefile(filename);
-                    } else if (!strcmp(*type, "line")) {
-                        oc = new Osmium::Export::LineStringShapefile(filename);
-                    } else if (!strcmp(*type, "polygon")) {
-                        oc = new Osmium::Export::PolygonShapefile(filename);
-                    } else {
-                        throw std::runtime_error("unkown shapefile type");
-                    }
-
-                    return Osmium::Javascript::Wrapper::ExportShapefile::get<Osmium::Javascript::Wrapper::ExportShapefile>().create_instance((void*)(oc));
-                }
-            }
-#endif // OSMIUM_WITH_SHPLIB
-
             Handler(std::vector<std::string> include_files, const char* filename) : Osmium::Handler::Base() {
 //                v8::HandleScope handle_scope;
                 v8::Handle<v8::String> init_source = v8::String::New("Osmium = { Callbacks: {}, Output: { } };");
@@ -186,14 +153,12 @@ namespace Osmium {
                 osmium_object->Set(v8::String::NewSymbol("debug"), v8::Boolean::New(debug_level() > 1));
 
                 v8::Handle<v8::ObjectTemplate> output_csv_template = v8::ObjectTemplate::New();
-                output_csv_template->Set(v8::String::NewSymbol("open"), v8::FunctionTemplate::New(OutputCSVOpen));
+                output_csv_template->Set(v8::String::NewSymbol("open"), v8::FunctionTemplate::New(Osmium::Javascript::Wrapper::ExportCSV::open));
                 output_object->Set(v8::String::NewSymbol("CSV"), output_csv_template->NewInstance());
 
-#ifdef OSMIUM_WITH_SHPLIB
                 v8::Handle<v8::ObjectTemplate> output_shapefile_template = v8::ObjectTemplate::New();
-                output_shapefile_template->Set(v8::String::NewSymbol("open"), v8::FunctionTemplate::New(OutputShapefileOpen));
+                output_shapefile_template->Set(v8::String::NewSymbol("open"), v8::FunctionTemplate::New(Osmium::Javascript::Wrapper::ExportShapefile::open));
                 output_object->Set(v8::String::NewSymbol("Shapefile"), output_shapefile_template->NewInstance());
-#endif // OSMIUM_WITH_SHPLIB
 
                 v8::Handle<v8::Object> callbacks_object = osmium_object->Get(v8::String::NewSymbol("Callbacks"))->ToObject();
 

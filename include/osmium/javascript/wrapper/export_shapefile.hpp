@@ -1,5 +1,5 @@
-#ifndef OSMIUM_JAVASCRIPT_WRAPPER_EXPORT_HPP
-#define OSMIUM_JAVASCRIPT_WRAPPER_EXPORT_HPP
+#ifndef OSMIUM_JAVASCRIPT_WRAPPER_EXPORT_SHAPEFILE_HPP
+#define OSMIUM_JAVASCRIPT_WRAPPER_EXPORT_SHAPEFILE_HPP
 
 /*
 
@@ -27,10 +27,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <osmium/javascript/unicode.hpp>
 #include <osmium/javascript/template.hpp>
 
-#include <osmium/export/csv.hpp>
-#ifdef OSMIUM_WITH_SHPLIB
-# include <osmium/export/shapefile.hpp>
-#endif
+#include <osmium/export/shapefile.hpp>
 
 namespace Osmium {
 
@@ -38,34 +35,29 @@ namespace Osmium {
 
         namespace Wrapper {
 
-            struct ExportCSV : public Osmium::Javascript::Template {
-
-                static v8::Handle<v8::Value> print(const v8::Arguments& args, Osmium::Export::CSV* csv) {
-                    for (int i = 0; i < args.Length(); i++) {
-                        if (i != 0) {
-                            csv->out << '\t';
-                        }
-                        Osmium::v8_String_to_ostream(args[i]->ToString(), csv->out);
-                    }
-                    csv->out << std::endl;
-                    return v8::Integer::New(1);
-                }
-
-                static v8::Handle<v8::Value> close(const v8::Arguments& /*args*/, Osmium::Export::CSV* csv) {
-                    csv->out.flush();
-                    csv->out.close();
-                    return v8::Undefined();
-                }
-
-                ExportCSV() : Osmium::Javascript::Template() {
-                    js_template->Set("print", v8::FunctionTemplate::New(function_template<Osmium::Export::CSV, print>));
-                    js_template->Set("close", v8::FunctionTemplate::New(function_template<Osmium::Export::CSV, close>));
-                }
-
-            };
-
-#ifdef OSMIUM_WITH_SHPLIB
             struct ExportShapefile : public Osmium::Javascript::Template {
+
+                static v8::Handle<v8::Value> open(const v8::Arguments& args) {
+                    if (args.Length() != 2) {
+                        return v8::Undefined();
+                    } else {
+                        v8::String::Utf8Value str(args[0]);
+                        v8::String::AsciiValue type(args[1]);
+                        std::string filename(*str);
+                        Osmium::Export::Shapefile* oc;
+                        if (!strcmp(*type, "point")) {
+                            oc = new Osmium::Export::PointShapefile(filename);
+                        } else if (!strcmp(*type, "line")) {
+                            oc = new Osmium::Export::LineStringShapefile(filename);
+                        } else if (!strcmp(*type, "polygon")) {
+                            oc = new Osmium::Export::PolygonShapefile(filename);
+                        } else {
+                            throw std::runtime_error("unkown shapefile type");
+                        }
+
+                        return Osmium::Javascript::Wrapper::ExportShapefile::get<Osmium::Javascript::Wrapper::ExportShapefile>().create_instance((void*)(oc));
+                    }
+                }
 
                 static void add_string_attribute(Osmium::Export::Shapefile* shapefile, int n, v8::Local<v8::Value> value) {
                     uint16_t source[(Osmium::Export::Shapefile::max_dbf_field_length+2)*2];
@@ -189,8 +181,7 @@ namespace Osmium {
                     js_template->Set("close",     v8::FunctionTemplate::New(function_template<Osmium::Export::Shapefile, close>));
                 }
 
-            };
-#endif // OSMIUM_WITH_SHPLIB
+            }; // class ExportShapefile
 
         } // namespace Wrapper
 
@@ -198,4 +189,4 @@ namespace Osmium {
 
 } // namespace Osmium
 
-#endif // OSMIUM_JAVASCRIPT_WRAPPER_EXPORT_HPP
+#endif // OSMIUM_JAVASCRIPT_WRAPPER_EXPORT_SHAPEFILE_HPP
