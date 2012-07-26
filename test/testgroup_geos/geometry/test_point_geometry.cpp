@@ -5,8 +5,9 @@
 #include <boost/test/unit_test.hpp>
 
 #include <osmium/osm/position.hpp>
-#include <osmium/geometry_factory.hpp>
 #include <osmium/geometry/point.hpp>
+#include <osmium/geometry/geos_factory.hpp>
+#include <osmium/geometry/geos.hpp>
 
 BOOST_AUTO_TEST_SUITE(PointGeometry)
 
@@ -21,7 +22,7 @@ BOOST_AUTO_TEST_CASE(geos_geometry) {
     Osmium::OSM::Position pos1(1.2, 3.4);
     Osmium::Geometry::Point point1(pos1);
 
-    geos::geom::Point* gp = point1.create_geos_geometry();
+    geos::geom::Point* gp = Osmium::Geometry::create_geos_geometry(point1);
     BOOST_CHECK(gp);
     BOOST_CHECK_EQUAL(gp->getX(), 1.2);
     BOOST_CHECK_EQUAL(gp->getY(), 3.4);

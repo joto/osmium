@@ -24,10 +24,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <algorithm>
 #include <iomanip>
-#include <geos/geom/CoordinateSequenceFactory.h>
 
 #include <osmium/geometry/from_way.hpp>
-#include <osmium/geometry_factory.hpp>
 
 namespace Osmium {
 
@@ -104,28 +102,6 @@ namespace Osmium {
                 }
                 return out;
             }
-
-#ifdef OSMIUM_WITH_GEOS
-            /**
-             * Create GEOS geometry of this LineString.
-             *
-             * Caller takes ownership.
-             */
-            geos::geom::Geometry* create_geos_geometry() const {
-                std::vector<geos::geom::Coordinate>* c = new std::vector<geos::geom::Coordinate>;
-                if (reverse()) {
-                    for (Osmium::OSM::WayNodeList::const_reverse_iterator it = nodes().rbegin(); it != nodes().rend(); ++it) {
-                        c->push_back(Osmium::Geometry::create_geos_coordinate(it->position()));
-                    }
-                } else {
-                    for (Osmium::OSM::WayNodeList::const_iterator it = nodes().begin(); it != nodes().end(); ++it) {
-                        c->push_back(Osmium::Geometry::create_geos_coordinate(it->position()));
-                    }
-                }
-                geos::geom::CoordinateSequence* cs = Osmium::Geometry::geos_geometry_factory()->getCoordinateSequenceFactory()->create(c);
-                return static_cast<geos::geom::Geometry*>(Osmium::Geometry::geos_geometry_factory()->createLineString(cs));
-            }
-#endif // OSMIUM_WITH_GEOS
 
         }; // class LineString
 

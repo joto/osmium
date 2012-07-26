@@ -30,6 +30,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <osmium/osm/area.hpp>
 #include <osmium/geometry.hpp>
 #include <osmium/geometry/polygon.hpp>
+#include <osmium/geometry/geos.hpp>
 
 namespace Osmium {
 
@@ -45,7 +46,7 @@ namespace Osmium {
                 m_geos_geometry(area.geos_geometry()) {
                 if (!m_geos_geometry) {
                     Osmium::Geometry::Polygon polygon(m_way_node_list, false, area.id());
-                    m_geos_geometry = polygon.create_geos_geometry();
+                    m_geos_geometry = Osmium::Geometry::create_geos_geometry(polygon);
                 }
             }
 

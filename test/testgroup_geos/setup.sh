@@ -1,1 +1,1 @@
-FLAGS="-DOSMIUM_WITH_GEOS `geos-config --cflags` `geos-config --libs`"
+FLAGS="`geos-config --cflags` `geos-config --libs`"

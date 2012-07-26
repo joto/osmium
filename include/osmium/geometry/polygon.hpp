@@ -22,19 +22,10 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
-// XXX
-#define OSMIUM_WITH_GEOS
-#include <geos/geom/CoordinateSequence.h>
-#include <geos/geom/CoordinateSequenceFactory.h>
-#include <geos/geom/LinearRing.h>
-#include <geos/geom/Polygon.h>
-#include <geos/geom/MultiPolygon.h>
-
 #include <iomanip>
 #include <algorithm>
 
 #include <osmium/geometry/from_way.hpp>
-#include <osmium/geometry_factory.hpp>
 #include <osmium/exceptions.hpp>
 
 namespace Osmium {
@@ -101,29 +92,6 @@ namespace Osmium {
                 }
                 return out;
             }
-
-#ifdef OSMIUM_WITH_GEOS
-            /**
-             * Creates GEOS geometry of this Polygon.
-             *
-             * Caller takes ownership.
-             */
-            geos::geom::Geometry* create_geos_geometry() const {
-                std::vector<geos::geom::Coordinate>* c = new std::vector<geos::geom::Coordinate>;
-                if (reverse()) {
-                    for (Osmium::OSM::WayNodeList::const_reverse_iterator it = nodes().rbegin(); it != nodes().rend(); ++it) {
-                        c->push_back(Osmium::Geometry::create_geos_coordinate(it->position()));
-                    }
-                } else {
-                    for (Osmium::OSM::WayNodeList::const_iterator it = nodes().begin(); it != nodes().end(); ++it) {
-                        c->push_back(Osmium::Geometry::create_geos_coordinate(it->position()));
-                    }
-                }
-                geos::geom::CoordinateSequence* cs = Osmium::Geometry::geos_geometry_factory()->getCoordinateSequenceFactory()->create(c);
-                geos::geom::LinearRing* lr = Osmium::Geometry::geos_geometry_factory()->createLinearRing(cs);
-                return static_cast<geos::geom::Geometry*>(Osmium::Geometry::geos_geometry_factory()->createPolygon(lr, NULL));
-            }
-#endif // OSMIUM_WITH_GEOS
 
         }; // class Polygon
 

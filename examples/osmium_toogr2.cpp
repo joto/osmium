@@ -42,6 +42,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <osmium/multipolygon/assembler.hpp>
 #include <osmium/geometry/multipolygon.hpp>
 #include <osmium/geometry/ogr.hpp>
+#include <osmium/geometry/ogr_multipolygon.hpp>
 
 /* ================================================== */
 

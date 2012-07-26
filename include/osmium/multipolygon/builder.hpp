@@ -22,9 +22,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
-#define OSMIUM_COMPILE_WITH_CFLAGS_GEOS `geos-config --cflags`
-#define OSMIUM_LINK_WITH_LIBS_GEOS `geos-config --libs`
-
 #include <assert.h>
 #include <vector>
 #include <map>
@@ -62,13 +59,12 @@ using boost::make_shared;
 // this should come from /usr/include/geos/algorithm, but its missing there in some Ubuntu versions
 #include "../CGAlgorithms.h"
 
-#include <osmium/geometry_factory.hpp>
-
 #include <osmium/osm/way.hpp>
 #include <osmium/osm/area.hpp>
 #include <osmium/osm/relation.hpp>
 #include <osmium/geometry.hpp>
 #include <osmium/geometry/linestring.hpp>
+#include <osmium/geometry/geos.hpp>
 #include <osmium/relations/relation_info.hpp>
 
 namespace Osmium {
@@ -121,7 +117,7 @@ namespace Osmium {
                 lastnode(w->get_last_node_id()),
                 tried(false) {
                 Osmium::Geometry::LineString linestring(*w);
-                way_geom = linestring.create_geos_geometry();
+                way_geom = Osmium::Geometry::create_geos_geometry(linestring);
             }
 
             /** Special version with a synthetic way, not backed by real way object. */

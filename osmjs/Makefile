@@ -16,7 +16,7 @@ CXXFLAGS += -Wall -Wextra -Wredundant-decls -Wdisabled-optimization -pedantic
 #CXXFLAGS += -DOSMIUM_WITH_MULTIPOLYGON_PROFILING
 
 CXXFLAGS += -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
-CXXFLAGS += -DOSMIUM_WITH_GEOS $(shell geos-config --cflags)
+CXXFLAGS += $(shell geos-config --cflags)
 CXXFLAGS += -DOSMIUM_WITH_SHPLIB
 
 # Add this to force V8 garbage collection after each node/way/relation/area callback.

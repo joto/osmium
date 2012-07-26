@@ -26,12 +26,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <sstream>
 #include <iomanip>
 
-#ifdef OSMIUM_WITH_GEOS
-# include <geos/geom/Point.h>
-#endif // OSMIUM_WITH_GEOS
-
 #include <osmium/geometry.hpp>
-#include <osmium/geometry_factory.hpp>
 #include <osmium/osm/node.hpp>
 
 namespace Osmium {
@@ -91,17 +86,6 @@ namespace Osmium {
                 write_hex<double>(out, lat());
                 return out;
             }
-
-#ifdef OSMIUM_WITH_GEOS
-            /**
-             * Creates GEOS geometry of this Point.
-             *
-             * Caller takes ownership.
-             */
-            geos::geom::Point* create_geos_geometry() const {
-                return Osmium::Geometry::geos_geometry_factory()->createPoint(Osmium::Geometry::create_geos_coordinate(m_position));
-            }
-#endif // OSMIUM_WITH_GEOS
 
         private:
 

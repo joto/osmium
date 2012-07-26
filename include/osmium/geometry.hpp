@@ -24,11 +24,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <sstream>
 
-#ifdef OSMIUM_WITH_GEOS
-# include <geos/geom/GeometryFactory.h>
-# include <geos/geom/PrecisionModel.h>
-#endif // OSMIUM_WITH_GEOS
-
 #include <osmium/exceptions.hpp>
 #include <osmium/osm/types.hpp>
 
@@ -69,12 +64,6 @@ namespace Osmium {
             wkbXDR = 0,         // Big Endian
             wkbNDR = 1          // Little Endian
         };
-
-#ifdef OSMIUM_WITH_GEOS
-# ifndef OSMIUM_GEOMETRY_FACTORY_HPP
-        geos::geom::GeometryFactory* geos_geometry_factory();
-# endif
-#endif // OSMIUM_WITH_GEOS
 
         class Geometry;
 

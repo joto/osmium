@@ -22,23 +22,26 @@ check:
 
 # This will try to compile each include file on its own to detect missing
 # #include directives. Note that if this reports [OK], it is not enough
-# to be sure it will compile in production code. But if it reports [FAILED]
+# to be sure it will compile in production code. But if it reports an error
 # we know we are missing something.
 check-includes:
 	echo "CHECK INCLUDES REPORT:" >check-includes-report; \
+    allok=yes; \
 	for FILE in include/*.hpp include/*/*.hpp include/*/*/*.hpp include/*/*/*/*.hpp; do \
         flags=`./get_options.sh --cflags $${FILE}`; \
         eval eflags=$${flags}; \
         compile="g++ -I include $${eflags} $${FILE}"; \
         echo "\n======== $${FILE}\n$${compile}" >>check-includes-report; \
-        echo -n "$${FILE} "; \
         if `$${compile} 2>>check-includes-report`; then \
-            echo "[OK]"; \
+            echo "[OK] $${FILE}"; \
         else \
-            echo "[FAILED]"; \
+            echo "[  ] $${FILE}"; \
+            allok=no; \
         fi; \
         rm -f $${FILE}.gch; \
-	done
+	done; \
+    if test $${allok} = "yes"; then echo "All files OK"; else echo "There were errors"; fi; \
+    echo "\nDONE" >>check-includes-report
 
 indent:
 	astyle --style=java --indent-namespaces --indent-switches --pad-header --suffix=none --recursive include/\*.hpp examples/\*.cpp examples/\*.hpp osmjs/\*.cpp test/\*.cpp

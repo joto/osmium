@@ -32,7 +32,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <osmium/geometry/point.hpp>
 #include <osmium/geometry/linestring.hpp>
 #include <osmium/geometry/polygon.hpp>
-#include <osmium/geometry/multipolygon.hpp>
 
 namespace Osmium {
 
@@ -86,68 +85,6 @@ namespace Osmium {
             p->addRingDirectly(r);
             return p;
         }
-
-#ifdef OSMIUM_WITH_GEOS
-        inline void add_ring(OGRPolygon* ogrpolygon, const geos::geom::LineString* geosring) {
-            OGRLinearRing* ogrring = new OGRLinearRing;
-
-            const geos::geom::CoordinateSequence* cs = geosring->getCoordinatesRO();
-            ogrring->setNumPoints(cs->getSize());
-
-            for (size_t i = 0; i < cs->getSize(); ++i) {
-                ogrring->setPoint(i, cs->getX(i), cs->getY(i));
-            }
-
-            ogrpolygon->addRingDirectly(ogrring);
-        }
-
-        inline OGRPolygon* make_polygon(const geos::geom::Polygon* geospolygon) {
-            OGRPolygon* ogrpolygon = new OGRPolygon;
-
-            add_ring(ogrpolygon, geospolygon->getExteriorRing());
-            for (size_t i=0; i < geospolygon->getNumInteriorRing(); ++i) {
-                add_ring(ogrpolygon, geospolygon->getInteriorRingN(i));
-            }
-
-            return ogrpolygon;
-        }
-
-        /**
-         * Create OGR geometry of a MultiPolygon.
-         *
-         * Caller takes ownership.
-         */
-        inline OGRMultiPolygon* create_ogr_geometry(const Osmium::Geometry::MultiPolygon& multipolygon) {
-            OGRMultiPolygon* ogrmp = new OGRMultiPolygon;
-
-            if (multipolygon.geos_geometry()->getGeometryTypeId() == geos::geom::GEOS_POLYGON) {
-                OGRPolygon* ogrpolygon = make_polygon(dynamic_cast<const geos::geom::Polygon*>(multipolygon.geos_geometry()));
-
-                OGRErr result = ogrmp->addGeometryDirectly(ogrpolygon);
-                if (result != OGRERR_NONE) {
-                    throw Osmium::Exception::IllegalGeometry();
-                }
-                return ogrmp;
-            }
-
-            if (multipolygon.geos_geometry()->getGeometryTypeId() != geos::geom::GEOS_MULTIPOLYGON) {
-                throw Osmium::Exception::IllegalGeometry();
-            }
-
-            const geos::geom::GeometryCollection* geosgeom = dynamic_cast<const geos::geom::GeometryCollection*>(multipolygon.geos_geometry());
-            for (geos::geom::GeometryCollection::const_iterator it = geosgeom->begin(); it != geosgeom->end(); ++it) {
-
-                OGRPolygon* ogrpolygon = make_polygon(dynamic_cast<const geos::geom::Polygon*>(*it));
-
-                OGRErr result = ogrmp->addGeometryDirectly(ogrpolygon);
-                if (result != OGRERR_NONE) {
-                    throw Osmium::Exception::IllegalGeometry();
-                }
-            }
-
-            return ogrmp;
-        }
-#endif // OSMIUM_WITH_GEOS
 
     } // namespace Geometry
 
