@@ -291,6 +291,19 @@ namespace Osmium {
 
         public:
 
+            uint64_t used_memory() const {
+                std::cout << "m_relations.size() = " << m_relations.size() << "\n";
+                std::cout << "m_member_info[NODE].size() = " << m_member_infos[NODE].size() << "\n";
+                std::cout << "m_member_info[WAY].size() = " << m_member_infos[WAY].size() << "\n";
+                std::cout << "m_member_info[RELATION].size() = " << m_member_infos[RELATION].size() << std::endl;
+
+                uint64_t nmembers = m_member_infos[NODE].size() + m_member_infos[WAY].size() + m_member_infos[RELATION].size();
+                uint64_t relations = m_relations.size() * (sizeof(TRelationInfo) + sizeof(Osmium::OSM::Relation)) + nmembers * sizeof(Osmium::OSM::RelationMember); // plus tags
+                uint64_t members = (m_member_infos[0].size() + m_member_infos[1].size() + m_member_infos[2].size()) * sizeof(MemberInfo);
+
+                return relations + members;
+            }
+
             /**
              * This is the handler class for the first pass of the Assembler.
              */

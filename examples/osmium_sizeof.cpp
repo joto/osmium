@@ -34,6 +34,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <osmium/osm/way.hpp>
 #include <osmium/osm/relation.hpp>
 #include <osmium/osm/area.hpp>
+#include <osmium/relations/relation_info.hpp>
+#include <osmium/relations/assembler.hpp>
 
 int main() {
     std::cout << "sizeof(Osmium::OSM::Object)="           << sizeof(Osmium::OSM::Object) << "\n";
@@ -41,6 +43,9 @@ int main() {
     std::cout << "sizeof(Osmium::OSM::Way)="              << sizeof(Osmium::OSM::Way)              << "  (Object+" << sizeof(Osmium::OSM::Way)              - sizeof(Osmium::OSM::Object) << ")\n";
     std::cout << "sizeof(Osmium::OSM::Relation)="         << sizeof(Osmium::OSM::Relation)         << "  (Object+" << sizeof(Osmium::OSM::Relation)         - sizeof(Osmium::OSM::Object) << ")\n";
     std::cout << "sizeof(Osmium::OSM::Area)="             << sizeof(Osmium::OSM::Area)             << "  (Object+" << sizeof(Osmium::OSM::Area)             - sizeof(Osmium::OSM::Object) << ")\n";
+
+    std::cout << "sizeof(Osmium::Relations::RelationInfo)=" << sizeof(Osmium::Relations::RelationInfo) << "\n";
+    std::cout << "sizeof(Osmium::Relations::MemberInfo)="   << sizeof(Osmium::Relations::MemberInfo) << "\n";
 
     std::cout << "sizeof(OSMPBF::BlobHeader)="     << sizeof(OSMPBF::BlobHeader)     << "\n";
     std::cout << "sizeof(OSMPBF::Blob)="           << sizeof(OSMPBF::Blob)           << "\n";

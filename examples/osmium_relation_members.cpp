@@ -115,7 +115,12 @@ int main(int argc, char *argv[]) {
     DebugRelationsAssembler assembler;
 
     Osmium::OSMFile infile(argv[1]);
+
+    std::cout << "First pass (reading relations)..." << std::endl;
     Osmium::Input::read(infile, assembler.handler_pass1());
+    std::cout << "Used memory: " << assembler.used_memory() / (1024 * 1024) << " MB" << std::endl;
+
+    std::cout << "Second pass (reading members)..." << std::endl;
     Osmium::Input::read(infile, assembler.handler_pass2());
 }
 
