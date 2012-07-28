@@ -37,6 +37,10 @@ namespace Osmium {
         WithDebugLevel() : m_debug_level(0) {
         }
 
+        // Destructor is not virtual as this class is not intended to be used polymorphically
+        ~WithDebugLevel() {
+        }
+
         int debug_level() const {
             return m_debug_level;
         }

@@ -70,6 +70,10 @@ namespace Osmium {
             Base() : Osmium::WithDebugLevel() {
             }
 
+            // Destructor is not virtual as this class is not intended to be used polymorphically
+            ~Base() {
+            }
+
             void init(Osmium::OSM::Meta&) const {
             }
 
