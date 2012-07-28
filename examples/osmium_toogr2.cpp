@@ -30,6 +30,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <iostream>
 
+#include <ogr_api.h>
 #include <ogrsf_frmts.h>
 
 #define OSMIUM_WITH_PBF_INPUT
@@ -90,6 +91,7 @@ public:
 
     ~OGROutHandler() {
         OGRDataSource::DestroyDataSource(m_data_source);
+        OGRCleanupAll();
     }
 
     void area(const shared_ptr<Osmium::OSM::Area const>& area) {
@@ -150,6 +152,7 @@ int main(int argc, char *argv[]) {
 
     std::cerr << "First pass...\n";
     Osmium::Input::read(infile, assembler.handler_pass1());
+    std::cout << "Used memory: " << assembler.used_memory() / (1024 * 1024) << " MB" << std::endl;
 
     std::cerr << "Second pass...\n";
     Osmium::Input::read(infile, sequence_handler);

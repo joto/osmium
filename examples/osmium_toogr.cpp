@@ -29,6 +29,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <iostream>
 #include <getopt.h>
 
+#include <ogr_api.h>
 #include <ogrsf_frmts.h>
 
 #define OSMIUM_WITH_PBF_INPUT
@@ -132,6 +133,7 @@ public:
     ~MyOGRHandler() {
         OGRDataSource::DestroyDataSource(m_data_source);
         delete handler_cfw;
+        OGRCleanupAll();
     }
 
     void init(Osmium::OSM::Meta& meta) {
@@ -269,5 +271,7 @@ int main(int argc, char *argv[]) {
     Osmium::OSMFile infile(input_filename);
     MyOGRHandler handler(output_format, output_filename);
     Osmium::Input::read(infile, handler);
+
+    google::protobuf::ShutdownProtobufLibrary();
 }
 
