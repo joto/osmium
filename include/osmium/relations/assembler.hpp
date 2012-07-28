@@ -292,14 +292,24 @@ namespace Osmium {
         public:
 
             uint64_t used_memory() const {
-                std::cout << "m_relations.size() = " << m_relations.size() << "\n";
-                std::cout << "m_member_info[NODE].size() = " << m_member_infos[NODE].size() << "\n";
-                std::cout << "m_member_info[WAY].size() = " << m_member_infos[WAY].size() << "\n";
-                std::cout << "m_member_info[RELATION].size() = " << m_member_infos[RELATION].size() << std::endl;
-
                 uint64_t nmembers = m_member_infos[NODE].size() + m_member_infos[WAY].size() + m_member_infos[RELATION].size();
                 uint64_t relations = m_relations.size() * (sizeof(TRelationInfo) + sizeof(Osmium::OSM::Relation)) + nmembers * sizeof(Osmium::OSM::RelationMember); // plus tags
-                uint64_t members = (m_member_infos[0].size() + m_member_infos[1].size() + m_member_infos[2].size()) * sizeof(MemberInfo);
+                uint64_t members = nmembers * sizeof(MemberInfo);
+
+                std::cout << "nR  = m_relations.size()             = " << m_relations.size() << "\n";
+                std::cout << "nMN = m_member_info[NODE].size()     = " << m_member_infos[NODE].size() << "\n";
+                std::cout << "nMW = m_member_info[WAY].size()      = " << m_member_infos[WAY].size() << "\n";
+                std::cout << "nMR = m_member_info[RELATION].size() = " << m_member_infos[RELATION].size() << "\n";
+                std::cout << "nM  = m_member_info[*].size()        = " << nmembers << "\n";
+
+                std::cout << "sRI = sizeof(TRelationInfo)  = " << sizeof(TRelationInfo) << "\n";
+                std::cout << "sR  = sizeof(Relation)       = " << sizeof(Osmium::OSM::Relation) << "\n";
+                std::cout << "sRM = sizeof(RelationMember) = " << sizeof(Osmium::OSM::RelationMember) << "\n";
+                std::cout << "sMI = sizeof(MemberInfo)     = " << sizeof(MemberInfo) << "\n";
+
+                std::cout << "nR * (sRI + sR) = " << m_relations.size() * (sizeof(TRelationInfo) + sizeof(Osmium::OSM::Relation)) << "\n";
+                std::cout << "nM * sRM        = " << nmembers * sizeof(Osmium::OSM::RelationMember) << "\n";
+                std::cout << "nM * sMI        = " << nmembers * sizeof(MemberInfo) << "\n";
 
                 return relations + members;
             }
