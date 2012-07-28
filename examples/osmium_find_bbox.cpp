@@ -50,5 +50,7 @@ int main(int argc, char *argv[]) {
               << " minlat=" << b.bl().lat()
               << " maxlon=" << b.tr().lon()
               << " maxlat=" << b.tr().lat() << std::endl;
+
+    google::protobuf::ShutdownProtobufLibrary();
 }
 

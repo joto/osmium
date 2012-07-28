@@ -56,5 +56,7 @@ int main(int argc, char *argv[]) {
     Osmium::Handler::Debug handler;
 #endif // OSMIUM_DEBUG_WITH_ENDTIME
     Osmium::Input::read(infile, handler);
+
+    google::protobuf::ShutdownProtobufLibrary();
 }
 

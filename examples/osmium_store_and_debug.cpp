@@ -49,5 +49,7 @@ int main(int argc, char *argv[]) {
     Osmium::OSM::Meta meta;
     Osmium::Storage::ObjectStore::ApplyHandler<Osmium::Handler::Debug> ah(os, debug, meta);
     Osmium::Input::read(infile2, ah);
+
+    google::protobuf::ShutdownProtobufLibrary();
 }
 

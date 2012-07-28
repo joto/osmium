@@ -48,5 +48,7 @@ int main(int argc, char *argv[]) {
     Osmium::Handler::RangeFromHistory<Osmium::Output::Base> range_handler(Osmium::Output::open(outfile), time(0), time(0));
     Osmium::Handler::EndTime<Osmium::Handler::RangeFromHistory<Osmium::Output::Base> > handler(&range_handler);
     Osmium::Input::read(infile, handler);
+
+    google::protobuf::ShutdownProtobufLibrary();
 }
 

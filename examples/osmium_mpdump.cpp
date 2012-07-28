@@ -102,5 +102,7 @@ int main(int argc, char *argv[]) {
 
     std::cerr << "Second pass...\n";
     Osmium::Input::read(infile, sequence_handler);
+
+    google::protobuf::ShutdownProtobufLibrary();
 }
 

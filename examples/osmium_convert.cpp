@@ -145,5 +145,7 @@ int main(int argc, char *argv[]) {
     Osmium::Input::read(infile, sequence_handler);
 
     delete out;
+
+    google::protobuf::ShutdownProtobufLibrary();
 }
 

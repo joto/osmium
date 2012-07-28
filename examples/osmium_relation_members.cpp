@@ -122,5 +122,7 @@ int main(int argc, char *argv[]) {
 
     std::cout << "Second pass (reading members)..." << std::endl;
     Osmium::Input::read(infile, assembler.handler_pass2());
+
+    google::protobuf::ShutdownProtobufLibrary();
 }
 

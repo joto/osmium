@@ -79,5 +79,7 @@ int main(int argc, char *argv[]) {
     struct tms tms;
     times(&tms);
     std::cout << "user time: " << ((double)tms.tms_utime) / sysconf(_SC_CLK_TCK) << "s   system time: " << ((double)tms.tms_stime) / sysconf(_SC_CLK_TCK) << "s  wallclock time: " << time(NULL) - t0 << "s" << std::endl;
+
+    google::protobuf::ShutdownProtobufLibrary();
 }
 

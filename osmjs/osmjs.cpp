@@ -272,5 +272,7 @@ int main(int argc, char *argv[]) {
     delete store_pos;
 
     global_context.Dispose();
+
+    google::protobuf::ShutdownProtobufLibrary();
 }
 

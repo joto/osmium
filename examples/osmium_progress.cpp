@@ -44,5 +44,7 @@ int main(int argc, char *argv[]) {
     Osmium::OSMFile infile(argv[1]);
     Osmium::Handler::Progress handler;
     Osmium::Input::read(infile, handler);
+
+    google::protobuf::ShutdownProtobufLibrary();
 }
 

@@ -122,5 +122,7 @@ int main(int argc, char *argv[]) {
     Osmium::OSMFile infile(argv[1]);
     NodeDensityHandler handler(size, min, max);
     Osmium::Input::read(infile, handler);
+
+    google::protobuf::ShutdownProtobufLibrary();
 }
 
