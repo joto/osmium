@@ -20,6 +20,8 @@ install: doc
 check:
 	cppcheck --enable=all -I include */*.cpp test/*/test_*.cpp
 
+WARNINGFLAGS = -Wall -Wextra -Wredundant-decls -Wdisabled-optimization -pedantic -Wctor-dtor-privacy -Wnon-virtual-dtor -Woverloaded-virtual -Wsign-promo -Wno-long-long -Winline -Weffc++ -Wold-style-cast
+
 # This will try to compile each include file on its own to detect missing
 # #include directives. Note that if this reports [OK], it is not enough
 # to be sure it will compile in production code. But if it reports an error
@@ -30,7 +32,7 @@ check-includes:
 	for FILE in include/*.hpp include/*/*.hpp include/*/*/*.hpp include/*/*/*/*.hpp; do \
         flags=`./get_options.sh --cflags $${FILE}`; \
         eval eflags=$${flags}; \
-        compile="g++ -I include $${eflags} $${FILE}"; \
+        compile="g++ $(WARNINGFLAGS) -I include $${eflags} $${FILE}"; \
         echo "\n======== $${FILE}\n$${compile}" >>check-includes-report; \
         if `$${compile} 2>>check-includes-report`; then \
             echo "[OK] $${FILE}"; \
