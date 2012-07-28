@@ -39,7 +39,6 @@ namespace Osmium {
                 m_ref(0),
                 m_type('x'),
                 m_role() {
-                m_role[0] = '\0';
             }
 
             static const int max_characters_role = 255;
@@ -80,13 +79,14 @@ namespace Osmium {
             }
 
             const char *role() const {
-                return m_role;
+                return m_role.c_str();
             }
 
             RelationMember& role(const char* role) {
-                if (! memccpy(m_role, role, 0, max_length_role)) {
+                if (strlen(role) > max_length_role) {
                     throw std::length_error("role too long");
                 }
+                m_role = role;
                 return *this;
             }
 
@@ -94,7 +94,7 @@ namespace Osmium {
 
             osm_object_id_t m_ref;
             char            m_type;
-            char            m_role[max_length_role];
+            std::string     m_role;
 
         }; // class RelationMember
 

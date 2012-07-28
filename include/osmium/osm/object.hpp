@@ -27,6 +27,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 */
 
 #include <cstdlib>
+#include <string>
 #include <stdexcept>
 #include <assert.h>
 #include <time.h>
@@ -176,7 +177,7 @@ namespace Osmium {
              * @return Pointer to internal buffer with user name.
              */
             const char* user() const {
-                return m_user;
+                return m_user.c_str();
             }
 
             /**
@@ -185,10 +186,10 @@ namespace Osmium {
              * @exception std::length_error Thrown when the username contains more than max_characters_username (255 UTF-8 characters). When the exception is thrown the username is set to "".
              */
             Object& user(const char* user) {
-                if (! memccpy(m_user, user, 0, max_length_username)) {
-                    m_user[0] = '\0';
+                if (strlen(user) > max_length_username) {
                     throw std::length_error("user name too long");
                 }
+                m_user = user;
                 return *this;
             }
 
@@ -269,21 +270,21 @@ namespace Osmium {
                 m_timestamp(0),
                 m_endtime(0),
                 m_uid(-1), // to be compatible with Osmosis we use -1 for unknown user id
+                m_user(),
                 m_visible(true),
                 m_tags() {
-                m_user[0] = '\0';
             }
 
             Object(const Object &o) {
                 m_id        = o.m_id;
                 m_version   = o.m_version;
                 m_uid       = o.m_uid;
+                m_user      = o.m_user;
                 m_changeset = o.m_changeset;
                 m_timestamp = o.m_timestamp;
                 m_endtime   = o.m_endtime;
                 m_tags      = o.m_tags;
                 m_visible   = o.m_visible;
-                strncpy(m_user, o.m_user, max_length_username);
             }
 
             virtual ~Object() {
@@ -297,7 +298,7 @@ namespace Osmium {
             time_t             m_timestamp;   ///< when this object changed last
             time_t             m_endtime;     ///< when this object version was replaced by a new one
             osm_user_id_t      m_uid;         ///< user id of user who last changed this object
-            char m_user[max_length_username]; ///< name of user who last changed this object
+            std::string        m_user;        ///< name of user who last changed this object
             bool               m_visible;     ///< object visible (only when working with history data)
 
             TagList m_tags;
