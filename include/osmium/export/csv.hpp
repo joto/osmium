@@ -34,8 +34,8 @@ namespace Osmium {
 
             std::ofstream out;
 
-            CSV(const char *filename) {
-                out.open(filename);
+            CSV(const char* filename) :
+                out(filename) {
             }
 
             ~CSV() {

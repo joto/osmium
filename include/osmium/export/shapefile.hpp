@@ -107,7 +107,7 @@ namespace Osmium {
             void add_field(Field& field) {
                 if (m_fields.size() < max_dbf_fields) {
                     int field_num = DBFAddField(m_dbf_handle, field.name().c_str(), field.type(), field.width(), field.decimals());
-                    if (field_num != (int)m_fields.size()) {
+                    if (field_num != static_cast<int>(m_fields.size())) {
                         throw std::runtime_error("Failed to add field:" + field.name());
                     }
                     m_fields.push_back(field);
@@ -258,7 +258,14 @@ namespace Osmium {
              * The constructor for Shapefile is protected. Use one of
              * PointShapefile, LineShapefile, or PolygonShapefile.
              */
-            Shapefile(const std::string& filename, int type) : m_filename_base(filename), m_fields(), m_type(type), m_sequence_number(0) {
+            Shapefile(const std::string& filename, int type) :
+                m_filename_base(filename),
+                m_fields(),
+                m_shp_handle(NULL),
+                m_dbf_handle(NULL),
+                m_current_shape(0),
+                m_type(type),
+                m_sequence_number(0) {
                 open();
             }
 
