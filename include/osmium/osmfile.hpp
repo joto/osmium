@@ -412,12 +412,12 @@ namespace Osmium {
          *                 of the file will be taken from the suffix.
          *                 An empty filename or "-" means stdin or stdout.
          */
-        OSMFile(const std::string& filename = "")
-            : m_type(FileType::OSM()),
-              m_encoding(FileEncoding::PBF()),
-              m_filename(filename),
-              m_fd(-1),
-              m_childpid(0) {
+        OSMFile(const std::string& filename = "") :
+            m_type(FileType::OSM()),
+            m_encoding(FileEncoding::PBF()),
+            m_filename(filename),
+            m_fd(-1),
+            m_childpid(0) {
 
             // stdin/stdout
             if (filename == "" || filename == "-") {
@@ -489,12 +489,12 @@ namespace Osmium {
          * Only attributes not related to the open file will be
          * copied.
          */
-        OSMFile(const OSMFile& orig) {
-            m_fd       = -1;
-            m_childpid = 0;
-            m_type     = orig.type();
-            m_encoding = orig.encoding();
-            m_filename = orig.filename();
+        OSMFile(const OSMFile& orig) :
+            m_type(orig.type()),
+            m_encoding(orig.encoding()),
+            m_filename(orig.filename()),
+            m_fd(-1),
+            m_childpid(0) {
         }
 
         /**
