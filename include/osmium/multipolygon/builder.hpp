@@ -82,7 +82,6 @@ namespace Osmium {
             int used;
             int sequence;
             bool invert;
-            bool duplicate;
             innerouter_t innerouter;
             innerouter_t orig_innerouter;
             geos::geom::Geometry* way_geom;
@@ -95,7 +94,6 @@ namespace Osmium {
                 used(-1),
                 sequence(0),
                 invert(false),
-                duplicate(false),
                 innerouter(UNSET),
                 orig_innerouter(UNSET),
                 way_geom(NULL),
@@ -109,7 +107,6 @@ namespace Osmium {
                 used(-1),
                 sequence(0),
                 invert(false),
-                duplicate(false),
                 innerouter(UNSET),
                 orig_innerouter(io),
                 way_geom(NULL),
@@ -126,7 +123,6 @@ namespace Osmium {
                 used(-1),
                 sequence(0),
                 invert(false),
-                duplicate(false),
                 innerouter(UNSET),
                 orig_innerouter(io),
                 way_geom(geom),
@@ -163,18 +159,14 @@ namespace Osmium {
             direction_t direction;
             std::vector<WayInfo*> ways;
             std::vector<RingInfo*> inner_rings;
-            bool nested;
             RingInfo* contained_by;
-            int ring_id;
 
             RingInfo() :
                 polygon(NULL),
                 direction(NO_DIRECTION),
                 ways(),
                 inner_rings(),
-                nested(false),
-                contained_by(NULL),
-                ring_id(-1) {
+                contained_by(NULL) {
             }
 
         }; // class RingInfo
@@ -687,7 +679,6 @@ namespace Osmium {
                     RingInfo* r = make_one_ring(ways, 0, 0, ringlist.size(), 0);
                     STOP_TIMER(make_one_ring);
                     if (r == NULL) break;
-                    r->ring_id = ringlist.size();
                     ringlist.push_back(r);
                 } while (1);
 
@@ -708,7 +699,6 @@ namespace Osmium {
                     RingInfo* r = make_one_ring(ways, 0, 0, ringlist.size(), 0);
                     STOP_TIMER(make_one_ring);
                     if (r == NULL) break;
-                    r->ring_id = ringlist.size();
                     ringlist.push_back(r);
                 } while (true);
 
@@ -772,7 +762,6 @@ namespace Osmium {
                                     // intermediary relationship exists; break this
                                     // one up.
                                     contains[i][j] = false;
-                                    ringlist[j]->nested = true;
                                     break;
                                 }
                             }
