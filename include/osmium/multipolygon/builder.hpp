@@ -330,9 +330,8 @@ namespace Osmium {
              */
             std::vector< shared_ptr<Osmium::OSM::Area> >& build() {
                 try {
-                    if (build_multipolygon()) {
-                        m_areas.push_back(m_new_area);
-                    }
+                    build_multipolygon();
+                    m_areas.push_back(m_new_area);
                 } catch (BuildError& error) {
                     std::cerr << "Building multipolygon based on relation " << m_relation_info.relation()->id() << " failed: " << error.what() << "\n";
                 }
@@ -700,21 +699,21 @@ namespace Osmium {
                 STOP_TIMER(assemble_ways);
             }
 
-            /**
-            * Tries to build a multipolygon.
-            */
-            bool build_multipolygon() {
-                std::vector<WayInfo*> ways;
-
-                assemble_ways(ways);
-
-                std::vector<RingInfo*> ringlist;
-
                 // convenience defines to aid in clearing up on error return.
 #define clear_ringlist() \
                 for (std::vector<RingInfo*>::const_iterator rli(ringlist.begin()); rli != ringlist.end(); ++rli) delete *rli;
 #define clear_wayinfo() \
                 for (std::vector<WayInfo*>::const_iterator win(ways.begin()); win != ways.end(); ++win) delete *win;
+
+            /**
+            * Tries to build a multipolygon.
+            */
+            void build_multipolygon() {
+                std::vector<WayInfo*> ways;
+
+                assemble_ways(ways);
+
+                std::vector<RingInfo*> ringlist;
 
                 // try and create as many closed rings as possible from the assortment
                 // of ways. make_one_ring will automatically flag those that have been
@@ -726,7 +725,7 @@ namespace Osmium {
                     STOP_TIMER(make_one_ring);
                     if (r == NULL) break;
                     ringlist.push_back(r);
-                } while (1);
+                } while (true);
 
                 if (ringlist.empty()) {
                     // FIXME throw NoRings("no rings");
@@ -1030,7 +1029,7 @@ namespace Osmium {
                 STOP_TIMER(multipolygon_build);
                 if (valid) {
                     m_new_area->geos_geometry(mp);
-                    return true;
+                    return;
                 }
                 throw InvalidMultiPolygon("multipolygon invalid");
             }
