@@ -129,7 +129,6 @@ namespace Osmium {
             geos::geom::Geometry* way_geom;
             int firstnode;
             int lastnode;
-            bool tried;
 
             WayInfo() :
                 way(),
@@ -139,8 +138,7 @@ namespace Osmium {
                 innerouter(UNSET),
                 way_geom(NULL),
                 firstnode(-1),
-                lastnode(-1),
-                tried(false) {
+                lastnode(-1) {
             }
 
             WayInfo(const shared_ptr<Osmium::OSM::Way const>& w) :
@@ -151,8 +149,7 @@ namespace Osmium {
                 innerouter(UNSET),
                 way_geom(NULL),
                 firstnode(w->get_first_node_id()),
-                lastnode(w->get_last_node_id()),
-                tried(false) {
+                lastnode(w->get_last_node_id()) {
                 Osmium::Geometry::LineString linestring(*w);
                 way_geom = Osmium::Geometry::create_geos_geometry(linestring);
             }
@@ -166,8 +163,7 @@ namespace Osmium {
                 innerouter(UNSET),
                 way_geom(geom),
                 firstnode(first),
-                lastnode(last),
-                tried(false) {
+                lastnode(last) {
             }
 
             ~WayInfo() {
@@ -518,34 +514,23 @@ namespace Osmium {
             }
 
             /**
-            * Tries to collect 1...n ways from the n ways in the given list so that
-            * they form a closed ring. If this is possible, flag those as being used
-            * by ring #ringcount in the way list and return the geometry. (The method
-            * may be called again to find further rings.) If this is not possible,
-            * return NULL.
-            */
+             * Try extending a proto-ring recursively until it is complete.
+             */
             shared_ptr<RingInfo> complete_ring(std::vector<WayInfo*>& ways, osm_object_id_t first, osm_object_id_t last, int ringcount, int sequence) const {
 
-                // Is the ring closed already?
+                // is the ring closed already?
                 if (first == last) {
                     return ring_is_complete(ways, ringcount, sequence);
                 }
 
                 // try extending our current line at the rear end
-                // since we are looking for a LOOP, no sense to try extending it at both ends
-                // as we'll eventually get there anyway!
-
-                for (unsigned int i=0; i<ways.size(); ++i) {
-                    if (ways[i]->used < 0) ways[i]->tried = false;
-                }
-
                 for (unsigned int i=0; i<ways.size(); ++i) {
                     // ignore used ways
                     if (ways[i]->used >= 0) continue;
-                    if (ways[i]->tried) continue;
-                    ways[i]->tried = true;
 
+                    // remember old used state in case we have to backtrack
                     int old_used = ways[i]->used;
+
                     if (ways[i]->firstnode == last) {
                         // add way to end
                         ways[i]->used = ringcount;
@@ -570,7 +555,8 @@ namespace Osmium {
                         ways[i]->used = old_used;
                     }
                 }
-                // we have exhausted all combinations.
+
+                // we have exhausted all combinations
                 return shared_ptr<RingInfo>();
             }
 
