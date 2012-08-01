@@ -745,18 +745,7 @@ namespace Osmium {
                 }
             }
 
-            /**
-            * Tries to build a multipolygon.
-            */
-            void build_multipolygon() {
-                std::vector<WayInfo*> ways;
-
-                assemble_ways(ways);
-
-                std::vector<RingInfo*> ringlist;
-
-                make_rings(ringlist, ways);
-
+            void determine_inner_outer_rings(std::vector<RingInfo*>& ringlist) const {
                 // find out which ring contains which other ring, so we know
                 // which are inner rings and which outer. don't trust the "role"
                 // specifications.
@@ -831,6 +820,21 @@ namespace Osmium {
                 delete[] contains;
                 delete[] contained_by_even_number;
                 STOP_TIMER(contains);
+            }
+
+            /**
+            * Tries to build a multipolygon.
+            */
+            void build_multipolygon() {
+                std::vector<WayInfo*> ways;
+
+                assemble_ways(ways);
+
+                std::vector<RingInfo*> ringlist;
+
+                make_rings(ringlist, ways);
+
+                determine_inner_outer_rings(ringlist);
 
                 // now look at all enclosed (inner) rings that consist of only one way.
                 // if such an inner ring has way tags, do the following:
