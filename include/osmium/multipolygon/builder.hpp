@@ -121,7 +121,7 @@ namespace Osmium {
 
             friend class Builder;
 
-            const Osmium::OSM::Way* way;
+            const shared_ptr<Osmium::OSM::Way const> way;
             int used;
             int sequence;
             bool invert;
@@ -133,7 +133,7 @@ namespace Osmium {
             bool tried;
 
             WayInfo() :
-                way(NULL),
+                way(),
                 used(-1),
                 sequence(0),
                 invert(false),
@@ -145,7 +145,7 @@ namespace Osmium {
                 tried(false) {
             }
 
-            WayInfo(const Osmium::OSM::Way* w, innerouter_t io) :
+            WayInfo(const shared_ptr<Osmium::OSM::Way const>& w, innerouter_t io) :
                 way(w),
                 used(-1),
                 sequence(0),
@@ -162,7 +162,7 @@ namespace Osmium {
 
             /** Special version with a synthetic way, not backed by real way object. */
             WayInfo(geos::geom::Geometry* geom, int first, int last, innerouter_t io) :
-                way(NULL),
+                way(),
                 used(-1),
                 sequence(0),
                 invert(false),
@@ -687,7 +687,7 @@ namespace Osmium {
                 START_TIMER(assemble_ways);
 
                 BOOST_FOREACH(const shared_ptr<Osmium::OSM::Object const>& object, m_relation_info.members()) {
-                    const Osmium::OSM::Way* way = dynamic_cast<const Osmium::OSM::Way*>(object.get());
+                    const shared_ptr<Osmium::OSM::Way const> way = static_pointer_cast<Osmium::OSM::Way const>(object);
 
                     if (way->timestamp() > m_new_area->timestamp()) {
                         m_new_area->timestamp(way->timestamp());
@@ -833,7 +833,7 @@ namespace Osmium {
                 int outer_ring_count = 0;
                 for (unsigned int i=0; i<ringlist.size(); ++i) {
                     if (ringlist[i]->is_inner()) {
-                        if (ringlist[i]->ways.size() == 1 && !untagged(ringlist[i]->ways[0]->way)) {
+                        if (ringlist[i]->ways.size() == 1 && !untagged(ringlist[i]->ways[0]->way.get())) {
                             std::vector<geos::geom::Geometry*>* g = new std::vector<geos::geom::Geometry*>;
                             if (ringlist[i]->direction == CLOCKWISE) {
                                 g->push_back(ringlist[i]->polygon->clone());
@@ -847,10 +847,10 @@ namespace Osmium {
 
                             geos::geom::MultiPolygon* special_mp = Osmium::Geometry::geos_geometry_factory()->createMultiPolygon(g);
 
-                            if (same_tags(ringlist[i]->ways[0]->way, m_new_area.get())) {
+                            if (same_tags(ringlist[i]->ways[0]->way.get(), m_new_area.get())) {
                                 // warning
                                 // warnings.insert("duplicate_tags_on_inner");
-                            } else if (ringlist[i]->contained_by.lock()->ways.size() == 1 && same_tags(ringlist[i]->ways[0]->way, ringlist[i]->contained_by.lock()->ways[0]->way)) {
+                            } else if (ringlist[i]->contained_by.lock()->ways.size() == 1 && same_tags(ringlist[i]->ways[0]->way.get(), ringlist[i]->contained_by.lock()->ways[0]->way.get())) {
                                 // warning
                                 // warnings.insert("duplicate_tags_on_inner");
                             } else {
@@ -994,20 +994,20 @@ namespace Osmium {
                             // may have "hole filler" ways in there, not backed by
                             // proper way and thus no tags:
                             if (wi->way == NULL) continue;
-                            if (untagged(wi->way)) {
+                            if (untagged(wi->way.get())) {
                                 // way not tagged - ok
-                            } else if (same_tags(m_new_area.get(), wi->way)) {
+                            } else if (same_tags(m_new_area.get(), wi->way.get())) {
                                 // way tagged the same as relation/previous ways, ok
                             } else if (untagged(m_new_area.get())) {
                                 // relation untagged; use tags from way; ok
-                                merge_tags(wi->way);
+                                merge_tags(wi->way.get());
                             } else {
                                 // this is grey-area terrain in OSM - we have tags on
                                 // the relation and a different set of tags on the outer
                                 // way(s). Use tags from outer ring only if there is
                                 // only one outer ring and it has only one way.
                                 if (outer_ring_count == 1 && ringlist[i]->ways.size() == 1) {
-                                    merge_tags(wi->way);
+                                    merge_tags(wi->way.get());
                                 }
                             }
 
