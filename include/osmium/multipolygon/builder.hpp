@@ -28,6 +28,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <stdexcept>
 
 #include <boost/foreach.hpp>
+#include <boost/dynamic_bitset.hpp>
+#include <boost/scoped_ptr.hpp>
 #include <boost/make_shared.hpp>
 using boost::make_shared;
 
@@ -742,38 +744,33 @@ namespace Osmium {
                 }
             }
 
+            /**
+             * Find out which ring contains which other ring, so we know
+             * which are inner rings and which outer. Don't trust the "role"
+             * specifications.
+             */
             void determine_inner_outer_rings(std::vector<RingInfo*>& ringlist) const {
-                // find out which ring contains which other ring, so we know
-                // which are inner rings and which outer. don't trust the "role"
-                // specifications.
-
                 START_TIMER(contains);
 
-                bool** contains = new bool*[ringlist.size()];
-                bool* contained_by_even_number = new bool[ringlist.size()];
+                typedef boost::dynamic_bitset<> bs_t;
 
-                // reset array
-                for (unsigned int i=0; i<ringlist.size(); ++i) {
-                    contains[i] = new bool[ringlist.size()];
-                    contained_by_even_number[i] = true;
-                    for (unsigned int j=0; j<ringlist.size(); ++j) {
-                        contains[i][j] = false;
-                    }
-                }
+                std::vector<bs_t> contains(ringlist.size(), bs_t(ringlist.size()));
+
+                bs_t contained_by_even_number(ringlist.size());
+                contained_by_even_number.set();
 
                 // build contains relationships.
                 // we use contained_by_even_number as a helper for us to determine
                 // whether something is an inner (false) or outer (true) ring.
 
                 for (unsigned int i=0; i<ringlist.size(); ++i) {
-                    const geos::geom::prep::PreparedPolygon* pp = new geos::geom::prep::PreparedPolygon(ringlist[i]->polygon);
+                    const boost::scoped_ptr<geos::geom::prep::PreparedPolygon> pp(new geos::geom::prep::PreparedPolygon(ringlist[i]->polygon));
                     for (unsigned int j=0; j<ringlist.size(); ++j) {
                         if (i==j) continue;
                         if (contains[j][i]) continue;
                         contains[i][j] = pp->contains(ringlist[j]->polygon);
                         contained_by_even_number[j] ^= contains[i][j];
                     }
-                    delete pp;
                 }
 
                 // we now have an array that has a true value whenever something is
@@ -811,11 +808,8 @@ namespace Osmium {
                             ringlist[i]->inner_rings.push_back(ringlist[j]);
                         }
                     }
-                    delete[] contains[i];
                 }
 
-                delete[] contains;
-                delete[] contained_by_even_number;
                 STOP_TIMER(contains);
             }
 
