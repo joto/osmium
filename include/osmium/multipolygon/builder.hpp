@@ -126,7 +126,6 @@ namespace Osmium {
             int sequence;
             bool invert;
             innerouter_t innerouter;
-            innerouter_t orig_innerouter;
             geos::geom::Geometry* way_geom;
             int firstnode;
             int lastnode;
@@ -138,20 +137,18 @@ namespace Osmium {
                 sequence(0),
                 invert(false),
                 innerouter(UNSET),
-                orig_innerouter(UNSET),
                 way_geom(NULL),
                 firstnode(-1),
                 lastnode(-1),
                 tried(false) {
             }
 
-            WayInfo(const shared_ptr<Osmium::OSM::Way const>& w, innerouter_t io) :
+            WayInfo(const shared_ptr<Osmium::OSM::Way const>& w) :
                 way(w),
                 used(-1),
                 sequence(0),
                 invert(false),
                 innerouter(UNSET),
-                orig_innerouter(io),
                 way_geom(NULL),
                 firstnode(w->get_first_node_id()),
                 lastnode(w->get_last_node_id()),
@@ -161,13 +158,12 @@ namespace Osmium {
             }
 
             /** Special version with a synthetic way, not backed by real way object. */
-            WayInfo(geos::geom::Geometry* geom, int first, int last, innerouter_t io) :
+            WayInfo(geos::geom::Geometry* geom, int first, int last) :
                 way(),
                 used(-1),
                 sequence(0),
                 invert(false),
                 innerouter(UNSET),
-                orig_innerouter(io),
                 way_geom(geom),
                 firstnode(first),
                 lastnode(last),
@@ -667,7 +663,7 @@ namespace Osmium {
                         c->push_back(*(node2->getCoordinate()));
                         geos::geom::CoordinateSequence* cs = Osmium::Geometry::geos_geometry_factory()->getCoordinateSequenceFactory()->create(c);
                         geos::geom::Geometry* geometry = (geos::geom::Geometry*) Osmium::Geometry::geos_geometry_factory()->createLineString(cs);
-                        ways->push_back(new WayInfo(geometry, node1_id, mindist_id, UNSET));
+                        ways->push_back(new WayInfo(geometry, node1_id, mindist_id));
                         std::cerr << "fill gap between nodes " << node1_id << " and " << mindist_id << std::endl;
                     } else {
                         break;
@@ -693,7 +689,7 @@ namespace Osmium {
                         m_new_area->timestamp(way->timestamp());
                     }
 
-                    WayInfo* wi = new WayInfo(way, UNSET);
+                    WayInfo* wi = new WayInfo(way);
                     if (!wi->way_geom) {
                         delete wi;
                         throw InvalidWayGeometry("Invalid way geometry in multipolygon relation member");
@@ -1012,9 +1008,6 @@ namespace Osmium {
                             }
 
                             wi->innerouter = OUTER;
-                            if (wi->orig_innerouter == INNER) {
-                                // warning: inner/outer mismatch
-                            }
                         }
                     }
                     // later delete ringlist[i];
