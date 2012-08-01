@@ -475,38 +475,40 @@ namespace Osmium {
             /**
              * This method is called when a complete ring was created from one or more ways.
              */
-            shared_ptr<RingInfo> ring_is_complete(std::vector<WayInfo*>& ways, int ringcount, int sequence) const {
-                geos::geom::CoordinateSequence* cs = geos::geom::CoordinateArraySequenceFactory::instance()->create((size_t)0, (size_t)0);
-                geos::geom::LinearRing* lr = NULL;
-                try {
-                    START_TIMER(mor_polygonizer);
-                    WayInfo** sorted_ways = new WayInfo*[sequence];
-                    for (unsigned int i=0; i<ways.size(); ++i) {
-                        if (ways[i]->used == ringcount) {
-                            sorted_ways[ways[i]->sequence] = ways[i];
-                        }
+            shared_ptr<RingInfo> ring_is_complete(std::vector<WayInfo*>& ways, int ringcount, int num_ways_in_ring) const {
+                START_TIMER(mor_polygonizer);
+
+                std::vector<WayInfo*> sorted_ways(num_ways_in_ring);
+                for (unsigned int i=0; i < ways.size(); ++i) {
+                    if (ways[i]->used == ringcount) {
+                        sorted_ways[ways[i]->sequence] = ways[i];
                     }
-                    for (int i=0; i<sequence; ++i) {
+                }
+
+                try {
+                    geos::geom::CoordinateSequence* cs = geos::geom::CoordinateArraySequenceFactory::instance()->create((size_t)0, (size_t)0);
+                    for (int i=0; i < num_ways_in_ring; ++i) {
                         geos::geom::LineString* linestring = dynamic_cast<geos::geom::LineString*>(sorted_ways[i]->way_geom);
                         assert(linestring);
                         cs->add(linestring->getCoordinatesRO(), false, !sorted_ways[i]->invert);
                     }
-                    delete[] sorted_ways;
-                    lr = Osmium::Geometry::geos_geometry_factory()->createLinearRing(cs);
+
+                    geos::geom::LinearRing* linear_ring = Osmium::Geometry::geos_geometry_factory()->createLinearRing(cs);
                     STOP_TIMER(mor_polygonizer);
-                    if (!lr->isSimple() || !lr->isValid()) {
-                        //delete lr;
-                        lr = NULL;
+
+                    if (!linear_ring->isSimple() || !linear_ring->isValid()) {
+                        //delete linear_ring;
+                        linear_ring = NULL;
                         if (m_attempt_repair) {
-                            lr = create_non_intersecting_linear_ring(cs);
-                            if (lr) {
+                            linear_ring = create_non_intersecting_linear_ring(cs);
+                            if (linear_ring) {
                                 std::cerr << "Successfully repaired an invalid ring" << std::endl;
                             }
                         }
-                        if (!lr) return shared_ptr<RingInfo>();
+                        if (!linear_ring) return shared_ptr<RingInfo>();
                     }
-                    bool ccw = geos::algorithm::CGAlgorithms::isCCW(lr->getCoordinatesRO());
-                    return make_shared<RingInfo>(Osmium::Geometry::geos_geometry_factory()->createPolygon(lr, NULL), ccw ? COUNTERCLOCKWISE : CLOCKWISE);
+                    bool ccw = geos::algorithm::CGAlgorithms::isCCW(linear_ring->getCoordinatesRO());
+                    return make_shared<RingInfo>(Osmium::Geometry::geos_geometry_factory()->createPolygon(linear_ring, NULL), ccw ? COUNTERCLOCKWISE : CLOCKWISE);
                 } catch (const geos::util::GEOSException& exc) {
                     std::cerr << "Exception: " << exc.what() << std::endl;
                     return shared_ptr<RingInfo>();
