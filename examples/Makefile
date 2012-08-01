@@ -8,7 +8,7 @@ CXX = g++
 #CXX = clang++
 
 CXXFLAGS = -g
-#CXXFLAGS = -O3
+#CXXFLAGS = -O3 -g
 
 CXXFLAGS += -Wall -Wextra -Wdisabled-optimization -pedantic -Wctor-dtor-privacy -Wnon-virtual-dtor -Woverloaded-virtual -Wsign-promo -Wno-long-long
 

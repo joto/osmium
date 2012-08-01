@@ -291,15 +291,7 @@ namespace Osmium {
                 m_relation_info(relation_info),
                 m_areas(),
                 m_attempt_repair(attempt_repair),
-                m_new_area(make_shared<Osmium::OSM::Area>()) {
-
-                m_new_area->id(relation_info.relation()->id());
-                m_new_area->version(relation_info.relation()->version());
-                m_new_area->timestamp(relation_info.relation()->timestamp());
-                m_new_area->uid(relation_info.relation()->uid());
-                m_new_area->user(relation_info.relation()->user());
-                m_new_area->tags(relation_info.relation()->tags());
-
+                m_new_area(make_shared<Osmium::OSM::Area>(*relation_info.relation())) {
             }
 
             /**
@@ -483,7 +475,7 @@ namespace Osmium {
                             if (m_attempt_repair) {
                                 lr = create_non_intersecting_linear_ring(cs);
                                 if (lr) {
-                                    std::cerr << "successfully repaired an invalid ring" << std::endl;
+                                    std::cerr << "Successfully repaired an invalid ring" << std::endl;
                                 }
                             }
                             if (!lr) return NULL;

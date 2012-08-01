@@ -65,6 +65,14 @@ namespace Osmium {
             wkbNDR = 1          // Little Endian
         };
 
+        /// Base class for all geometry exception classes
+        struct GeometryException {};
+
+        struct RingNotClosed : public GeometryException {};
+
+        /// Exception thrown if there is no geometry available when there should be
+        struct NoGeometry : public GeometryException {};
+
         class Geometry;
 
         /**

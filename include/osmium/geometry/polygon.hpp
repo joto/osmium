@@ -47,7 +47,7 @@ namespace Osmium {
                     osm_object_id_t id=0)
                 : FromWay(way_node_list, reverse, id) {
                 if (!way_node_list.is_closed()) {
-                    throw Osmium::Exception::IllegalGeometry();
+                    throw RingNotClosed();
                 }
             }
 
@@ -57,7 +57,7 @@ namespace Osmium {
             Polygon(const Osmium::OSM::Way& way, bool reverse=false)
                 : FromWay(way.nodes(), reverse, way.id()) {
                 if (!way.nodes().is_closed()) {
-                    throw Osmium::Exception::IllegalGeometry();
+                    throw RingNotClosed();
                 }
             }
 

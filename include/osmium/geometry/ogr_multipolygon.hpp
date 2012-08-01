@@ -69,7 +69,7 @@ namespace Osmium {
          */
         inline OGRMultiPolygon* create_ogr_geometry(const Osmium::Geometry::MultiPolygon& multipolygon) {
             OGRMultiPolygon* ogrmp = new OGRMultiPolygon;
-
+/*
             if (multipolygon.geos_geometry()->getGeometryTypeId() == geos::geom::GEOS_POLYGON) {
                 OGRPolygon* ogrpolygon = make_polygon(dynamic_cast<const geos::geom::Polygon*>(multipolygon.geos_geometry()));
 
@@ -83,8 +83,8 @@ namespace Osmium {
             if (multipolygon.geos_geometry()->getGeometryTypeId() != geos::geom::GEOS_MULTIPOLYGON) {
                 throw Osmium::Exception::IllegalGeometry();
             }
-
-            const geos::geom::GeometryCollection* geosgeom = dynamic_cast<const geos::geom::GeometryCollection*>(multipolygon.geos_geometry());
+*/
+            const geos::geom::GeometryCollection* geosgeom = dynamic_cast<const geos::geom::GeometryCollection*>(multipolygon.borrow_geos_geometry());
             for (geos::geom::GeometryCollection::const_iterator it = geosgeom->begin(); it != geosgeom->end(); ++it) {
 
                 OGRPolygon* ogrpolygon = make_polygon(dynamic_cast<const geos::geom::Polygon*>(*it));

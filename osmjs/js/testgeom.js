@@ -34,11 +34,11 @@ Osmium.Callbacks.way = function() {
 
 Osmium.Callbacks.area = function() {
     print("area id:              " + this.id);
+    print("geom.toArray():       " + JSON.stringify(this.geom.toArray()));
     print("geom.toWKT():         " + this.geom.toWKT());
     print("geom.toWKT(true):     " + this.geom.toWKT(true));
     print("geom.toHexWKB():      " + this.geom.toHexWKB());
     print("geom.toHexWKB(true):  " + this.geom.toHexWKB(true));
-    print("geom.toArray():       " + JSON.stringify(this.geom.toArray()));
     print("");
 }
 

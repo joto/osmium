@@ -185,38 +185,22 @@ namespace Osmium {
                     return scope.Close(ring_array);
                 }
 
-                static v8::Handle<v8::Value> to_array(const v8::Arguments& /*args*/, Osmium::Geometry::MultiPolygon* mp) {
+                static v8::Handle<v8::Value> to_array(const v8::Arguments& /*args*/, Osmium::Geometry::MultiPolygon* multipolygon) {
                     v8::HandleScope scope;
-                    geos::geom::Geometry* geometry = mp->geos_geometry();
+                    const geos::geom::MultiPolygon* geos_multipolygon = multipolygon->borrow_geos_geometry();
 
-                    if (geometry->getGeometryTypeId() == geos::geom::GEOS_MULTIPOLYGON) {
-                        v8::Local<v8::Array> multipolygon_array = v8::Array::New(geometry->getNumGeometries());
+                    v8::Local<v8::Array> multipolygon_array = v8::Array::New(geos_multipolygon->getNumGeometries());
 
-                        for (size_t i=0; i < geometry->getNumGeometries(); ++i) {
-                            const geos::geom::Polygon* polygon = dynamic_cast<const geos::geom::Polygon*>(geometry->getGeometryN(i));
-                            v8::Local<v8::Array> polygon_array = v8::Array::New(polygon->getNumInteriorRing());
-                            multipolygon_array->Set(i, polygon_array);
-                            polygon_array->Set(0, ring_as_array(polygon->getExteriorRing()));
-                            for (size_t j=0; j < polygon->getNumInteriorRing(); ++j) {
-                                polygon_array->Set(j+1, ring_as_array(polygon->getInteriorRingN(j)));
-                            }
+                    for (size_t i=0; i < geos_multipolygon->getNumGeometries(); ++i) {
+                        const geos::geom::Polygon* polygon = dynamic_cast<const geos::geom::Polygon*>(geos_multipolygon->getGeometryN(i));
+                        v8::Local<v8::Array> polygon_array = v8::Array::New(polygon->getNumInteriorRing());
+                        multipolygon_array->Set(i, polygon_array);
+                        polygon_array->Set(0, ring_as_array(polygon->getExteriorRing()));
+                        for (size_t j=0; j < polygon->getNumInteriorRing(); ++j) {
+                            polygon_array->Set(j+1, ring_as_array(polygon->getInteriorRingN(j)));
                         }
-                        return scope.Close(multipolygon_array);
-                    } else if (geometry->getGeometryTypeId() == geos::geom::GEOS_POLYGON) {
-                        v8::Local<v8::Array> polygon = v8::Array::New(1);
-                        v8::Local<v8::Array> ring = v8::Array::New(mp->nodes().size());
-                        int n = 0;
-                        for (Osmium::OSM::WayNodeList::const_iterator it = mp->nodes().begin(); it != mp->nodes().end(); ++it) {
-                            v8::Local<v8::Array> coord = v8::Array::New(2);
-                            coord->Set(0, v8::Number::New(it->lon()));
-                            coord->Set(1, v8::Number::New(it->lat()));
-                            ring->Set(n++, coord);
-                        }
-                        polygon->Set(0, ring);
-                        return scope.Close(polygon);
                     }
-
-                    return scope.Close(v8::Undefined());
+                    return scope.Close(multipolygon_array);
                 }
 
                 GeometryMultiPolygon() : Geometry() {

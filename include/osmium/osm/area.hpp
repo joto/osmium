@@ -24,38 +24,58 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <boost/operators.hpp>
 
+#include <geos/geom/MultiPolygon.h>
+
 #include <osmium/osm/object.hpp>
 #include <osmium/osm/way.hpp>
 
-namespace geos {
-    namespace geom {
+namespace Osmium {
+
+    namespace Geometry {
         class MultiPolygon;
     }
-}
 
-namespace Osmium {
+    template <typename T>
+    int sgn(T val) {
+        return (T(0) < val) - (val < T(0));
+    }
 
     namespace OSM {
 
+        /**
+         * Area objects are pseudo OSM objects created from Ways or
+         * Relations of type=multipolygon (or type=boundary).
+         *
+         * Area IDs are unique regardless of whether the Area was created
+         * from a Way or from a Relation.
+         */
         class Area : public Object, boost::less_than_comparable<Area> {
 
+            friend class Osmium::Geometry::MultiPolygon;
+
             WayNodeList m_node_list;
-            geos::geom::MultiPolygon* m_geos_geometry;
+            mutable geos::geom::MultiPolygon* m_geos_geometry;
+
+            const geos::geom::MultiPolygon* geos_geometry() const {
+                return m_geos_geometry;
+            }
 
         public:
 
-            /// Construct an Area object.
-            Area() :
-                Object(),
+            /// Construct an Area object from a Relation object.
+            Area(const Relation& relation) :
+                Object(relation),
                 m_node_list(),
-                m_geos_geometry(0) {
+                m_geos_geometry() {
+                id( (id() * 2) + sgn(id()) );
             }
 
             /// Construct an Area object from a Way object.
             Area(const Way& way) :
                 Object(way),
                 m_node_list(way.nodes()),
-                m_geos_geometry(0) {
+                m_geos_geometry() {
+                id( id() * 2 );
             }
 
             /// Copy an Area object.
@@ -66,27 +86,25 @@ namespace Osmium {
             }
 
             ~Area() {
-//                delete m_geos_geometry;
+                delete m_geos_geometry;
             }
 
             osm_object_type_t get_type() const {
                 return AREA;
             }
 
-            const WayNodeList& nodes() const {
-                return m_node_list;
+            /// Was this Area created from a Way or Relation?
+            bool from_way() const {
+                return (id() % 2) == 0;
             }
 
-            WayNodeList& nodes() {
-                return m_node_list;
+            /// ID of the Way or Relation objects this Area was created from.
+            osm_object_id_t orig_id() const {
+                return id() / 2;
             }
 
-            geos::geom::MultiPolygon* geos_geometry() const {
-                return m_geos_geometry;
-            }
-
-            Area& geos_geometry(geos::geom::MultiPolygon* geometry) {
-                m_geos_geometry = geometry;
+            const Area& geos_geometry(geos::geom::MultiPolygon* multipolygon) const {
+                m_geos_geometry = multipolygon;
                 return *this;
             }
 

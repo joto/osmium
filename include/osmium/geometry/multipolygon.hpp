@@ -22,6 +22,9 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#include <boost/make_shared.hpp>
+using boost::make_shared;
+
 #include <geos/geom/Geometry.h>
 #include <geos/geom/MultiPolygon.h>
 #include <geos/io/WKBWriter.h>
@@ -42,48 +45,74 @@ namespace Osmium {
 
             MultiPolygon(const Osmium::OSM::Area& area) :
                 Geometry(area.id()),
-                m_way_node_list(area.nodes()),
-                m_geos_geometry(area.geos_geometry()) {
-                if (!m_geos_geometry) {
-                    Osmium::Geometry::Polygon polygon(m_way_node_list, false, area.id());
-                    m_geos_geometry = Osmium::Geometry::create_geos_geometry(polygon);
+                m_area(area) {
+
+                // if the area doesn't have a geometry yet it means it was created from a way
+                // and we create the geometry from the node list.
+                if (!area.geos_geometry()) {
+                    Osmium::Geometry::Polygon polygon(area.m_node_list, false, area.id());
+                    std::vector<geos::geom::Geometry*>* geos_polygons = new std::vector<geos::geom::Geometry*>(1, Osmium::Geometry::create_geos_geometry(polygon));
+                    geos::geom::MultiPolygon* geos_multipolygon = Osmium::Geometry::geos_geometry_factory()->createMultiPolygon(geos_polygons);
+                    assert(geos_multipolygon);
+                    m_area.geos_geometry(geos_multipolygon);
                 }
             }
 
+            ~MultiPolygon() {
+            }
+
             std::ostream& write_to_stream(std::ostream& out, AsWKT, bool with_srid=false) const {
+                if (!borrow_geos_geometry()) {
+                    throw Osmium::Geometry::NoGeometry();
+                }
+
                 if (with_srid) {
                     out << "SRID=4326;";
                 }
                 geos::io::WKTWriter writer;
-                return out << writer.write(m_geos_geometry);
+                // XXX only available in later GEOS versions
+//                writer.setRoundingPrecision(10);
+                return out << writer.write(borrow_geos_geometry());
             }
 
             std::ostream& write_to_stream(std::ostream& out, AsWKB, bool with_srid=false) const {
+                if (!borrow_geos_geometry()) {
+                    throw Osmium::Geometry::NoGeometry();
+                }
+
                 geos::io::WKBWriter writer;
                 writer.setIncludeSRID(with_srid);
-                writer.write(*(m_geos_geometry), out);
+                writer.write(*borrow_geos_geometry(), out);
                 return out;
             }
 
             std::ostream& write_to_stream(std::ostream& out, AsHexWKB, bool with_srid=false) const {
+                if (!borrow_geos_geometry()) {
+                    throw Osmium::Geometry::NoGeometry();
+                }
+
                 geos::io::WKBWriter writer;
                 writer.setIncludeSRID(with_srid);
-                writer.writeHEX(*(m_geos_geometry), out);
+                writer.writeHEX(*borrow_geos_geometry(), out);
                 return out;
             }
 
-            geos::geom::Geometry* geos_geometry() const {
-                return m_geos_geometry;
-            }
+            /**
+             * Get GEOS MultiPolygon geometry. The geometry still
+             * belongs to this object, you are not allowed to change
+             * or free it.
+             */
+            const geos::geom::MultiPolygon* borrow_geos_geometry() const {
+                if (!m_area.geos_geometry()) {
+                    throw Osmium::Geometry::NoGeometry();
+                }
 
-            const Osmium::OSM::WayNodeList& nodes() const {
-                return m_way_node_list;
+                return m_area.geos_geometry();
             }
 
         private:
 
-            const Osmium::OSM::WayNodeList& m_way_node_list;
-            geos::geom::Geometry* m_geos_geometry;
+            const Osmium::OSM::Area& m_area;
 
         }; // class MultiPolygon
 

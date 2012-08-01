@@ -104,7 +104,7 @@ namespace Osmium {
             void after_relations() const {
             }
 
-            void area(Osmium::OSM::Area*) const {
+            void area(const shared_ptr<Osmium::OSM::Area const>&) const {
             }
 
             void final() const {
@@ -167,7 +167,7 @@ namespace Osmium {
                 m_next_handler.after_relations();
             }
 
-            void area(Osmium::OSM::Area* area) const {
+            void area(const shared_ptr<Osmium::OSM::Area>& area) const {
                 m_next_handler.area(area);
             }
 
@@ -245,7 +245,7 @@ namespace Osmium {
                 m_handler2.after_relations();
             }
 
-            void area(Osmium::OSM::Area* area) const {
+            void area(const shared_ptr<Osmium::OSM::Area>& area) const {
                 m_handler1.area(area);
                 m_handler2.area(area);
             }

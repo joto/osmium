@@ -157,15 +157,13 @@ namespace Osmium {
          * SHPDestroyObject() with this geometry when you are done.
          */
         inline SHPObject* create_shp_object(const Osmium::Geometry::MultiPolygon& multipolygon) {
-            if (!multipolygon.geos_geometry()) {
-                throw Osmium::Exception::IllegalGeometry();
-            }
+            const geos::geom::MultiPolygon* geos_multipolygon = multipolygon.borrow_geos_geometry();
 
             std::vector<double> x_list;
             std::vector<double> y_list;
             std::vector<int> part_start_list;
 
-            dump_geometry(multipolygon.geos_geometry(), part_start_list, x_list, y_list);
+            dump_geometry(geos_multipolygon, part_start_list, x_list, y_list);
 
             return SHPCreateObject(
                        SHPT_POLYGON,           // nSHPType
