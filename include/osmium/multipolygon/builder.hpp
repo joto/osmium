@@ -25,6 +25,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <assert.h>
 #include <vector>
 #include <map>
+#include <stdexcept>
 
 #include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
@@ -70,6 +71,42 @@ using boost::make_shared;
 namespace Osmium {
 
     namespace MultiPolygon {
+
+        struct BuildError : public std::runtime_error {
+            BuildError(const std::string& what) :
+                std::runtime_error(what) {
+            }
+        };
+
+        struct InvalidWayGeometry : public BuildError {
+            InvalidWayGeometry(const std::string& what) :
+                BuildError(what) {
+            }
+        };
+
+        struct DanglingEnds : public BuildError {
+            DanglingEnds(const std::string& what) :
+                BuildError(what) {
+            }
+        };
+
+        struct NoRings : public BuildError {
+            NoRings(const std::string& what) :
+                BuildError(what) {
+            }
+        };
+
+        struct InvalidRing : public BuildError {
+            InvalidRing(const std::string& what) :
+                BuildError(what) {
+            }
+        };
+
+        struct InvalidMultiPolygon : public BuildError {
+            InvalidMultiPolygon(const std::string& what) :
+                BuildError(what) {
+            }
+        };
 
         enum innerouter_t { UNSET, INNER, OUTER };
         enum direction_t { NO_DIRECTION, CLOCKWISE, COUNTERCLOCKWISE };
@@ -292,8 +329,12 @@ namespace Osmium {
              * @returns All areas built.
              */
             std::vector< shared_ptr<Osmium::OSM::Area> >& build() {
-                if (build_geometry()) {
-                    m_areas.push_back(m_new_area);
+                try {
+                    if (build_multipolygon()) {
+                        m_areas.push_back(m_new_area);
+                    }
+                } catch (BuildError& error) {
+                    std::cerr << "Building multipolygon based on relation " << m_relation_info.relation()->id() << " failed: " << error.what() << "\n";
                 }
                 return m_areas;
             }
@@ -351,7 +392,7 @@ namespace Osmium {
             * limitation is that this method does not deliver results for
             * linear rings with more than one self-intersection.
             */
-            geos::geom::LinearRing* create_non_intersecting_linear_ring(geos::geom::CoordinateSequence* orig_cs) {
+            geos::geom::LinearRing* create_non_intersecting_linear_ring(geos::geom::CoordinateSequence* orig_cs) const {
                 const std::vector<geos::geom::Coordinate>* coords = orig_cs->toVector();
                 int inv = coords->size();
                 int val = 0;
@@ -439,7 +480,7 @@ namespace Osmium {
             * may be called again to find further rings.) If this is not possible,
             * return NULL.
             */
-            RingInfo* make_one_ring(std::vector<WayInfo*>& ways, osm_object_id_t first, osm_object_id_t last, int ringcount, int sequence) {
+            RingInfo* make_one_ring(std::vector<WayInfo*>& ways, osm_object_id_t first, osm_object_id_t last, int ringcount, int sequence) const {
 
                 // have we found a loop already?
                 if (first && first == last) {
@@ -556,7 +597,7 @@ namespace Osmium {
             * (This implementation always succeeds because it is impossible for
             * there to be only one dangling end in a collection of lines.)
             */
-            bool find_and_repair_holes_in_rings(std::vector<WayInfo*>* ways) {
+            bool find_and_repair_holes_in_rings(std::vector<WayInfo*>* ways) const {
                 // collect the remaining debris (=unused ways) and find dangling nodes.
 
                 std::map<int, geos::geom::Point*> dangling_node_map;
@@ -631,15 +672,11 @@ namespace Osmium {
             }
 
             /**
-            * Tries to build a multipolygon from the given relation.
-            *
-            */
-            bool build_geometry() {
-                std::vector<WayInfo*> ways;
-
-                // assemble all ways which are members of this relation into a
-                // vector of WayInfo elements. this holds room for the way pointer
-                // and some extra flags.
+             * Assemble all ways which are members of this relation into a
+             * vector of WayInfo elements. this holds room for the way pointer
+             * and some extra flags.
+             */
+            void assemble_ways(std::vector<WayInfo*>& way_infos) {
 
                 START_TIMER(assemble_ways);
 
@@ -653,14 +690,23 @@ namespace Osmium {
                     WayInfo* wi = new WayInfo(way, UNSET);
                     if (!wi->way_geom) {
                         delete wi;
-                        return geometry_error("invalid way geometry in multipolygon relation member");
+                        throw InvalidWayGeometry("Invalid way geometry in multipolygon relation member");
                     }
-                    ways.push_back(wi);
+                    way_infos.push_back(wi);
                     // TODO drop duplicate ways automatically in repair mode?
                     // TODO maybe add INNER/OUTER instead of UNSET to enable later warnings on role mismatch
                 }
 
                 STOP_TIMER(assemble_ways);
+            }
+
+            /**
+            * Tries to build a multipolygon.
+            */
+            bool build_multipolygon() {
+                std::vector<WayInfo*> ways;
+
+                assemble_ways(ways);
 
                 std::vector<RingInfo*> ringlist;
 
@@ -683,13 +729,13 @@ namespace Osmium {
                 } while (1);
 
                 if (ringlist.empty()) {
-                    // FIXME return geometry_error("no rings");
+                    // FIXME throw NoRings("no rings");
                 }
 
                 if (!find_and_repair_holes_in_rings(&ways)) {
                     clear_ringlist();
                     clear_wayinfo();
-                    return geometry_error("un-connectable dangling ends");
+                    throw DanglingEnds("un-connectable dangling ends");
                 }
 
                 // re-run ring building, taking into account the newly created "repair" bits.
@@ -705,7 +751,7 @@ namespace Osmium {
                 if (ringlist.empty()) {
                     clear_ringlist();
                     clear_wayinfo();
-                    return geometry_error("no rings");
+                    throw NoRings("no rings");
                 }
 
                 std::vector<geos::geom::Geometry*>* polygons = new std::vector<geos::geom::Geometry*>();
@@ -931,7 +977,7 @@ namespace Osmium {
                         clear_wayinfo();
                         if (p) delete p;
                         else delete ring;
-                        return geometry_error("invalid ring");
+                        throw InvalidRing("invalid ring");
                     } else {
                         polygons->push_back(p);
                         for (unsigned int k=0; k<ringlist[i]->ways.size(); ++k) {
@@ -970,7 +1016,7 @@ namespace Osmium {
                 clear_ringlist();
                 clear_wayinfo();
                 if (polygons->empty()) {
-                    return geometry_error("no rings");
+                    throw NoRings("no rings");
                 }
 
                 START_TIMER(multipolygon_build);
@@ -986,12 +1032,7 @@ namespace Osmium {
                     m_new_area->geos_geometry(mp);
                     return true;
                 }
-                return geometry_error("multipolygon invalid");
-            }
-
-            bool geometry_error(const char* message) {
-                std::cerr << "Building multipolygon based on relation " << m_relation_info.relation()->id() << " failed: " << message << "\n";
-                return false;
+                throw InvalidMultiPolygon("multipolygon invalid");
             }
 
         }; // class Builder
