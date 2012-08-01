@@ -705,20 +705,11 @@ namespace Osmium {
 #define clear_wayinfo() \
                 for (std::vector<WayInfo*>::const_iterator win(ways.begin()); win != ways.end(); ++win) delete *win;
 
-            /**
-            * Tries to build a multipolygon.
-            */
-            void build_multipolygon() {
-                std::vector<WayInfo*> ways;
 
-                assemble_ways(ways);
-
-                std::vector<RingInfo*> ringlist;
-
+            void make_rings(std::vector<RingInfo*>& ringlist, std::vector<WayInfo*>& ways) const {
                 // try and create as many closed rings as possible from the assortment
                 // of ways. make_one_ring will automatically flag those that have been
                 // used so they are not used again.
-
                 do {
                     START_TIMER(make_one_ring);
                     RingInfo* r = make_one_ring(ways, 0, 0, ringlist.size(), 0);
@@ -752,10 +743,19 @@ namespace Osmium {
                     clear_wayinfo();
                     throw NoRings("no rings");
                 }
+            }
 
-                std::vector<geos::geom::Geometry*>* polygons = new std::vector<geos::geom::Geometry*>();
+            /**
+            * Tries to build a multipolygon.
+            */
+            void build_multipolygon() {
+                std::vector<WayInfo*> ways;
 
-                geos::geom::MultiPolygon* mp = NULL;
+                assemble_ways(ways);
+
+                std::vector<RingInfo*> ringlist;
+
+                make_rings(ringlist, ways);
 
                 // find out which ring contains which other ring, so we know
                 // which are inner rings and which outer. don't trust the "role"
@@ -881,6 +881,8 @@ namespace Osmium {
                 STOP_TIMER(extra_polygons);
 
                 // for all non-enclosed rings, assemble holes and build polygon.
+
+                std::vector<geos::geom::Geometry*>* polygons = new std::vector<geos::geom::Geometry*>();
 
                 START_TIMER(polygon_build)
                 for (unsigned int i=0; i<ringlist.size(); ++i) {
@@ -1020,6 +1022,7 @@ namespace Osmium {
 
                 START_TIMER(multipolygon_build);
                 bool valid = false;
+                geos::geom::MultiPolygon* mp = NULL;
                 try {
                     mp = Osmium::Geometry::geos_geometry_factory()->createMultiPolygon(polygons);
                     valid = mp->isValid();
