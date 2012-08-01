@@ -30,6 +30,10 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <boost/foreach.hpp>
 #include <boost/dynamic_bitset.hpp>
 #include <boost/scoped_ptr.hpp>
+#include <boost/weak_ptr.hpp>
+using boost::weak_ptr;
+#include <boost/shared_ptr.hpp>
+using boost::shared_ptr;
 #include <boost/make_shared.hpp>
 using boost::make_shared;
 
@@ -192,20 +196,24 @@ namespace Osmium {
 
         class RingInfo {
 
-            friend class Builder;
+        public:
 
             geos::geom::Polygon* polygon;
             direction_t direction;
             std::vector<WayInfo*> ways;
-            std::vector<RingInfo*> inner_rings;
-            RingInfo* contained_by;
+            std::vector< shared_ptr<RingInfo> > inner_rings;
+            weak_ptr<RingInfo> contained_by;
 
             RingInfo(geos::geom::Polygon* p, direction_t dir) :
                 polygon(p),
                 direction(dir),
                 ways(),
                 inner_rings(),
-                contained_by(NULL) {
+                contained_by() {
+            }
+
+            bool is_inner() const {
+                return !contained_by.expired();
             }
 
         }; // class RingInfo
@@ -481,7 +489,7 @@ namespace Osmium {
             * may be called again to find further rings.) If this is not possible,
             * return NULL.
             */
-            RingInfo* make_one_ring(std::vector<WayInfo*>& ways, osm_object_id_t first, osm_object_id_t last, int ringcount, int sequence) const {
+            shared_ptr<RingInfo> make_one_ring(std::vector<WayInfo*>& ways, osm_object_id_t first, osm_object_id_t last, int ringcount, int sequence) const {
 
                 // have we found a loop already?
                 if (first && first == last) {
@@ -512,13 +520,13 @@ namespace Osmium {
                                     std::cerr << "Successfully repaired an invalid ring" << std::endl;
                                 }
                             }
-                            if (!lr) return NULL;
+                            if (!lr) return shared_ptr<RingInfo>();
                         }
                         bool ccw = geos::algorithm::CGAlgorithms::isCCW(lr->getCoordinatesRO());
-                        return new RingInfo(Osmium::Geometry::geos_geometry_factory()->createPolygon(lr, NULL), ccw ? COUNTERCLOCKWISE : CLOCKWISE);
+                        return make_shared<RingInfo>(Osmium::Geometry::geos_geometry_factory()->createPolygon(lr, NULL), ccw ? COUNTERCLOCKWISE : CLOCKWISE);
                     } catch (const geos::util::GEOSException& exc) {
                         std::cerr << "Exception: " << exc.what() << std::endl;
-                        return NULL;
+                        return shared_ptr<RingInfo>();
                     }
                 }
 
@@ -530,7 +538,7 @@ namespace Osmium {
                         ways[i]->used = ringcount;
                         ways[i]->sequence = 0;
                         ways[i]->invert = false;
-                        RingInfo* rl = make_one_ring(ways, ways[i]->firstnode, ways[i]->lastnode, ringcount, 1);
+                        shared_ptr<RingInfo> rl = make_one_ring(ways, ways[i]->firstnode, ways[i]->lastnode, ringcount, 1);
                         if (rl) {
                             rl->ways.push_back(ways[i]);
                             return rl;
@@ -538,7 +546,7 @@ namespace Osmium {
                         ways[i]->used = -2;
                         break;
                     }
-                    return NULL;
+                    return shared_ptr<RingInfo>();
                 }
 
                 // try extending our current line at the rear end
@@ -561,7 +569,7 @@ namespace Osmium {
                         ways[i]->used = ringcount;
                         ways[i]->sequence = sequence;
                         ways[i]->invert = false;
-                        RingInfo* result = make_one_ring(ways, first, ways[i]->lastnode, ringcount, sequence+1);
+                        shared_ptr<RingInfo> result = make_one_ring(ways, first, ways[i]->lastnode, ringcount, sequence+1);
                         if (result) {
                             result->ways.push_back(ways[i]);
                             return result;
@@ -572,7 +580,7 @@ namespace Osmium {
                         ways[i]->used = ringcount;
                         ways[i]->sequence = sequence;
                         ways[i]->invert = true;
-                        RingInfo* result = make_one_ring(ways, first, ways[i]->firstnode, ringcount, sequence+1);
+                        shared_ptr<RingInfo> result = make_one_ring(ways, first, ways[i]->firstnode, ringcount, sequence+1);
                         if (result) {
                             result->ways.push_back(ways[i]);
                             return result;
@@ -581,7 +589,7 @@ namespace Osmium {
                     }
                 }
                 // we have exhausted all combinations.
-                return NULL;
+                return shared_ptr<RingInfo>();
             }
 
             /**
@@ -699,19 +707,20 @@ namespace Osmium {
             }
 
                 // convenience defines to aid in clearing up on error return.
-#define clear_ringlist() \
-                for (std::vector<RingInfo*>::const_iterator rli(ringlist.begin()); rli != ringlist.end(); ++rli) delete *rli;
+
 #define clear_wayinfo() \
                 for (std::vector<WayInfo*>::const_iterator win(ways.begin()); win != ways.end(); ++win) delete *win;
 
 
-            void make_rings(std::vector<RingInfo*>& ringlist, std::vector<WayInfo*>& ways) const {
-                // try and create as many closed rings as possible from the assortment
-                // of ways. make_one_ring will automatically flag those that have been
-                // used so they are not used again.
+            /**
+             * Try and create as many closed rings as possible from the assortment
+             * of ways. make_one_ring will automatically flag those that have been
+             * used so they are not used again.
+             */
+            void make_rings(std::vector< shared_ptr<RingInfo> >& ringlist, std::vector<WayInfo*>& ways) const {
                 do {
                     START_TIMER(make_one_ring);
-                    RingInfo* r = make_one_ring(ways, 0, 0, ringlist.size(), 0);
+                    shared_ptr<RingInfo> r = make_one_ring(ways, 0, 0, ringlist.size(), 0);
                     STOP_TIMER(make_one_ring);
                     if (r == NULL) break;
                     ringlist.push_back(r);
@@ -722,7 +731,6 @@ namespace Osmium {
                 }
 
                 if (!find_and_repair_holes_in_rings(&ways)) {
-                    clear_ringlist();
                     clear_wayinfo();
                     throw DanglingEnds("un-connectable dangling ends");
                 }
@@ -731,14 +739,13 @@ namespace Osmium {
                 // (in case there were no dangling bits, make_one_ring terminates quickly.)
                 do {
                     START_TIMER(make_one_ring);
-                    RingInfo* r = make_one_ring(ways, 0, 0, ringlist.size(), 0);
+                    shared_ptr<RingInfo> r = make_one_ring(ways, 0, 0, ringlist.size(), 0);
                     STOP_TIMER(make_one_ring);
                     if (r == NULL) break;
                     ringlist.push_back(r);
                 } while (true);
 
                 if (ringlist.empty()) {
-                    clear_ringlist();
                     clear_wayinfo();
                     throw NoRings("no rings");
                 }
@@ -749,7 +756,7 @@ namespace Osmium {
              * which are inner rings and which outer. Don't trust the "role"
              * specifications.
              */
-            void determine_inner_outer_rings(std::vector<RingInfo*>& ringlist) const {
+            void determine_inner_outer_rings(std::vector< shared_ptr<RingInfo> >& ringlist) const {
                 START_TIMER(contains);
 
                 typedef boost::dynamic_bitset<> bs_t;
@@ -821,11 +828,11 @@ namespace Osmium {
              * - emit a warning, and ignore the inner ring, if the tags are the same
              *   as for the relation
              **/
-            int handle_one_way_inner_rings(std::vector<RingInfo*>& ringlist) {
+            int handle_one_way_inner_rings(std::vector< shared_ptr<RingInfo> >& ringlist) {
                 START_TIMER(extra_polygons);
                 int outer_ring_count = 0;
                 for (unsigned int i=0; i<ringlist.size(); ++i) {
-                    if (ringlist[i]->contained_by) {
+                    if (ringlist[i]->is_inner()) {
                         if (ringlist[i]->ways.size() == 1 && !untagged(ringlist[i]->ways[0]->way)) {
                             std::vector<geos::geom::Geometry*>* g = new std::vector<geos::geom::Geometry*>;
                             if (ringlist[i]->direction == CLOCKWISE) {
@@ -843,7 +850,7 @@ namespace Osmium {
                             if (same_tags(ringlist[i]->ways[0]->way, m_new_area.get())) {
                                 // warning
                                 // warnings.insert("duplicate_tags_on_inner");
-                            } else if (ringlist[i]->contained_by->ways.size() == 1 && same_tags(ringlist[i]->ways[0]->way, ringlist[i]->contained_by->ways[0]->way)) {
+                            } else if (ringlist[i]->contained_by.lock()->ways.size() == 1 && same_tags(ringlist[i]->ways[0]->way, ringlist[i]->contained_by.lock()->ways[0]->way)) {
                                 // warning
                                 // warnings.insert("duplicate_tags_on_inner");
                             } else {
@@ -874,7 +881,7 @@ namespace Osmium {
 
                 assemble_ways(ways);
 
-                std::vector<RingInfo*> ringlist;
+                std::vector< shared_ptr<RingInfo> > ringlist;
 
                 make_rings(ringlist, ways);
 
@@ -890,7 +897,7 @@ namespace Osmium {
                 for (unsigned int i=0; i<ringlist.size(); ++i) {
                     // look only at outer, i.e. non-contained rings. each ends up as one polygon.
                     if (ringlist[i] == NULL) continue; // can happen if ring has been deleted
-                    if (ringlist[i]->contained_by) continue;
+                    if (ringlist[i]->is_inner()) continue;
 
                     std::vector<geos::geom::Geometry*>* holes = new std::vector<geos::geom::Geometry*>(); // ownership is later transferred to polygon
 
@@ -976,7 +983,6 @@ namespace Osmium {
                     }
                     if (!valid) {
                         // polygon is invalid.
-                        clear_ringlist();
                         clear_wayinfo();
                         if (p) delete p;
                         else delete ring;
@@ -1016,7 +1022,6 @@ namespace Osmium {
                 }
                 STOP_TIMER(polygon_build);
 
-                clear_ringlist();
                 clear_wayinfo();
                 if (polygons->empty()) {
                     throw NoRings("no rings");
