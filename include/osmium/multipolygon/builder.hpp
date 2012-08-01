@@ -823,26 +823,14 @@ namespace Osmium {
             }
 
             /**
-            * Tries to build a multipolygon.
-            */
-            void build_multipolygon() {
-                std::vector<WayInfo*> ways;
-
-                assemble_ways(ways);
-
-                std::vector<RingInfo*> ringlist;
-
-                make_rings(ringlist, ways);
-
-                determine_inner_outer_rings(ringlist);
-
-                // now look at all enclosed (inner) rings that consist of only one way.
-                // if such an inner ring has way tags, do the following:
-                // * emit an extra polygon for the inner ring if the tags are different
-                //   from the relation's
-                // * emit a warning, and ignore the inner ring, if the tags are the same
-                //   as for the relation
-
+             * now look at all enclosed (inner) rings that consist of only one way.
+             * if such an inner ring has way tags, do the following:
+             * - emit an extra polygon for the inner ring if the tags are different
+             *   from the relation's
+             * - emit a warning, and ignore the inner ring, if the tags are the same
+             *   as for the relation
+             **/
+            int handle_one_way_inner_rings(std::vector<RingInfo*>& ringlist) {
                 START_TIMER(extra_polygons);
                 int outer_ring_count = 0;
                 for (unsigned int i=0; i<ringlist.size(); ++i) {
@@ -883,6 +871,25 @@ namespace Osmium {
                     }
                 }
                 STOP_TIMER(extra_polygons);
+
+                return outer_ring_count;
+            }
+
+            /**
+            * Tries to build a multipolygon.
+            */
+            void build_multipolygon() {
+                std::vector<WayInfo*> ways;
+
+                assemble_ways(ways);
+
+                std::vector<RingInfo*> ringlist;
+
+                make_rings(ringlist, ways);
+
+                determine_inner_outer_rings(ringlist);
+
+                int outer_ring_count = handle_one_way_inner_rings(ringlist);
 
                 // for all non-enclosed rings, assemble holes and build polygon.
 
