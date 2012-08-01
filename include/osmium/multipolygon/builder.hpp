@@ -476,8 +476,6 @@ namespace Osmium {
              * This method is called when a complete ring was created from one or more ways.
              */
             shared_ptr<RingInfo> ring_is_complete(std::vector<WayInfo*>& ways, int ringcount, int num_ways_in_ring) const {
-                START_TIMER(mor_polygonizer);
-
                 std::vector<WayInfo*> sorted_ways(num_ways_in_ring);
                 for (unsigned int i=0; i < ways.size(); ++i) {
                     if (ways[i]->used == ringcount) {
@@ -485,22 +483,22 @@ namespace Osmium {
                     }
                 }
 
-                try {
-                    geos::geom::CoordinateSequence* cs = geos::geom::CoordinateArraySequenceFactory::instance()->create((size_t)0, (size_t)0);
-                    for (int i=0; i < num_ways_in_ring; ++i) {
-                        geos::geom::LineString* linestring = dynamic_cast<geos::geom::LineString*>(sorted_ways[i]->way_geom);
-                        assert(linestring);
-                        cs->add(linestring->getCoordinatesRO(), false, !sorted_ways[i]->invert);
-                    }
+                geos::geom::CoordinateSequence* coordinates = Osmium::Geometry::geos_geometry_factory()->getCoordinateSequenceFactory()->create(0, 2);
 
-                    geos::geom::LinearRing* linear_ring = Osmium::Geometry::geos_geometry_factory()->createLinearRing(cs);
-                    STOP_TIMER(mor_polygonizer);
+                for (int i=0; i < num_ways_in_ring; ++i) {
+                    geos::geom::LineString* linestring = dynamic_cast<geos::geom::LineString*>(sorted_ways[i]->way_geom);
+                    assert(linestring);
+                    coordinates->add(linestring->getCoordinatesRO(), false, !sorted_ways[i]->invert);
+                }
+
+                try {
+                    geos::geom::LinearRing* linear_ring = Osmium::Geometry::geos_geometry_factory()->createLinearRing(coordinates);
 
                     if (!linear_ring->isSimple() || !linear_ring->isValid()) {
                         //delete linear_ring;
                         linear_ring = NULL;
                         if (m_attempt_repair) {
-                            linear_ring = create_non_intersecting_linear_ring(cs);
+                            linear_ring = create_non_intersecting_linear_ring(coordinates);
                             if (linear_ring) {
                                 std::cerr << "Successfully repaired an invalid ring" << std::endl;
                             }
