@@ -390,6 +390,8 @@ namespace Osmium {
             * bit that needs to be cut out. It then returns a valid LinearRing,
             * or NULL if none can be built.
             *
+            * Caller takes ownership.
+            *
             * There is massive potential for improvement here. The biggest
             * limitation is that this method does not deliver results for
             * linear rings with more than one self-intersection.
@@ -404,15 +406,15 @@ namespace Osmium {
                 // find the longest non-intersecting stretch from the beginning
                 // of the way.
                 while (true) {
-                    std::vector<geos::geom::Coordinate>* vv = new std::vector<geos::geom::Coordinate>(coords->begin(), coords->begin() + current);
-                    geos::geom::CoordinateSequence* cs = geos::geom::CoordinateArraySequenceFactory::instance()->create(vv);
-                    geos::geom::LineString* a = Osmium::Geometry::geos_geometry_factory()->createLineString(cs);
-                    if (!(simple = a->isSimple())) {
+                    std::vector<geos::geom::Coordinate>* vcoords = new std::vector<geos::geom::Coordinate>(coords->begin(), coords->begin() + current);
+                    geos::geom::CoordinateSequence* coordinate_sequence = geos::geom::CoordinateArraySequenceFactory::instance()->create(vcoords);
+                    geos::geom::LineString* linestring = Osmium::Geometry::geos_geometry_factory()->createLineString(coordinate_sequence);
+                    if (!(simple = linestring->isSimple())) {
                         inv = current;
                     } else {
                         val = current;
                     }
-                    delete a;
+                    delete linestring;
                     if (current == (inv+val)/2) break;
                     current = (inv + val) / 2;
                 }
@@ -432,31 +434,32 @@ namespace Osmium {
                 // above, and 4..9 here!
 
                 while (true) {
-                    std::vector<geos::geom::Coordinate>* vv = new std::vector<geos::geom::Coordinate>(coords->begin() + current, coords->end());
-                    geos::geom::CoordinateSequence* cs = geos::geom::CoordinateArraySequenceFactory::instance()->create(vv);
-                    geos::geom::LineString* a = Osmium::Geometry::geos_geometry_factory()->createLineString(cs);
-                    if (!(simple = a->isSimple())) {
+                    std::vector<geos::geom::Coordinate>* vcoords = new std::vector<geos::geom::Coordinate>(coords->begin() + current, coords->end());
+                    geos::geom::CoordinateSequence* coordinate_sequence = geos::geom::CoordinateArraySequenceFactory::instance()->create(vcoords);
+                    geos::geom::LineString* linestring = Osmium::Geometry::geos_geometry_factory()->createLineString(coordinate_sequence);
+                    if (!(simple = linestring->isSimple())) {
                         inv = current;
                     } else {
                         val = current;
                     }
-                    delete a;
+                    delete linestring;
                     if (current == (inv+val)/2) break;
                     current = (inv + val) / 2;
                 }
+
                 if (!simple) ++current;
+
                 unsigned int cutoutend = current;
 
                 // assemble a new linear ring by cutting out the problematic bit.
                 // if the "problematic bit" however is longer than half the way,
                 // then try using the "problematic bit" by itself.
 
-                std::vector<geos::geom::Coordinate>* vv = new std::vector<geos::geom::Coordinate>();
                 if (cutoutstart < cutoutend) {
-                    unsigned int t = cutoutstart;
-                    cutoutstart = cutoutend;
-                    cutoutend = t;
+                    std::swap(cutoutstart, cutoutend);
                 }
+
+                std::vector<geos::geom::Coordinate>* vv = new std::vector<geos::geom::Coordinate>();
                 if (cutoutstart-cutoutend > coords->size() / 2) {
                     vv->insert(vv->end(), coords->begin() + cutoutend, coords->begin() + cutoutstart);
                     vv->insert(vv->end(), vv->at(0));
@@ -465,14 +468,14 @@ namespace Osmium {
                     vv->insert(vv->end(), coords->begin() + cutoutstart, coords->end());
                 }
                 geos::geom::CoordinateSequence* cs = geos::geom::CoordinateArraySequenceFactory::instance()->create(vv);
-                geos::geom::LinearRing* a = Osmium::Geometry::geos_geometry_factory()->createLinearRing(cs);
+                geos::geom::LinearRing* linear_ring = Osmium::Geometry::geos_geometry_factory()->createLinearRing(cs);
 
-                // if this results in a valid ring, return it; else return NULL.
+                if (linear_ring->isValid()) {
+                    return linear_ring;
+                }
 
-                if (!a->isValid()) return NULL;
-                geos::geom::LinearRing* b = dynamic_cast<geos::geom::LinearRing*>(a->clone());
-                //delete a;
-                return b;
+                delete linear_ring;
+                return NULL;
             }
 
             /**
