@@ -198,9 +198,9 @@ namespace Osmium {
             std::vector<RingInfo*> inner_rings;
             RingInfo* contained_by;
 
-            RingInfo() :
-                polygon(NULL),
-                direction(NO_DIRECTION),
+            RingInfo(geos::geom::Polygon* p, direction_t dir) :
+                polygon(p),
+                direction(dir),
                 ways(),
                 inner_rings(),
                 contained_by(NULL) {
@@ -513,10 +513,7 @@ namespace Osmium {
                             if (!lr) return NULL;
                         }
                         bool ccw = geos::algorithm::CGAlgorithms::isCCW(lr->getCoordinatesRO());
-                        RingInfo* rl = new RingInfo();
-                        rl->direction = ccw ? COUNTERCLOCKWISE : CLOCKWISE;
-                        rl->polygon = Osmium::Geometry::geos_geometry_factory()->createPolygon(lr, NULL);
-                        return rl;
+                        return new RingInfo(Osmium::Geometry::geos_geometry_factory()->createPolygon(lr, NULL), ccw ? COUNTERCLOCKWISE : CLOCKWISE);
                     } catch (const geos::util::GEOSException& exc) {
                         std::cerr << "Exception: " << exc.what() << std::endl;
                         return NULL;
