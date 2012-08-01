@@ -350,7 +350,6 @@ namespace Osmium {
             static timer write_complex_poly_timer;
             static timer assemble_ways_timer;
             static timer assemble_nodes_timer;
-            static timer make_one_ring_timer;
             static timer mor_polygonizer_timer;
             static timer mor_union_timer;
             static timer contains_timer;
@@ -364,7 +363,6 @@ namespace Osmium {
 
             static void init_timings() {
                 timers.push_back(std::pair<std::string, timer*> ("   thereof assemble_ways", &assemble_ways_timer));
-                timers.push_back(std::pair<std::string, timer*> ("   thereof make_one_ring", &make_one_ring_timer));
                 timers.push_back(std::pair<std::string, timer*> ("      thereof union", &mor_union_timer));
                 timers.push_back(std::pair<std::string, timer*> ("      thereof polygonizer", &mor_polygonizer_timer));
                 timers.push_back(std::pair<std::string, timer*> ("   thereof contains", &contains_timer));
@@ -485,7 +483,7 @@ namespace Osmium {
             * may be called again to find further rings.) If this is not possible,
             * return NULL.
             */
-            shared_ptr<RingInfo> make_one_ring(std::vector<WayInfo*>& ways, osm_object_id_t first, osm_object_id_t last, int ringcount, int sequence) const {
+            shared_ptr<RingInfo> complete_ring(std::vector<WayInfo*>& ways, osm_object_id_t first, osm_object_id_t last, int ringcount, int sequence) const {
 
                 // have we found a loop already?
                 if (first && first == last) {
@@ -526,25 +524,6 @@ namespace Osmium {
                     }
                 }
 
-                // have we not allocated anything yet, then simply start with first available way,
-                // or return NULL if all are taken.
-                if (!first) {
-                    for (unsigned int i=0; i<ways.size(); ++i) {
-                        if (ways[i]->used != -1) continue;
-                        ways[i]->used = ringcount;
-                        ways[i]->sequence = 0;
-                        ways[i]->invert = false;
-                        shared_ptr<RingInfo> rl = make_one_ring(ways, ways[i]->firstnode, ways[i]->lastnode, ringcount, 1);
-                        if (rl) {
-                            rl->ways.push_back(ways[i]);
-                            return rl;
-                        }
-                        ways[i]->used = -2;
-                        break;
-                    }
-                    return shared_ptr<RingInfo>();
-                }
-
                 // try extending our current line at the rear end
                 // since we are looking for a LOOP, no sense to try extending it at both ends
                 // as we'll eventually get there anyway!
@@ -565,7 +544,7 @@ namespace Osmium {
                         ways[i]->used = ringcount;
                         ways[i]->sequence = sequence;
                         ways[i]->invert = false;
-                        shared_ptr<RingInfo> result = make_one_ring(ways, first, ways[i]->lastnode, ringcount, sequence+1);
+                        shared_ptr<RingInfo> result = complete_ring(ways, first, ways[i]->lastnode, ringcount, sequence+1);
                         if (result) {
                             result->ways.push_back(ways[i]);
                             return result;
@@ -576,7 +555,7 @@ namespace Osmium {
                         ways[i]->used = ringcount;
                         ways[i]->sequence = sequence;
                         ways[i]->invert = true;
-                        shared_ptr<RingInfo> result = make_one_ring(ways, first, ways[i]->firstnode, ringcount, sequence+1);
+                        shared_ptr<RingInfo> result = complete_ring(ways, first, ways[i]->firstnode, ringcount, sequence+1);
                         if (result) {
                             result->ways.push_back(ways[i]);
                             return result;
@@ -586,6 +565,29 @@ namespace Osmium {
                 }
                 // we have exhausted all combinations.
                 return shared_ptr<RingInfo>();
+            }
+
+            /**
+             * Start with the first available way and build a ring containing it.
+             *
+             * @returns true if a ring could be built, false otherwise
+             */
+            bool make_one_ring(std::vector< shared_ptr<RingInfo> >& ringlist, std::vector<WayInfo*>& ways) const {
+                for (unsigned int i=0; i<ways.size(); ++i) {
+                    if (ways[i]->used != -1) continue;
+                    ways[i]->used = ringlist.size();
+                    ways[i]->sequence = 0;
+                    ways[i]->invert = false;
+                    shared_ptr<RingInfo> rl = complete_ring(ways, ways[i]->firstnode, ways[i]->lastnode, ringlist.size(), 1);
+                    if (rl) {
+                        rl->ways.push_back(ways[i]);
+                        ringlist.push_back(rl);
+                        return true;
+                    }
+                    ways[i]->used = -2;
+                    break;
+                }
+                return false;
             }
 
             /**
@@ -714,13 +716,7 @@ namespace Osmium {
              * used so they are not used again.
              */
             void make_rings(std::vector< shared_ptr<RingInfo> >& ringlist, std::vector<WayInfo*>& ways) const {
-                do {
-                    START_TIMER(make_one_ring);
-                    shared_ptr<RingInfo> r = make_one_ring(ways, 0, 0, ringlist.size(), 0);
-                    STOP_TIMER(make_one_ring);
-                    if (r == NULL) break;
-                    ringlist.push_back(r);
-                } while (true);
+                while (make_one_ring(ringlist, ways));
 
                 if (ringlist.empty()) {
                     // FIXME throw NoRings("no rings");
@@ -733,13 +729,7 @@ namespace Osmium {
 
                 // re-run ring building, taking into account the newly created "repair" bits.
                 // (in case there were no dangling bits, make_one_ring terminates quickly.)
-                do {
-                    START_TIMER(make_one_ring);
-                    shared_ptr<RingInfo> r = make_one_ring(ways, 0, 0, ringlist.size(), 0);
-                    STOP_TIMER(make_one_ring);
-                    if (r == NULL) break;
-                    ringlist.push_back(r);
-                } while (true);
+                while (make_one_ring(ringlist, ways));
 
                 if (ringlist.empty()) {
                     clear_wayinfo();
