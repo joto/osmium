@@ -477,6 +477,47 @@ namespace Osmium {
             }
 
             /**
+             * This method is called when a complete ring was created from one or more ways.
+             */
+            shared_ptr<RingInfo> ring_is_complete(std::vector<WayInfo*>& ways, int ringcount, int sequence) const {
+                geos::geom::CoordinateSequence* cs = geos::geom::CoordinateArraySequenceFactory::instance()->create((size_t)0, (size_t)0);
+                geos::geom::LinearRing* lr = NULL;
+                try {
+                    START_TIMER(mor_polygonizer);
+                    WayInfo** sorted_ways = new WayInfo*[sequence];
+                    for (unsigned int i=0; i<ways.size(); ++i) {
+                        if (ways[i]->used == ringcount) {
+                            sorted_ways[ways[i]->sequence] = ways[i];
+                        }
+                    }
+                    for (int i=0; i<sequence; ++i) {
+                        geos::geom::LineString* linestring = dynamic_cast<geos::geom::LineString*>(sorted_ways[i]->way_geom);
+                        assert(linestring);
+                        cs->add(linestring->getCoordinatesRO(), false, !sorted_ways[i]->invert);
+                    }
+                    delete[] sorted_ways;
+                    lr = Osmium::Geometry::geos_geometry_factory()->createLinearRing(cs);
+                    STOP_TIMER(mor_polygonizer);
+                    if (!lr->isSimple() || !lr->isValid()) {
+                        //delete lr;
+                        lr = NULL;
+                        if (m_attempt_repair) {
+                            lr = create_non_intersecting_linear_ring(cs);
+                            if (lr) {
+                                std::cerr << "Successfully repaired an invalid ring" << std::endl;
+                            }
+                        }
+                        if (!lr) return shared_ptr<RingInfo>();
+                    }
+                    bool ccw = geos::algorithm::CGAlgorithms::isCCW(lr->getCoordinatesRO());
+                    return make_shared<RingInfo>(Osmium::Geometry::geos_geometry_factory()->createPolygon(lr, NULL), ccw ? COUNTERCLOCKWISE : CLOCKWISE);
+                } catch (const geos::util::GEOSException& exc) {
+                    std::cerr << "Exception: " << exc.what() << std::endl;
+                    return shared_ptr<RingInfo>();
+                }
+            }
+
+            /**
             * Tries to collect 1...n ways from the n ways in the given list so that
             * they form a closed ring. If this is possible, flag those as being used
             * by ring #ringcount in the way list and return the geometry. (The method
@@ -485,43 +526,9 @@ namespace Osmium {
             */
             shared_ptr<RingInfo> complete_ring(std::vector<WayInfo*>& ways, osm_object_id_t first, osm_object_id_t last, int ringcount, int sequence) const {
 
-                // have we found a loop already?
-                if (first && first == last) {
-                    geos::geom::CoordinateSequence* cs = geos::geom::CoordinateArraySequenceFactory::instance()->create((size_t)0, (size_t)0);
-                    geos::geom::LinearRing* lr = NULL;
-                    try {
-                        START_TIMER(mor_polygonizer);
-                        WayInfo** sorted_ways = new WayInfo*[sequence];
-                        for (unsigned int i=0; i<ways.size(); ++i) {
-                            if (ways[i]->used == ringcount) {
-                                sorted_ways[ways[i]->sequence] = ways[i];
-                            }
-                        }
-                        for (int i=0; i<sequence; ++i) {
-                            geos::geom::LineString* linestring = dynamic_cast<geos::geom::LineString*>(sorted_ways[i]->way_geom);
-                            assert(linestring);
-                            cs->add(linestring->getCoordinatesRO(), false, !sorted_ways[i]->invert);
-                        }
-                        delete[] sorted_ways;
-                        lr = Osmium::Geometry::geos_geometry_factory()->createLinearRing(cs);
-                        STOP_TIMER(mor_polygonizer);
-                        if (!lr->isSimple() || !lr->isValid()) {
-                            //delete lr;
-                            lr = NULL;
-                            if (m_attempt_repair) {
-                                lr = create_non_intersecting_linear_ring(cs);
-                                if (lr) {
-                                    std::cerr << "Successfully repaired an invalid ring" << std::endl;
-                                }
-                            }
-                            if (!lr) return shared_ptr<RingInfo>();
-                        }
-                        bool ccw = geos::algorithm::CGAlgorithms::isCCW(lr->getCoordinatesRO());
-                        return make_shared<RingInfo>(Osmium::Geometry::geos_geometry_factory()->createPolygon(lr, NULL), ccw ? COUNTERCLOCKWISE : CLOCKWISE);
-                    } catch (const geos::util::GEOSException& exc) {
-                        std::cerr << "Exception: " << exc.what() << std::endl;
-                        return shared_ptr<RingInfo>();
-                    }
+                // Is the ring closed already?
+                if (first == last) {
+                    return ring_is_complete(ways, ringcount, sequence);
                 }
 
                 // try extending our current line at the rear end
