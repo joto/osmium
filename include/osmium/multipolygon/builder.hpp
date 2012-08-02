@@ -108,7 +108,7 @@ namespace Osmium {
 
         class WayInfo {
 
-            friend class Builder;
+        public:
 
             const shared_ptr<Osmium::OSM::Way const> way;
             int used;
@@ -140,7 +140,7 @@ namespace Osmium {
 
             geos::geom::Polygon* polygon;
             direction_t direction;
-            std::vector<WayInfo*> ways;
+            std::vector< shared_ptr<WayInfo> > ways;
             std::vector< shared_ptr<RingInfo> > inner_rings;
             weak_ptr<RingInfo> contained_by;
 
@@ -283,6 +283,14 @@ namespace Osmium {
              */
             std::vector< shared_ptr<Osmium::OSM::Area> >& build() {
                 try {
+                    {
+                        std::vector< shared_ptr<WayInfo> > ways;
+                        assemble_ways(ways);
+                        make_rings(ways);
+                    }
+
+                    determine_inner_outer_rings();
+
                     build_multipolygon();
                     m_areas.push_back(m_new_area);
                 } catch (BuildError& error) {
@@ -431,10 +439,10 @@ namespace Osmium {
              *
              * Caller takes ownership.
              */
-            geos::geom::CoordinateSequence* create_ring_coordinate_sequence(std::vector<WayInfo*>& ways) const {
+            geos::geom::CoordinateSequence* create_ring_coordinate_sequence(std::vector< shared_ptr<WayInfo> >& ways) const {
                 geos::geom::CoordinateSequence* coordinates = Osmium::Geometry::geos_geometry_factory()->getCoordinateSequenceFactory()->create(0, 2);
 
-                BOOST_FOREACH(const WayInfo* way_info, ways) {
+                BOOST_FOREACH(const shared_ptr<WayInfo>& way_info, ways) {
                     if (way_info->invert) {
                         BOOST_REVERSE_FOREACH(const Osmium::OSM::WayNode& wn, way_info->way->nodes()) {
                             coordinates->add(Osmium::Geometry::create_geos_coordinate(wn.position()), false);
@@ -452,8 +460,8 @@ namespace Osmium {
             /**
              * This method is called when a complete ring was created from one or more ways.
              */
-            shared_ptr<RingInfo> ring_is_complete(std::vector<WayInfo*>& ways, int ringcount, int num_ways_in_ring) const {
-                std::vector<WayInfo*> sorted_ways(num_ways_in_ring);
+            shared_ptr<RingInfo> ring_is_complete(std::vector< shared_ptr<WayInfo> >& ways, int ringcount, int num_ways_in_ring) const {
+                std::vector< shared_ptr<WayInfo> > sorted_ways(num_ways_in_ring);
                 for (unsigned int i=0; i < ways.size(); ++i) {
                     if (ways[i]->used == ringcount) {
                         sorted_ways[ways[i]->sequence] = ways[i];
@@ -485,7 +493,7 @@ namespace Osmium {
             /**
              * Try extending a proto-ring recursively until it is complete.
              */
-            shared_ptr<RingInfo> complete_ring(std::vector<WayInfo*>& ways, osm_object_id_t first, osm_object_id_t last, int ringcount, int sequence) const {
+            shared_ptr<RingInfo> complete_ring(std::vector< shared_ptr<WayInfo> >& ways, osm_object_id_t first, osm_object_id_t last, int ringcount, int sequence) const {
 
                 // is the ring closed already?
                 if (first == last) {
@@ -534,7 +542,7 @@ namespace Osmium {
              *
              * @returns true if a ring could be built, false otherwise
              */
-            bool make_one_ring(std::vector<WayInfo*>& ways) {
+            bool make_one_ring(std::vector< shared_ptr<WayInfo> >& ways) {
                 for (unsigned int i=0; i<ways.size(); ++i) {
                     if (ways[i]->used != -1) continue;
                     ways[i]->used = m_ringlist.size();
@@ -563,7 +571,7 @@ namespace Osmium {
             * (This implementation always succeeds because it is impossible for
             * there to be only one dangling end in a collection of lines.)
             */
-            bool find_and_repair_holes_in_rings(std::vector<WayInfo*>& ways) const {
+            bool find_and_repair_holes_in_rings(std::vector< shared_ptr<WayInfo> >& ways) const {
 
                 typedef std::vector<Osmium::OSM::WayNode> wnv_t;
 
@@ -574,7 +582,7 @@ namespace Osmium {
 
                     // fill end_nodes vector with all end nodes of all unused ways
                     // and reset way_infos in the process
-                    BOOST_FOREACH(WayInfo* way_info, ways) {
+                    BOOST_FOREACH(shared_ptr<WayInfo>& way_info, ways) {
                         if (way_info->used < 0) {
                             way_info->innerouter = UNSET;
                             way_info->used = -1;
@@ -629,7 +637,7 @@ namespace Osmium {
                     shared_ptr<Osmium::OSM::Way> way = make_shared<Osmium::OSM::Way>();
                     way->nodes().push_back(*closest);
                     way->nodes().push_back(wn);
-                    ways.push_back(new WayInfo(way));
+                    ways.push_back(make_shared<WayInfo>(way));
                     std::cerr << "fill gap between nodes " << closest->ref() << " and " << wn.ref() << std::endl;
 
                     dangling_nodes.erase(closest);
@@ -643,7 +651,7 @@ namespace Osmium {
              * vector of WayInfo elements. this holds room for the way pointer
              * and some extra flags.
              */
-            void assemble_ways(std::vector<WayInfo*>& way_infos) {
+            void assemble_ways(std::vector< shared_ptr<WayInfo> >& way_infos) {
 
                 START_TIMER(assemble_ways);
 
@@ -654,8 +662,7 @@ namespace Osmium {
                         m_new_area->timestamp(way->timestamp());
                     }
 
-                    WayInfo* wi = new WayInfo(way);
-                    way_infos.push_back(wi);
+                    way_infos.push_back(make_shared<WayInfo>(way));
                     // TODO drop duplicate ways automatically in repair mode?
                     // TODO maybe add INNER/OUTER instead of UNSET to enable later warnings on role mismatch
                 }
@@ -663,18 +670,12 @@ namespace Osmium {
                 STOP_TIMER(assemble_ways);
             }
 
-                // convenience defines to aid in clearing up on error return.
-
-#define clear_wayinfo() \
-                for (std::vector<WayInfo*>::const_iterator win(ways.begin()); win != ways.end(); ++win) delete *win;
-
-
             /**
              * Try and create as many closed rings as possible from the assortment
              * of ways. make_one_ring will automatically flag those that have been
              * used so they are not used again.
              */
-            void make_rings(std::vector<WayInfo*>& ways) {
+            void make_rings(std::vector< shared_ptr<WayInfo> >& ways) {
                 while (make_one_ring(ways));
 
                 if (m_ringlist.empty()) {
@@ -682,7 +683,6 @@ namespace Osmium {
                 }
 
                 if (!find_and_repair_holes_in_rings(ways)) {
-                    clear_wayinfo();
                     throw DanglingEnds("un-connectable dangling ends");
                 }
 
@@ -691,7 +691,6 @@ namespace Osmium {
                 while (make_one_ring(ways));
 
                 if (m_ringlist.empty()) {
-                    clear_wayinfo();
                     throw NoRings("no rings");
                 }
             }
@@ -822,14 +821,6 @@ namespace Osmium {
             * Tries to build a multipolygon.
             */
             void build_multipolygon() {
-                std::vector<WayInfo*> ways;
-
-                assemble_ways(ways);
-
-                make_rings(ways);
-
-                determine_inner_outer_rings();
-
                 int outer_ring_count = handle_one_way_inner_rings();
 
                 // for all non-enclosed rings, assemble holes and build polygon.
@@ -926,14 +917,13 @@ namespace Osmium {
                     }
                     if (!valid) {
                         // polygon is invalid.
-                        clear_wayinfo();
                         if (p) delete p;
                         else delete ring;
                         throw InvalidRing("invalid ring");
                     } else {
                         polygons->push_back(p);
                         for (unsigned int k=0; k < m_ringlist[i]->ways.size(); ++k) {
-                            WayInfo* wi = m_ringlist[i]->ways[k];
+                            shared_ptr<WayInfo>& wi = m_ringlist[i]->ways[k];
                             // may have "hole filler" ways in there, not backed by
                             // proper way and thus no tags:
                             if (wi->way == NULL) continue;
@@ -962,7 +952,6 @@ namespace Osmium {
                 }
                 STOP_TIMER(polygon_build);
 
-                clear_wayinfo();
                 if (polygons->empty()) {
                     throw NoRings("no rings");
                 }
