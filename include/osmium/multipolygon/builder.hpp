@@ -764,6 +764,42 @@ namespace Osmium {
                 STOP_TIMER(contains);
             }
 
+            void warning(const std::string& text) {
+//                std::cerr << text << "\n";
+            }
+
+            void handle_one_way_inner_ring(RingInfo& ring_info) {
+                if (ring_info.ways.size() != 1 || untagged(ring_info.ways[0]->way.get())) {
+                    return;
+                }
+
+                if (same_tags(ring_info.ways[0]->way.get(), m_new_area.get())) {
+                    warning("duplicate_tags_on_inner");
+                    return;
+                }
+                
+                if (ring_info.contained_by.lock()->ways.size() == 1 && same_tags(ring_info.ways[0]->way.get(), ring_info.contained_by.lock()->ways[0]->way.get())) {
+                    warning("duplicate_tags_on_inner");
+                    return;
+                }
+
+                std::vector<geos::geom::Geometry*>* geometries = new std::vector<geos::geom::Geometry*>;
+
+                if (ring_info.direction == CLOCKWISE) {
+                    geometries->push_back(ring_info.polygon->clone());
+                } else {
+                    geos::geom::LineString* tmp = dynamic_cast<geos::geom::LineString*>(ring_info.polygon->getExteriorRing()->reverse());
+                    assert(tmp);
+                    geos::geom::LinearRing* reversed_ring = Osmium::Geometry::geos_geometry_factory()->createLinearRing(tmp->getCoordinates());
+                    delete tmp;
+                    geometries->push_back(Osmium::Geometry::geos_geometry_factory()->createPolygon(reversed_ring, NULL));
+                }
+
+                shared_ptr<Osmium::OSM::Area> internal_area = make_shared<Osmium::OSM::Area>(*(ring_info.ways[0]->way));
+                internal_area->geos_geometry(Osmium::Geometry::geos_geometry_factory()->createMultiPolygon(geometries));
+                m_areas.push_back(internal_area);
+            }
+
             /**
              * now look at all enclosed (inner) rings that consist of only one way.
              * if such an inner ring has way tags, do the following:
@@ -773,41 +809,12 @@ namespace Osmium {
              *   as for the relation
              **/
             int handle_one_way_inner_rings() {
-                START_TIMER(extra_polygons);
                 int outer_ring_count = 0;
+
+                START_TIMER(extra_polygons);
                 for (unsigned int i=0; i < m_ringlist.size(); ++i) {
                     if (m_ringlist[i]->is_inner()) {
-                        if (m_ringlist[i]->ways.size() == 1 && !untagged(m_ringlist[i]->ways[0]->way.get())) {
-                            std::vector<geos::geom::Geometry*>* g = new std::vector<geos::geom::Geometry*>;
-                            if (m_ringlist[i]->direction == CLOCKWISE) {
-                                g->push_back(m_ringlist[i]->polygon->clone());
-                            } else {
-                                geos::geom::LineString* tmp = dynamic_cast<geos::geom::LineString*>(m_ringlist[i]->polygon->getExteriorRing()->reverse());
-                                assert(tmp);
-                                geos::geom::LinearRing* reversed_ring = Osmium::Geometry::geos_geometry_factory()->createLinearRing(tmp->getCoordinates());
-                                delete tmp;
-                                g->push_back(Osmium::Geometry::geos_geometry_factory()->createPolygon(reversed_ring, NULL));
-                            }
-
-                            geos::geom::MultiPolygon* special_mp = Osmium::Geometry::geos_geometry_factory()->createMultiPolygon(g);
-
-                            if (same_tags(m_ringlist[i]->ways[0]->way.get(), m_new_area.get())) {
-                                // warning
-                                // warnings.insert("duplicate_tags_on_inner");
-                            } else if (m_ringlist[i]->contained_by.lock()->ways.size() == 1 && same_tags(m_ringlist[i]->ways[0]->way.get(), m_ringlist[i]->contained_by.lock()->ways[0]->way.get())) {
-                                // warning
-                                // warnings.insert("duplicate_tags_on_inner");
-                            } else {
-                                shared_ptr<Osmium::OSM::Area> internal_area = make_shared<Osmium::OSM::Area>(*(m_ringlist[i]->ways[0]->way));
-                                internal_area->geos_geometry(special_mp);
-                                m_areas.push_back(internal_area);
-
-                                // Area destructor deletes the
-                                // geometry, so avoid to delete it again.
-                                special_mp = NULL;
-                            }
-                            delete special_mp;
-                        }
+                        handle_one_way_inner_ring(*m_ringlist[i]);
                     } else {
                         ++outer_ring_count;
                     }
