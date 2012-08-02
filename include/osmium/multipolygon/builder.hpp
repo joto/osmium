@@ -46,12 +46,10 @@ using boost::make_shared;
 # define STOP_TIMER(x)
 #endif // OSMIUM_WITH_MULTIPOLYGON_PROFILING
 
-#include <geos/version.h>
 #include <geos/geom/Geometry.h>
 #include <geos/geom/Point.h>
 #include <geos/geom/LineString.h>
 #include <geos/geom/Polygon.h>
-#include <geos/geom/PrecisionModel.h>
 #include <geos/geom/CoordinateSequence.h>
 #include <geos/geom/CoordinateArraySequenceFactory.h>
 #include <geos/geom/LinearRing.h>
@@ -65,12 +63,8 @@ using boost::make_shared;
 // this should come from /usr/include/geos/algorithm, but its missing there in some Ubuntu versions
 #include "../CGAlgorithms.h"
 
-#include <osmium/osm/position.hpp>
-#include <osmium/osm/way.hpp>
-#include <osmium/osm/area.hpp>
-#include <osmium/osm/relation.hpp>
+#include <osmium/osm.hpp>
 #include <osmium/geometry.hpp>
-#include <osmium/geometry/linestring.hpp>
 #include <osmium/geometry/geos.hpp>
 #include <osmium/geometry/haversine.hpp>
 #include <osmium/relations/relation_info.hpp>
@@ -128,9 +122,6 @@ namespace Osmium {
                 sequence(0),
                 invert(false),
                 innerouter(UNSET) {
-            }
-
-            ~WayInfo() {
             }
 
             osm_object_id_t firstnode() const {
@@ -572,7 +563,7 @@ namespace Osmium {
             * (This implementation always succeeds because it is impossible for
             * there to be only one dangling end in a collection of lines.)
             */
-            bool find_and_repair_holes_in_rings(std::vector<WayInfo*>* ways) const {
+            bool find_and_repair_holes_in_rings(std::vector<WayInfo*>& ways) const {
 
                 typedef std::vector<Osmium::OSM::WayNode> wnv_t;
 
@@ -583,7 +574,7 @@ namespace Osmium {
 
                     // fill end_nodes vector with all end nodes of all unused ways
                     // and reset way_infos in the process
-                    BOOST_FOREACH(WayInfo* way_info, *ways) {
+                    BOOST_FOREACH(WayInfo* way_info, ways) {
                         if (way_info->used < 0) {
                             way_info->innerouter = UNSET;
                             way_info->used = -1;
@@ -638,7 +629,7 @@ namespace Osmium {
                     shared_ptr<Osmium::OSM::Way> way = make_shared<Osmium::OSM::Way>();
                     way->nodes().push_back(*closest);
                     way->nodes().push_back(wn);
-                    ways->push_back(new WayInfo(way));
+                    ways.push_back(new WayInfo(way));
                     std::cerr << "fill gap between nodes " << closest->ref() << " and " << wn.ref() << std::endl;
 
                     dangling_nodes.erase(closest);
@@ -690,7 +681,7 @@ namespace Osmium {
                     // FIXME throw NoRings("no rings");
                 }
 
-                if (!find_and_repair_holes_in_rings(&ways)) {
+                if (!find_and_repair_holes_in_rings(ways)) {
                     clear_wayinfo();
                     throw DanglingEnds("un-connectable dangling ends");
                 }
