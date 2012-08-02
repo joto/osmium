@@ -68,7 +68,7 @@ namespace Osmium {
                 }
 
                 for (Osmium::OSM::WayNodeList::const_iterator it = wnl.begin(); it != wnl.end()-1; ++it) {
-                    sum_length += distance(it->position(), (it+1)->position());
+                    sum_length += Osmium::Geometry::Haversine::distance(it->position(), (it+1)->position());
                 }
 
                 return sum_length;
