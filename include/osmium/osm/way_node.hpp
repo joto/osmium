@@ -73,6 +73,10 @@ namespace Osmium {
                 return m_position.lat();
             }
 
+            friend bool operator<(const WayNode& wn1, const WayNode& wn2) {
+                return wn1.ref() < wn2.ref();
+            }
+
             friend bool operator==(const WayNode& wn1, const WayNode& wn2) {
                 return wn1.ref() == wn2.ref();
             }

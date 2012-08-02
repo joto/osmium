@@ -567,72 +567,76 @@ namespace Osmium {
             * there to be only one dangling end in a collection of lines.)
             */
             bool find_and_repair_holes_in_rings(std::vector<WayInfo*>* ways) const {
-                // collect the remaining debris (=unused ways) and find dangling nodes.
 
-                std::map<int, Osmium::OSM::Position> dangling_node_map;
-                for (std::vector<WayInfo*>::iterator i(ways->begin()); i != ways->end(); ++i) {
-                    if ((*i)->used < 0) {
-                        (*i)->innerouter = UNSET;
-                        (*i)->used = -1;
-                        for (int j=0; j<2; ++j) {
-                            int nid = j ? (*i)->firstnode() : (*i)->lastnode();
+                typedef std::vector<Osmium::OSM::WayNode> wnv_t;
 
-                            std::map<int, Osmium::OSM::Position>::iterator pos = dangling_node_map.find(nid);
-                            if (pos != dangling_node_map.end()) {
-                                dangling_node_map.erase(pos);
-                            } else {
-                                dangling_node_map[nid] = j ? (*i)->way->nodes().front().position() : (*i)->way->nodes().back().position();
-                            }
+                wnv_t dangling_nodes;
+
+                {
+                    wnv_t end_nodes;
+
+                    // fill end_nodes vector with all end nodes of all unused ways
+                    // and reset way_infos in the process
+                    BOOST_FOREACH(WayInfo* way_info, *ways) {
+                        if (way_info->used < 0) {
+                            way_info->innerouter = UNSET;
+                            way_info->used = -1;
+                            end_nodes.push_back(way_info->way->nodes().front());
+                            end_nodes.push_back(way_info->way->nodes().back());
+                        }
+                    }
+
+                    // the env_nodes vector now contains all nodes that are not
+                    // open ends twice, sort it so that those nodes are next to
+                    // each other
+                    std::sort(end_nodes.begin(), end_nodes.end());
+
+                    // find nodes that are not doubled up after the sort and add
+                    // them to the dangling_nodes vector
+                    for (wnv_t::const_iterator it = end_nodes.begin(); it != end_nodes.end(); ++it) {
+                        if (*it == *(it+1)) {
+                            ++it;
+                        } else {
+                            dangling_nodes.push_back(*it);
                         }
                     }
                 }
 
-                assert(dangling_node_map.size() % 2 == 0);
+                assert(dangling_nodes.size() % 2 == 0);
 
-                do {
-                    int mindist_id = 0;
-                    double mindist = -1;
-                    int node1_id = 0;
-                    Osmium::OSM::Position node1;
-                    Osmium::OSM::Position node2;
+                // if there are dangling nodes but aren't repairing we return
+                // false
+                if (!m_attempt_repair && !dangling_nodes.empty()) {
+                    return false;
+                }
 
-                    // find one pair consisting of a random node from the list (node1)
-                    // plus the node that lies closest to it.
-                    for (std::map<int, Osmium::OSM::Position>::iterator i(dangling_node_map.begin()); i != dangling_node_map.end(); ++i) {
-                        if (!i->second.defined()) continue;
-                        if (!node1.defined()) {
-                            node1 = i->second;
-                            node1_id = i->first;
-                            i->second = Osmium::OSM::Position();
-                            mindist = -1;
-                        } else {
-                            double dist = Osmium::Geometry::Haversine::distance(node1, i->second);
-                            if ((dist < mindist) || (mindist < 0)) {
-                                mindist = dist;
-                                mindist_id = i->first;
-                            }
+                // while there are any dangling nodes, take the last
+                // one and compare the distance to each of the other
+                // nodes and find the closest one
+                while (!dangling_nodes.empty()) {
+                    Osmium::OSM::WayNode wn = dangling_nodes.back();
+                    dangling_nodes.pop_back();
+
+                    wnv_t::iterator closest = dangling_nodes.begin();
+                    double min_distance = Osmium::Geometry::Haversine::distance(wn.position(), closest->position());
+
+                    for (wnv_t::iterator it = closest+1; it != dangling_nodes.end(); ++it) {
+                        double distance = Osmium::Geometry::Haversine::distance(wn.position(), it->position());
+                        if (distance < min_distance) {
+                            min_distance = distance;
+                            closest = it;
                         }
                     }
 
-                    // if such a pair has been found, synthesize a connecting way.
-                    if (node1.defined() && mindist > -1) {
-                        // if we find that there are dangling nodes but aren't
-                        // repairing - break out.
-                        if (!m_attempt_repair) return false;
+                    // create pseudo-way closing the gap
+                    shared_ptr<Osmium::OSM::Way> way = make_shared<Osmium::OSM::Way>();
+                    way->nodes().push_back(*closest);
+                    way->nodes().push_back(wn);
+                    ways->push_back(new WayInfo(way));
+                    std::cerr << "fill gap between nodes " << closest->ref() << " and " << wn.ref() << std::endl;
 
-                        // drop node2 from dangling map
-                        node2 = dangling_node_map[mindist_id];
-                        dangling_node_map.erase(mindist_id);
-
-                        shared_ptr<Osmium::OSM::Way> way = make_shared<Osmium::OSM::Way>();
-                        way->nodes().push_back(Osmium::OSM::WayNode(node1_id, node1));
-                        way->nodes().push_back(Osmium::OSM::WayNode(mindist_id, node2));
-                        ways->push_back(new WayInfo(way));
-                        std::cerr << "fill gap between nodes " << node1_id << " and " << mindist_id << std::endl;
-                    } else {
-                        break;
-                    }
-                } while (1);
+                    dangling_nodes.erase(closest);
+                }
 
                 return true;
             }
