@@ -444,9 +444,15 @@ namespace Osmium {
                 geos::geom::CoordinateSequence* coordinates = Osmium::Geometry::geos_geometry_factory()->getCoordinateSequenceFactory()->create(0, 2);
 
                 BOOST_FOREACH(const WayInfo* way_info, ways) {
-                    Osmium::Geometry::LineString linestring(*(way_info->way));
-                    geos::geom::LineString* geos_linestring = Osmium::Geometry::create_geos_geometry(linestring);
-                    coordinates->add(geos_linestring->getCoordinatesRO(), false, !way_info->invert);
+                    if (way_info->invert) {
+                        BOOST_REVERSE_FOREACH(const Osmium::OSM::WayNode& wn, way_info->way->nodes()) {
+                            coordinates->add(Osmium::Geometry::create_geos_coordinate(wn.position()), false);
+                        }
+                    } else {
+                        BOOST_FOREACH(const Osmium::OSM::WayNode& wn, way_info->way->nodes()) {
+                            coordinates->add(Osmium::Geometry::create_geos_coordinate(wn.position()), false);
+                        }
+                    }
                 }
 
                 return coordinates;
