@@ -61,17 +61,18 @@ using boost::make_shared;
 #include <geos/geom/prep/PreparedPolygon.h>
 #include <geos/util/GEOSException.h>
 #include <geos/operation/polygonize/Polygonizer.h>
-#include <geos/operation/distance/DistanceOp.h>
 
 // this should come from /usr/include/geos/algorithm, but its missing there in some Ubuntu versions
 #include "../CGAlgorithms.h"
 
+#include <osmium/osm/position.hpp>
 #include <osmium/osm/way.hpp>
 #include <osmium/osm/area.hpp>
 #include <osmium/osm/relation.hpp>
 #include <osmium/geometry.hpp>
 #include <osmium/geometry/linestring.hpp>
 #include <osmium/geometry/geos.hpp>
+#include <osmium/geometry/haversine.hpp>
 #include <osmium/relations/relation_info.hpp>
 
 namespace Osmium {
@@ -81,12 +82,6 @@ namespace Osmium {
         struct BuildError : public std::runtime_error {
             BuildError(const std::string& what) :
                 std::runtime_error(what) {
-            }
-        };
-
-        struct InvalidWayGeometry : public BuildError {
-            InvalidWayGeometry(const std::string& what) :
-                BuildError(what) {
             }
         };
 
@@ -126,62 +121,24 @@ namespace Osmium {
             int sequence;
             bool invert;
             innerouter_t innerouter;
-            geos::geom::Geometry* way_geom;
-            int firstnode;
-            int lastnode;
-
-            WayInfo() :
-                way(),
-                used(-1),
-                sequence(0),
-                invert(false),
-                innerouter(UNSET),
-                way_geom(NULL),
-                firstnode(-1),
-                lastnode(-1) {
-            }
 
             WayInfo(const shared_ptr<Osmium::OSM::Way const>& w) :
                 way(w),
                 used(-1),
                 sequence(0),
                 invert(false),
-                innerouter(UNSET),
-                way_geom(NULL),
-                firstnode(w->get_first_node_id()),
-                lastnode(w->get_last_node_id()) {
-                Osmium::Geometry::LineString linestring(*w);
-                way_geom = Osmium::Geometry::create_geos_geometry(linestring);
-            }
-
-            /** Special version with a synthetic way, not backed by real way object. */
-            WayInfo(geos::geom::Geometry* geom, int first, int last) :
-                way(),
-                used(-1),
-                sequence(0),
-                invert(false),
-                innerouter(UNSET),
-                way_geom(geom),
-                firstnode(first),
-                lastnode(last) {
+                innerouter(UNSET) {
             }
 
             ~WayInfo() {
-                delete way_geom;
             }
 
-            geos::geom::Point* get_firstnode_geom() const {
-                if (!way) {
-                    return NULL;
-                }
-                return Osmium::Geometry::geos_geometry_factory()->createPoint(Osmium::Geometry::create_geos_coordinate(way->nodes().front().position()));
+            osm_object_id_t firstnode() const {
+                return way->nodes().front().ref();
             }
 
-            geos::geom::Point* get_lastnode_geom() const {
-                if (!way) {
-                    return NULL;
-                }
-                return Osmium::Geometry::geos_geometry_factory()->createPoint(Osmium::Geometry::create_geos_coordinate(way->nodes().back().position()));
+            osm_object_id_t lastnode() const {
+                return way->nodes().back().ref();
             }
 
         }; // class WayInfo
@@ -487,8 +444,9 @@ namespace Osmium {
                 geos::geom::CoordinateSequence* coordinates = Osmium::Geometry::geos_geometry_factory()->getCoordinateSequenceFactory()->create(0, 2);
 
                 BOOST_FOREACH(const WayInfo* way_info, ways) {
-                    geos::geom::LineString* linestring = dynamic_cast<geos::geom::LineString*>(way_info->way_geom);
-                    coordinates->add(linestring->getCoordinatesRO(), false, !way_info->invert);
+                    Osmium::Geometry::LineString linestring(*(way_info->way));
+                    geos::geom::LineString* geos_linestring = Osmium::Geometry::create_geos_geometry(linestring);
+                    coordinates->add(geos_linestring->getCoordinatesRO(), false, !way_info->invert);
                 }
 
                 return coordinates;
@@ -545,23 +503,23 @@ namespace Osmium {
                     // remember old used state in case we have to backtrack
                     int old_used = ways[i]->used;
 
-                    if (ways[i]->firstnode == last) {
+                    if (ways[i]->firstnode() == last) {
                         // add way to end
                         ways[i]->used = ringcount;
                         ways[i]->sequence = sequence;
                         ways[i]->invert = false;
-                        shared_ptr<RingInfo> result = complete_ring(ways, first, ways[i]->lastnode, ringcount, sequence+1);
+                        shared_ptr<RingInfo> result = complete_ring(ways, first, ways[i]->lastnode(), ringcount, sequence+1);
                         if (result) {
                             result->ways.push_back(ways[i]);
                             return result;
                         }
                         ways[i]->used = old_used;
-                    } else if (ways[i]->lastnode == last) {
+                    } else if (ways[i]->lastnode() == last) {
                         // add way to end, but turn it around
                         ways[i]->used = ringcount;
                         ways[i]->sequence = sequence;
                         ways[i]->invert = true;
-                        shared_ptr<RingInfo> result = complete_ring(ways, first, ways[i]->firstnode, ringcount, sequence+1);
+                        shared_ptr<RingInfo> result = complete_ring(ways, first, ways[i]->firstnode(), ringcount, sequence+1);
                         if (result) {
                             result->ways.push_back(ways[i]);
                             return result;
@@ -585,7 +543,7 @@ namespace Osmium {
                     ways[i]->used = m_ringlist.size();
                     ways[i]->sequence = 0;
                     ways[i]->invert = false;
-                    shared_ptr<RingInfo> rl = complete_ring(ways, ways[i]->firstnode, ways[i]->lastnode, m_ringlist.size(), 1);
+                    shared_ptr<RingInfo> rl = complete_ring(ways, ways[i]->firstnode(), ways[i]->lastnode(), m_ringlist.size(), 1);
                     if (rl) {
                         rl->ways.push_back(ways[i]);
                         m_ringlist.push_back(rl);
@@ -611,45 +569,44 @@ namespace Osmium {
             bool find_and_repair_holes_in_rings(std::vector<WayInfo*>* ways) const {
                 // collect the remaining debris (=unused ways) and find dangling nodes.
 
-                std::map<int, geos::geom::Point*> dangling_node_map;
+                std::map<int, Osmium::OSM::Position> dangling_node_map;
                 for (std::vector<WayInfo*>::iterator i(ways->begin()); i != ways->end(); ++i) {
                     if ((*i)->used < 0) {
                         (*i)->innerouter = UNSET;
                         (*i)->used = -1;
                         for (int j=0; j<2; ++j) {
-                            int nid = j ? (*i)->firstnode : (*i)->lastnode;
-                            if (dangling_node_map[nid]) {
-                                delete dangling_node_map[nid];
-                                dangling_node_map[nid] = NULL;
+                            int nid = j ? (*i)->firstnode() : (*i)->lastnode();
+
+                            std::map<int, Osmium::OSM::Position>::iterator pos = dangling_node_map.find(nid);
+                            if (pos != dangling_node_map.end()) {
+                                dangling_node_map.erase(pos);
                             } else {
-                                dangling_node_map[nid] = j ? (*i)->get_firstnode_geom() : (*i)->get_lastnode_geom();
+                                dangling_node_map[nid] = j ? (*i)->way->nodes().front().position() : (*i)->way->nodes().back().position();
                             }
                         }
                     }
                 }
 
+                assert(dangling_node_map.size() % 2 == 0);
+
                 do {
                     int mindist_id = 0;
                     double mindist = -1;
                     int node1_id = 0;
-                    geos::geom::Point* node1 = NULL;
-                    geos::geom::Point* node2 = NULL;
+                    Osmium::OSM::Position node1;
+                    Osmium::OSM::Position node2;
 
                     // find one pair consisting of a random node from the list (node1)
                     // plus the node that lies closest to it.
-                    for (std::map<int, geos::geom::Point*>::iterator i(dangling_node_map.begin()); i != dangling_node_map.end(); ++i) {
-                        if (!i->second) continue;
-                        if (node1 == NULL) {
+                    for (std::map<int, Osmium::OSM::Position>::iterator i(dangling_node_map.begin()); i != dangling_node_map.end(); ++i) {
+                        if (!i->second.defined()) continue;
+                        if (!node1.defined()) {
                             node1 = i->second;
                             node1_id = i->first;
-                            i->second = NULL;
+                            i->second = Osmium::OSM::Position();
                             mindist = -1;
                         } else {
-# if GEOS_VERSION_MAJOR < 3 || (GEOS_VERSION_MAJOR == 3 && GEOS_VERSION_MINOR <= 2)
-                            double dist = geos::operation::distance::DistanceOp::distance(node1, (i->second)); // deprecated in newer version of GEOS
-# else
-                            double dist = geos::operation::distance::DistanceOp::distance(*node1, *(i->second));
-# endif
+                            double dist = Osmium::Geometry::Haversine::distance(node1, i->second);
                             if ((dist < mindist) || (mindist < 0)) {
                                 mindist = dist;
                                 mindist_id = i->first;
@@ -658,21 +615,19 @@ namespace Osmium {
                     }
 
                     // if such a pair has been found, synthesize a connecting way.
-                    if (node1 && mindist > -1) {
+                    if (node1.defined() && mindist > -1) {
                         // if we find that there are dangling nodes but aren't
                         // repairing - break out.
                         if (!m_attempt_repair) return false;
 
                         // drop node2 from dangling map
                         node2 = dangling_node_map[mindist_id];
-                        dangling_node_map[mindist_id] = NULL;
+                        dangling_node_map.erase(mindist_id);
 
-                        std::vector<geos::geom::Coordinate>* c = new std::vector<geos::geom::Coordinate>;
-                        c->push_back(*(node1->getCoordinate()));
-                        c->push_back(*(node2->getCoordinate()));
-                        geos::geom::CoordinateSequence* cs = Osmium::Geometry::geos_geometry_factory()->getCoordinateSequenceFactory()->create(c);
-                        geos::geom::Geometry* geometry = (geos::geom::Geometry*) Osmium::Geometry::geos_geometry_factory()->createLineString(cs);
-                        ways->push_back(new WayInfo(geometry, node1_id, mindist_id));
+                        shared_ptr<Osmium::OSM::Way> way = make_shared<Osmium::OSM::Way>();
+                        way->nodes().push_back(Osmium::OSM::WayNode(node1_id, node1));
+                        way->nodes().push_back(Osmium::OSM::WayNode(mindist_id, node2));
+                        ways->push_back(new WayInfo(way));
                         std::cerr << "fill gap between nodes " << node1_id << " and " << mindist_id << std::endl;
                     } else {
                         break;
@@ -699,10 +654,6 @@ namespace Osmium {
                     }
 
                     WayInfo* wi = new WayInfo(way);
-                    if (!wi->way_geom) {
-                        delete wi;
-                        throw InvalidWayGeometry("Invalid way geometry in multipolygon relation member");
-                    }
                     way_infos.push_back(wi);
                     // TODO drop duplicate ways automatically in repair mode?
                     // TODO maybe add INNER/OUTER instead of UNSET to enable later warnings on role mismatch
