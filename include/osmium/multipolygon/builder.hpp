@@ -156,6 +156,22 @@ namespace Osmium {
                 return !contained_by.expired();
             }
 
+            /**
+             * Return a copy of the outer ring of the polygon geometry in the
+             * given direction.
+             */
+            geos::geom::LinearRing* ring_in_direction(direction_t dir) const {
+                if (direction == dir) {
+                    return dynamic_cast<geos::geom::LinearRing*>(polygon->getExteriorRing()->clone());
+                } else {
+                    geos::geom::LineString* tmp = dynamic_cast<geos::geom::LineString*>(polygon->getExteriorRing()->reverse());
+                    assert(tmp);
+                    geos::geom::LinearRing* reversed_ring = Osmium::Geometry::geos_geometry_factory()->createLinearRing(tmp->getCoordinates());
+                    delete tmp;
+                    return reversed_ring;
+                }
+            }
+
         }; // class RingInfo
 
         /**
@@ -785,15 +801,7 @@ namespace Osmium {
 
                 std::vector<geos::geom::Geometry*>* geometries = new std::vector<geos::geom::Geometry*>;
 
-                if (ring_info.direction == CLOCKWISE) {
-                    geometries->push_back(ring_info.polygon->clone());
-                } else {
-                    geos::geom::LineString* tmp = dynamic_cast<geos::geom::LineString*>(ring_info.polygon->getExteriorRing()->reverse());
-                    assert(tmp);
-                    geos::geom::LinearRing* reversed_ring = Osmium::Geometry::geos_geometry_factory()->createLinearRing(tmp->getCoordinates());
-                    delete tmp;
-                    geometries->push_back(Osmium::Geometry::geos_geometry_factory()->createPolygon(reversed_ring, NULL));
-                }
+                geometries->push_back(Osmium::Geometry::geos_geometry_factory()->createPolygon(ring_info.ring_in_direction(CLOCKWISE), NULL));
 
                 shared_ptr<Osmium::OSM::Area> internal_area = make_shared<Osmium::OSM::Area>(*(ring_info.ways[0]->way));
                 internal_area->geos_geometry(Osmium::Geometry::geos_geometry_factory()->createMultiPolygon(geometries));
@@ -840,8 +848,6 @@ namespace Osmium {
                     if (m_ringlist[i] == NULL) continue; // can happen if ring has been deleted
                     if (m_ringlist[i]->is_inner()) continue;
 
-                    std::vector<geos::geom::Geometry*>* holes = new std::vector<geos::geom::Geometry*>(); // ownership is later transferred to polygon
-
                     START_TIMER(inner_ring_touch)
                     for (int j=0; j < ((int)m_ringlist[i]->inner_rings.size()-1); ++j) {
                         if (!m_ringlist[i]->inner_rings[j]->polygon) continue;
@@ -884,34 +890,17 @@ namespace Osmium {
                     }
                     STOP_TIMER(inner_ring_touch)
 
+                    std::vector<geos::geom::Geometry*>* holes = new std::vector<geos::geom::Geometry*>(); // ownership is later transferred to polygon
+
                     for (unsigned int j=0; j < m_ringlist[i]->inner_rings.size(); ++j) {
                         if (!m_ringlist[i]->inner_rings[j]->polygon) continue;
-                        geos::geom::LinearRing* ring = (geos::geom::LinearRing*) m_ringlist[i]->inner_rings[j]->polygon->getExteriorRing(); // XXX cast is not const-correct!
-
-                        if (m_ringlist[i]->inner_rings[j]->direction == CLOCKWISE) {
-                            // reverse ring
-                            geos::geom::LineString* tmp = dynamic_cast<geos::geom::LineString*>(ring->reverse());
-                            assert(tmp);
-                            geos::geom::LinearRing* reversed_ring = Osmium::Geometry::geos_geometry_factory()->createLinearRing(tmp->getCoordinates());
-                            delete tmp;
-                            holes->push_back(reversed_ring);
-                        } else {
-                            holes->push_back(ring);
-                        }
+                        holes->push_back(m_ringlist[i]->inner_rings[j]->ring_in_direction(COUNTERCLOCKWISE));
                     }
+                    geos::geom::LinearRing* ring = m_ringlist[i]->ring_in_direction(CLOCKWISE);
 
-                    geos::geom::LinearRing* ring = (geos::geom::LinearRing*)m_ringlist[i]->polygon->getExteriorRing(); // XXX cast is not const-correct!
-                    if (m_ringlist[i]->direction == COUNTERCLOCKWISE) {
-                        geos::geom::LineString* tmp = dynamic_cast<geos::geom::LineString*>(ring->reverse());
-                        assert(tmp);
-                        geos::geom::LinearRing* reversed_ring = Osmium::Geometry::geos_geometry_factory()->createLinearRing(tmp->getCoordinates());
-                        ring = reversed_ring;
-                        delete tmp;
-                    } else {
-                        ring = dynamic_cast<geos::geom::LinearRing*>(ring->clone());
-                    }
                     delete m_ringlist[i]->polygon;
                     m_ringlist[i]->polygon = NULL;
+
                     geos::geom::Polygon* p = NULL;
                     bool valid = false;
 
