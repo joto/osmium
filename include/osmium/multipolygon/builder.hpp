@@ -832,6 +832,51 @@ namespace Osmium {
                 return outer_ring_count;
             }
 
+            void check_touching_inner_rings(RingInfo& ring_info) {
+                if (ring_info.inner_rings.empty()) {
+                    return;
+                }
+
+                for (unsigned int j=0; j < ring_info.inner_rings.size()-1; ++j) {
+                    if (!ring_info.inner_rings[j]->polygon) continue;
+                    geos::geom::LinearRing* ring = (geos::geom::LinearRing*) ring_info.inner_rings[j]->polygon->getExteriorRing();
+
+                    // check if some of the rings touch another ring.
+                    for (unsigned int k=j + 1; k < ring_info.inner_rings.size(); ++k) {
+                        if (!ring_info.inner_rings[k]->polygon) continue;
+                        const geos::geom::Geometry* compare = ring_info.inner_rings[k]->polygon->getExteriorRing();
+                        geos::geom::Geometry* inter = NULL;
+                        try {
+                            if (!ring->intersects(compare)) continue;
+                            inter = ring->intersection(compare);
+                        } catch (const geos::util::GEOSException& exc) {
+                            // nop;
+                        }
+                        if (inter && (inter->getGeometryTypeId() == geos::geom::GEOS_LINESTRING || inter->getGeometryTypeId() == geos::geom::GEOS_MULTILINESTRING)) {
+                            // touching inner rings
+                            // this is allowed, but we must fix them up into a valid
+                            // geometry
+                            geos::geom::Geometry* diff = ring->symDifference(compare);
+                            geos::operation::polygonize::Polygonizer* p = new geos::operation::polygonize::Polygonizer();
+                            p->add(diff);
+                            std::vector<geos::geom::Polygon*>* polys = p->getPolygons();
+                            if (polys && polys->size() == 1) {
+                                ring_info.inner_rings[j]->polygon = polys->at(0);
+                                bool ccw = geos::algorithm::CGAlgorithms::isCCW(polys->at(0)->getExteriorRing()->getCoordinatesRO());
+                                ring_info.inner_rings[j]->direction = ccw ? COUNTERCLOCKWISE : CLOCKWISE;
+                                ring_info.inner_rings[k]->polygon = NULL;
+                                check_touching_inner_rings(ring_info);
+                                return;
+                            }
+                        } else {
+                            // other kind of intersect between inner rings; this is
+                            // not allwoed and will lead to an exception later when
+                            // building the MP
+                        }
+                    }
+                }
+            }
+
             /**
             * Tries to build a multipolygon.
             */
@@ -845,49 +890,11 @@ namespace Osmium {
                 START_TIMER(polygon_build)
                 for (unsigned int i=0; i < m_ringlist.size(); ++i) {
                     // look only at outer, i.e. non-contained rings. each ends up as one polygon.
-                    if (m_ringlist[i] == NULL) continue; // can happen if ring has been deleted
+                    if (!m_ringlist[i]) continue; // can happen if ring has been deleted
                     if (m_ringlist[i]->is_inner()) continue;
 
                     START_TIMER(inner_ring_touch)
-                    for (int j=0; j < ((int)m_ringlist[i]->inner_rings.size()-1); ++j) {
-                        if (!m_ringlist[i]->inner_rings[j]->polygon) continue;
-                        geos::geom::LinearRing* ring = (geos::geom::LinearRing*) m_ringlist[i]->inner_rings[j]->polygon->getExteriorRing();
-
-                        // check if some of the rings touch another ring.
-
-                        for (unsigned int k=j + 1; k < m_ringlist[i]->inner_rings.size(); ++k) {
-                            if (!m_ringlist[i]->inner_rings[k]->polygon) continue;
-                            const geos::geom::Geometry* compare = m_ringlist[i]->inner_rings[k]->polygon->getExteriorRing();
-                            geos::geom::Geometry* inter = NULL;
-                            try {
-                                if (!ring->intersects(compare)) continue;
-                                inter = ring->intersection(compare);
-                            } catch (const geos::util::GEOSException& exc) {
-                                // nop;
-                            }
-                            if (inter && (inter->getGeometryTypeId() == geos::geom::GEOS_LINESTRING || inter->getGeometryTypeId() == geos::geom::GEOS_MULTILINESTRING)) {
-                                // touching inner rings
-                                // this is allowed, but we must fix them up into a valid
-                                // geometry
-                                geos::geom::Geometry* diff = ring->symDifference(compare);
-                                geos::operation::polygonize::Polygonizer* p = new geos::operation::polygonize::Polygonizer();
-                                p->add(diff);
-                                std::vector<geos::geom::Polygon*>* polys = p->getPolygons();
-                                if (polys && polys->size() == 1) {
-                                    m_ringlist[i]->inner_rings[j]->polygon = polys->at(0);
-                                    bool ccw = geos::algorithm::CGAlgorithms::isCCW(polys->at(0)->getExteriorRing()->getCoordinatesRO());
-                                    m_ringlist[i]->inner_rings[j]->direction = ccw ? COUNTERCLOCKWISE : CLOCKWISE;
-                                    m_ringlist[i]->inner_rings[k]->polygon = NULL;
-                                    j = -1;
-                                    break;
-                                }
-                            } else {
-                                // other kind of intersect between inner rings; this is
-                                // not allwoed and will lead to an exception later when
-                                // building the MP
-                            }
-                        }
-                    }
+                    check_touching_inner_rings(*m_ringlist[i]);
                     STOP_TIMER(inner_ring_touch)
 
                     std::vector<geos::geom::Geometry*>* holes = new std::vector<geos::geom::Geometry*>(); // ownership is later transferred to polygon
