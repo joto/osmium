@@ -375,6 +375,11 @@ int main(int argc, char *argv[]) {
         std::cerr << "Warning! The command line option -2 has changed its meaning.\nIt now only enables the two-pass mode, multipolygon assembly has to be enabled with -m.\n";
     }
 
+    if (multipolygon && location_store == NONE) {
+        std::cerr << "You need to set the location store with -l, otherwise multipolygon assembly will not work.\n";
+        exit(1);
+    }
+
     Osmium::OSMFile infile(osm_filename);
 
     v8::HandleScope handle_scope;
