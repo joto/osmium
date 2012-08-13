@@ -176,7 +176,7 @@ Converting OSM data to Shapefiles
 There is an easier way to work with Shapefiles. If you include the osm2shp
 Javascript library from the command line, you can use a different syntax:
 
-osmjs -2 -i osm2shape -j my_config.js some_osm_file.osm.pbf
+osmjs -2 -m -l sparsetable -i osm2shape -j my_config.js some_osm_file.osm.pbf
 
 You can define shapefiles like this:
 
