@@ -975,19 +975,24 @@ namespace Osmium {
                 }
 
                 START_TIMER(multipolygon_build);
-                bool valid = false;
+
                 geos::geom::MultiPolygon* mp = NULL;
                 try {
                     mp = Osmium::Geometry::geos_geometry_factory()->createMultiPolygon(polygons);
-                    valid = mp->isValid();
                 } catch (const geos::util::GEOSException& exc) {
-                    // nop
+                    BOOST_FOREACH(geos::geom::Geometry* p, *polygons) {
+                        delete p;
+                    }
+                    throw InvalidMultiPolygon("multipolygon invalid");
                 };
                 STOP_TIMER(multipolygon_build);
-                if (valid) {
+
+                if (mp->isValid()) {
                     m_new_area->geos_geometry(mp);
                     return;
                 }
+
+                delete mp;
                 throw InvalidMultiPolygon("multipolygon invalid");
             }
 
