@@ -466,7 +466,7 @@ namespace Osmium {
              * Caller takes ownership.
              */
             geos::geom::CoordinateSequence* create_ring_coordinate_sequence(std::vector< shared_ptr<WayInfo> >& ways) const {
-                geos::geom::CoordinateSequence* coordinates = Osmium::Geometry::geos_geometry_factory()->getCoordinateSequenceFactory()->create(0, 2);
+                geos::geom::CoordinateSequence* coordinates = Osmium::Geometry::geos_geometry_factory()->getCoordinateSequenceFactory()->create(static_cast<size_t>(0), 2);
 
                 BOOST_FOREACH(const shared_ptr<WayInfo>& way_info, ways) {
                     if (way_info->invert) {

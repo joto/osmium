@@ -1,0 +1,23 @@
+{
+   libz_unitialised_value
+   Memcheck:Cond
+   fun:inflateReset2
+   fun:inflateInit2_
+   fun:uncompress
+}
+{
+   libc_stdio_buffer_c
+   Memcheck:Leak
+   fun:_Znam
+   fun:_ZNSt13basic_filebufIcSt11char_traitsIcEE27_M_allocate_internal_bufferEv
+   obj:*libstdc++.so.*
+   fun:_ZNSt8ios_base15sync_with_stdioEb
+}
+{
+   libc_stdio_buffer_w
+   Memcheck:Leak
+   fun:_Znam
+   fun:_ZNSt13basic_filebufIwSt11char_traitsIwEE27_M_allocate_internal_bufferEv
+   obj:*libstdc++.so.*
+   fun:_ZNSt8ios_base15sync_with_stdioEb
+}
