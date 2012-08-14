@@ -68,7 +68,7 @@ osmium_find_bbox: osmium_find_bbox.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS)
 
 osmium_mpdump: osmium_mpdump.cpp
-	$(CXX) $(CXXFLAGS) $(CXXFLAGS_OGR) $(CXXFLAGS_GEOS) -o $@ $< $(LDFLAGS) $(LIB_OGR) $(LIB_GEOS)
+	$(CXX) $(CXXFLAGS) $(CXXFLAGS_GEOS) -o $@ $< $(LDFLAGS) $(LIB_GEOS)
 
 osmium_progress: osmium_progress.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS)
