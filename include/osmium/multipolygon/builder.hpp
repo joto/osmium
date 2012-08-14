@@ -921,13 +921,9 @@ namespace Osmium {
                     for (unsigned int j=0; j < m_ringlist[i]->inner_rings.size(); ++j) {
                         if (!m_ringlist[i]->inner_rings[j]->polygon) continue;
                         holes->push_back(m_ringlist[i]->inner_rings[j]->ring_in_direction(COUNTERCLOCKWISE));
-                        delete m_ringlist[i]->inner_rings[j]->polygon;
-                        m_ringlist[i]->inner_rings[j]->polygon = NULL;
                     }
 
                     geos::geom::LinearRing* ring = m_ringlist[i]->ring_in_direction(CLOCKWISE);
-                    delete m_ringlist[i]->polygon;
-                    m_ringlist[i]->polygon = NULL;
 
                     geos::geom::Polygon* p = NULL;
                     bool valid = false;
@@ -944,14 +940,16 @@ namespace Osmium {
                         if (p) {
                             delete p;
                         } else {
-                            delete ring;
                             BOOST_FOREACH(geos::geom::Geometry* g, *holes) {
                                 delete g;
                             }
+                            delete holes;
+                            delete ring;
                         }
                         BOOST_FOREACH(geos::geom::Geometry* p, *polygons) {
                             delete p;
                         }
+                        delete polygons;
                         throw InvalidRing("invalid ring");
                     } else {
                         polygons->push_back(p);
@@ -980,8 +978,6 @@ namespace Osmium {
                             wi->innerouter = OUTER;
                         }
                     }
-                    // later delete m_ringlist[i];
-                    // m_ringlist[i] = NULL;
                 }
                 STOP_TIMER(polygon_build);
 
@@ -999,6 +995,7 @@ namespace Osmium {
                     BOOST_FOREACH(geos::geom::Geometry* p, *polygons) {
                         delete p;
                     }
+                    delete polygons;
                     throw InvalidMultiPolygon("multipolygon invalid");
                 };
                 STOP_TIMER(multipolygon_build);
