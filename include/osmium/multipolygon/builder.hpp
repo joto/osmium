@@ -22,7 +22,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
-#include <assert.h>
+#include <cassert>
 #include <vector>
 #include <map>
 #include <stdexcept>
@@ -152,6 +152,7 @@ namespace Osmium {
                 contained_by() {
             }
 
+            /// Is this an inner ring?
             bool is_inner() const {
                 return !contained_by.expired();
             }
@@ -159,6 +160,8 @@ namespace Osmium {
             /**
              * Return a copy of the outer ring of the polygon geometry in the
              * given direction.
+             *
+             * Caller takes ownership.
              */
             geos::geom::LinearRing* ring_in_direction(direction_t dir) const {
                 if (direction == dir) {
@@ -295,7 +298,9 @@ namespace Osmium {
             /**
              * Build the area object(s) and return it/them.
              *
-             * @returns All areas built.
+             * @returns All areas built. This is a reference to a vector
+             *          internal to the Builder object. Do not use it after
+             *          the Builder object is gone.
              */
             std::vector< shared_ptr<Osmium::OSM::Area> >& build() {
                 try {
@@ -359,8 +364,9 @@ namespace Osmium {
             * This helper gets called when we find a ring that is not valid -
             * usually because it self-intersects. The method tries to salvage
             * as much of the ring as possible, using binary search to find the
-            * bit that needs to be cut out. It then returns a valid LinearRing,
-            * or NULL if none can be built.
+            * bit that needs to be cut out.
+            * 
+            * @returns A valid LinearRing, or NULL if none can be built.
             *
             * Caller takes ownership.
             *
@@ -615,10 +621,10 @@ namespace Osmium {
                     // find nodes that are not doubled up after the sort and add
                     // them to the dangling_nodes vector
                     for (wnv_t::const_iterator it = end_nodes.begin(); it != end_nodes.end(); ++it) {
-                        if (*it == *(it+1)) {
-                            ++it;
-                        } else {
+                        if ((it+1 == end_nodes.end()) || (*it != *(it+1))) {
                             dangling_nodes.push_back(*it);
+                        } else {
+                            ++it;
                         }
                     }
                 }
@@ -639,6 +645,8 @@ namespace Osmium {
                     dangling_nodes.pop_back();
 
                     wnv_t::iterator closest = dangling_nodes.begin();
+
+                    // XXX we probably don't need a haversine here, a simpler distance formula should be ok
                     double min_distance = Osmium::Geometry::Haversine::distance(wn.position(), closest->position());
 
                     for (wnv_t::iterator it = closest+1; it != dangling_nodes.end(); ++it) {
@@ -853,19 +861,26 @@ namespace Osmium {
                             // nop;
                         }
                         if (inter && (inter->getGeometryTypeId() == geos::geom::GEOS_LINESTRING || inter->getGeometryTypeId() == geos::geom::GEOS_MULTILINESTRING)) {
+                            delete inter;
                             // touching inner rings
                             // this is allowed, but we must fix them up into a valid
                             // geometry
                             geos::geom::Geometry* diff = ring->symDifference(compare);
-                            geos::operation::polygonize::Polygonizer* p = new geos::operation::polygonize::Polygonizer();
-                            p->add(diff);
-                            std::vector<geos::geom::Polygon*>* polys = p->getPolygons();
-                            if (polys && polys->size() == 1) {
-                                ring_info.inner_rings[j]->polygon = polys->at(0);
-                                bool ccw = geos::algorithm::CGAlgorithms::isCCW(polys->at(0)->getExteriorRing()->getCoordinatesRO());
-                                ring_info.inner_rings[j]->direction = ccw ? COUNTERCLOCKWISE : CLOCKWISE;
-                                ring_info.inner_rings[k]->polygon = NULL;
-                                check_touching_inner_rings(ring_info);
+                            const boost::scoped_ptr<geos::operation::polygonize::Polygonizer> polygonizer(new geos::operation::polygonize::Polygonizer());
+                            polygonizer->add(diff);
+                            std::vector<geos::geom::Polygon*>* polys = polygonizer->getPolygons();
+                            if (polys) {
+                                if (polys->size() == 1) {
+                                    ring_info.inner_rings[j]->polygon = polys->at(0);
+                                    bool ccw = geos::algorithm::CGAlgorithms::isCCW(polys->at(0)->getExteriorRing()->getCoordinatesRO());
+                                    ring_info.inner_rings[j]->direction = ccw ? COUNTERCLOCKWISE : CLOCKWISE;
+                                    ring_info.inner_rings[k]->polygon = NULL;
+                                    check_touching_inner_rings(ring_info);
+                                } else {
+                                    BOOST_FOREACH(geos::geom::Polygon* p, *polys) {
+                                        delete p;
+                                    }
+                                }
                                 return;
                             }
                         } else {
