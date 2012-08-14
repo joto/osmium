@@ -62,10 +62,6 @@ namespace Osmium {
             }
 
             std::ostream& write_to_stream(std::ostream& out, AsWKT, bool with_srid=false) const {
-                if (!borrow_geos_geometry()) {
-                    throw Osmium::Geometry::NoGeometry();
-                }
-
                 if (with_srid) {
                     out << "SRID=4326;";
                 }
@@ -76,10 +72,6 @@ namespace Osmium {
             }
 
             std::ostream& write_to_stream(std::ostream& out, AsWKB, bool with_srid=false) const {
-                if (!borrow_geos_geometry()) {
-                    throw Osmium::Geometry::NoGeometry();
-                }
-
                 geos::io::WKBWriter writer;
                 writer.setIncludeSRID(with_srid);
                 writer.write(*borrow_geos_geometry(), out);
@@ -87,10 +79,6 @@ namespace Osmium {
             }
 
             std::ostream& write_to_stream(std::ostream& out, AsHexWKB, bool with_srid=false) const {
-                if (!borrow_geos_geometry()) {
-                    throw Osmium::Geometry::NoGeometry();
-                }
-
                 geos::io::WKBWriter writer;
                 writer.setIncludeSRID(with_srid);
                 writer.writeHEX(*borrow_geos_geometry(), out);

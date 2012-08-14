@@ -574,7 +574,7 @@ namespace Osmium {
                     ways[i]->used = m_ringlist.size();
                     ways[i]->sequence = 0;
                     ways[i]->invert = false;
-                    shared_ptr<RingInfo> rl = complete_ring(ways, ways[i]->firstnode(), ways[i]->lastnode(), m_ringlist.size(), 1);
+                    const shared_ptr<RingInfo>& rl = complete_ring(ways, ways[i]->firstnode(), ways[i]->lastnode(), m_ringlist.size(), 1);
                     if (rl) {
                         rl->ways.push_back(ways[i]);
                         m_ringlist.push_back(rl);
