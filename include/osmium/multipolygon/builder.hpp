@@ -862,6 +862,7 @@ namespace Osmium {
                             if (!ring->intersects(compare)) continue;
                             inter = ring->intersection(compare);
                         } catch (const geos::util::GEOSException& exc) {
+                            std::cerr << "Exception while checking intersection of rings\n";
                             // nop;
                         }
                         if (inter && (inter->getGeometryTypeId() == geos::geom::GEOS_LINESTRING || inter->getGeometryTypeId() == geos::geom::GEOS_MULTILINESTRING)) {
@@ -875,16 +876,21 @@ namespace Osmium {
                             std::vector<geos::geom::Polygon*>* polys = polygonizer->getPolygons();
                             if (polys) {
                                 if (polys->size() == 1) {
+                                    delete ring_info.inner_rings[j]->polygon;
                                     ring_info.inner_rings[j]->polygon = polys->at(0);
                                     bool ccw = geos::algorithm::CGAlgorithms::isCCW(polys->at(0)->getExteriorRing()->getCoordinatesRO());
                                     ring_info.inner_rings[j]->direction = ccw ? COUNTERCLOCKWISE : CLOCKWISE;
+
+                                    delete ring_info.inner_rings[k]->polygon;
                                     ring_info.inner_rings[k]->polygon = NULL;
+
                                     check_touching_inner_rings(ring_info);
                                 } else {
                                     BOOST_FOREACH(geos::geom::Polygon* p, *polys) {
                                         delete p;
                                     }
                                 }
+                                delete polys;
                                 return;
                             }
                         } else {
