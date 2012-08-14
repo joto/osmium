@@ -935,8 +935,17 @@ namespace Osmium {
                     }
                     if (!valid) {
                         // polygon is invalid.
-                        if (p) delete p;
-                        else delete ring;
+                        if (p) {
+                            delete p;
+                        } else {
+                            delete ring;
+                            BOOST_FOREACH(geos::geom::Geometry* g, *holes) {
+                                delete g;
+                            }
+                        }
+                        BOOST_FOREACH(geos::geom::Geometry* p, *polygons) {
+                            delete p;
+                        }
                         throw InvalidRing("invalid ring");
                     } else {
                         polygons->push_back(p);
