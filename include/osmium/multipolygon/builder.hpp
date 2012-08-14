@@ -501,7 +501,8 @@ namespace Osmium {
                         delete linear_ring;
                         linear_ring = NULL;
                         if (m_attempt_repair) {
-                            linear_ring = create_non_intersecting_linear_ring(create_ring_coordinate_sequence(sorted_ways));
+                            boost::scoped_ptr<geos::geom::CoordinateSequence> cs(create_ring_coordinate_sequence(sorted_ways));
+                            linear_ring = create_non_intersecting_linear_ring(cs.get());
                             if (linear_ring) {
                                 std::cerr << "Successfully repaired an invalid ring" << std::endl;
                             }
