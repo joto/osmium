@@ -866,38 +866,43 @@ namespace Osmium {
                             std::cerr << "Exception while checking intersection of rings\n";
                             // nop;
                         }
-                        if (inter && (inter->getGeometryTypeId() == geos::geom::GEOS_LINESTRING || inter->getGeometryTypeId() == geos::geom::GEOS_MULTILINESTRING)) {
+
+                        if (inter) {
+                            geos::geom::GeometryTypeId type = inter->getGeometryTypeId();
                             delete inter;
-                            // touching inner rings
-                            // this is allowed, but we must fix them up into a valid
-                            // geometry
-                            geos::geom::Geometry* diff = ring->symDifference(compare);
-                            const boost::scoped_ptr<geos::operation::polygonize::Polygonizer> polygonizer(new geos::operation::polygonize::Polygonizer());
-                            polygonizer->add(diff);
-                            std::vector<geos::geom::Polygon*>* polys = polygonizer->getPolygons();
-                            if (polys) {
-                                if (polys->size() == 1) {
-                                    delete ring_info.inner_rings[j]->polygon;
-                                    ring_info.inner_rings[j]->polygon = polys->at(0);
-                                    bool ccw = geos::algorithm::CGAlgorithms::isCCW(polys->at(0)->getExteriorRing()->getCoordinatesRO());
-                                    ring_info.inner_rings[j]->direction = ccw ? COUNTERCLOCKWISE : CLOCKWISE;
 
-                                    delete ring_info.inner_rings[k]->polygon;
-                                    ring_info.inner_rings[k]->polygon = NULL;
+                            if (type == geos::geom::GEOS_LINESTRING) {
+                                // touching inner rings
+                                // this is allowed, but we must fix them up into a valid
+                                // geometry
+                                geos::geom::Geometry* diff = ring->symDifference(compare);
+                                const boost::scoped_ptr<geos::operation::polygonize::Polygonizer> polygonizer(new geos::operation::polygonize::Polygonizer());
+                                polygonizer->add(diff);
+                                std::vector<geos::geom::Polygon*>* polys = polygonizer->getPolygons();
+                                if (polys) {
+                                    if (polys->size() == 1) {
+                                        delete ring_info.inner_rings[j]->polygon;
+                                        ring_info.inner_rings[j]->polygon = polys->at(0);
+                                        bool ccw = geos::algorithm::CGAlgorithms::isCCW(polys->at(0)->getExteriorRing()->getCoordinatesRO());
+                                        ring_info.inner_rings[j]->direction = ccw ? COUNTERCLOCKWISE : CLOCKWISE;
 
-                                    check_touching_inner_rings(ring_info);
-                                } else {
-                                    BOOST_FOREACH(geos::geom::Polygon* p, *polys) {
-                                        delete p;
+                                        delete ring_info.inner_rings[k]->polygon;
+                                        ring_info.inner_rings[k]->polygon = NULL;
+
+                                        check_touching_inner_rings(ring_info);
+                                    } else {
+                                        BOOST_FOREACH(geos::geom::Polygon* p, *polys) {
+                                            delete p;
+                                        }
                                     }
+                                    delete polys;
+                                    return;
                                 }
-                                delete polys;
-                                return;
+                            } else {
+                                // other kind of intersect between inner rings; this is
+                                // not allwoed and will lead to an exception later when
+                                // building the MP
                             }
-                        } else {
-                            // other kind of intersect between inner rings; this is
-                            // not allwoed and will lead to an exception later when
-                            // building the MP
                         }
                     }
                 }
