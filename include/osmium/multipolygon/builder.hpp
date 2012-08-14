@@ -152,6 +152,10 @@ namespace Osmium {
                 contained_by() {
             }
 
+            ~RingInfo() {
+                delete polygon;
+            }
+
             /// Is this an inner ring?
             bool is_inner() const {
                 return !contained_by.expired();
