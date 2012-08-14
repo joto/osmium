@@ -921,9 +921,11 @@ namespace Osmium {
                     for (unsigned int j=0; j < m_ringlist[i]->inner_rings.size(); ++j) {
                         if (!m_ringlist[i]->inner_rings[j]->polygon) continue;
                         holes->push_back(m_ringlist[i]->inner_rings[j]->ring_in_direction(COUNTERCLOCKWISE));
+                        delete m_ringlist[i]->inner_rings[j]->polygon;
+                        m_ringlist[i]->inner_rings[j]->polygon = NULL;
                     }
-                    geos::geom::LinearRing* ring = m_ringlist[i]->ring_in_direction(CLOCKWISE);
 
+                    geos::geom::LinearRing* ring = m_ringlist[i]->ring_in_direction(CLOCKWISE);
                     delete m_ringlist[i]->polygon;
                     m_ringlist[i]->polygon = NULL;
 
@@ -984,6 +986,7 @@ namespace Osmium {
                 STOP_TIMER(polygon_build);
 
                 if (polygons->empty()) {
+                    delete polygons;
                     throw NoRings("no rings");
                 }
 
