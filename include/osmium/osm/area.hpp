@@ -82,7 +82,7 @@ namespace Osmium {
             Area(const Area& area) :
                 Object(area),
                 m_node_list(area.m_node_list),
-                m_geos_geometry(static_cast<geos::geom::MultiPolygon*>(area.m_geos_geometry->clone())) {
+                m_geos_geometry(dynamic_cast<geos::geom::MultiPolygon*>(area.m_geos_geometry->clone())) {
             }
 
             ~Area() {
