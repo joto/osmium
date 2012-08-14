@@ -845,23 +845,23 @@ namespace Osmium {
                 return outer_ring_count;
             }
 
-            void check_touching_inner_rings(RingInfo& ring_info) {
-                if (ring_info.inner_rings.empty()) {
+            void check_touching_inner_rings(const std::vector< shared_ptr<RingInfo> >& inner_rings) const {
+                if (inner_rings.empty()) {
                     return;
                 }
 
-                for (unsigned int j=0; j < ring_info.inner_rings.size()-1; ++j) {
-                    if (!ring_info.inner_rings[j]->polygon) continue;
-                    geos::geom::LinearRing* ring = (geos::geom::LinearRing*) ring_info.inner_rings[j]->polygon->getExteriorRing();
+                for (unsigned int j=0; j < inner_rings.size()-1; ++j) {
+                    if (!inner_rings[j]->polygon) continue;
+                    const geos::geom::Geometry* ring1_geom = inner_rings[j]->polygon->getExteriorRing();
 
                     // check if some of the rings touch another ring.
-                    for (unsigned int k=j + 1; k < ring_info.inner_rings.size(); ++k) {
-                        if (!ring_info.inner_rings[k]->polygon) continue;
-                        const geos::geom::Geometry* compare = ring_info.inner_rings[k]->polygon->getExteriorRing();
+                    for (unsigned int k=j + 1; k < inner_rings.size(); ++k) {
+                        if (!inner_rings[k]->polygon) continue;
+                        const geos::geom::Geometry* ring2_geom = inner_rings[k]->polygon->getExteriorRing();
                         geos::geom::Geometry* inter = NULL;
                         try {
-                            if (!ring->intersects(compare)) continue;
-                            inter = ring->intersection(compare);
+                            if (!ring1_geom->intersects(ring2_geom)) continue;
+                            inter = ring1_geom->intersection(ring2_geom);
                         } catch (const geos::util::GEOSException& exc) {
                             std::cerr << "Exception while checking intersection of rings\n";
                             // nop;
@@ -875,21 +875,21 @@ namespace Osmium {
                                 // touching inner rings
                                 // this is allowed, but we must fix them up into a valid
                                 // geometry
-                                geos::geom::Geometry* diff = ring->symDifference(compare);
+                                geos::geom::Geometry* diff = ring1_geom->symDifference(ring2_geom);
                                 const boost::scoped_ptr<geos::operation::polygonize::Polygonizer> polygonizer(new geos::operation::polygonize::Polygonizer());
                                 polygonizer->add(diff);
                                 std::vector<geos::geom::Polygon*>* polys = polygonizer->getPolygons();
                                 if (polys) {
                                     if (polys->size() == 1) {
-                                        delete ring_info.inner_rings[j]->polygon;
-                                        ring_info.inner_rings[j]->polygon = polys->at(0);
+                                        delete inner_rings[j]->polygon;
+                                        inner_rings[j]->polygon = polys->at(0);
                                         bool ccw = geos::algorithm::CGAlgorithms::isCCW(polys->at(0)->getExteriorRing()->getCoordinatesRO());
-                                        ring_info.inner_rings[j]->direction = ccw ? COUNTERCLOCKWISE : CLOCKWISE;
+                                        inner_rings[j]->direction = ccw ? COUNTERCLOCKWISE : CLOCKWISE;
 
-                                        delete ring_info.inner_rings[k]->polygon;
-                                        ring_info.inner_rings[k]->polygon = NULL;
+                                        delete inner_rings[k]->polygon;
+                                        inner_rings[k]->polygon = NULL;
 
-                                        check_touching_inner_rings(ring_info);
+                                        check_touching_inner_rings(inner_rings);
                                     } else {
                                         BOOST_FOREACH(geos::geom::Polygon* p, *polys) {
                                             delete p;
@@ -925,7 +925,7 @@ namespace Osmium {
                     if (m_ringlist[i]->is_inner()) continue;
 
                     START_TIMER(inner_ring_touch)
-                    check_touching_inner_rings(*m_ringlist[i]);
+                    check_touching_inner_rings(m_ringlist[i]->inner_rings);
                     STOP_TIMER(inner_ring_touch)
 
                     std::vector<geos::geom::Geometry*>* holes = new std::vector<geos::geom::Geometry*>(); // ownership is later transferred to polygon
