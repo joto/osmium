@@ -103,6 +103,12 @@ namespace Osmium {
                 return --m_need_members == 0;
             }
 
+            /**
+             * Get a vector reference with shared pointers to all member objects.
+             * Note that the pointers can be empty if a member object is of a type
+             * we have not requested from the assembler (or if it was not in the
+             * input).
+             */
             const std::vector< shared_ptr<Osmium::OSM::Object const> >& members() const {
                 return m_members;
             }

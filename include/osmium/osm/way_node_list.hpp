@@ -49,6 +49,10 @@ namespace Osmium {
                 return m_list.size();
             }
 
+            bool empty() const {
+                return m_list.empty();
+            }
+
             void clear() {
                 m_list.clear();
             }
