@@ -41,11 +41,11 @@ namespace Osmium {
                 m_role() {
             }
 
-            static const int max_characters_role = 255;
+            static const unsigned int max_characters_role = 255;
 
-            static const int max_utf16_length_role = 2 * (max_characters_role + 1); ///< maximum number of UTF-16 units
+            static const unsigned int max_utf16_length_role = 2 * (max_characters_role + 1); ///< maximum number of UTF-16 units
 
-            static const int max_length_role = 255 * 4 + 1; /* 255 UTF-8 characters + null byte */
+            static const unsigned int max_length_role = 255 * 4 + 1; /* 255 UTF-8 characters + null byte */
 
             osm_object_id_t ref() const {
                 return m_ref;
