@@ -740,7 +740,7 @@ namespace Osmium {
                 }
             }
 
-            void warning(const std::string& text) {
+            void warning(const std::string& /*text*/) {
 //                std::cerr << text << "\n";
             }
 
@@ -827,20 +827,21 @@ namespace Osmium {
                                 if (polys) {
                                     if (polys->size() == 1) {
                                         delete inner_rings[j]->polygon;
-                                        inner_rings[j]->polygon = polys->at(0);
-                                        bool ccw = geos::algorithm::CGAlgorithms::isCCW(polys->at(0)->getExteriorRing()->getCoordinatesRO());
+                                        inner_rings[j]->polygon = (*polys)[0];
+                                        bool ccw = geos::algorithm::CGAlgorithms::isCCW((*polys)[0]->getExteriorRing()->getCoordinatesRO());
                                         inner_rings[j]->direction = ccw ? COUNTERCLOCKWISE : CLOCKWISE;
 
                                         delete inner_rings[k]->polygon;
                                         inner_rings[k]->polygon = NULL;
 
+                                        delete polys;
                                         check_touching_inner_rings(inner_rings);
                                     } else {
                                         BOOST_FOREACH(geos::geom::Polygon* p, *polys) {
                                             delete p;
                                         }
+                                        delete polys;
                                     }
-                                    delete polys;
                                     return;
                                 }
                             } else {
