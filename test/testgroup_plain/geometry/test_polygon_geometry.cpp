@@ -24,7 +24,7 @@ BOOST_AUTO_TEST_CASE(instantiation) {
     wnl.add(n1);
     wnl.add(n2);
     wnl.add(n3);
-    BOOST_CHECK_THROW(Osmium::Geometry::Polygon polygon(wnl), Osmium::Exception::IllegalGeometry); // not closed
+    BOOST_CHECK_THROW(Osmium::Geometry::Polygon polygon(wnl), Osmium::Geometry::RingNotClosed);
     wnl.add(n4); // now its closed
     Osmium::Geometry::Polygon polygon(wnl);
 }
