@@ -37,15 +37,6 @@ using boost::shared_ptr;
 #include <boost/make_shared.hpp>
 using boost::make_shared;
 
-#ifdef OSMIUM_WITH_MULTIPOLYGON_PROFILING
-# include <osmium/utils/timer.h>
-# define START_TIMER(x) x##_timer.start();
-# define STOP_TIMER(x) x##_timer.stop();
-#else
-# define START_TIMER(x)
-# define STOP_TIMER(x)
-#endif // OSMIUM_WITH_MULTIPOLYGON_PROFILING
-
 #include <geos/geom/Geometry.h>
 #include <geos/geom/Point.h>
 #include <geos/geom/LineString.h>
@@ -323,44 +314,6 @@ namespace Osmium {
                 }
                 return m_areas;
             }
-
-#ifdef OSMIUM_WITH_MULTIPOLYGON_PROFILING
-            static std::vector<std::pair<std::string, timer*> > timers;
-
-            static timer write_complex_poly_timer;
-            static timer assemble_ways_timer;
-            static timer assemble_nodes_timer;
-            static timer mor_polygonizer_timer;
-            static timer mor_union_timer;
-            static timer contains_timer;
-            static timer extra_polygons_timer;
-            static timer polygon_build_timer;
-            static timer inner_ring_touch_timer;
-            static timer polygon_intersection_timer;
-            static timer multipolygon_build_timer;
-            static timer multipolygon_write_timer;
-            static timer error_write_timer;
-
-            static void init_timings() {
-                timers.push_back(std::pair<std::string, timer*> ("   thereof assemble_ways", &assemble_ways_timer));
-                timers.push_back(std::pair<std::string, timer*> ("      thereof union", &mor_union_timer));
-                timers.push_back(std::pair<std::string, timer*> ("      thereof polygonizer", &mor_polygonizer_timer));
-                timers.push_back(std::pair<std::string, timer*> ("   thereof contains", &contains_timer));
-                timers.push_back(std::pair<std::string, timer*> ("   thereof extra_polygons", &extra_polygons_timer));
-                timers.push_back(std::pair<std::string, timer*> ("   thereof polygon_build", &polygon_build_timer));
-                timers.push_back(std::pair<std::string, timer*> ("      thereof inner_ring_touch", &inner_ring_touch_timer));
-                timers.push_back(std::pair<std::string, timer*> ("      thereof intersections", &polygon_intersection_timer));
-                timers.push_back(std::pair<std::string, timer*> ("   thereof multipolygon_build", &multipolygon_build_timer));
-                timers.push_back(std::pair<std::string, timer*> ("   thereof multipolygon_write", &multipolygon_write_timer));
-                timers.push_back(std::pair<std::string, timer*> ("   thereof error_write", &error_write_timer));
-            }
-
-            static void print_timings() {
-                for (unsigned int i=0; i<timers.size(); ++i) {
-                    std::cerr << timers[i].first << ": " << *(timers[i].second) << std::endl;
-                }
-            }
-#endif // OSMIUM_WITH_MULTIPOLYGON_PROFILING
 
         private:
 
@@ -681,9 +634,6 @@ namespace Osmium {
              * and some extra flags.
              */
             void assemble_ways(std::vector< shared_ptr<WayInfo> >& way_infos) {
-
-                START_TIMER(assemble_ways);
-
                 BOOST_FOREACH(const shared_ptr<Osmium::OSM::Object const>& object, m_relation_info.members()) {
                     const shared_ptr<Osmium::OSM::Way const> way = static_pointer_cast<Osmium::OSM::Way const>(object);
 
@@ -698,8 +648,6 @@ namespace Osmium {
                         // TODO maybe add INNER/OUTER instead of UNSET to enable later warnings on role mismatch
                     }
                 }
-
-                STOP_TIMER(assemble_ways);
             }
 
             /**
@@ -733,8 +681,6 @@ namespace Osmium {
              * specifications.
              */
             void determine_inner_outer_rings() {
-                START_TIMER(contains);
-
                 typedef boost::dynamic_bitset<> bs_t;
 
                 std::vector<bs_t> contains(m_ringlist.size(), bs_t(m_ringlist.size()));
@@ -792,8 +738,6 @@ namespace Osmium {
                         }
                     }
                 }
-
-                STOP_TIMER(contains);
             }
 
             void warning(const std::string& text) {
@@ -835,7 +779,6 @@ namespace Osmium {
             int handle_one_way_inner_rings() {
                 int outer_ring_count = 0;
 
-                START_TIMER(extra_polygons);
                 for (unsigned int i=0; i < m_ringlist.size(); ++i) {
                     if (m_ringlist[i]->is_inner()) {
                         handle_one_way_inner_ring(*m_ringlist[i]);
@@ -843,7 +786,6 @@ namespace Osmium {
                         ++outer_ring_count;
                     }
                 }
-                STOP_TIMER(extra_polygons);
 
                 return outer_ring_count;
             }
@@ -921,15 +863,12 @@ namespace Osmium {
 
                 std::vector<geos::geom::Geometry*>* polygons = new std::vector<geos::geom::Geometry*>();
 
-                START_TIMER(polygon_build)
                 for (unsigned int i=0; i < m_ringlist.size(); ++i) {
                     // look only at outer, i.e. non-contained rings. each ends up as one polygon.
                     if (!m_ringlist[i]) continue; // can happen if ring has been deleted
                     if (m_ringlist[i]->is_inner()) continue;
 
-                    START_TIMER(inner_ring_touch)
                     check_touching_inner_rings(m_ringlist[i]->inner_rings);
-                    STOP_TIMER(inner_ring_touch)
 
                     std::vector<geos::geom::Geometry*>* holes = new std::vector<geos::geom::Geometry*>(); // ownership is later transferred to polygon
 
@@ -994,14 +933,11 @@ namespace Osmium {
                         }
                     }
                 }
-                STOP_TIMER(polygon_build);
 
                 if (polygons->empty()) {
                     delete polygons;
                     throw NoRings("no rings");
                 }
-
-                START_TIMER(multipolygon_build);
 
                 geos::geom::MultiPolygon* mp = NULL;
                 try {
@@ -1013,7 +949,6 @@ namespace Osmium {
                     delete polygons;
                     throw InvalidMultiPolygon("multipolygon invalid");
                 };
-                STOP_TIMER(multipolygon_build);
 
                 if (mp->isValid()) {
                     m_new_area->geos_geometry(mp);

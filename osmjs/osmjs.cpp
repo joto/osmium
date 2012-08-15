@@ -37,25 +37,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <osmium/handler/coordinates_for_ways.hpp>
 #include <osmium/multipolygon/assembler.hpp>
 
-#ifdef OSMIUM_WITH_MULTIPOLYGON_PROFILING
-std::vector<std::pair<std::string, timer *> > Osmium::OSM::AreaFromRelation::timers;
-
-timer Osmium::OSM::AreaFromRelation::write_complex_poly_timer;
-timer Osmium::OSM::AreaFromRelation::assemble_ways_timer;
-timer Osmium::OSM::AreaFromRelation::assemble_nodes_timer;
-timer Osmium::OSM::AreaFromRelation::make_one_ring_timer;
-timer Osmium::OSM::AreaFromRelation::mor_polygonizer_timer;
-timer Osmium::OSM::AreaFromRelation::mor_union_timer;
-timer Osmium::OSM::AreaFromRelation::contains_timer;
-timer Osmium::OSM::AreaFromRelation::extra_polygons_timer;
-timer Osmium::OSM::AreaFromRelation::polygon_build_timer;
-timer Osmium::OSM::AreaFromRelation::inner_ring_touch_timer;
-timer Osmium::OSM::AreaFromRelation::polygon_intersection_timer;
-timer Osmium::OSM::AreaFromRelation::multipolygon_build_timer;
-timer Osmium::OSM::AreaFromRelation::multipolygon_write_timer;
-timer Osmium::OSM::AreaFromRelation::error_write_timer;
-#endif // OSMIUM_WITH_MULTIPOLYGON_PROFILING
-
 typedef Osmium::Storage::ById::Base<Osmium::OSM::Position> storage_byid_t;
 typedef Osmium::Storage::ById::MmapFile<Osmium::OSM::Position> storage_mmap_t;
 typedef Osmium::Handler::CoordinatesForWays<storage_byid_t, storage_mmap_t> cfw_handler_t;

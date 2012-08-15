@@ -12,9 +12,6 @@ CXXFLAGS = -g
 
 CXXFLAGS += -Wall -Wextra -Wdisabled-optimization -pedantic -Wctor-dtor-privacy -Wnon-virtual-dtor -Woverloaded-virtual -Wsign-promo -Wno-long-long
 
-# uncomment this if you want information on how long it took to build the multipolygons
-#CXXFLAGS += -DOSMIUM_WITH_MULTIPOLYGON_PROFILING
-
 CXXFLAGS_GEOS    = $(shell geos-config --cflags)
 CXXFLAGS_LIBXML2 = $(shell xml2-config --cflags)
 CXXFLAGS_OGR     = $(shell gdal-config --cflags)
