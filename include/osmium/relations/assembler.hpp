@@ -24,7 +24,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <vector>
 #include <algorithm>
-#include <assert.h>
+#include <cassert>
 #include <boost/foreach.hpp>
 #include <boost/utility.hpp>
 
@@ -103,7 +103,7 @@ namespace Osmium {
          * those members are to be found.
          *
          * Later the m_member_(nodes|ways|relations) vectors are sorted according to the
-         * member ids so that a binary search (with range_equal) can be used in the second
+         * member ids so that a binary search (with equal_range) can be used in the second
          * pass to find the relations for each node, way, or relation coming along. The
          * member objects are stored together with their relation and once a relation is
          * complete the complete_relation() method is called which you can overwrite in

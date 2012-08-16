@@ -29,7 +29,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <cstdlib>
 #include <string>
 #include <stdexcept>
-#include <assert.h>
+#include <cassert>
 #include <time.h>
 #include <boost/tr1/memory.hpp>
 using std::tr1::shared_ptr;
