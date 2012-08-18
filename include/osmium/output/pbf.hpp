@@ -89,21 +89,14 @@ More complete outlines of real .osm.pbf files can be created using the osmpbf-ou
 // netinet provides the network-byte-order conversion function
 #include <netinet/in.h>
 
-// the algorithm-lib contains the sort functions
 #include <algorithm>
-
-// math is used for round() in lonlat2int
-#include <math.h>
-
+#include <cmath>
 #include <zlib.h>
 
 #include <osmpbf/osmpbf.h>
 
-// StringTable management
 #include <osmium/utils/stringtable.hpp>
-
 #include <osmium/utils/delta.hpp>
-
 #include <osmium/output.hpp>
 
 namespace Osmium {

@@ -26,11 +26,11 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 *   @brief Contains the Osmium::OSM::Object class.
 */
 
-#include <cstdlib>
-#include <string>
-#include <stdexcept>
 #include <cassert>
-#include <time.h>
+#include <cstdlib>
+#include <ctime>
+#include <stdexcept>
+#include <string>
 
 #include <osmium/smart_ptr.hpp>
 #include <osmium/osm/types.hpp>

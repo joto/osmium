@@ -22,10 +22,10 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#include <cmath>
 #include <stdint.h>
-#include <ostream>
 #include <limits>
-#include <math.h>
+#include <ostream>
 #include <boost/operators.hpp>
 
 namespace Osmium {

@@ -22,10 +22,10 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#include <stdint.h>
+#include <iostream>
 #include <stdexcept>
 #include <string>
-#include <iostream>
-#include <stdint.h>
 
 #include <sqlite3.h>
 

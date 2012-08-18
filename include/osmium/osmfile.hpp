@@ -22,12 +22,12 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
-#include <unistd.h>
+#include <cerrno>
+#include <fcntl.h>
+#include <stdexcept>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <stdexcept>
+#include <unistd.h>
 #include <boost/utility.hpp>
 
 namespace Osmium {
