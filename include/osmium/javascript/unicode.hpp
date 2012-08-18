@@ -118,18 +118,21 @@ namespace Osmium {
     inline void v8_String_to_ostream(v8::Local<v8::String> string, std::ostream &os) {
         UErrorCode error_code = U_ZERO_ERROR;
         int length = 4 * (string->Length() + 1);
-        uint16_t *src = (uint16_t *) malloc(length);
+        uint16_t* src = static_cast<uint16_t*>(malloc(length));
         if (!src) {
             throw std::bad_alloc();
         }
-        char *buffer = (char *) malloc(length);
+        char* buffer = static_cast<char*>(malloc(length));
         if (!buffer) {
+            free(src);
             throw std::bad_alloc();
         }
         int32_t buffer_length;
         string->Write(src);
         u_strToUTF8(buffer, length, &buffer_length, src, string->Length(), &error_code);
         if (error_code != U_ZERO_ERROR) {
+            free(buffer);
+            free(src);
             throw UTF16_to_UTF8_Conversion_Error(error_code);
         }
         os << buffer;
