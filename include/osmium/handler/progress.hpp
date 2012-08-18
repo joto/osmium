@@ -45,24 +45,24 @@ namespace Osmium {
          */
         class Progress : public Base {
 
-            uint64_t count_nodes;
-            uint64_t count_ways;
-            uint64_t count_relations;
+            uint64_t m_count_nodes;
+            uint64_t m_count_ways;
+            uint64_t m_count_relations;
 
-            int step;
+            int m_step;
 
-            bool is_a_tty;
+            bool m_is_a_tty;
 
-            timeval first_node;
-            timeval first_way;
-            timeval first_relation;
+            timeval m_first_node;
+            timeval m_first_way;
+            timeval m_first_relation;
 
             void update_display(bool show_per_second=true) const {
-                std::cout << "[" << count_nodes << "]";
-                if (count_ways > 0 || count_relations > 0) {
-                    std::cout << " [" << count_ways << "]";
-                    if (count_relations > 0) {
-                        std::cout << " [" << count_relations << "]";
+                std::cout << "[" << m_count_nodes << "]";
+                if (m_count_ways > 0 || m_count_relations > 0) {
+                    std::cout << " [" << m_count_ways << "]";
+                    if (m_count_relations > 0) {
+                        std::cout << " [" << m_count_relations << "]";
                     }
                 }
 
@@ -70,17 +70,17 @@ namespace Osmium {
                     timeval now;
                     gettimeofday(&now, 0);
 
-                    if (count_relations > 0) {
-                        float relation_diff = (now.tv_sec - first_relation.tv_sec) * 1000000 + (now.tv_usec - first_relation.tv_usec);
-                        int relations_per_sec = (float)count_relations / relation_diff * 1000000;
+                    if (m_count_relations > 0) {
+                        float relation_diff = (now.tv_sec - m_first_relation.tv_sec) * 1000000 + (now.tv_usec - m_first_relation.tv_usec);
+                        int relations_per_sec = static_cast<float>(m_count_relations) / relation_diff * 1000000;
                         std::cout << " (" << relations_per_sec << " Relations per second)   ";
-                    } else if (count_ways > 0) {
-                        float way_diff = (now.tv_sec - first_way.tv_sec) * 1000000 + (now.tv_usec - first_way.tv_usec);
-                        int ways_per_sec = (float)count_ways / way_diff * 1000000;
+                    } else if (m_count_ways > 0) {
+                        float way_diff = (now.tv_sec - m_first_way.tv_sec) * 1000000 + (now.tv_usec - m_first_way.tv_usec);
+                        int ways_per_sec = static_cast<float>(m_count_ways) / way_diff * 1000000;
                         std::cout << " (" << ways_per_sec << " Ways per second)   ";
-                    } else if (count_nodes > 0) {
-                        float node_diff = (now.tv_sec - first_node.tv_sec) * 1000000 + (now.tv_usec - first_node.tv_usec);
-                        int nodes_per_sec = (float)count_nodes / node_diff * 1000000;
+                    } else if (m_count_nodes > 0) {
+                        float node_diff = (now.tv_sec - m_first_node.tv_sec) * 1000000 + (now.tv_usec - m_first_node.tv_usec);
+                        int nodes_per_sec = static_cast<float>(m_count_nodes) / node_diff * 1000000;
                         std::cout << " (" << nodes_per_sec << " Nodes per second)   ";
                     }
                 } else {
@@ -98,10 +98,16 @@ namespace Osmium {
              * @param s Step, after how many nodes/ways/relations the display
              *          should be updated. (default 1000).
              */
-            Progress(int s=1000) : Base(), count_nodes(0), count_ways(0), count_relations(0), step(s), is_a_tty(false), first_node(), first_way(), first_relation() {
-                if (isatty(1)) {
-                    is_a_tty = true;
-                }
+            Progress(int step=1000) :
+                Base(),
+                m_count_nodes(0),
+                m_count_ways(0),
+                m_count_relations(0),
+                m_step(step),
+                m_is_a_tty(isatty(1)),
+                m_first_node(),
+                m_first_way(),
+                m_first_relation() {
             }
 
             void hide_cursor() const {
@@ -112,72 +118,73 @@ namespace Osmium {
                 std::cout << "\x1b[?25h";
             }
 
-            void init(Osmium::OSM::Meta&) const {
-                if (is_a_tty) {
+            void init(const Osmium::OSM::Meta&) const {
+                if (m_is_a_tty) {
                     hide_cursor();
                     update_display();
                 }
             }
 
             void node(const shared_ptr<Osmium::OSM::Node const>& /*object*/) {
-                if (first_node.tv_sec == 0) {
-                    gettimeofday(&first_node, 0);
+                if (m_first_node.tv_sec == 0) {
+                    gettimeofday(&m_first_node, 0);
                 }
-                if (is_a_tty && ++count_nodes % step == 0) {
+                if (m_is_a_tty && ++m_count_nodes % m_step == 0) {
                     update_display();
                 }
             }
 
             void way(const shared_ptr<Osmium::OSM::Way const>& /*object*/) {
-                if (first_way.tv_sec == 0) {
-                    gettimeofday(&first_way, 0);
+                if (m_first_way.tv_sec == 0) {
+                    gettimeofday(&m_first_way, 0);
                 }
-                if (is_a_tty && ++count_ways % step == 0) {
+                if (m_is_a_tty && ++m_count_ways % m_step == 0) {
                     update_display();
                 }
             }
 
             void relation(const shared_ptr<Osmium::OSM::Relation const>& /*object*/) {
-                if (first_relation.tv_sec == 0) {
-                    gettimeofday(&first_relation, 0);
+                if (m_first_relation.tv_sec == 0) {
+                    gettimeofday(&m_first_relation, 0);
                 }
-                if (is_a_tty && ++count_relations % step == 0) {
+                if (m_is_a_tty && ++m_count_relations % m_step == 0) {
                     update_display();
                 }
             }
 
             void final() const {
-                if (is_a_tty) {
-                    update_display(false);
-                    std::cout << std::endl;
-
-                    std::cout << "  Average: ";
-
-                    timeval now;
-                    gettimeofday(&now, 0);
-
-                    if (count_nodes > 0) {
-                        float node_diff = (first_way.tv_sec - first_node.tv_sec) * 1000000 + (first_way.tv_usec - first_node.tv_usec);
-                        int nodes_per_sec = (float)count_nodes / node_diff * 1000000;
-                        std::cout << nodes_per_sec << " Nodes ";
-                    }
-
-                    if (count_ways > 0) {
-                        float way_diff = (first_relation.tv_sec - first_way.tv_sec) * 1000000 + (first_relation.tv_usec - first_way.tv_usec);
-                        int ways_per_sec = (float)count_ways / way_diff * 1000000;
-                        std::cout << ways_per_sec << " Ways ";
-                    }
-
-                    if (count_relations > 0) {
-                        float relation_diff = (now.tv_sec - first_relation.tv_sec) * 1000000 + (now.tv_usec - first_relation.tv_usec);
-                        int relations_per_sec = (float)count_relations / relation_diff * 1000000;
-                        std::cout << relations_per_sec << " Relations ";
-                    }
-
-                    show_cursor();
-                    std::cout  << "per second" << std::endl;
-                    std::cout.flush();
+                if (! m_is_a_tty) {
+                    return;
                 }
+
+                update_display(false);
+
+                std::cout << "\n  Average: ";
+
+                timeval now;
+                gettimeofday(&now, 0);
+
+                if (m_count_nodes > 0) {
+                    float node_diff = (m_first_way.tv_sec - m_first_node.tv_sec) * 1000000 + (m_first_way.tv_usec - m_first_node.tv_usec);
+                    int nodes_per_sec = (float)m_count_nodes / node_diff * 1000000;
+                    std::cout << nodes_per_sec << " Nodes ";
+                }
+
+                if (m_count_ways > 0) {
+                    float way_diff = (m_first_relation.tv_sec - m_first_way.tv_sec) * 1000000 + (m_first_relation.tv_usec - m_first_way.tv_usec);
+                    int ways_per_sec = (float)m_count_ways / way_diff * 1000000;
+                    std::cout << ways_per_sec << " Ways ";
+                }
+
+                if (m_count_relations > 0) {
+                    float relation_diff = (now.tv_sec - m_first_relation.tv_sec) * 1000000 + (now.tv_usec - m_first_relation.tv_usec);
+                    int relations_per_sec = (float)m_count_relations / relation_diff * 1000000;
+                    std::cout << relations_per_sec << " Relations ";
+                }
+
+                show_cursor();
+                std::cout  << "per second\n";
+                std::cout.flush();
             }
 
         }; // class Progress
