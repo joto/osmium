@@ -29,3 +29,10 @@
    obj:*libstdc++.so.*
    fun:_ZNSt8ios_base15sync_with_stdioEb
 }
+{
+   tmpfile
+   Memcheck:Leak
+   fun:malloc
+   fun:fdopen@@GLIBC_*
+   fun:tmpfile@@GLIBC_*
+}
