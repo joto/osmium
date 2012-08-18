@@ -58,8 +58,8 @@ namespace Osmium {
 
             /// Copy a Way object.
             Way(const Way& w) :
-                Object(w) {
-                m_node_list = w.m_node_list;
+                Object(w),
+                m_node_list(w.m_node_list) {
             }
 
             const WayNodeList& nodes() const {
