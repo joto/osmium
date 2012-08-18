@@ -39,6 +39,10 @@ namespace Osmium {
 
         class XML : public Base {
 
+            // objects of this class can't be copied
+            XML(const XML&);
+            XML& operator=(const XML&);
+
         public:
 
             XML(const Osmium::OSMFile& file) : Base(file), m_last_op('\0') {

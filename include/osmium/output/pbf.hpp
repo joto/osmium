@@ -733,6 +733,10 @@ namespace Osmium {
                 primitive_block_size += pbf_relation->ByteSize();
             }
 
+            // objects of this class can't be copied
+            PBF(const PBF&);
+            PBF& operator=(const PBF&);
+
         public:
 
             /**

@@ -127,8 +127,8 @@ namespace Osmium {
             /**
              * Constructor.
              */
-            Template(int field_count=1) {
-                js_template = v8::Persistent<v8::ObjectTemplate>::New(v8::ObjectTemplate::New());
+            Template(int field_count=1):
+                js_template(v8::Persistent<v8::ObjectTemplate>::New(v8::ObjectTemplate::New())) {
                 js_template->SetInternalFieldCount(field_count);
             }
 
@@ -138,7 +138,7 @@ namespace Osmium {
 
         private:
 
-            // copy constructor and assignment operator are private and can't be used
+            // objects of this class can't be copied
             Template(const Template&);
             Template& operator=(const Template&);
 

@@ -79,11 +79,25 @@ namespace Osmium {
                 id( id() * 2 );
             }
 
-            /// Copy an Area object.
             Area(const Area& area) :
                 Object(area),
                 m_node_list(area.m_node_list),
                 m_geos_geometry(dynamic_cast<geos::geom::MultiPolygon*>(area.m_geos_geometry->clone())) {
+            }
+
+            Area& operator=(const Area& area) {
+                id(area.id());
+                version(area.version());
+                changeset(area.changeset());
+                timestamp(area.timestamp());
+                endtime(area.endtime());
+                uid(area.uid());
+                user(area.user());
+                visible(area.visible());
+                tags(area.tags());
+                m_node_list = area.m_node_list;
+                m_geos_geometry = dynamic_cast<geos::geom::MultiPolygon*>(area.m_geos_geometry->clone());
+                return *this;
             }
 
             ~Area() {

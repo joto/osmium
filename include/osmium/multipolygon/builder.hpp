@@ -115,6 +115,12 @@ namespace Osmium {
                 return way->nodes().back().ref();
             }
 
+        private:
+
+            // objects of this class can't be copied
+            WayInfo(const WayInfo&);
+            WayInfo& operator=(const WayInfo&);
+
         }; // class WayInfo
 
         class RingInfo {
@@ -161,6 +167,12 @@ namespace Osmium {
                     return reversed_ring;
                 }
             }
+
+        private:
+
+            // objects of this class can't be copied
+            RingInfo(const RingInfo&);
+            RingInfo& operator=(const RingInfo&);
 
         }; // class RingInfo
 
@@ -271,6 +283,10 @@ namespace Osmium {
 
                 return rv;
             }
+
+            // objects of this class can't be copied
+            Builder(const Builder&);
+            Builder& operator=(const Builder&);
 
         public:
 
