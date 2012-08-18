@@ -13,7 +13,7 @@ set -e
 
 CXX="g++"
 CXXFLAGS="-g -Wall -Wextra -Wredundant-decls -Wdisabled-optimization -pedantic -Wctor-dtor-privacy -Wnon-virtual-dtor -Woverloaded-virtual -Wsign-promo"
-COMPILE="$CXX -I../include -I. $CXXFLAGS -lboost_unit_test_framework -o tests test_utils.cpp"
+COMPILE="$CXX -I../include -I. $CXXFLAGS -o tests test_utils.cpp"
 
 if [ "x$1" = "x-v" ]; then
     VALGRIND="valgrind --leak-check=full --show-reachable=yes"
@@ -30,8 +30,8 @@ if [ "x$1" = "x" ]; then
         echo "\nTesting group $GROUP...\n"
         . $DIR/setup.sh
         FILES="test_main.cpp $DIR/*/test_*.cpp"
-        echo $COMPILE $FLAGS $FILES
-        $COMPILE $FLAGS $FILES
+        echo $COMPILE $FILES $FLAGS -lboost_unit_test_framework
+        $COMPILE $FILES $FLAGS -lboost_unit_test_framework
         $VALGRIND ./tests
     done
 else
@@ -41,14 +41,14 @@ else
     if [ "x$2" = "x" ]; then
         echo "\nTesting group $GROUP...\n"
         FILES="test_main.cpp $DIR/*/test_*.cpp"
-        echo $COMPILE $FLAGS $FILES
-        $COMPILE $FLAGS $FILES
+        echo $COMPILE $FILES $FLAGS -lboost_unit_test_framework
+        $COMPILE $FILES $FLAGS -lboost_unit_test_framework
         $VALGRIND ./tests
     else
         echo "\nTesting file $2 in group $GROUP...\n"
         FILES="-DSTAND_ALONE $DIR/$2"
-        echo $COMPILE $FLAGS $FILES
-        $COMPILE $FLAGS $FILES
+        echo $COMPILE $FILES $FLAGS -lboost_unit_test_framework
+        $COMPILE $FILES $FLAGS -lboost_unit_test_framework
         $VALGRIND ./tests
     fi
 fi
