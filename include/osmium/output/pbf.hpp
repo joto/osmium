@@ -287,7 +287,7 @@ namespace Osmium {
 
                 // print debug info about the compression
                 if (debug_level() > 0) {
-                    std::cerr << "pack " << in.size() << " bytes to " << z.total_out << " bytes (1:" << (double)in.size() / z.total_out << ")" << std::endl;
+                    std::cerr << "pack " << in.size() << " bytes to " << z.total_out << " bytes (1:" << static_cast<double>(in.size()) / z.total_out << ")" << std::endl;
                 }
 
                 // number of compressed bytes
@@ -472,7 +472,7 @@ namespace Osmium {
              * convert a timestamp to an int, respecting the current blocks granularity
              */
             int64_t timestamp2int(time_t timestamp) {
-                return round(timestamp * ((double)1000 / date_granularity()));
+                return round(timestamp * (static_cast<double>(1000) / date_granularity()));
             }
 
             /**

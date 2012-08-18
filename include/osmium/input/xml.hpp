@@ -120,11 +120,11 @@ namespace Osmium {
             bool m_in_delete_section;
 
             static void XMLCALL start_element_wrapper(void* data, const XML_Char* element, const XML_Char** attrs) {
-                ((Osmium::Input::XML<THandler> *)data)->start_element(element, attrs);
+                static_cast<Osmium::Input::XML<THandler> *>(data)->start_element(element, attrs);
             }
 
             static void XMLCALL end_element_wrapper(void* data, const XML_Char* element) {
-                ((Osmium::Input::XML<THandler> *)data)->end_element(element);
+                static_cast<Osmium::Input::XML<THandler> *>(data)->end_element(element);
             }
 
             void init_object(Osmium::OSM::Object& obj, const XML_Char** attrs) {
@@ -181,11 +181,11 @@ namespace Osmium {
                     const char *role = "";
                     for (int count = 0; attrs[count]; count += 2) {
                         if (!strcmp(attrs[count], "type")) {
-                            type = (char)attrs[count+1][0];
+                            type = static_cast<char>(attrs[count+1][0]);
                         } else if (!strcmp(attrs[count], "ref")) {
                             ref = atoll(attrs[count+1]);
                         } else if (!strcmp(attrs[count], "role")) {
-                            role = (char *)attrs[count+1];
+                            role = static_cast<const char*>(attrs[count+1]);
                         }
                     }
                     // XXX assert type, ref, role are set

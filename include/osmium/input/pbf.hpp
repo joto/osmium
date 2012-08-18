@@ -121,8 +121,8 @@ namespace Osmium {
 
                             if (pbf_header_block.has_bbox()) {
                                 const OSMPBF::HeaderBBox& bbox = pbf_header_block.bbox();
-                                this->meta().bounds().extend(Osmium::OSM::Position((double)bbox.left()  / OSMPBF::lonlat_resolution, (double)bbox.bottom() / OSMPBF::lonlat_resolution));
-                                this->meta().bounds().extend(Osmium::OSM::Position((double)bbox.right() / OSMPBF::lonlat_resolution, (double)bbox.top()    / OSMPBF::lonlat_resolution));
+                                this->meta().bounds().extend(Osmium::OSM::Position(static_cast<double>(bbox.left())  / OSMPBF::lonlat_resolution, static_cast<double>(bbox.bottom()) / OSMPBF::lonlat_resolution));
+                                this->meta().bounds().extend(Osmium::OSM::Position(static_cast<double>(bbox.right()) / OSMPBF::lonlat_resolution, static_cast<double>(bbox.top())    / OSMPBF::lonlat_resolution));
                             }
                         } else {
 //                            std::cerr << "Ignoring unknown blob type (" << m_pbf_blob_header.type().data() << ").\n";
@@ -196,8 +196,8 @@ namespace Osmium {
                     }
 
                     node.position(Osmium::OSM::Position(
-                                      ( (double) pbf_node.lon() * m_pbf_primitive_block.granularity() + m_pbf_primitive_block.lon_offset() ) / OSMPBF::lonlat_resolution,
-                                      ( (double) pbf_node.lat() * m_pbf_primitive_block.granularity() + m_pbf_primitive_block.lat_offset() ) / OSMPBF::lonlat_resolution));
+                                      ( static_cast<double>(pbf_node.lon()) * m_pbf_primitive_block.granularity() + m_pbf_primitive_block.lon_offset() ) / OSMPBF::lonlat_resolution,
+                                      ( static_cast<double>(pbf_node.lat()) * m_pbf_primitive_block.granularity() + m_pbf_primitive_block.lat_offset() ) / OSMPBF::lonlat_resolution));
                     this->call_node_on_handler();
                 }
             }
@@ -340,8 +340,8 @@ namespace Osmium {
                     last_dense_latitude  += dense.lat(entity);
                     last_dense_longitude += dense.lon(entity);
                     node.position(Osmium::OSM::Position(
-                                      ( (double) last_dense_longitude * m_pbf_primitive_block.granularity() + m_pbf_primitive_block.lon_offset() ) / OSMPBF::lonlat_resolution,
-                                      ( (double) last_dense_latitude  * m_pbf_primitive_block.granularity() + m_pbf_primitive_block.lat_offset() ) / OSMPBF::lonlat_resolution));
+                                      ( static_cast<double>(last_dense_longitude) * m_pbf_primitive_block.granularity() + m_pbf_primitive_block.lon_offset() ) / OSMPBF::lonlat_resolution,
+                                      ( static_cast<double>(last_dense_latitude)  * m_pbf_primitive_block.granularity() + m_pbf_primitive_block.lat_offset() ) / OSMPBF::lonlat_resolution));
 
                     while (last_dense_tag < dense.keys_vals_size()) {
                         int tag_key_pos = dense.keys_vals(last_dense_tag);

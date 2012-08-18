@@ -66,7 +66,7 @@ namespace Osmium {
                 FixedArray(const uint64_t max_id) :
                     Base<TValue>(),
                     m_size(max_id) {
-                    m_items = (TValue*) malloc(sizeof(TValue) * max_id);
+                    m_items = static_cast<TValue*>(malloc(sizeof(TValue) * max_id));
                     if (!m_items) {
                         throw std::bad_alloc();
                     }
