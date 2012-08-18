@@ -23,15 +23,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 */
 
 #include <boost/utility.hpp>
-#include <boost/tr1/memory.hpp>
-#include <boost/make_shared.hpp>
 
-using std::tr1::shared_ptr;
-using std::tr1::static_pointer_cast;
-using std::tr1::const_pointer_cast;
-using std::tr1::dynamic_pointer_cast;
-using boost::make_shared;
-
+#include <osmium/smart_ptr.hpp>
 #include <osmium/osmfile.hpp>
 #include <osmium/handler.hpp>
 

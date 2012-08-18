@@ -29,13 +29,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <boost/foreach.hpp>
 #include <boost/dynamic_bitset.hpp>
-#include <boost/scoped_ptr.hpp>
-#include <boost/weak_ptr.hpp>
-using boost::weak_ptr;
-#include <boost/shared_ptr.hpp>
-using boost::shared_ptr;
-#include <boost/make_shared.hpp>
-using boost::make_shared;
 
 #include <geos/geom/Geometry.h>
 #include <geos/geom/Point.h>
@@ -54,6 +47,7 @@ using boost::make_shared;
 // this should come from /usr/include/geos/algorithm, but its missing there in some Ubuntu versions
 #include "../CGAlgorithms.h"
 
+#include <osmium/smart_ptr.hpp>
 #include <osmium/osm.hpp>
 #include <osmium/geometry.hpp>
 #include <osmium/geometry/geos.hpp>
@@ -454,7 +448,7 @@ namespace Osmium {
                         delete linear_ring;
                         linear_ring = NULL;
                         if (m_attempt_repair) {
-                            boost::scoped_ptr<geos::geom::CoordinateSequence> cs(create_ring_coordinate_sequence(sorted_ways));
+                            scoped_ptr<geos::geom::CoordinateSequence> cs(create_ring_coordinate_sequence(sorted_ways));
                             linear_ring = create_non_intersecting_linear_ring(cs.get());
                             if (linear_ring) {
                                 std::cerr << "Successfully repaired an invalid ring" << std::endl;
@@ -693,7 +687,7 @@ namespace Osmium {
                 // whether something is an inner (false) or outer (true) ring.
 
                 for (unsigned int i=0; i < m_ringlist.size(); ++i) {
-                    const boost::scoped_ptr<geos::geom::prep::PreparedPolygon> pp(new geos::geom::prep::PreparedPolygon(m_ringlist[i]->polygon));
+                    const scoped_ptr<geos::geom::prep::PreparedPolygon> pp(new geos::geom::prep::PreparedPolygon(m_ringlist[i]->polygon));
                     for (unsigned int j=0; j < m_ringlist.size(); ++j) {
                         if (i==j) continue;
                         if (contains[j][i]) continue;
@@ -821,7 +815,7 @@ namespace Osmium {
                                 // this is allowed, but we must fix them up into a valid
                                 // geometry
                                 geos::geom::Geometry* diff = ring1_geom->symDifference(ring2_geom);
-                                const boost::scoped_ptr<geos::operation::polygonize::Polygonizer> polygonizer(new geos::operation::polygonize::Polygonizer());
+                                const scoped_ptr<geos::operation::polygonize::Polygonizer> polygonizer(new geos::operation::polygonize::Polygonizer());
                                 polygonizer->add(diff);
                                 std::vector<geos::geom::Polygon*>* polys = polygonizer->getPolygons();
                                 if (polys) {

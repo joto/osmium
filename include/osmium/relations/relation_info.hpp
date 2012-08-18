@@ -22,9 +22,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
-#include <boost/tr1/memory.hpp>
-using std::tr1::shared_ptr;
-
+#include <osmium/smart_ptr.hpp>
 #include <osmium/osm/relation.hpp>
 
 namespace Osmium {
