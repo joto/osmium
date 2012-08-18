@@ -275,16 +275,16 @@ namespace Osmium {
                 m_tags() {
             }
 
-            Object(const Object &o) {
-                m_id        = o.m_id;
-                m_version   = o.m_version;
-                m_uid       = o.m_uid;
-                m_user      = o.m_user;
-                m_changeset = o.m_changeset;
-                m_timestamp = o.m_timestamp;
-                m_endtime   = o.m_endtime;
-                m_tags      = o.m_tags;
-                m_visible   = o.m_visible;
+            Object(const Object &o) :
+                m_id(o.m_id),
+                m_version(o.m_version),
+                m_uid(o.m_uid),
+                m_user(o.m_user),
+                m_changeset(o.m_changeset),
+                m_timestamp(o.m_timestamp),
+                m_endtime(o.m_endtime),
+                m_tags(o.m_tags),
+                m_visible(o.m_visible) {
             }
 
             virtual ~Object() {

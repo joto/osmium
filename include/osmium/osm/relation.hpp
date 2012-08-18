@@ -35,11 +35,14 @@ namespace Osmium {
 
         public:
 
-            Relation() : Object(), m_members() {
+            Relation() :
+                Object(),
+                m_members() {
             }
 
-            Relation(const Relation &r) : Object(r) {
-                m_members = r.members();
+            Relation(const Relation &r) :
+                Object(r),
+                m_members(r.members()) {
             }
 
             const RelationMemberList& members() const {
