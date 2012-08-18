@@ -1,3 +1,11 @@
+#
+#  Use this with valgrind when checking for memory leaks. This suppresses
+#  reporting of some problems outside of our control.
+#
+#  For example:
+#
+#  valgrind --suppressions=valgrind.supp --leak-check=full --show-reachable=yes osmium_mpdump foo.osm.pbf
+#
 {
    libz_unitialised_value
    Memcheck:Cond
