@@ -43,9 +43,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <geos/geom/prep/PreparedPolygon.h>
 #include <geos/util/GEOSException.h>
 #include <geos/operation/polygonize/Polygonizer.h>
-
-// this should come from /usr/include/geos/algorithm, but its missing there in some Ubuntu versions
-#include "../CGAlgorithms.h"
+#include <geos/algorithm/CGAlgorithms.h>
 
 #include <osmium/smart_ptr.hpp>
 #include <osmium/osm.hpp>
@@ -734,7 +732,7 @@ namespace Osmium {
                 }
             }
 
-            void warning(const std::string& /*text*/) {
+            void warning(const std::string& /*text*/) const {
 //                std::cerr << text << "\n";
             }
 
