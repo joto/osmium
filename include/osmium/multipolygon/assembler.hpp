@@ -32,6 +32,9 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 namespace Osmium {
 
+    /**
+     * @brief Code related to the building of multipolygons from relations.
+     */
     namespace MultiPolygon {
 
         /**

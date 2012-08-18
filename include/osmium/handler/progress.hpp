@@ -95,8 +95,8 @@ namespace Osmium {
 
             /**
              * Initialize handler.
-             * @param s Step, after how many nodes/ways/relations the display
-             *          should be updated. (default 1000).
+             * @param step after how many nodes/ways/relations the display
+             *             should be updated. (default 1000).
              */
             Progress(int step=1000) :
                 Base(),
