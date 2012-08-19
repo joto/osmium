@@ -5,15 +5,18 @@
 #------------------------------------------------------------------------------
 
 CXX = g++
+#CXX = clang++
 
 CXXFLAGS = -g
-#CXXFLAGS = -O3
+#CXXFLAGS = -O3 -g
 
-CXXFLAGS += -Wall -Wextra -Wredundant-decls -Wdisabled-optimization -pedantic
-#CXXFLAGS += -Wpadded -Winline
+CXXFLAGS += -Wall -Wextra -Wdisabled-optimization -pedantic -Wctor-dtor-privacy -Wnon-virtual-dtor -Woverloaded-virtual -Wsign-promo -Wno-long-long
 
 CXXFLAGS += -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 CXXFLAGS += $(shell geos-config --cflags)
+
+# remove this if you do not want debugging to be compiled in
+CXXFLAGS += -DOSMIUM_WITH_DEBUG
 
 # Add this to force V8 garbage collection after each node/way/relation/area callback.
 # Use only to find memory leaks. It will make osmjs really slow.

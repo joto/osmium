@@ -45,7 +45,7 @@ namespace Osmium {
          * @tparam TBuilder MultiPolygon Builder class.
          */
         template <class THandler, class TBuilder = Osmium::MultiPolygon::Builder>
-        class Assembler : public Osmium::Relations::Assembler<Osmium::MultiPolygon::Assembler<THandler>, Osmium::Relations::RelationInfo, false, true, false, THandler>, public Osmium::WithDebugLevel {
+        class Assembler : public Osmium::Relations::Assembler<Osmium::MultiPolygon::Assembler<THandler>, Osmium::Relations::RelationInfo, false, true, false, THandler>, public Osmium::WithDebug {
 
             typedef typename Osmium::Relations::Assembler<Osmium::MultiPolygon::Assembler<THandler>, Osmium::Relations::RelationInfo, false, true, false, THandler> AssemblerType;
 
@@ -80,19 +80,25 @@ namespace Osmium {
                 if (member.type() == 'w') {
                     return true;
                 }
-                OSMIUM_DEBUG(1, "Ignored non-way member of multipolygon/boundary relation " << relation_info.relation()->id() << "\n");
+                if (debug && has_debug_level(1)) {
+                    std::cout << "Ignored non-way member of multipolygon/boundary relation " << relation_info.relation()->id() << "\n";
+                }
                 return false;
             }
 
             void way_not_in_any_relation(const shared_ptr<Osmium::OSM::Way const>& way) {
                 if (way->is_closed() && way->node_count() >= 4) { // way is closed and has enough nodes, build simple multipolygon
-                    OSMIUM_DEBUG(2, "MultiPolygon from way " << way->id() << "\n");
+                    if (debug && has_debug_level(2)) {
+                        std::cout << "MultiPolygon from way " << way->id() << "\n";
+                    }
                     AssemblerType::nested_handler().area(make_shared<Osmium::OSM::Area>(*way));
                 }
             }
 
             void complete_relation(Osmium::Relations::RelationInfo& relation_info) {
-                OSMIUM_DEBUG(2, "MultiPolygon from relation " << relation_info.relation()->id() << "\n");
+                if (debug && has_debug_level(2)) {
+                    std::cout << "MultiPolygon from relation " << relation_info.relation()->id() << "\n";
+                }
 
                 TBuilder builder(relation_info, m_attempt_repair);
 
@@ -101,22 +107,18 @@ namespace Osmium {
                 }
             }
 
-#ifdef OSMIUM_WITH_DEBUG
             void all_members_available() {
-                if (debug_level() == 0) {
-                    return;
-                }
-
-                AssemblerType::clean_assembled_relations();
-                if (! AssemblerType::relations().empty()) {
-                    std::cout << "Warning! Some member ways missing for these multipolygon relations:";
-                    BOOST_FOREACH(const Osmium::Relations::RelationInfo& relation_info, AssemblerType::relations()) {
-                        std::cout << " " << relation_info.relation()->id();
+                if (debug && has_debug_level(1)) {
+                    AssemblerType::clean_assembled_relations();
+                    if (! AssemblerType::relations().empty()) {
+                        std::cout << "Warning! Some member ways missing for these multipolygon relations:";
+                        BOOST_FOREACH(const Osmium::Relations::RelationInfo& relation_info, AssemblerType::relations()) {
+                            std::cout << " " << relation_info.relation()->id();
+                        }
+                        std::cout << "\n";
                     }
-                    std::cout << "\n";
                 }
             }
-#endif // OSMIUM_WITH_DEBUG
 
         };
 

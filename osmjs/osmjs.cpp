@@ -232,6 +232,7 @@ int main(int argc, char *argv[]) {
     }
     Osmium::Storage::ById::MmapFile<Osmium::OSM::Position> store_neg;
     Osmium::Javascript::Handler handler_javascript(include_files, javascript_filename.c_str());
+    handler_javascript.set_debug_level(debug ? 1 : 0);
 
     if (two_passes) {
         typedef Osmium::MultiPolygon::Assembler<Osmium::Javascript::Handler> assembler_t;

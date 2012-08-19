@@ -279,7 +279,7 @@ namespace Osmium {
                 }
 
                 // print debug info about the compression
-                if (debug_level() > 0) {
+                if (debug && has_debug_level(1)) {
                     std::cerr << "pack " << in.size() << " bytes to " << z.total_out << " bytes (1:" << static_cast<double>(in.size()) / z.total_out << ")" << std::endl;
                 }
 
@@ -309,7 +309,7 @@ namespace Osmium {
                     pbf_blob.set_zlib_data(m_compression_buffer, out);
                 } else { // no compression
                     // print debug info about the raw data
-                    if (debug_level() > 0) {
+                    if (debug && has_debug_level(1)) {
                         std::cerr << "store uncompressed " << data.size() << " bytes" << std::endl;
                     }
 
@@ -507,7 +507,7 @@ namespace Osmium {
              * store the current pbf_header_block into a Blob and clear this struct afterwards.
              */
             void store_header_block() {
-                if (debug_level() > 0) {
+                if (debug && has_debug_level(1)) {
                     std::cerr << "storing header block" << std::endl;
                 }
                 store_blob("OSMHeader", pbf_header_block);
@@ -520,7 +520,7 @@ namespace Osmium {
              * this struct and all related pointers and maps afterwards.
              */
             void store_primitive_block() {
-                if (debug_level() > 0) {
+                if (debug && has_debug_level(1)) {
                     std::cerr << "storing primitive block with " << primitive_block_contents << " items" << std::endl;
                 }
 
@@ -574,7 +574,7 @@ namespace Osmium {
                 if (primitive_block_contents >= max_block_contents) {
                     store_primitive_block();
                 } else if (primitive_block_size > (static_cast<uint32_t>(OSMPBF::max_uncompressed_blob_size) * buffer_fill_percent / 100)) {
-                    if (debug_level() > 0) {
+                    if (debug && has_debug_level(1)) {
                         std::cerr << "storing primitive_block with only " << primitive_block_contents << " items, because its ByteSize (" << primitive_block_size << ") reached " <<
                                   (static_cast<float>(primitive_block_size) / static_cast<float>(OSMPBF::max_uncompressed_blob_size) * 100.0) << "% of the maximum blob-size" << std::endl;
                     }
@@ -858,7 +858,7 @@ namespace Osmium {
              * the writing-program and adds the obligatory StringTable-Index 0.
              */
             void init(Osmium::OSM::Meta& meta) {
-                if (debug_level() > 0) {
+                if (debug && has_debug_level(1)) {
                     std::cerr << "pbf write init" << std::endl;
                 }
 
@@ -902,7 +902,7 @@ namespace Osmium {
                 // disk if the limit is reached. This call also increases the contents-counter
                 check_block_contents_counter();
 
-                if (debug_level() > 1) {
+                if (debug && has_debug_level(2)) {
                     std::cerr << "node " << node->id() << " v" << node->version() << std::endl;
                 }
 
@@ -930,7 +930,7 @@ namespace Osmium {
                 // disk if the limit is reached. This call also increases the contents-counter
                 check_block_contents_counter();
 
-                if (debug_level() > 1) {
+                if (debug && has_debug_level(2)) {
                     std::cerr << "way " << way->id() << " v" << way->version() << " with " << way->node_count() << " nodes" << std::endl;
                 }
 
@@ -954,7 +954,7 @@ namespace Osmium {
                 // disk if the limit is reached. This call also increases the contents-counter
                 check_block_contents_counter();
 
-                if (debug_level() > 1) {
+                if (debug && has_debug_level(2)) {
                     std::cerr << "relation " << relation->id() << " v" << relation->version() << " with " << relation->members().size() << " members" << std::endl;
                 }
 
@@ -971,7 +971,7 @@ namespace Osmium {
              * close the file.
              */
             void final() {
-                if (debug_level() > 0) {
+                if (debug && has_debug_level(1)) {
                     std::cerr << "finishing" << std::endl;
                 }
 

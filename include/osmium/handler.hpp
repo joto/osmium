@@ -63,11 +63,11 @@ namespace Osmium {
          * Only overwrite the methods you actually use. They must be declared public.
          * If you overwrite the constructor, call the Base constructor without arguments.
          */
-        class Base : boost::noncopyable, public Osmium::WithDebugLevel {
+        class Base : boost::noncopyable, public Osmium::WithDebug {
 
         public:
 
-            Base() : Osmium::WithDebugLevel() {
+            Base() : Osmium::WithDebug() {
             }
 
             // Destructor is not virtual as this class is not intended to be used polymorphically

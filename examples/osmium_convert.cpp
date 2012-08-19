@@ -135,7 +135,7 @@ int main(int argc, char *argv[]) {
     }
 
     Osmium::Output::Base* out = Osmium::Output::open(outfile);
-    out->debug_level(debug ? 1 : 0);
+    out->set_debug_level(debug ? 1 : 0);
 
     Osmium::Handler::Progress progress_handler;
 

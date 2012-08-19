@@ -1,5 +1,5 @@
-#ifndef OSMIUM_DEBUG_LEVEL_HPP
-#define OSMIUM_DEBUG_LEVEL_HPP
+#ifndef OSMIUM_DEBUG_HPP
+#define OSMIUM_DEBUG_HPP
 
 /*
 
@@ -25,46 +25,49 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 namespace Osmium {
 
     /**
-     * This class can be used as a base class for classes that need a
-     * debug_level setting.
+     * This class can be used as a base class for classes that need
+     * debugging support.
+     *
+     * To set the debug level: set_debug_level(LEVEL);
+     * 
+     * Check whether debugging is wanted: if (debug && has_debug_level(LEVEL)) ...
+     *
+     * The const "debug" is set to "true" or "false" depending on whether 
+     * Osmium was compiled with or without debugging support, so the debugging
+     * code can be optimized out.
      */
-    class WithDebugLevel {
+    class WithDebug {
 
         int m_debug_level;
 
+    protected:
+
+#ifdef OSMIUM_WITH_DEBUG
+        static const bool debug = true;
+#else
+        static const bool debug = false;
+#endif // OSMIUM_WITH_DEBUG
+
     public:
 
-        WithDebugLevel() : m_debug_level(0) {
+        WithDebug() :
+            m_debug_level(0) {
         }
 
         // Destructor is not virtual as this class is not intended to be used polymorphically
-        ~WithDebugLevel() {
+        ~WithDebug() {
         }
 
-        int debug_level() const {
-            return m_debug_level;
+        bool has_debug_level(int debug_level) const {
+            return m_debug_level >= debug_level;
         }
 
-        void debug_level(int debug_level) {
+        void set_debug_level(int debug_level) {
             m_debug_level = debug_level;
         }
 
-    };
+    }; // class WithDebug
 
 } // namespace Osmium
 
-/**
- * If Osmium is compiled with OSMIUM_WITH_DEBUG, the OSMIUM_DEBUG macro is
- * defined to check the debug_level() set on the current object and if it
- * is high enough to send the debug message to stdout.
- */
-#ifdef OSMIUM_WITH_DEBUG
-# define OSMIUM_DEBUG(lvl, msg) \
-    if (debug_level() >= lvl) { \
-        std::cout << msg; \
-    } else // eats the semikolon after the call
-#else
-# define OSMIUM_DEBUG(level, msg)
-#endif // OSMIUM_WITH_DEBUG
-
-#endif // OSMIUM_DEBUG_LEVEL_HPP
+#endif // OSMIUM_DEBUG_HPP

@@ -142,7 +142,7 @@ int main(int argc, char *argv[]) {
 
     typedef Osmium::MultiPolygon::Assembler<OGROutHandler> assembler_t;
     assembler_t assembler(ogr_out_handler, attempt_repair);
-    assembler.debug_level(1);
+    assembler.set_debug_level(1);
 
     typedef Osmium::Handler::CoordinatesForWays<storage_sparsetable_t, storage_mmap_t> cfw_handler_t;
     cfw_handler_t cfw_handler(store_pos, store_neg);
