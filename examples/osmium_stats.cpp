@@ -151,10 +151,10 @@ public:
 
         sqlite3* sqlite_db = db.get_sqlite3();
         if (SQLITE_OK != sqlite3_exec(sqlite_db, \
-                                        "CREATE TABLE stats (" \
-                                        "  key    TEXT, " \
-                                        "  value  INT64 " \
-                                        ");", 0, 0, 0)) {
+                                      "CREATE TABLE stats (" \
+                                      "  key    TEXT, " \
+                                      "  value  INT64 " \
+                                      ");", 0, 0, 0)) {
             std::cerr << "Database error: " << sqlite3_errmsg(sqlite_db) << "\n";
             sqlite3_close(sqlite_db);
             exit(1);

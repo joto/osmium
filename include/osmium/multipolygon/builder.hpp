@@ -330,7 +330,7 @@ namespace Osmium {
             * usually because it self-intersects. The method tries to salvage
             * as much of the ring as possible, using binary search to find the
             * bit that needs to be cut out.
-            * 
+            *
             * @returns A valid LinearRing, or NULL if none can be built.
             *
             * Caller takes ownership.
@@ -761,7 +761,7 @@ namespace Osmium {
                     warning("duplicate_tags_on_inner");
                     return;
                 }
-                
+
                 if (ring_info.contained_by.lock()->ways.size() == 1 && same_tags(ring_info.ways[0]->way.get(), ring_info.contained_by.lock()->ways[0]->way.get())) {
                     warning("duplicate_tags_on_inner");
                     return;

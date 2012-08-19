@@ -29,10 +29,10 @@ namespace Osmium {
      * debugging support.
      *
      * To set the debug level: set_debug_level(LEVEL);
-     * 
+     *
      * Check whether debugging is wanted: if (debug && has_debug_level(LEVEL)) ...
      *
-     * The const "debug" is set to "true" or "false" depending on whether 
+     * The const "debug" is set to "true" or "false" depending on whether
      * Osmium was compiled with or without debugging support, so the debugging
      * code can be optimized out.
      */
