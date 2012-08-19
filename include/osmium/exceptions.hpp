@@ -31,13 +31,6 @@ namespace Osmium {
      */
     namespace Exception {
 
-        /**
-         * This exception is thrown when OSM data can't be assembled
-         * into proper geometries.
-         */
-        class IllegalGeometry {
-        };
-
     } // namespace Exception
 
 } // namespace Osmium

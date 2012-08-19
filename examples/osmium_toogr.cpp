@@ -160,7 +160,7 @@ public:
 
                 OGRFeature::DestroyFeature(feature);
                 delete ogrpoint;
-            } catch (Osmium::Exception::IllegalGeometry) {
+            } catch (Osmium::Geometry::IllegalGeometry) {
                 std::cerr << "Ignoring illegal geometry for node " << node->id() << ".\n";
             }
         }
@@ -196,7 +196,7 @@ public:
 
                 OGRFeature::DestroyFeature(feature);
                 delete ogrlinestring;
-            } catch (Osmium::Exception::IllegalGeometry) {
+            } catch (Osmium::Geometry::IllegalGeometry) {
                 std::cerr << "Ignoring illegal geometry for way " << way->id() << ".\n";
             }
         }

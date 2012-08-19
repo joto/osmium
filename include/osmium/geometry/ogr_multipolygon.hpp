@@ -75,13 +75,13 @@ namespace Osmium {
 
                 OGRErr result = ogrmp->addGeometryDirectly(ogrpolygon);
                 if (result != OGRERR_NONE) {
-                    throw Osmium::Exception::IllegalGeometry();
+                    throw Osmium::Geometry::IllegalGeometry();
                 }
                 return ogrmp;
             }
 
             if (multipolygon.geos_geometry()->getGeometryTypeId() != geos::geom::GEOS_MULTIPOLYGON) {
-                throw Osmium::Exception::IllegalGeometry();
+                throw Osmium::Geometry::IllegalGeometry();
             }
 */
             const geos::geom::GeometryCollection* geosgeom = dynamic_cast<const geos::geom::GeometryCollection*>(multipolygon.borrow_geos_geometry());
@@ -91,7 +91,7 @@ namespace Osmium {
 
                 OGRErr result = ogrmp->addGeometryDirectly(ogrpolygon);
                 if (result != OGRERR_NONE) {
-                    throw Osmium::Exception::IllegalGeometry();
+                    throw Osmium::Geometry::IllegalGeometry();
                 }
             }
 

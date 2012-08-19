@@ -101,7 +101,7 @@ namespace Osmium {
 
                     try {
                         shapefile->add_geometry(Osmium::Geometry::create_shp_object(*geometry));
-                    } catch (Osmium::Exception::IllegalGeometry) {
+                    } catch (Osmium::Geometry::IllegalGeometry) {
                         return false;
                     }
 
@@ -166,7 +166,7 @@ namespace Osmium {
 
                     try {
                         add(shapefile, geometry, v8::Local<v8::Object>::Cast(args[1]));
-                    } catch (Osmium::Exception::IllegalGeometry) {
+                    } catch (Osmium::Geometry::IllegalGeometry) {
                         std::cerr << "Ignoring object with illegal geometry." << std::endl;
                         return v8::Integer::New(0);
                     }

@@ -112,7 +112,7 @@ public:
 
                 OGRFeature::DestroyFeature(feature);
                 delete ogrmp;
-            } catch (Osmium::Exception::IllegalGeometry) {
+            } catch (Osmium::Geometry::IllegalGeometry) {
                 std::cerr << "Ignoring illegal geometry for multipolygon " << area->id() << ".\n";
             }
         }

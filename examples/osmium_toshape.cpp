@@ -83,7 +83,7 @@ public:
                 if (op) {
                     shapefile_point->add_attribute_with_truncate(1, std::string(op));
                 }
-            } catch (Osmium::Exception::IllegalGeometry) {
+            } catch (Osmium::Geometry::IllegalGeometry) {
                 std::cerr << "Ignoring illegal geometry for node " << node->id() << ".\n";
             }
         }
@@ -102,7 +102,7 @@ public:
                 shapefile_linestring->add_geometry(Osmium::Geometry::create_shp_object(linestring));
                 shapefile_linestring->add_attribute(0, way->id());
                 shapefile_linestring->add_attribute_with_truncate(1, std::string(highway));
-            } catch (Osmium::Exception::IllegalGeometry) {
+            } catch (Osmium::Geometry::IllegalGeometry) {
                 std::cerr << "Ignoring illegal geometry for way " << way->id() << ".\n";
             }
         }

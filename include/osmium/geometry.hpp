@@ -73,6 +73,8 @@ namespace Osmium {
         /// Exception thrown if there is no geometry available when there should be
         struct NoGeometry : public GeometryException {};
 
+        struct IllegalGeometry : public GeometryException {};
+
         class Geometry;
 
         /**

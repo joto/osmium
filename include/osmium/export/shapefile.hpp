@@ -172,13 +172,13 @@ namespace Osmium {
              *
              * @param shp_object A pointer to the shape object to be added. The object
              *                   will be freed for you by calling SHPDestroyObject()!
-             * @exception Osmium::Exception::IllegalGeometry If shp_object is NULL or
+             * @exception Osmium::Geometry::IllegalGeometry If shp_object is NULL or
              *                   the type of geometry does not fit the type of the
              *                   shapefile.
              */
             void add_geometry(SHPObject* shp_object) {
                 if (!shp_object || shp_object->nSHPType != m_shp_handle->nShapeType) {
-                    throw Osmium::Exception::IllegalGeometry();
+                    throw Osmium::Geometry::IllegalGeometry();
                 }
                 m_current_shape = SHPWriteObject(m_shp_handle, -1, shp_object);
                 if (m_current_shape == -1 && errno == EINVAL) {
