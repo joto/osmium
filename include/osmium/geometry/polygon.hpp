@@ -26,7 +26,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <algorithm>
 
 #include <osmium/geometry/from_way.hpp>
-#include <osmium/exceptions.hpp>
 
 namespace Osmium {
 

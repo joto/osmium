@@ -24,7 +24,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <sstream>
 
-#include <osmium/exceptions.hpp>
 #include <osmium/osm/types.hpp>
 
 namespace Osmium {
