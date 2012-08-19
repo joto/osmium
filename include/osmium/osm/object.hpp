@@ -126,7 +126,7 @@ namespace Osmium {
              * @return Timestamp as a string in ISO format (yyyy-mm-ddThh:mm:ssZ). Empty string if unset.
              */
             std::string timestamp_as_string() const {
-                return Osmium::Utils::Timestamp::to_iso(m_timestamp);
+                return Osmium::Timestamp::to_iso(m_timestamp);
             }
 
             /**
@@ -134,7 +134,7 @@ namespace Osmium {
              * @return Timestamp as a string in ISO format (yyyy-mm-ddThh:mm:ssZ). Empty string if unset.
              */
             std::string endtime_as_string() const {
-                return Osmium::Utils::Timestamp::to_iso(m_endtime);
+                return Osmium::Timestamp::to_iso(m_endtime);
             }
 
             /**
@@ -167,7 +167,7 @@ namespace Osmium {
              *   unchanged in this case.
              */
             Object& timestamp(const char* timestamp) {
-                m_timestamp = Osmium::Utils::Timestamp::parse_iso(timestamp);
+                m_timestamp = Osmium::Timestamp::parse_iso(timestamp);
                 return *this;
             }
 
