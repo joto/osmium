@@ -239,7 +239,7 @@ namespace Osmium {
              * @param in String input.
              * @return Number of bytes after compression.
              */
-            size_t zlib_compress(std::string &in) {
+            size_t zlib_compress(const std::string& in) {
                 // zlib compression context
                 z_stream z;
 
@@ -291,7 +291,7 @@ namespace Osmium {
              * @param type Type-string used in the BlobHeader.
              * @param msg Protobuf-message.
              */
-            void store_blob(const std::string &type, const google::protobuf::MessageLite &msg) {
+            void store_blob(const std::string& type, const google::protobuf::MessageLite& msg) {
                 // buffer to serialize the protobuf message to
                 std::string data;
 
