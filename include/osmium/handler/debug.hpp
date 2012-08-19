@@ -77,7 +77,7 @@ namespace Osmium {
             void way(const shared_ptr<Osmium::OSM::Way const>& way) const {
                 std::cout << "way:\n";
                 print_meta(way);
-                std::cout << "  node_count=" << way->node_count() << "\n";
+                std::cout << "  node_count=" << way->nodes().size() << "\n";
                 std::cout << "  nodes:\n";
                 Osmium::OSM::WayNodeList::const_iterator end = way->nodes().end();
                 for (Osmium::OSM::WayNodeList::const_iterator it = way->nodes().begin(); it != end; ++it) {

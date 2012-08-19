@@ -62,19 +62,19 @@ namespace Osmium {
                 return NODE;
             }
 
-            void set_x(double x) {
+            void lon(double x) {
                 m_position.lon(x);
             }
 
-            void set_y(double y) {
+            void lat(double y) {
                 m_position.lat(y);
             }
 
-            double get_lon() const {
+            double lon() const {
                 return m_position.lon();
             }
 
-            double get_lat() const {
+            double lat() const {
                 return m_position.lat();
             }
 

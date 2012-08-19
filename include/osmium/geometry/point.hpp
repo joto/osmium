@@ -53,7 +53,7 @@ namespace Osmium {
              */
             Point(const Osmium::OSM::Node& node) :
                 Geometry(node.id()),
-                m_position(Osmium::OSM::Position(node.get_lon(), node.get_lat())) {
+                m_position(node.position()) {
             }
 
             const Osmium::OSM::Position& position() const {

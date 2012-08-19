@@ -138,11 +138,11 @@ namespace Osmium {
                 for (int count = 0; attrs[count]; count += 2) {
                     if (!strcmp(attrs[count], "lon")) {
                         if (this->m_node) {
-                            this->m_node->set_x(atof(attrs[count+1]));
+                            this->m_node->lon(atof(attrs[count+1]));
                         }
                     } else if (!strcmp(attrs[count], "lat")) {
                         if (this->m_node) {
-                            this->m_node->set_y(atof(attrs[count+1]));
+                            this->m_node->lat(atof(attrs[count+1]));
                         }
                     } else {
                         m_current_object->set_attribute(attrs[count], attrs[count+1]);

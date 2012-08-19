@@ -76,14 +76,6 @@ namespace Osmium {
                 return m_node_list[n].ref();
             }
 
-            double get_lon(osm_sequence_id_t n) const {
-                return m_node_list[n].position().lon();
-            }
-
-            double get_lat(osm_sequence_id_t n) const {
-                return m_node_list[n].position().lat();
-            }
-
             /**
             * Add a node with the given id to the way.
             *
@@ -91,13 +83,6 @@ namespace Osmium {
             */
             void add_node(osm_object_id_t ref) {
                 m_node_list.add(ref);
-            }
-
-            /**
-            * Returns the number of nodes in this way.
-            */
-            osm_sequence_id_t node_count() const {
-                return m_node_list.size();
             }
 
             /**

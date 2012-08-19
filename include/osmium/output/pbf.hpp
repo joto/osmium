@@ -602,8 +602,8 @@ namespace Osmium {
 
                 // modify lat & lon to integers, respecting the block's granularity and copy
                 // the ints to the pbf-object
-                pbf_node->set_lon(lonlat2int(node->get_lon()));
-                pbf_node->set_lat(lonlat2int(node->get_lat()));
+                pbf_node->set_lon(lonlat2int(node->lon()));
+                pbf_node->set_lat(lonlat2int(node->lat()));
             }
 
             /**
@@ -619,10 +619,10 @@ namespace Osmium {
                 dense->add_id(m_delta_id.update(node->id()));
 
                 // copy the longitude, delta encoded
-                dense->add_lon(m_delta_lon.update(lonlat2int(node->get_lon())));
+                dense->add_lon(m_delta_lon.update(lonlat2int(node->lon())));
 
                 // copy the latitude, delta encoded
-                dense->add_lat(m_delta_lat.update(lonlat2int(node->get_lat())));
+                dense->add_lat(m_delta_lat.update(lonlat2int(node->lat())));
 
                 // in the densenodes structure keys and vals are encoded in an intermixed
                 // array, individual nodes are seperated by a value of 0 (0 in the StringTable
@@ -678,7 +678,7 @@ namespace Osmium {
                 Delta<int64_t> delta_id;
 
                 // iterate over all way-nodes
-                for (int i=0, l = way->node_count(); i<l; i++) {
+                for (int i=0, l = way->nodes().size(); i<l; i++) {
                     // copy the way-node-id, delta encoded
                     pbf_way->add_refs(delta_id.update(way->get_node_id(i)));
                 }
@@ -932,7 +932,7 @@ namespace Osmium {
                 check_block_contents_counter();
 
                 if (debug && has_debug_level(2)) {
-                    std::cerr << "way " << way->id() << " v" << way->version() << " with " << way->node_count() << " nodes" << std::endl;
+                    std::cerr << "way " << way->id() << " v" << way->version() << " with " << way->nodes().size() << " nodes" << std::endl;
                 }
 
                 // if no PrimitiveGroup for nodes has been added, add one and save the pointer
