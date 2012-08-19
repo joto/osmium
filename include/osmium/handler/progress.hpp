@@ -24,6 +24,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <unistd.h>
 #include <sys/time.h>
+#include <iostream>
 
 #include <osmium/handler.hpp>
 

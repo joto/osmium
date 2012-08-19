@@ -23,11 +23,10 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 */
 
 #include <osmium/smart_ptr.hpp>
-#include <osmium/relations/assembler.hpp>
 #include <osmium/debug.hpp>
 #include <osmium/osm/area.hpp>
-
 #include <osmium/relations/relation_info.hpp>
+#include <osmium/relations/assembler.hpp>
 #include <osmium/multipolygon/builder.hpp>
 
 namespace Osmium {

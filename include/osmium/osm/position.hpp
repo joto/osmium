@@ -23,9 +23,9 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 */
 
 #include <cmath>
-#include <stdint.h>
 #include <limits>
 #include <ostream>
+#include <stdint.h>
 #include <boost/operators.hpp>
 
 namespace Osmium {

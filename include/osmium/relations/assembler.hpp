@@ -22,9 +22,11 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
-#include <vector>
 #include <algorithm>
 #include <cassert>
+#include <iostream>
+#include <utility>
+#include <vector>
 #include <boost/foreach.hpp>
 #include <boost/utility.hpp>
 

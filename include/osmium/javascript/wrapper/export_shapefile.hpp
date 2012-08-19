@@ -26,7 +26,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <osmium/javascript/unicode.hpp>
 #include <osmium/javascript/template.hpp>
-
 #include <osmium/export/shapefile.hpp>
 
 namespace Osmium {

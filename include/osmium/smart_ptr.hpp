@@ -22,7 +22,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
-
 #include <boost/shared_ptr.hpp>
 #include <boost/weak_ptr.hpp>
 #include <boost/scoped_ptr.hpp>

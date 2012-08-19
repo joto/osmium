@@ -24,6 +24,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <ctime>
 #include <stdexcept>
+#include <string>
 
 namespace Osmium {
 

@@ -23,9 +23,9 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 */
 
 #include <cassert>
-#include <vector>
 #include <map>
 #include <stdexcept>
+#include <vector>
 
 #include <boost/foreach.hpp>
 #include <boost/dynamic_bitset.hpp>

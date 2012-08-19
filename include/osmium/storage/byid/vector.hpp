@@ -22,10 +22,9 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
-#include <stdexcept>
-#include <cstdlib>
-#include <vector>
 #include <algorithm>
+#include <utility>
+#include <vector>
 
 #include <osmium/osm/types.hpp>
 #include <osmium/storage/byid.hpp>

@@ -24,13 +24,12 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #ifdef __linux__
 
-#include <stdexcept>
 #include <cstdlib>
+#include <fcntl.h>
 #include <sys/mman.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 
 #include <osmium/storage/byid.hpp>
 

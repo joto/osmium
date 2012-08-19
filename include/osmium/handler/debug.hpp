@@ -23,6 +23,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 */
 
 #include <iomanip>
+#include <iostream>
 
 #include <osmium/handler.hpp>
 

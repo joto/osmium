@@ -25,6 +25,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #define OSMIUM_COMPILE_WITH_CFLAGS_SHP `geos-config --cflags`
 #define OSMIUM_LINK_WITH_LIBS_SHP -lshp `geos-config --libs`
 
+#include <vector>
 #include <shapefil.h>
 #include <geos/geom/Geometry.h>
 #include <geos/geom/GeometryCollection.h>

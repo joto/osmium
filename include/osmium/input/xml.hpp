@@ -26,12 +26,12 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
+#include <sstream>
+#include <stdexcept>
 #include <string>
 #include <unistd.h>
-#include <cstring>
-#include <sstream>
-
 #include <expat.h>
 
 #include <osmium/input.hpp>

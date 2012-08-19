@@ -22,17 +22,14 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
-#include <stdexcept>
-#include <iostream>
-#include <boost/operators.hpp>
-
-#include <osmium/osm/object.hpp>
-#include <osmium/osm/way_node_list.hpp>
-
 /** @file
 *   @brief Contains the Osmium::OSM::Way class.
 */
 
+#include <boost/operators.hpp>
+
+#include <osmium/osm/object.hpp>
+#include <osmium/osm/way_node_list.hpp>
 #include <osmium/geometry.hpp>
 
 namespace Osmium {

@@ -22,8 +22,9 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
-#include <iomanip>
 #include <algorithm>
+#include <iomanip>
+#include <ostream>
 
 #include <osmium/geometry/from_way.hpp>
 

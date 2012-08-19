@@ -22,6 +22,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#include <sstream>
 #include <v8.h>
 
 #include <geos/geom/Geometry.h>
@@ -31,7 +32,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <osmium/javascript/unicode.hpp>
 #include <osmium/javascript/template.hpp>
 #include <osmium/javascript/wrapper/position.hpp>
-
 #include <osmium/geometry/null.hpp>
 #include <osmium/geometry/point.hpp>
 #include <osmium/geometry/linestring.hpp>

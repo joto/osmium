@@ -25,11 +25,11 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <cstdio>
 #include <cstdlib>
 #include <fcntl.h>
-#include <stdexcept>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <string>
 
 #include <osmium/storage/byid.hpp>
 

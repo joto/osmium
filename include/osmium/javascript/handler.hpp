@@ -24,10 +24,10 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <fstream>
 #include <iostream>
+#include <string>
 #include <v8.h>
 
 #include <osmium/handler.hpp>
-
 #include <osmium/javascript/wrapper/position.hpp>
 #include <osmium/javascript/wrapper/geometry.hpp>
 #include <osmium/javascript/wrapper/osm.hpp>

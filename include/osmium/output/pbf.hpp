@@ -86,14 +86,11 @@ More complete outlines of real .osm.pbf files can be created using the osmpbf-ou
  <https://github.com/MaZderMind/OSM-binary/tree/osmpbf-outline>
 */
 
-// netinet provides the network-byte-order conversion function
-#include <netinet/in.h>
-
 #include <algorithm>
 #include <cmath>
-#include <zlib.h>
-
 #include <osmpbf/osmpbf.h>
+#include <netinet/in.h>
+#include <zlib.h>
 
 #include <osmium/utils/stringtable.hpp>
 #include <osmium/utils/delta.hpp>

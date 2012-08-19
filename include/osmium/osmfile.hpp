@@ -25,6 +25,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <cerrno>
 #include <fcntl.h>
 #include <stdexcept>
+#include <string>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>

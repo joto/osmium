@@ -24,7 +24,10 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #define OSMIUM_LINK_WITH_LIBS_PBF -lz -lpthread -lprotobuf-lite -losmpbf
 
+#include <sstream>
+#include <stdexcept>
 #include <string>
+#include <utility>
 #include <zlib.h>
 
 #include <osmpbf/osmpbf.h>
