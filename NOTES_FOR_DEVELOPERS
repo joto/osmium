@@ -16,8 +16,6 @@ Namespace
 =========
 
 All Osmium code must be in the "Osmium" namespace or one of its sub-namespaces.
-There are currently some utility classes not in the Osmium namespace, but this
-should change.
 
 
 Include-Only
@@ -46,28 +44,46 @@ different.
 * Macros should only be used for controlling which parts of the code should be
   included when compiling.
 * Use descriptive_variable_names, exceptions are well-established conventions
-  like "i" for a loop variable.
+  like "i" for a loop variable. Iterators are usually called "it".
 * Declare variables where they are first used (C++ style), not at the beginning
   of a function (old C style).
 * Names from external namespaces (even "std") are always mentioned explicitly.
-  Do not use "using".
+  Do not use "using". The one exception are smart pointers and related functions.
+  Include <osmium/smart_ptr.hpp> and use the functions without namespace.
 
 Use "make indent" in the toplevel directory to fix indentation. It calls
 "astyle" with the right parameters. This program is in the "astyle" Debian
 package.
 
 
+Debugging code
+==============
+
+Classes that need debugging should derive from Osmium::WithDebug. Debugging
+code in those classes should be wrapped in
+
+  if (debug && has_debug_level(LEVEL)) {
+  }
+
+Classes not derived from Osmium::WithDebug do not support debugging.
+
+Debugging output (if it was requested) should go to std::cout.
+
+
 Checking your code
 ==================
 
 The Osmium makefiles use pretty draconian warning options for gcc.
-(-Wall -Wextra -Wredundant-decls -Wdisabled-optimization -pedantic).
 This is good. Code should never produce any warnings, even with those
 settings.
 
 Call "make check" in the toplevel directory to check your code. It uses
 cppcheck which finds some bugs that gcc doesn't. But take the result with
 a grain of salt, it also sometimes produces wrong warnings.
+
+Use "make check-includes" to compile all include files on their own to
+check whether dependencies are all okay. This compiles with extra
+draconian warnings, some of them you can ignore.
 
 
 Testing
@@ -86,5 +102,4 @@ All namespaces, classes, functions, attributes, etc. should be documented.
 Osmium uses the Doxygen (www.doxygen.org) source code documentation system.
 
 Call "make doc" in the toplevel directory to generate the documentation.
-
 
