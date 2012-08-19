@@ -742,7 +742,8 @@ namespace Osmium {
             /**
              * Create PBF output object from OSMFile.
              */
-            PBF(const Osmium::OSMFile& file) : Base(file),
+            PBF(const Osmium::OSMFile& file) :
+                Base(file),
                 pbf_blob(),
                 pbf_blob_header(),
                 pbf_header_block(),

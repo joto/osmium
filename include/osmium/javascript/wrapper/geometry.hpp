@@ -76,7 +76,8 @@ namespace Osmium {
                     return v8::String::New(oss.str().c_str());
                 }
 
-                Geometry() : Osmium::Javascript::Template() {
+                Geometry() :
+                    Osmium::Javascript::Template() {
                     js_template->Set("toWKT",    v8::FunctionTemplate::New(function_template<Osmium::Geometry::Geometry, to_wkt>));
                     js_template->Set("toWKB",    v8::FunctionTemplate::New(function_template<Osmium::Geometry::Geometry, to_wkb>));
                     js_template->Set("toHexWKB", v8::FunctionTemplate::New(function_template<Osmium::Geometry::Geometry, to_hexwkb>));
@@ -86,7 +87,8 @@ namespace Osmium {
 
             struct GeometryNull : public Osmium::Javascript::Template {
 
-                GeometryNull() : Osmium::Javascript::Template() {
+                GeometryNull() :
+                    Osmium::Javascript::Template() {
                     js_template->Set("toWKT",    v8::FunctionTemplate::New(undefined));
                     js_template->Set("toWKB",    v8::FunctionTemplate::New(undefined));
                     js_template->Set("toHexWKB", v8::FunctionTemplate::New(undefined));
@@ -109,7 +111,8 @@ namespace Osmium {
                     return OSMPosition::to_array(point->position());
                 }
 
-                GeometryPoint() : Geometry() {
+                GeometryPoint() :
+                    Geometry() {
                     js_template->SetAccessor(v8::String::NewSymbol("lon"), accessor_getter<Osmium::Geometry::Point, lon>);
                     js_template->SetAccessor(v8::String::NewSymbol("lat"), accessor_getter<Osmium::Geometry::Point, lat>);
                     js_template->Set("toArray", v8::FunctionTemplate::New(function_template<Osmium::Geometry::Point, to_array>));
@@ -136,7 +139,8 @@ namespace Osmium {
                     return scope.Close(linestring);
                 }
 
-                GeometryLineString() : Geometry() {
+                GeometryLineString() :
+                    Geometry() {
                     js_template->Set("toArray", v8::FunctionTemplate::New(function_template<Osmium::Geometry::LineString, to_array>));
                 }
 
@@ -163,7 +167,8 @@ namespace Osmium {
                     return scope.Close(polygon);
                 }
 
-                GeometryPolygon() : Geometry() {
+                GeometryPolygon() :
+                    Geometry() {
                     js_template->Set("toArray", v8::FunctionTemplate::New(function_template<Osmium::Geometry::Polygon, to_array>));
                 }
 
@@ -203,7 +208,8 @@ namespace Osmium {
                     return scope.Close(multipolygon_array);
                 }
 
-                GeometryMultiPolygon() : Geometry() {
+                GeometryMultiPolygon() :
+                    Geometry() {
                     js_template->Set("toArray", v8::FunctionTemplate::New(function_template<Osmium::Geometry::MultiPolygon, to_array>));
                 }
 

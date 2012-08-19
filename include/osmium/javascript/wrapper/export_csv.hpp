@@ -64,7 +64,8 @@ namespace Osmium {
                     return v8::Undefined();
                 }
 
-                ExportCSV() : Osmium::Javascript::Template() {
+                ExportCSV() :
+                    Osmium::Javascript::Template() {
                     js_template->Set("print", v8::FunctionTemplate::New(function_template<Osmium::Export::CSV, print>));
                     js_template->Set("close", v8::FunctionTemplate::New(function_template<Osmium::Export::CSV, close>));
                 }

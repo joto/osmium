@@ -143,7 +143,8 @@ namespace Osmium {
                 return v8::Undefined();
             }
 
-            Handler(std::vector<std::string> include_files, const char* filename) : Osmium::Handler::Base() {
+            Handler(std::vector<std::string> include_files, const char* filename) :
+                Osmium::Handler::Base() {
 //                v8::HandleScope handle_scope;
                 v8::Handle<v8::String> init_source = v8::String::New("Osmium = { Callbacks: {}, Output: { } };");
                 v8::Handle<v8::Script> init_script = v8::Script::Compile(init_source);

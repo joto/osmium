@@ -91,14 +91,14 @@ namespace Osmium {
         protected:
 
             Base(const Osmium::OSMFile& file,
-                 THandler& handler)
-                : m_last_object_type(UNKNOWN),
-                  m_file(file),
-                  m_handler(handler),
-                  m_meta(),
-                  m_node(),
-                  m_way(),
-                  m_relation() {
+                 THandler& handler) :
+                m_last_object_type(UNKNOWN),
+                m_file(file),
+                m_handler(handler),
+                m_meta(),
+                m_node(),
+                m_way(),
+                m_relation() {
 
                 m_meta.has_multiple_object_versions(m_file.has_multiple_object_versions());
                 m_file.open_for_input();

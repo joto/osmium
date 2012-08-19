@@ -44,7 +44,7 @@ namespace Osmium {
                 }
             }
 
-        };
+        }; // class UndirectedSegment
 
         /**
         * UndirectedSegments are "smaller" if they are to the left and down of another

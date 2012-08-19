@@ -42,7 +42,8 @@ namespace Osmium {
 
         public:
 
-            TagList() : m_tags() {
+            TagList() :
+                m_tags() {
             }
 
             /// Return the number of tags in this tag list.

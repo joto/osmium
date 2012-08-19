@@ -40,9 +40,9 @@ namespace Osmium {
                 m_members() {
             }
 
-            Relation(const Relation &r) :
-                Object(r),
-                m_members(r.members()) {
+            Relation(const Relation &relation) :
+                Object(relation),
+                m_members(relation.members()) {
             }
 
             const RelationMemberList& members() const {
@@ -53,35 +53,15 @@ namespace Osmium {
                 return RELATION;
             }
 
-            void add_member(const char type, osm_object_id_t ref, const char *role) {
+            void add_member(const char type, osm_object_id_t ref, const char* role) {
                 m_members.add_member(type, ref, role);
             }
 
-            const RelationMember *get_member(osm_sequence_id_t index) const {
+            const RelationMember* get_member(osm_sequence_id_t index) const {
                 if (index < m_members.size()) {
                     return &m_members[index];
                 }
                 return NULL;
-            }
-
-            /**
-             * Relations can be ordered by id and version.
-             * Note that we use the absolute value of the id for a
-             * better ordering of objects with negative ids.
-             */
-            friend bool operator<(const Relation& lhs, const Relation& rhs) {
-                if (lhs.id() == rhs.id()) {
-                    return lhs.version() < rhs.version();
-                } else {
-                    return abs(lhs.id()) < abs(rhs.id());
-                }
-            }
-
-            /**
-             * Ordering for shared_ptrs of Relations.
-             */
-            friend bool operator<(const shared_ptr<Relation const>& lhs, const shared_ptr<Relation const>& rhs) {
-                return *lhs < *rhs;
             }
 
         private:
@@ -89,6 +69,26 @@ namespace Osmium {
             RelationMemberList m_members;
 
         }; // class Relation
+
+        /**
+         * Relations can be ordered by id and version.
+         * Note that we use the absolute value of the id for a
+         * better ordering of objects with negative ids.
+         */
+        inline bool operator<(const Relation& lhs, const Relation& rhs) {
+            if (lhs.id() == rhs.id()) {
+                return lhs.version() < rhs.version();
+            } else {
+                return abs(lhs.id()) < abs(rhs.id());
+            }
+        }
+
+        /**
+         * Ordering for shared_ptrs of Relations.
+         */
+        inline bool operator<(const shared_ptr<Relation const>& lhs, const shared_ptr<Relation const>& rhs) {
+            return *lhs < *rhs;
+        }
 
     } // namespace OSM
 

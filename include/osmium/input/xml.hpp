@@ -59,7 +59,10 @@ namespace Osmium {
             * @param file OSMFile instance.
             * @param handler Instance of THandler.
             */
-            XML(const Osmium::OSMFile& file, THandler& handler) : Base<THandler>(file, handler), m_current_object(NULL), m_in_delete_section(false) {
+            XML(const Osmium::OSMFile& file, THandler& handler) :
+                Base<THandler>(file, handler),
+                m_current_object(NULL),
+                m_in_delete_section(false) {
             }
 
             void parse() {

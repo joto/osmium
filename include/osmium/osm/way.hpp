@@ -45,7 +45,6 @@ namespace Osmium {
 
         public:
 
-            /// Construct a Way object.
             Way() :
                 Object(),
                 m_node_list() {
@@ -56,10 +55,9 @@ namespace Osmium {
                 m_node_list(size_of_node_list) {
             }
 
-            /// Copy a Way object.
-            Way(const Way& w) :
-                Object(w),
-                m_node_list(w.m_node_list) {
+            Way(const Way& way) :
+                Object(way),
+                m_node_list(way.m_node_list) {
             }
 
             const WayNodeList& nodes() const {
@@ -69,8 +67,6 @@ namespace Osmium {
             WayNodeList& nodes() {
                 return m_node_list;
             }
-
-        public:
 
             osm_object_type_t get_type() const {
                 return WAY;
@@ -125,27 +121,27 @@ namespace Osmium {
                 return m_node_list.is_closed();
             }
 
-            /**
-             * Ways can be ordered by id and version.
-             * Note that we use the absolute value of the id for a
-             * better ordering of objects with negative ids.
-             */
-            friend bool operator<(const Way& lhs, const Way& rhs) {
-                if (lhs.id() == rhs.id()) {
-                    return lhs.version() < rhs.version();
-                } else {
-                    return abs(lhs.id()) < abs(rhs.id());
-                }
-            }
-
-            /**
-             * Ordering for shared_ptrs of Ways.
-             */
-            friend bool operator<(const shared_ptr<Way const>& lhs, const shared_ptr<Way const>& rhs) {
-                return *lhs < *rhs;
-            }
-
         }; // class Way
+
+        /**
+         * Ways can be ordered by id and version.
+         * Note that we use the absolute value of the id for a
+         * better ordering of objects with negative ids.
+         */
+        inline bool operator<(const Way& lhs, const Way& rhs) {
+            if (lhs.id() == rhs.id()) {
+                return lhs.version() < rhs.version();
+            } else {
+                return abs(lhs.id()) < abs(rhs.id());
+            }
+        }
+
+        /**
+         * Ordering for shared_ptrs of Ways.
+         */
+        inline bool operator<(const shared_ptr<Way const>& lhs, const shared_ptr<Way const>& rhs) {
+            return *lhs < *rhs;
+        }
 
     } // namespace OSM
 

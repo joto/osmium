@@ -45,7 +45,7 @@ namespace Osmium {
             /// @brief Earth's quadratic mean radius for WGS84
             static const double EARTH_RADIUS_IN_METERS = 6372797.560856;
 
-            double distance(const double x1, const double y1, const double x2, const double y2) {
+            inline double distance(const double x1, const double y1, const double x2, const double y2) {
                 const double lon_arc = (x1 - x2) * DEG_TO_RAD;
                 const double lat_arc  = (y1 - y1) * DEG_TO_RAD;
                 double lonh = sin(lon_arc * 0.5);
@@ -56,11 +56,11 @@ namespace Osmium {
                 return 2.0 * EARTH_RADIUS_IN_METERS * asin(sqrt(lath + tmp*lonh));
             }
 
-            double distance(const Osmium::OSM::Position& from, const Osmium::OSM::Position& to) {
+            inline double distance(const Osmium::OSM::Position& from, const Osmium::OSM::Position& to) {
                 return distance(from.lon(), from.lat(), to.lon(), to.lat());
             }
 
-            double distance(const Osmium::OSM::WayNodeList& wnl) {
+            inline double distance(const Osmium::OSM::WayNodeList& wnl) {
                 double sum_length=0;
 
                 if (wnl.size() < 2) {

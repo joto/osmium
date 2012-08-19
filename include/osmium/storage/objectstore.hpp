@@ -47,7 +47,11 @@ namespace Osmium {
 
         public:
 
-            ObjectStore() : Base(), m_nodes(), m_ways(), m_relations() {
+            ObjectStore() :
+                Base(),
+                m_nodes(),
+                m_ways(),
+                m_relations() {
             }
 
             /**
@@ -167,17 +171,17 @@ namespace Osmium {
 
             public:
 
-                ApplyHandler(ObjectStore& os, THandler& handler, Osmium::OSM::Meta& meta) :
+                ApplyHandler(ObjectStore& object_store, THandler& handler, Osmium::OSM::Meta& meta) :
                     Osmium::Handler::Forward<THandler>(handler),
-                    m_object_store(os),
+                    m_object_store(object_store),
                     m_handler(handler),
                     m_meta(meta),
-                    m_nodes_iter(os.m_nodes.begin()),
-                    m_nodes_end(os.m_nodes.end()),
-                    m_ways_iter(os.m_ways.begin()),
-                    m_ways_end(os.m_ways.end()),
-                    m_relations_iter(os.m_relations.begin()),
-                    m_relations_end(os.m_relations.end()) {
+                    m_nodes_iter(object_store.m_nodes.begin()),
+                    m_nodes_end(object_store.m_nodes.end()),
+                    m_ways_iter(object_store.m_ways.begin()),
+                    m_ways_end(object_store.m_ways.end()),
+                    m_relations_iter(object_store.m_relations.begin()),
+                    m_relations_end(object_store.m_relations.end()) {
                 }
 
                 void init(const Osmium::OSM::Meta&) {

@@ -42,7 +42,9 @@ namespace Osmium {
             static const int max_utf16_length_key   = 2 * (255 + 1); ///< maximum number of UTF-16 units
             static const int max_utf16_length_value = 2 * (255 + 1);
 
-            Tag(const char* key, const char* value) : m_key(key), m_value(value) {
+            Tag(const char* key, const char* value) :
+                m_key(key),
+                m_value(value) {
             }
 
             const char* key() const {

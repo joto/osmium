@@ -34,11 +34,11 @@ namespace Osmium {
 
         public:
 
-            Bounds()
-                : m_min_x(std::numeric_limits<int32_t>::max()),
-                  m_max_x(std::numeric_limits<int32_t>::min()),
-                  m_min_y(std::numeric_limits<int32_t>::max()),
-                  m_max_y(std::numeric_limits<int32_t>::min()) {
+            Bounds() :
+                m_min_x(std::numeric_limits<int32_t>::max()),
+                m_max_x(std::numeric_limits<int32_t>::min()),
+                m_min_y(std::numeric_limits<int32_t>::max()),
+                m_max_y(std::numeric_limits<int32_t>::min()) {
             }
 
             Bounds& extend(const Position& position) {

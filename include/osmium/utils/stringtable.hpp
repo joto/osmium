@@ -33,6 +33,15 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 namespace Osmium {
 
+    namespace {
+
+        template<typename A, typename B>
+        std::pair<B,A> flip_pair(const std::pair<A,B>& p) {
+            return std::pair<B,A>(p.second, p.first);
+        }
+
+    }
+
     /**
      * StringTable management for PBF writer
      *
@@ -63,14 +72,10 @@ namespace Osmium {
          * IDs means less used space in the resulting file.
          */
         struct string_info {
-            /**
-             * number of occurrences of this string
-             */
+            /// number of occurrences of this string
             uint16_t count;
 
-            /**
-             * an intermediate-id
-             */
+            /// an intermediate-id
             string_id_t interim_id;
         };
 
@@ -96,7 +101,10 @@ namespace Osmium {
 
     public:
 
-        StringTable() : m_strings(), m_id2id_map(), m_size(0) {
+        StringTable() :
+            m_strings(),
+            m_id2id_map(),
+            m_size(0) {
         }
 
         /**
@@ -111,11 +119,6 @@ namespace Osmium {
                 info.count++;
             }
             return info.interim_id;
-        }
-
-        template<typename A, typename B>
-        static std::pair<B,A> flip_pair(const std::pair<A,B>& p) {
-            return std::pair<B,A>(p.second, p.first);
         }
 
         /**

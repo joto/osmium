@@ -123,27 +123,27 @@ namespace Osmium {
                 return *this;
             }
 
-            /**
-             * Areas can be ordered by id and version.
-             * Note that we use the absolute value of the id for a
-             * better ordering of objects with negative id.
-             */
-            friend bool operator<(const Area& lhs, const Area& rhs) {
-                if (lhs.id() == rhs.id()) {
-                    return lhs.version() < rhs.version();
-                } else {
-                    return abs(lhs.id()) < abs(rhs.id());
-                }
-            }
-
-            /**
-             * Ordering for shared_ptrs of Areas.
-             */
-            friend bool operator<(const shared_ptr<Area const>& lhs, const shared_ptr<Area const>& rhs) {
-                return *lhs < *rhs;
-            }
-
         }; // class Area
+
+        /**
+         * Areas can be ordered by id and version.
+         * Note that we use the absolute value of the id for a
+         * better ordering of objects with negative id.
+         */
+        inline bool operator<(const Area& lhs, const Area& rhs) {
+            if (lhs.id() == rhs.id()) {
+                return lhs.version() < rhs.version();
+            } else {
+                return abs(lhs.id()) < abs(rhs.id());
+            }
+        }
+
+        /**
+         * Ordering for shared_ptrs of Areas.
+         */
+        inline bool operator<(const shared_ptr<Area const>& lhs, const shared_ptr<Area const>& rhs) {
+            return *lhs < *rhs;
+        }
 
     } // namespace OSM
 

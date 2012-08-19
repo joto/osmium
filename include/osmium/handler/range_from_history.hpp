@@ -36,66 +36,35 @@ namespace Osmium {
          * after the EndTime() handler.
          */
         template <class THandler>
-        class RangeFromHistory : public Base {
+        class RangeFromHistory : public Osmium::Handler::Forward<THandler> {
 
         public:
 
-            RangeFromHistory(THandler* handler, time_t from, time_t to) : Base(), m_handler(handler), m_from(from), m_to(to) {
-            }
-
-            void init(Osmium::OSM::Meta& meta) {
-                m_handler->init(meta);
-            }
-
-            void before_nodes() {
-                m_handler->before_nodes();
+            RangeFromHistory(THandler& handler, time_t from, time_t to) :
+                Forward<THandler>(handler),
+                m_from(from),
+                m_to(to) {
             }
 
             void node(const shared_ptr<Osmium::OSM::Node>& node) {
                 if ((node->endtime() == 0 || node->endtime() >= m_from) && node->timestamp() <= m_to) {
-                    m_handler->node(node);
+                    Forward<THandler>::next_handler().node(node);
                 }
-            }
-
-            void after_nodes() {
-                m_handler->after_nodes();
-            }
-
-            void before_ways() {
-                m_handler->before_ways();
             }
 
             void way(const shared_ptr<Osmium::OSM::Way>& way) {
                 if ((way->endtime() == 0 || way->endtime() >= m_from) && way->timestamp() <= m_to) {
-                    m_handler->way(way);
+                    Forward<THandler>::next_handler().way(way);
                 }
-            }
-
-            void after_ways() {
-                m_handler->after_ways();
-            }
-
-            void before_relations() {
-                m_handler->before_relations();
             }
 
             void relation(const shared_ptr<Osmium::OSM::Relation>& relation) {
                 if ((relation->endtime() == 0 || relation->endtime() >= m_from) && relation->timestamp() <= m_to) {
-                    m_handler->relation(relation);
+                    Forward<THandler>::next_handler().relation(relation);
                 }
             }
 
-            void after_relations() {
-                m_handler->after_relations();
-            }
-
-            void final() {
-                m_handler->final();
-            }
-
         private:
-
-            THandler* m_handler;
 
             const time_t m_from;
             const time_t m_to;

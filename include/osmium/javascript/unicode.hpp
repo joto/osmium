@@ -40,32 +40,35 @@ namespace Osmium {
     public:
 
         UErrorCode error_code;
-        Unicode_Conversion_Error(UErrorCode ec) : error_code(ec) { }
+        Unicode_Conversion_Error(UErrorCode ec) :
+            error_code(ec) { }
 
         /// Is this a buffer overflow?
         bool buffer_overflow() const {
             return error_code == U_BUFFER_OVERFLOW_ERROR;
         }
 
-    };
+    }; // class Unicode_Conversion_Error
 
     /// Exception thrown when a UTF-8 to UTF-16 conversion failed.
     class UTF8_to_UTF16_Conversion_Error : public Unicode_Conversion_Error {
 
     public:
 
-        UTF8_to_UTF16_Conversion_Error(UErrorCode ec) : Unicode_Conversion_Error(ec) { }
+        UTF8_to_UTF16_Conversion_Error(UErrorCode ec) :
+            Unicode_Conversion_Error(ec) { }
 
-    };
+    }; // class UTF8_to_UTF16_Conversion_Error
 
     /// Exception thrown when a UTF-16 to UTF-8 conversion failed.
     class UTF16_to_UTF8_Conversion_Error : public Unicode_Conversion_Error {
 
     public:
 
-        UTF16_to_UTF8_Conversion_Error(UErrorCode ec) : Unicode_Conversion_Error(ec) { }
+        UTF16_to_UTF8_Conversion_Error(UErrorCode ec) :
+            Unicode_Conversion_Error(ec) { }
 
-    };
+    }; // class UTF16_to_UTF8_Conversion_Error
 
     /**
     * Convert C string with UTF-8 codes into v8::String.
@@ -75,7 +78,8 @@ namespace Osmium {
     * @param cstring A NULL terminated C string.
     * @return A local handle to a v8 String.
     */
-    template<int characters> v8::Local<v8::String> utf8_to_v8_String(const char *cstring) {
+    template<int characters>
+    inline v8::Local<v8::String> utf8_to_v8_String(const char* cstring) {
         UErrorCode error_code = U_ZERO_ERROR;
         UChar dest[characters*2];
         int32_t dest_length;
@@ -94,7 +98,8 @@ namespace Osmium {
     * @param string A v8::String.
     * @return Returns a pointer to a static buffer with a NULL terminated C string.
     */
-    template<int characters> const char *v8_String_to_utf8(v8::Local<v8::String> string) {
+    template<int characters>
+    inline const char* v8_String_to_utf8(v8::Local<v8::String> string) {
         UErrorCode error_code = U_ZERO_ERROR;
         uint16_t src[characters*2];
         static char buffer[characters*4];
@@ -107,7 +112,6 @@ namespace Osmium {
         return buffer;
     }
 
-    // this function does not work without the inline. strange.
     /**
     * Sends v8::String to output stream. This will first convert it to a UTF-8 string.
     *
@@ -115,7 +119,7 @@ namespace Osmium {
     * @param string A v8::String.
     * @param os A reference to an output stream.
     */
-    inline void v8_String_to_ostream(v8::Local<v8::String> string, std::ostream &os) {
+    inline void v8_String_to_ostream(v8::Local<v8::String> string, std::ostream& os) {
         UErrorCode error_code = U_ZERO_ERROR;
         int length = 4 * (string->Length() + 1);
         uint16_t* src = static_cast<uint16_t*>(malloc(length));

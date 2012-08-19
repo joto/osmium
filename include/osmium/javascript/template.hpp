@@ -127,7 +127,7 @@ namespace Osmium {
             /**
              * Constructor.
              */
-            Template(int field_count=1):
+            Template(int field_count=1) :
                 js_template(v8::Persistent<v8::ObjectTemplate>::New(v8::ObjectTemplate::New())) {
                 js_template->SetInternalFieldCount(field_count);
             }

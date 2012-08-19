@@ -42,13 +42,19 @@ namespace Osmium {
 
         public:
 
-            explicit Position() : m_x(std::numeric_limits<int32_t>::max()), m_y(std::numeric_limits<int32_t>::max()) {
+            explicit Position() :
+                m_x(std::numeric_limits<int32_t>::max()),
+                m_y(std::numeric_limits<int32_t>::max()) {
             }
 
-            explicit Position(int32_t x, int32_t y) : m_x(x), m_y(y) {
+            explicit Position(int32_t x, int32_t y) :
+                m_x(x),
+                m_y(y) {
             }
 
-            explicit Position(double lon, double lat) : m_x(double_to_fix(lon)), m_y(double_to_fix(lat)) {
+            explicit Position(double lon, double lat) :
+                m_x(double_to_fix(lon)),
+                m_y(double_to_fix(lat)) {
             }
 
             bool defined() const {
@@ -81,24 +87,6 @@ namespace Osmium {
                 return *this;
             }
 
-            friend bool operator==(const Position& p1, const Position& p2) {
-                return p1.m_x == p2.m_x && p1.m_y == p2.m_y;
-            }
-
-            friend bool operator<(const Position& p1, const Position& p2) {
-                if (p1.m_x == p2.m_x) {
-                    return p1.m_y < p2.m_y;
-                } else {
-                    return p1.m_x < p2.m_x;
-                }
-            }
-
-            friend std::ostream& operator<<(std::ostream& out, const Position& position) {
-                out << '(' << position.lon() << ',' << position.lat() << ')';
-                return out;
-            }
-
-            /// conversion to uint32_t
             operator uint32_t() const {
                 int32_t x = 180 + m_x / precision;
                 int32_t y =  90 - m_y / precision;
@@ -127,6 +115,23 @@ namespace Osmium {
             }
 
         };
+
+        inline bool operator==(const Position& p1, const Position& p2) {
+            return p1.x() == p2.x() && p1.y() == p2.y();
+        }
+
+        inline bool operator<(const Position& p1, const Position& p2) {
+            if (p1.x() == p2.x()) {
+                return p1.y() < p2.y();
+            } else {
+                return p1.x() < p2.x();
+            }
+        }
+
+        inline std::ostream& operator<<(std::ostream& out, const Position& position) {
+            out << '(' << position.lon() << ',' << position.lat() << ')';
+            return out;
+        }
 
     } // namespace OSM
 

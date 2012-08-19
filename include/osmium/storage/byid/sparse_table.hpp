@@ -59,9 +59,6 @@ namespace Osmium {
                     m_items(grow_size) {
                 }
 
-                ~SparseTable() {
-                }
-
                 void set(uint64_t id, TValue value) {
                     if (id >= m_items.size()) {
                         m_items.resize(id + m_grow_size);

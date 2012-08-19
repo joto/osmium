@@ -41,9 +41,9 @@ namespace Osmium {
         public:
 
             CoordinatesForWays(TStoragePosIDs& storage_pos,
-                               TStorageNegIDs& storage_neg)
-                : m_storage_pos(storage_pos),
-                  m_storage_neg(storage_neg) {
+                               TStorageNegIDs& storage_neg) :
+                m_storage_pos(storage_pos),
+                m_storage_neg(storage_neg) {
             }
 
             /**

@@ -153,7 +153,7 @@ namespace Osmium {
                 int m_fd;
 
                 /// Get file size in bytes.
-                uint64_t get_file_size() {
+                uint64_t get_file_size() const {
                     struct stat s;
                     if (fstat(m_fd, &s) < 0) {
                         throw std::bad_alloc();

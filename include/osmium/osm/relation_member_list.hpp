@@ -34,7 +34,8 @@ namespace Osmium {
 
         public:
 
-            RelationMemberList() : m_list() {
+            RelationMemberList() :
+                m_list() {
             }
 
             osm_sequence_id_t size() const {
@@ -72,11 +73,11 @@ namespace Osmium {
                 return m_list.end();
             }
 
-            void add_member(const char type, osm_object_id_t ref, const char *role) {
+            void add_member(const char type, osm_object_id_t ref, const char* role) {
                 /* first we resize the vector... */
                 m_list.resize(m_list.size()+1);
                 /* ...and get an address for the new element... */
-                RelationMember *m = &m_list[m_list.size()-1];
+                RelationMember* m = &m_list[m_list.size()-1];
                 /* ...so that we can directly write into the memory and avoid
                 a second copy */
                 m->type(type);

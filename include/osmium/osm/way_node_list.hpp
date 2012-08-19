@@ -41,7 +41,8 @@ namespace Osmium {
              */
             static const int default_size = 500;
 
-            WayNodeList(unsigned int size=default_size) : m_list() {
+            WayNodeList(unsigned int size=default_size) :
+                m_list() {
                 m_list.reserve(size);
             }
 

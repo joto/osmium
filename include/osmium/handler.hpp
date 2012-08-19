@@ -67,7 +67,8 @@ namespace Osmium {
 
         public:
 
-            Base() : Osmium::WithDebug() {
+            Base() :
+                Osmium::WithDebug() {
             }
 
             // Destructor is not virtual as this class is not intended to be used polymorphically
@@ -173,6 +174,12 @@ namespace Osmium {
 
             void final() const {
                 m_next_handler.final();
+            }
+
+        protected:
+
+            THandler& next_handler() const {
+                return m_next_handler;
             }
 
         private:

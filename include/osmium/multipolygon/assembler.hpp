@@ -120,7 +120,7 @@ namespace Osmium {
                 }
             }
 
-        };
+        }; // class Assembler
 
     } // namespace MultiPolygon
 

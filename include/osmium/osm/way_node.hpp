@@ -33,10 +33,9 @@ namespace Osmium {
 
         public:
 
-            WayNode(osm_object_id_t ref=0) : m_ref(ref) {
-            }
-
-            WayNode(osm_object_id_t ref, const Position& position) : m_ref(ref), m_position(position) {
+            WayNode(osm_object_id_t ref=0, const Position& position=Position()) :
+                m_ref(ref),
+                m_position(position) {
             }
 
             osm_object_id_t ref() const {
@@ -73,24 +72,24 @@ namespace Osmium {
                 return m_position.lat();
             }
 
-            friend bool operator<(const WayNode& wn1, const WayNode& wn2) {
-                return wn1.ref() < wn2.ref();
-            }
-
-            friend bool operator==(const WayNode& wn1, const WayNode& wn2) {
-                return wn1.ref() == wn2.ref();
-            }
-
-            friend bool operator!=(const WayNode& wn1, const WayNode& wn2) {
-                return !(wn1 == wn2);
-            }
-
         private:
 
             osm_object_id_t m_ref;
             Position m_position;
 
         }; // class WayNode
+
+        inline bool operator<(const WayNode& wn1, const WayNode& wn2) {
+            return wn1.ref() < wn2.ref();
+        }
+
+        inline bool operator==(const WayNode& wn1, const WayNode& wn2) {
+            return wn1.ref() == wn2.ref();
+        }
+
+        inline bool operator!=(const WayNode& wn1, const WayNode& wn2) {
+            return !(wn1 == wn2);
+        }
 
     } // namespace OSM
 

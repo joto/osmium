@@ -179,7 +179,8 @@ namespace Osmium {
 
         public:
 
-            Geometry(osm_object_id_t id=0) : m_id(id) {
+            Geometry(osm_object_id_t id=0) :
+                m_id(id) {
             }
 
             virtual ~Geometry() {
@@ -239,10 +240,11 @@ namespace Osmium {
             LonLatListWriter(std::ostream& out,      ///< The output stream
                              char delim_lonlat=' ',  ///< The delimiter between longitude and latitude
                              char delim_items=',')   ///< The delimiter between consecutive coordinates
-                : m_out(out),
-                  m_delim_lonlat(delim_lonlat),
-                  m_delim_items(delim_items),
-                  m_first(true) {
+                             :
+                m_out(out),
+                m_delim_lonlat(delim_lonlat),
+                m_delim_items(delim_items),
+                m_first(true) {
             }
 
             void operator()(const TLonLat& lonlat) {
@@ -257,8 +259,8 @@ namespace Osmium {
         private:
 
             std::ostream& m_out;
-            char m_delim_lonlat;
-            char m_delim_items;
+            const char m_delim_lonlat;
+            const char m_delim_items;
             bool m_first;
 
         }; // class LonLatListWriter

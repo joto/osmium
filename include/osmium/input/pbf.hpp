@@ -65,7 +65,8 @@ namespace Osmium {
             * @param file OSMFile instance.
             * @param handler Instance of THandler.
             */
-            PBF(const OSMFile& file, THandler& handler) : Base<THandler>(file, handler) {
+            PBF(const OSMFile& file, THandler& handler) :
+                Base<THandler>(file, handler) {
                 GOOGLE_PROTOBUF_VERIFY_VERSION;
             }
 

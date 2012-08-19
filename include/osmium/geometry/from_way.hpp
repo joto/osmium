@@ -49,10 +49,10 @@ namespace Osmium {
 
             FromWay(const Osmium::OSM::WayNodeList& way_node_list,
                     bool reverse=false,
-                    osm_object_id_t id=0)
-                : Geometry(id),
-                  m_way_node_list(way_node_list),
-                  m_reverse(reverse) {
+                    osm_object_id_t id=0) :
+                Geometry(id),
+                m_way_node_list(way_node_list),
+                m_reverse(reverse) {
             }
 
         private:

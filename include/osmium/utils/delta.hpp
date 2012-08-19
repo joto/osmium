@@ -36,7 +36,8 @@ namespace Osmium {
 
     public:
 
-        Delta() : m_value(0) {
+        Delta() :
+            m_value(0) {
         }
 
         void clear() {

@@ -60,7 +60,7 @@ namespace Osmium {
                 return m_type;
             }
 
-            const char *type_name() const {
+            const char* type_name() const {
                 switch (type()) {
                     case 'n':
                         return "node";
@@ -78,7 +78,7 @@ namespace Osmium {
                 return *this;
             }
 
-            const char *role() const {
+            const char* role() const {
                 return m_role.c_str();
             }
 

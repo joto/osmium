@@ -35,10 +35,14 @@ namespace Osmium {
 
         public:
 
-            Meta() : m_bounds(), m_has_multiple_object_versions(false) {
+            Meta() :
+                m_bounds(),
+                m_has_multiple_object_versions(false) {
             }
 
-            Meta(const Bounds& bounds) : m_bounds(bounds), m_has_multiple_object_versions(false) {
+            Meta(const Bounds& bounds) :
+                m_bounds(bounds),
+                m_has_multiple_object_versions(false) {
             }
 
             Bounds& bounds() {

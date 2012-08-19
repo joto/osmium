@@ -105,7 +105,7 @@ namespace Osmium {
                         return false;
                     }
 
-                    for (size_t n=0; n < shapefile->fields().size(); n++) {
+                    for (size_t n=0; n < shapefile->fields().size(); ++n) {
                         v8::Local<v8::String> key = v8::String::New(shapefile->field(n).name().c_str());
                         if (attributes->HasRealNamedProperty(key)) {
                             v8::Local<v8::Value> value = attributes->GetRealNamedProperty(key);
@@ -179,7 +179,8 @@ namespace Osmium {
                     return v8::Undefined();
                 }
 
-                ExportShapefile() : Osmium::Javascript::Template() {
+                ExportShapefile() :
+                    Osmium::Javascript::Template() {
                     js_template->Set("add_field", v8::FunctionTemplate::New(function_template<Osmium::Export::Shapefile, add_field>));
                     js_template->Set("add",       v8::FunctionTemplate::New(function_template<Osmium::Export::Shapefile, add>));
                     js_template->Set("close",     v8::FunctionTemplate::New(function_template<Osmium::Export::Shapefile, close>));

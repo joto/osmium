@@ -51,7 +51,11 @@ namespace Osmium {
 
             public:
 
-                Field(const std::string& name, DBFFieldType type, int width=1, int decimals=0) : m_name(name), m_type(type), m_width(width), m_decimals(decimals) {
+                Field(const std::string& name, DBFFieldType type, int width=1, int decimals=0) :
+                    m_name(name),
+                    m_type(type),
+                    m_width(width),
+                    m_decimals(decimals) {
                     if (name == "" || name.size() > max_dbf_field_name_length) {
                         throw std::invalid_argument("field name must be between 1 and 11 characters long");
                     } else if (width > max_dbf_field_length) {
@@ -197,40 +201,40 @@ namespace Osmium {
             void add_attribute(const int field, const bool value) const {
                 int ok = DBFWriteLogicalAttribute(m_dbf_handle, m_current_shape, field, value ? 'T' : 'F');
                 if (!ok) {
-                    throw std::runtime_error(std::string("Can't add bool to field"));
+                    throw std::runtime_error("Can't add bool to field");
                 }
             }
 
             void add_attribute(const int field, const int value) const {
                 int ok = DBFWriteIntegerAttribute(m_dbf_handle, m_current_shape, field, value);
                 if (!ok) {
-                    throw std::runtime_error(std::string("Can't add integer to field"));
+                    throw std::runtime_error("Can't add integer to field");
                 }
             }
 
             void add_attribute(const int field, const std::string& value) const {
                 int ok = DBFWriteStringAttribute(m_dbf_handle, m_current_shape, field, value.c_str());
                 if (!ok) {
-                    throw std::runtime_error(std::string("Can't add string to field"));
+                    throw std::runtime_error("Can't add string to field");
                 }
             }
 
             void add_attribute(const int field, const char *value) const {
                 int ok = DBFWriteStringAttribute(m_dbf_handle, m_current_shape, field, value);
                 if (!ok) {
-                    throw std::runtime_error(std::string("Can't add char* to field"));
+                    throw std::runtime_error("Can't add char* to field");
                 }
             }
 
             void add_attribute(const int field) const {
                 int ok = DBFWriteNULLAttribute(m_dbf_handle, m_current_shape, field);
                 if (!ok) {
-                    throw std::runtime_error(std::string("Can't add null to field"));
+                    throw std::runtime_error("Can't add null to field");
                 }
             }
 
             // truncates UTF8 string to fit in shape field
-            void add_attribute_with_truncate(const int field, const char* value) {
+            void add_attribute_with_truncate(const int field, const char* value) const {
                 char dest[max_dbf_field_length+1];
                 size_t length = m_fields[field].width();
                 memset(dest, 0, length+1);
@@ -248,7 +252,7 @@ namespace Osmium {
                 add_attribute(field, dest);
             }
 
-            void add_attribute_with_truncate(const int field, const std::string& value) {
+            void add_attribute_with_truncate(const int field, const std::string& value) const {
                 add_attribute_with_truncate(field, value.c_str());
             }
 
@@ -346,7 +350,8 @@ namespace Osmium {
              *
              * @param filename Filename (optionally including path) without any suffix.
              */
-            PointShapefile(const std::string& filename) : Shapefile(filename, SHPT_POINT) {
+            PointShapefile(const std::string& filename) :
+                Shapefile(filename, SHPT_POINT) {
             }
 
         };
@@ -363,7 +368,8 @@ namespace Osmium {
              *
              * @param filename Filename (optionally including path) without any suffix.
              */
-            LineStringShapefile(const std::string& filename) : Shapefile(filename, SHPT_ARC) {
+            LineStringShapefile(const std::string& filename) :
+                Shapefile(filename, SHPT_ARC) {
             }
 
         };
@@ -380,7 +386,8 @@ namespace Osmium {
              *
              * @param filename Filename (optionally including path) without any suffix.
              */
-            PolygonShapefile(const std::string& filename) : Shapefile(filename, SHPT_POLYGON) {
+            PolygonShapefile(const std::string& filename) :
+                Shapefile(filename, SHPT_POLYGON) {
             }
 
         };

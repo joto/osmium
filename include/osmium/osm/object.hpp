@@ -125,7 +125,7 @@ namespace Osmium {
              * Get the timestamp when this object last changed.
              * @return Timestamp as a string in ISO format (yyyy-mm-ddThh:mm:ssZ). Empty string if unset.
              */
-            std::string timestamp_as_string() const {
+            const std::string& timestamp_as_string() const {
                 return Osmium::Timestamp::to_iso(m_timestamp);
             }
 
@@ -133,7 +133,7 @@ namespace Osmium {
              * Get the timestamp until which this object is valid.
              * @return Timestamp as a string in ISO format (yyyy-mm-ddThh:mm:ssZ). Empty string if unset.
              */
-            std::string endtime_as_string() const {
+            const std::string& endtime_as_string() const {
                 return Osmium::Timestamp::to_iso(m_endtime);
             }
 

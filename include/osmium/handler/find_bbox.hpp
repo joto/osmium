@@ -33,7 +33,9 @@ namespace Osmium {
 
         public:
 
-            FindBbox() : Base(), m_bounds() {
+            FindBbox() :
+                Base(),
+                m_bounds() {
             }
 
             const Osmium::OSM::Bounds bounds() const {

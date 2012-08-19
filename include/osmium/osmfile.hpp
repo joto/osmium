@@ -54,17 +54,16 @@ namespace Osmium {
 
         public:
 
-            SystemError(const std::string& whatarg,
-                        int e)
-                : std::runtime_error(whatarg),
-                  m_errno(e) {
+            SystemError(const std::string& whatarg, int e) :
+                std::runtime_error(whatarg),
+                m_errno(e) {
             }
 
             /**
              * Get the system errno variable from the system call that caused
              * this exception.
              */
-            int system_errno() const throw() {
+            int system_errno() const {
                 return m_errno;
             }
 
@@ -83,10 +82,10 @@ namespace Osmium {
 
             IOError(const std::string& whatarg,
                     const std::string& filename,
-                    int e)
-                : std::runtime_error(whatarg),
-                  m_filename(filename),
-                  m_errno(e) {
+                    int e) :
+                std::runtime_error(whatarg),
+                m_filename(filename),
+                m_errno(e) {
             }
 
             ~IOError() throw() {
@@ -95,7 +94,7 @@ namespace Osmium {
             /**
              * Get the filename that caused this exception.
              */
-            const std::string& filename() const throw() {
+            const std::string& filename() const {
                 return m_filename;
             }
 
@@ -103,7 +102,7 @@ namespace Osmium {
              * Get the system errno variable from the system call that caused
              * this exception.
              */
-            int system_errno() const throw() {
+            int system_errno() const {
                 return m_errno;
             }
 
@@ -116,15 +115,15 @@ namespace Osmium {
         public:
 
             ArgumentError(const std::string& whatarg,
-                          const std::string& value="")
-                : std::runtime_error(whatarg),
-                  m_value(value) {
+                          const std::string& value="") :
+                std::runtime_error(whatarg),
+                m_value(value) {
             }
 
             ~ArgumentError() throw() {
             }
 
-            const std::string& value() const throw() {
+            const std::string& value() const {
                 return m_value;
             }
 
@@ -165,7 +164,9 @@ namespace Osmium {
             std::string m_suffix;
             bool m_has_multiple_object_versions;
 
-            FileType(std::string suffix, bool has_multiple_object_versions) : m_suffix(suffix), m_has_multiple_object_versions(has_multiple_object_versions) {
+            FileType(std::string suffix, bool has_multiple_object_versions) :
+                m_suffix(suffix),
+                m_has_multiple_object_versions(has_multiple_object_versions) {
             }
 
         public:
@@ -213,25 +214,29 @@ namespace Osmium {
          */
         class FileEncoding : boost::noncopyable {
 
-            std::string m_suffix;
-            std::string m_compress;
-            std::string m_decompress;
-            bool m_pbf;
+            const std::string m_suffix;
+            const std::string m_compress;
+            const std::string m_decompress;
+            const bool m_pbf;
 
-            FileEncoding(std::string suffix, std::string compress, std::string decompress, bool pbf) : m_suffix(suffix), m_compress(compress), m_decompress(decompress), m_pbf(pbf) {
+            FileEncoding(const std::string& suffix, const std::string& compress, const std::string& decompress, bool pbf) :
+                m_suffix(suffix),
+                m_compress(compress),
+                m_decompress(decompress),
+                m_pbf(pbf) {
             }
 
         public:
 
-            std::string suffix() const {
+            const std::string& suffix() const {
                 return m_suffix;
             }
 
-            std::string compress() const {
+            const std::string& compress() const {
                 return m_compress;
             }
 
-            std::string decompress() const {
+            const std::string& decompress() const {
                 return m_decompress;
             }
 
@@ -305,7 +310,7 @@ namespace Osmium {
          * @return File descriptor of pipe in the parent.
          * @throws SystemError if a system call fails.
          */
-        int execute(std::string command, int input) {
+        int execute(const std::string& command, int input) {
             int pipefd[2];
             if (pipe(pipefd) < 0) {
                 throw SystemError("Can't create pipe", errno);
@@ -578,7 +583,7 @@ namespace Osmium {
             return *this;
         }
 
-        OSMFile& type(std::string& type) {
+        OSMFile& type(const std::string& type) {
             if (type == "osm") {
                 m_type = FileType::OSM();
             } else if (type == "history" || type == "osh") {
@@ -604,7 +609,7 @@ namespace Osmium {
             return *this;
         }
 
-        OSMFile& encoding(std::string& encoding) {
+        OSMFile& encoding(const std::string& encoding) {
             if (encoding == "pbf") {
                 m_encoding = FileEncoding::PBF();
             } else if (encoding == "xml") {
@@ -619,7 +624,7 @@ namespace Osmium {
             return *this;
         }
 
-        OSMFile& filename(std::string& filename) {
+        OSMFile& filename(const std::string& filename) {
             if (filename == "-") {
                 m_filename = "";
             } else {
@@ -628,7 +633,7 @@ namespace Osmium {
             return *this;
         }
 
-        std::string filename() const {
+        const std::string& filename() const {
             return m_filename;
         }
 

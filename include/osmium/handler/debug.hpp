@@ -38,7 +38,9 @@ namespace Osmium {
 
         public:
 
-            Debug(bool has_multiple_object_versions=false) : Base(), m_has_multiple_object_versions(has_multiple_object_versions) {
+            Debug(bool has_multiple_object_versions=false) :
+                Base(),
+                m_has_multiple_object_versions(has_multiple_object_versions) {
             }
 
             void init(Osmium::OSM::Meta& meta) {

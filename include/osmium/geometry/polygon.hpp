@@ -43,8 +43,8 @@ namespace Osmium {
              */
             Polygon(const Osmium::OSM::WayNodeList& way_node_list,
                     bool reverse=false,
-                    osm_object_id_t id=0)
-                : FromWay(way_node_list, reverse, id) {
+                    osm_object_id_t id=0) :
+                FromWay(way_node_list, reverse, id) {
                 if (!way_node_list.is_closed()) {
                     throw RingNotClosed();
                 }
@@ -53,8 +53,8 @@ namespace Osmium {
             /**
              * Create Polygon geometry from a list of nodes in a way.
              */
-            Polygon(const Osmium::OSM::Way& way, bool reverse=false)
-                : FromWay(way.nodes(), reverse, way.id()) {
+            Polygon(const Osmium::OSM::Way& way, bool reverse=false) :
+                FromWay(way.nodes(), reverse, way.id()) {
                 if (!way.nodes().is_closed()) {
                     throw RingNotClosed();
                 }
