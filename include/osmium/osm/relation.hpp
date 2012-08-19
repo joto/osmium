@@ -49,7 +49,7 @@ namespace Osmium {
                 return m_members;
             }
 
-            osm_object_type_t get_type() const {
+            osm_object_type_t type() const {
                 return RELATION;
             }
 

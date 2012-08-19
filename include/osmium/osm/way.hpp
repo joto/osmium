@@ -68,7 +68,7 @@ namespace Osmium {
                 return m_node_list;
             }
 
-            osm_object_type_t get_type() const {
+            osm_object_type_t type() const {
                 return WAY;
             }
 

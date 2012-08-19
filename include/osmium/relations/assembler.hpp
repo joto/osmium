@@ -367,7 +367,7 @@ namespace Osmium {
                  *          relation and false otherwise
                  */
                 bool find_and_add_object(const shared_ptr<Osmium::OSM::Object const>& object) const {
-                    member_info_vector_t& miv = m_assembler.m_member_infos[object->get_type()];
+                    member_info_vector_t& miv = m_assembler.m_member_infos[object->type()];
                     const member_info_range_t range = std::equal_range(miv.begin(), miv.end(), MemberInfo(object->id()));
 
                     if (range.first == range.second) {

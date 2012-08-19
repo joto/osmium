@@ -223,7 +223,7 @@ namespace Osmium {
                 return *this;
             }
 
-            virtual osm_object_type_t get_type() const = 0;
+            virtual osm_object_type_t type() const = 0;
 
             /**
              * Set named attribute.
