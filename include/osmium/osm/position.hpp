@@ -32,6 +32,20 @@ namespace Osmium {
 
     namespace OSM {
 
+        namespace {
+
+            const int precision = 10000000;
+
+            inline int32_t double_to_fix(double c) {
+                return round(c * precision);
+            }
+
+            inline double fix_to_double(int32_t c) {
+                return static_cast<double>(c) / precision;
+            }
+
+        }
+
         /**
         * Positions are stored in 32 bit integers for the x and y
         * coordinates, respectively. This gives you an accuracy of a few
@@ -101,18 +115,8 @@ namespace Osmium {
 
         private:
 
-            static const int precision = 10000000;
-
             int32_t m_x;
             int32_t m_y;
-
-            static int32_t double_to_fix(double c) {
-                return round(c * precision);
-            }
-
-            static double fix_to_double(int32_t c) {
-                return static_cast<double>(c) / precision;
-            }
 
         };
 
