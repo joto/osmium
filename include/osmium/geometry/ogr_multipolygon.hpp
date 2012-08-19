@@ -38,28 +38,32 @@ namespace Osmium {
 
     namespace Geometry {
 
-        inline void add_ring(OGRPolygon* ogrpolygon, const geos::geom::LineString* geosring) {
-            OGRLinearRing* ogrring = new OGRLinearRing;
+        namespace {
 
-            const geos::geom::CoordinateSequence* cs = geosring->getCoordinatesRO();
-            ogrring->setNumPoints(cs->getSize());
+            inline void add_ring(OGRPolygon* ogrpolygon, const geos::geom::LineString* geosring) {
+                OGRLinearRing* ogrring = new OGRLinearRing;
 
-            for (size_t i = 0; i < cs->getSize(); ++i) {
-                ogrring->setPoint(i, cs->getX(i), cs->getY(i));
+                const geos::geom::CoordinateSequence* cs = geosring->getCoordinatesRO();
+                ogrring->setNumPoints(cs->getSize());
+
+                for (size_t i = 0; i < cs->getSize(); ++i) {
+                    ogrring->setPoint(i, cs->getX(i), cs->getY(i));
+                }
+
+                ogrpolygon->addRingDirectly(ogrring);
             }
 
-            ogrpolygon->addRingDirectly(ogrring);
-        }
+            inline OGRPolygon* make_polygon(const geos::geom::Polygon* geospolygon) {
+                OGRPolygon* ogrpolygon = new OGRPolygon;
 
-        inline OGRPolygon* make_polygon(const geos::geom::Polygon* geospolygon) {
-            OGRPolygon* ogrpolygon = new OGRPolygon;
+                add_ring(ogrpolygon, geospolygon->getExteriorRing());
+                for (size_t i=0; i < geospolygon->getNumInteriorRing(); ++i) {
+                    add_ring(ogrpolygon, geospolygon->getInteriorRingN(i));
+                }
 
-            add_ring(ogrpolygon, geospolygon->getExteriorRing());
-            for (size_t i=0; i < geospolygon->getNumInteriorRing(); ++i) {
-                add_ring(ogrpolygon, geospolygon->getInteriorRingN(i));
+                return ogrpolygon;
             }
 
-            return ogrpolygon;
         }
 
         /**
@@ -69,21 +73,7 @@ namespace Osmium {
          */
         inline OGRMultiPolygon* create_ogr_geometry(const Osmium::Geometry::MultiPolygon& multipolygon) {
             OGRMultiPolygon* ogrmp = new OGRMultiPolygon;
-/*
-            if (multipolygon.geos_geometry()->getGeometryTypeId() == geos::geom::GEOS_POLYGON) {
-                OGRPolygon* ogrpolygon = make_polygon(dynamic_cast<const geos::geom::Polygon*>(multipolygon.geos_geometry()));
 
-                OGRErr result = ogrmp->addGeometryDirectly(ogrpolygon);
-                if (result != OGRERR_NONE) {
-                    throw Osmium::Geometry::IllegalGeometry();
-                }
-                return ogrmp;
-            }
-
-            if (multipolygon.geos_geometry()->getGeometryTypeId() != geos::geom::GEOS_MULTIPOLYGON) {
-                throw Osmium::Geometry::IllegalGeometry();
-            }
-*/
             const geos::geom::GeometryCollection* geosgeom = dynamic_cast<const geos::geom::GeometryCollection*>(multipolygon.borrow_geos_geometry());
             for (geos::geom::GeometryCollection::const_iterator it = geosgeom->begin(); it != geosgeom->end(); ++it) {
 
@@ -91,6 +81,8 @@ namespace Osmium {
 
                 OGRErr result = ogrmp->addGeometryDirectly(ogrpolygon);
                 if (result != OGRERR_NONE) {
+                    // delete ogrpolygon;    XXX are we supposed to delete this ourselves?
+                    delete ogrmp;
                     throw Osmium::Geometry::IllegalGeometry();
                 }
             }
