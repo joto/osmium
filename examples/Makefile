@@ -42,7 +42,6 @@ PROGRAMS = \
     osmium_range_from_history \
     osmium_relation_members \
     osmium_sizeof \
-    osmium_stats \
     osmium_store_and_debug \
     osmium_time \
     osmium_toogr \
@@ -78,9 +77,6 @@ osmium_relation_members: osmium_relation_members.cpp
 
 osmium_sizeof: osmium_sizeof.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS)
-
-osmium_stats: osmium_stats.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_SQLITE)
 
 osmium_store_and_debug: osmium_store_and_debug.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS)
