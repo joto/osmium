@@ -36,9 +36,13 @@ namespace Osmium {
         class MultiPolygon;
     }
 
-    template <typename T>
-    int sgn(T val) {
-        return (T(0) < val) - (val < T(0));
+    namespace {
+
+        template <typename T>
+        int sgn(T val) {
+            return (T(0) < val) - (val < T(0));
+        }
+
     }
 
     namespace OSM {

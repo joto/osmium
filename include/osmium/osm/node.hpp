@@ -52,7 +52,7 @@ namespace Osmium {
                 return m_position;
             }
 
-            Node& position(const Position position) {
+            Node& position(const Position& position) {
                 m_position = position;
                 return *this;
             }

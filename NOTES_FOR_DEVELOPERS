@@ -39,7 +39,8 @@ different.
 * Variables, attributes, and function names are lowercase with
   underscores_between_words.
 * Class attribute names start with "m_" (member).
-* Template parameters start with uppercase "T" and use CamelCase.
+* Template parameters are single uppercase letters or start with uppercase "T"
+  and use CamelCase.
 * Typedefs have names_like_this_t which end in "_t".
 * Macros should only be used for controlling which parts of the code should be
   included when compiling.

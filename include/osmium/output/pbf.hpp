@@ -431,9 +431,10 @@ namespace Osmium {
              * a helper function used in map_string_ids to map common interim string-ids of the
              * user name and all tags to real string ids.
              *
-             * pbf_object_t is either OSMPBF::Node, OSMPBF::Way or OSMPBF::Relation.
+             * TPBFObject is either OSMPBF::Node, OSMPBF::Way or OSMPBF::Relation.
              */
-            template <class pbf_object_t> void map_common_string_ids(pbf_object_t* in) {
+            template <class TPBFObject>
+            void map_common_string_ids(TPBFObject* in) {
                 // if the object has meta-info attached
                 if (in->has_info()) {
                     // map the interim-id of the user name to a real id
@@ -469,9 +470,10 @@ namespace Osmium {
              * helper function used in the write()-calls to apply common information from an osmium-object
              * onto a pbf-object.
              *
-             * pbf_object_t is either OSMPBF::Node, OSMPBF::Way or OSMPBF::Relation.
+             * TPBFObject is either OSMPBF::Node, OSMPBF::Way or OSMPBF::Relation.
              */
-            template <class pbf_object_t> void apply_common_info(const shared_ptr<Osmium::OSM::Object const>& in, pbf_object_t* out) {
+            template <class TPBFObject>
+            void apply_common_info(const shared_ptr<Osmium::OSM::Object const>& in, TPBFObject* out) {
                 // set the object-id
                 out->set_id(in->id());
 

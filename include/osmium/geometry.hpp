@@ -117,7 +117,7 @@ namespace Osmium {
          *
          * @tparam T Type of value.
          */
-        template<typename T>
+        template <typename T>
         inline void write_binary(std::ostream& out, const T value) {
             out.write(reinterpret_cast<const char*>(&value), sizeof(T));
         }
@@ -127,7 +127,7 @@ namespace Osmium {
          *
          * @tparam T Type of value.
          */
-        template<typename T>
+        template <typename T>
         inline void write_hex(std::ostream& out, const T value) {
             static const char* lookup_hex = "0123456789ABCDEF";
             for (const char* in = reinterpret_cast<const char*>(&value); in < reinterpret_cast<const char*>(&value) + sizeof(T); ++in) {

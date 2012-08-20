@@ -95,8 +95,8 @@ namespace Osmium {
                 return m_list.rend();
             }
 
-            template <class InputIterator>
-            void insert(iterator position, InputIterator first, InputIterator last) {
+            template <class TInputIterator>
+            void insert(iterator position, TInputIterator first, TInputIterator last) {
                 m_list.insert(position, first, last);
             }
 

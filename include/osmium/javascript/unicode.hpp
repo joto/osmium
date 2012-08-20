@@ -78,7 +78,7 @@ namespace Osmium {
     * @param cstring A NULL terminated C string.
     * @return A local handle to a v8 String.
     */
-    template<int characters>
+    template <int characters>
     inline v8::Local<v8::String> utf8_to_v8_String(const char* cstring) {
         UErrorCode error_code = U_ZERO_ERROR;
         UChar dest[characters*2];
@@ -98,7 +98,7 @@ namespace Osmium {
     * @param string A v8::String.
     * @return Returns a pointer to a static buffer with a NULL terminated C string.
     */
-    template<int characters>
+    template <int characters>
     inline const char* v8_String_to_utf8(v8::Local<v8::String> string) {
         UErrorCode error_code = U_ZERO_ERROR;
         uint16_t src[characters*2];

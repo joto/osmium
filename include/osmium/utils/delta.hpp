@@ -31,7 +31,7 @@ namespace Osmium {
      * it was last set to and returns the delta between old and
      * new value from the update() call.
      */
-    template<typename T>
+    template <typename T>
     class Delta {
 
     public:
