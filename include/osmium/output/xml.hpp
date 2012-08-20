@@ -210,6 +210,18 @@ namespace Osmium {
 
         }; // class XML
 
+        namespace {
+
+            Osmium::Output::Base* CreateOutputXML(const Osmium::OSMFile& file) {
+                return new Osmium::Output::XML(file);
+            }
+
+            const bool xml_registered = Osmium::Output::Factory::instance().register_output_format(Osmium::OSMFile::FileEncoding::XML(),    CreateOutputXML) &&
+                                        Osmium::Output::Factory::instance().register_output_format(Osmium::OSMFile::FileEncoding::XMLgz(),  CreateOutputXML) &&
+                                        Osmium::Output::Factory::instance().register_output_format(Osmium::OSMFile::FileEncoding::XMLbz2(), CreateOutputXML);
+
+        } // namespace
+
     } // namespace Output
 
 } // namespace Osmium

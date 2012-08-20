@@ -30,14 +30,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 # include <osmium/input/xml.hpp>
 #endif
 
-#ifdef OSMIUM_WITH_PBF_OUTPUT
-# include <osmium/output/pbf.hpp>
-#endif
-
-#ifdef OSMIUM_WITH_XML_OUTPUT
-# include <osmium/output/xml.hpp>
-#endif
-
 /**
  * @mainpage
  *
@@ -83,32 +75,6 @@ namespace Osmium {
         }
 
     } // namespace Input
-#endif
-
-#if defined(OSMIUM_WITH_PBF_OUTPUT) || defined(OSMIUM_WITH_XML_OUTPUT)
-    namespace Output {
-
-        inline Osmium::Output::Base* open(const Osmium::OSMFile& file) {
-            Osmium::Output::Base *output = NULL;
-
-            if (file.encoding()->is_pbf()) {
-#ifdef OSMIUM_WITH_PBF_OUTPUT
-                output = new Osmium::Output::PBF(file);
-#else
-                throw Osmium::OSMFile::FileEncodingNotSupported();
-#endif // OSMIUM_WITH_PBF_OUTPUT
-            } else {
-#ifdef OSMIUM_WITH_XML_OUTPUT
-                output = new Osmium::Output::XML(file);
-#else
-                throw Osmium::OSMFile::FileEncodingNotSupported();
-#endif // OSMIUM_WITH_XML_OUTPUT
-            }
-
-            return output;
-        }
-
-    } // namespace Output
 #endif
 
 } // namespace Osmium

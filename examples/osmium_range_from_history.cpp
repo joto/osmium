@@ -29,10 +29,10 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #define OSMIUM_WITH_PBF_INPUT
 #define OSMIUM_WITH_XML_INPUT
-#define OSMIUM_WITH_PBF_OUTPUT
-#define OSMIUM_WITH_XML_OUTPUT
 
 #include <osmium.hpp>
+#include <osmium/output/xml.hpp>
+#include <osmium/output/pbf.hpp>
 #include <osmium/handler/debug.hpp>
 #include <osmium/handler/endtime.hpp>
 #include <osmium/handler/range_from_history.hpp>

@@ -985,6 +985,16 @@ namespace Osmium {
 
         }; // class PBF
 
+        namespace {
+
+            Osmium::Output::Base* CreateOutputPBF(const Osmium::OSMFile& file) {
+                return new Osmium::Output::PBF(file);
+            }
+
+            const bool pbf_registered = Osmium::Output::Factory::instance().register_output_format(Osmium::OSMFile::FileEncoding::PBF(), CreateOutputPBF);
+
+        } // namespace
+
     } // namespace Output
 
 } // namespace Osmium

@@ -22,6 +22,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#include <map>
+
 #include <osmium/osmfile.hpp>
 #include <osmium/handler.hpp>
 
@@ -60,6 +62,63 @@ namespace Osmium {
             virtual void final() = 0;
 
         }; // class Base
+
+        /**
+         * This factory class is used to register file output formats and open
+         * output files in these formats. You should not use this class directly.
+         * Instead use the Osmium::Output::open() function.
+         */
+        class Factory {
+
+        public:
+
+            typedef Osmium::Output::Base* (*create_output_t)(const Osmium::OSMFile&);
+
+        private:
+
+            typedef std::map<Osmium::OSMFile::FileEncoding*, create_output_t> encoding2create_t;
+
+            Factory() {}
+
+        public:
+
+            static Factory& instance() {
+                static Factory factory;
+                return factory;
+            }
+        
+            bool register_output_format(Osmium::OSMFile::FileEncoding* encoding, create_output_t create_function) {
+                return m_callbacks.insert(encoding2create_t::value_type(encoding, create_function)).second;
+            }
+
+            bool unregister_output_format(Osmium::OSMFile::FileEncoding* encoding ) {
+                return m_callbacks.erase(encoding) == 1;
+            }
+
+            Osmium::Output::Base* create_output(const Osmium::OSMFile& file) {
+                encoding2create_t::iterator it = m_callbacks.find(file.encoding());
+
+                if (it != m_callbacks.end()) {
+                    return (it->second)(file);
+                }
+
+                throw Osmium::OSMFile::FileEncodingNotSupported();
+            }
+
+        private:
+
+            encoding2create_t m_callbacks;
+
+        }; // class Factory
+
+        /**
+         * Open OSM file for output.
+         *
+         * @returns Pointer to output handler.
+         */
+        inline Osmium::Output::Base* open(const Osmium::OSMFile& file) {
+            return Osmium::Output::Factory::instance().create_output(file);
+        }
 
     } // namespace Output
 

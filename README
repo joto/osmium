@@ -139,13 +139,11 @@ interested in. So, if you need the Way class for instance you include
 <osmium/osm/way.hpp>. If you need the Debug handler, you include
 <osmium/handler/debug.hpp>.
 
-If you need any OSM file input and/or output, then first define one or
-more of these macros and then include <osmium.hpp>:
+If you need any OSM file input, then first define one or both of these macros
+and then include <osmium.hpp>:
 
   #define OSMIUM_WITH_PBF_INPUT
   #define OSMIUM_WITH_XML_INPUT
-  #define OSMIUM_WITH_PBF_OUTPUT
-  #define OSMIUM_WITH_XML_OUTPUT
   #include <osmium.hpp>
 
 There are some parts of Osmium that are a bit more difficult to use.
