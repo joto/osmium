@@ -54,7 +54,7 @@ namespace Osmium {
             void init(Osmium::OSM::Meta& meta) {
                 xmlTextWriterSetIndent(m_xml_writer, 1);
                 xmlTextWriterSetIndentString(m_xml_writer, BAD_CAST "  ");
-                xmlTextWriterStartDocument(m_xml_writer, NULL, "utf-8", NULL); // <?xml .. ?>
+                xmlTextWriterStartDocument(m_xml_writer, NULL, NULL, NULL); // <?xml .. ?>
 
                 if (m_file.type() == Osmium::OSMFile::FileType::Change()) {
                     xmlTextWriterStartElement(m_xml_writer, BAD_CAST "osmChange");  // <osmChange>
@@ -83,9 +83,8 @@ namespace Osmium {
 
                 write_meta(node);
 
-                const Osmium::OSM::Position position = node->position();
-                xmlTextWriterWriteFormatAttribute(m_xml_writer, BAD_CAST "lat", "%.7f", position.lat());
-                xmlTextWriterWriteFormatAttribute(m_xml_writer, BAD_CAST "lon", "%.7f", position.lon());
+                xmlTextWriterWriteFormatAttribute(m_xml_writer, BAD_CAST "lat", "%.7f", node->position().lat());
+                xmlTextWriterWriteFormatAttribute(m_xml_writer, BAD_CAST "lon", "%.7f", node->position().lon());
 
                 write_tags(node->tags());
 
