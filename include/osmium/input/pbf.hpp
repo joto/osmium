@@ -123,6 +123,9 @@ namespace Osmium {
                                 throw Osmium::OSMFile::FileTypeHistoryExpected();
                             }
 
+                            if (pbf_header_block.has_writingprogram()) {
+                                this->meta().generator(pbf_header_block.writingprogram());
+                            }
                             if (pbf_header_block.has_bbox()) {
                                 const OSMPBF::HeaderBBox& bbox = pbf_header_block.bbox();
                                 this->meta().bounds().extend(Osmium::OSM::Position(static_cast<double>(bbox.left())  / OSMPBF::lonlat_resolution, static_cast<double>(bbox.bottom()) / OSMPBF::lonlat_resolution));

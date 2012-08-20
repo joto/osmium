@@ -877,7 +877,7 @@ namespace Osmium {
                 }
 
                 // set the writing program
-                pbf_header_block.set_writingprogram("Osmium (http://wiki.openstreetmap.org/wiki/Osmium)");
+                pbf_header_block.set_writingprogram(m_generator);
 
                 if (meta.bounds().defined()) {
                     OSMPBF::HeaderBBox* bbox = pbf_header_block.mutable_bbox();

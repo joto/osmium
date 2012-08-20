@@ -45,7 +45,7 @@ namespace Osmium {
             }
 
             void init(Osmium::OSM::Meta& meta) {
-                std::cout << "meta:\n";
+                std::cout << "meta:\n  generator=" << meta.generator() << "\n";
                 if (meta.has_multiple_object_versions()) {
                     m_has_multiple_object_versions = true;
                 }

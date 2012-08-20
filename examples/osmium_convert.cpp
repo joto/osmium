@@ -136,6 +136,7 @@ int main(int argc, char *argv[]) {
 
     Osmium::Output::Handler out(outfile);
     out.set_debug_level(debug ? 1 : 0);
+    out.set_generator("osmium_convert");
 
     Osmium::Handler::Progress progress_handler;
 

@@ -39,6 +39,7 @@ namespace Osmium {
         protected:
 
             Osmium::OSMFile m_file;
+            std::string m_generator;
 
             int fd() {
                 return m_file.fd();
@@ -48,7 +49,8 @@ namespace Osmium {
 
             Base(const Osmium::OSMFile& file) :
                 Osmium::Handler::Base(),
-                m_file(file) {
+                m_file(file),
+                m_generator("Osmium (http://wiki.openstreetmap.org/wiki/Osmium)") {
                 m_file.open_for_output();
             }
 
@@ -60,6 +62,10 @@ namespace Osmium {
             virtual void way(const shared_ptr<Osmium::OSM::Way const>&) = 0;
             virtual void relation(const shared_ptr<Osmium::OSM::Relation const>&) = 0;
             virtual void final() = 0;
+
+            void set_generator(const std::string& generator) {
+                m_generator = generator;
+            }
 
         }; // class Base
 
@@ -123,6 +129,10 @@ namespace Osmium {
 
             ~Handler() {
                 delete &next_handler();
+            }
+
+            void set_generator(const std::string& generator) {
+                next_handler().set_generator(generator);
             }
 
         }; // Handler

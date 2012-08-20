@@ -37,12 +37,14 @@ namespace Osmium {
 
             Meta() :
                 m_bounds(),
-                m_has_multiple_object_versions(false) {
+                m_has_multiple_object_versions(false),
+                m_generator() {
             }
 
             Meta(const Bounds& bounds) :
                 m_bounds(bounds),
-                m_has_multiple_object_versions(false) {
+                m_has_multiple_object_versions(false),
+                m_generator() {
             }
 
             Bounds& bounds() {
@@ -62,6 +64,15 @@ namespace Osmium {
                 return *this;
             }
 
+            const std::string& generator() const {
+                return m_generator;
+            }
+
+            Meta& generator(const std::string& generator) {
+                m_generator = generator;
+                return *this;
+            }
+
         private:
 
             Bounds m_bounds;
@@ -71,6 +82,9 @@ namespace Osmium {
              * This is true for history files and for change files, but not for normal OSM files.
              */
             bool m_has_multiple_object_versions;
+
+            /// Program that generated this file.
+            std::string m_generator;
 
         }; // class Meta
 

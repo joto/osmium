@@ -75,7 +75,7 @@ namespace Osmium {
                     check_for_error(xmlTextWriterStartElement(m_xml_writer, BAD_CAST "osm"));  // <osm>
                 }
                 check_for_error(xmlTextWriterWriteAttribute(m_xml_writer, BAD_CAST "version", BAD_CAST "0.6"));
-                check_for_error(xmlTextWriterWriteAttribute(m_xml_writer, BAD_CAST "generator", BAD_CAST "Osmium (http://wiki.openstreetmap.org/wiki/Osmium)"));
+                check_for_error(xmlTextWriterWriteAttribute(m_xml_writer, BAD_CAST "generator", BAD_CAST m_generator.c_str()));
                 if (meta.bounds().defined()) {
                     check_for_error(xmlTextWriterStartElement(m_xml_writer, BAD_CAST "bounds")); // <bounds>
 

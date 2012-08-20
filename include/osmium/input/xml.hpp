@@ -215,6 +215,16 @@ namespace Osmium {
                     this->meta().bounds().extend(min).extend(max);
                 } else if (!strcmp(element, "delete")) {
                     m_in_delete_section = true;
+                } else if (!strcmp(element, "osm")) {
+                    for (int count = 0; attrs[count]; count += 2) {
+                        if (!strcmp(attrs[count], "version")) {
+                            if (strcmp(attrs[count+1], "0.6")) {
+                                throw std::runtime_error("can only read version 0.6 files");
+                            }
+                        } else if (!strcmp(attrs[count], "generator")) {
+                            this->meta().generator(attrs[count+1]);
+                        }
+                    }
                 }
             }
 
