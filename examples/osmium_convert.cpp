@@ -134,17 +134,15 @@ int main(int argc, char *argv[]) {
         std::cerr << "Warning! Source and destination are not of the same type." << std::endl;
     }
 
-    Osmium::Output::Base* out = Osmium::Output::open(outfile);
-    out->set_debug_level(debug ? 1 : 0);
+    Osmium::Output::Handler out(outfile);
+    out.set_debug_level(debug ? 1 : 0);
 
     Osmium::Handler::Progress progress_handler;
 
-    typedef Osmium::Handler::Sequence<Osmium::Output::Base, Osmium::Handler::Progress> sequence_handler_t;
-    sequence_handler_t sequence_handler(*out, progress_handler);
+    typedef Osmium::Handler::Sequence<Osmium::Output::Handler, Osmium::Handler::Progress> sequence_handler_t;
+    sequence_handler_t sequence_handler(out, progress_handler);
 
     Osmium::Input::read(infile, sequence_handler);
-
-    delete out;
 
     google::protobuf::ShutdownProtobufLibrary();
 }

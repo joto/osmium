@@ -112,13 +112,20 @@ namespace Osmium {
         }; // class Factory
 
         /**
-         * Open OSM file for output.
-         *
-         * @returns Pointer to output handler.
          */
-        inline Osmium::Output::Base* open(const Osmium::OSMFile& file) {
-            return Osmium::Output::Factory::instance().create_output(file);
-        }
+        class Handler : public Osmium::Handler::Forward<Osmium::Output::Base> {
+
+        public:
+
+            Handler(const Osmium::OSMFile& file) :
+                Osmium::Handler::Forward<Osmium::Output::Base>(*Osmium::Output::Factory::instance().create_output(file)) {
+            }
+
+            ~Handler() {
+                delete &next_handler();
+            }
+
+        }; // Handler
 
     } // namespace Output
 

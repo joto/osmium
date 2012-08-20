@@ -176,6 +176,10 @@ namespace Osmium {
                 m_next_handler.final();
             }
 
+            void set_debug_level(int debug) {
+                m_next_handler.set_debug_level(debug);
+            }
+
         protected:
 
             THandler& next_handler() const {
@@ -260,6 +264,11 @@ namespace Osmium {
             void final() const {
                 m_handler1.final();
                 m_handler2.final();
+            }
+
+            void set_debug_level(int debug) {
+                m_handler1.set_debug_level(debug);
+                m_handler2.set_debug_level(debug);
             }
 
         private:
