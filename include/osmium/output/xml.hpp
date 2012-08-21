@@ -227,7 +227,7 @@ namespace Osmium {
 
         namespace {
 
-            Osmium::Output::Base* CreateOutputXML(const Osmium::OSMFile& file) {
+            inline Osmium::Output::Base* CreateOutputXML(const Osmium::OSMFile& file) {
                 return new Osmium::Output::XML(file);
             }
 

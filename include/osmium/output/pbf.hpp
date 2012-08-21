@@ -987,7 +987,7 @@ namespace Osmium {
 
         namespace {
 
-            Osmium::Output::Base* CreateOutputPBF(const Osmium::OSMFile& file) {
+            inline Osmium::Output::Base* CreateOutputPBF(const Osmium::OSMFile& file) {
                 return new Osmium::Output::PBF(file);
             }
 
