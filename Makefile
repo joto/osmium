@@ -6,6 +6,8 @@
 
 all:
 
+.PHONY: clean install check check-includes test indent
+
 clean:
 	rm -fr check-includes-report doc/html test/tests
 
@@ -44,6 +46,9 @@ check-includes:
 	done; \
     if test $${allok} = "yes"; then echo "All files OK"; else echo "There were errors"; fi; \
     echo "\nDONE" >>check-includes-report
+
+test:
+	(cd test && ./run_tests.sh)
 
 indent:
 	astyle --style=java --indent-namespaces --indent-switches --pad-header --suffix=none --recursive include/\*.hpp examples/\*.cpp examples/\*.hpp osmjs/\*.cpp test/\*.cpp
