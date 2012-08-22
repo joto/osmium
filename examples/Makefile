@@ -46,6 +46,7 @@ PROGRAMS = \
     osmium_time \
     osmium_toogr \
     osmium_toogr2 \
+    osmium_to_postgis \
     osmium_toshape \
     nodedensity
 
@@ -89,6 +90,9 @@ osmium_toogr: osmium_toogr.cpp
 
 osmium_toogr2: osmium_toogr2.cpp
 	$(CXX) $(CXXFLAGS) $(CXXFLAGS_OGR) $(CXXFLAGS_GEOS) -o $@ $< $(LDFLAGS) $(LIB_OGR) $(LIB_GEOS)
+
+osmium_to_postgis: osmium_to_postgis.cpp
+	$(CXX) $(CXXFLAGS) $(CXXFLAGS_OGR) -o $@ $< $(LDFLAGS) $(LIB_OGR)
 
 osmium_toshape: osmium_toshape.cpp
 	$(CXX) $(CXXFLAGS) $(CXXFLAGS_GEOS) -o $@ $< $(LDFLAGS) $(LIB_SHAPE)
