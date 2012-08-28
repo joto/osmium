@@ -55,33 +55,40 @@ namespace Osmium {
                         value(v) {
                     }
 
-                    bool operator<(const item_t other) const {
+                    bool operator<(const item_t& other) const {
                         return this->id < other.id;
                     }
 
+                    bool operator==(const item_t& other) const {
+                        return this->id == other.id;
+                    }
+
+                    bool operator!=(const item_t& other) const {
+                        return ! (*this == other);
+                    }
                 };
 
                 typedef std::vector<item_t> item_vector_t;
                 typedef typename item_vector_t::const_iterator item_vector_it_t;
-                typedef std::pair<item_vector_it_t, item_vector_it_t> item_vector_it_range_t;
 
             public:
 
                 Vector() :
-                    Base<TValue>() {
+                    Base<TValue>(),
+                    m_items() {
                 }
 
-                void set(uint64_t id, TValue value) {
+                void set(const uint64_t id, const TValue value) {
                     m_items.push_back(item_t(id, value));
                 }
 
-                const TValue& operator[](uint64_t id) const {
+                const TValue& operator[](const uint64_t id) const {
                     const item_t item(id);
-                    const item_vector_it_range_t range = std::equal_range(m_items.begin(), m_items.end(), item);
-                    if (range.first == range.second) {
+                    const item_vector_it_t result = std::lower_bound(m_items.begin(), m_items.end(), item);
+                    if (result == m_items.end() || *result != item) {
                         return TValue(); // nothing found
                     } else {
-                        return range.first->value;
+                        return result->value;
                     }
                 }
 

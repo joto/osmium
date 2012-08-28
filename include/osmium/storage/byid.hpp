@@ -65,10 +65,10 @@ namespace Osmium {
                 typedef TValue value_type;
 
                 /// Set the field with id to value.
-                virtual void set(uint64_t id, TValue value) = 0;
+                virtual void set(const uint64_t id, const TValue value) = 0;
 
                 /// Retrieve value by key. Does not check for overflow or empty fields.
-                virtual const TValue& operator[](uint64_t id) const = 0;
+                virtual const TValue& operator[](const uint64_t id) const = 0;
 
                 /**
                 * Get the approximate number of items in the storage. The storage
