@@ -120,18 +120,6 @@ namespace Osmium {
                 return *this;
             }
 
-            operator uint32_t() const {
-                int32_t x = 180 + m_x / coordinate_precision;
-                int32_t y =  90 - m_y / coordinate_precision;
-
-                if (x < 0) x = 0;
-                if (y < 0) y = 0;
-                if (x >= 360) x = 359;
-                if (y >= 180) y = 179;
-
-                return 360 * y + x;
-            }
-
         private:
 
             int32_t m_x;
