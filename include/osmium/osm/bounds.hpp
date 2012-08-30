@@ -22,8 +22,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
-#include <limits>
-
 #include <osmium/osm/position.hpp>
 
 namespace Osmium {
@@ -59,14 +57,14 @@ namespace Osmium {
             /**
              * Bottom-left position.
              */
-            Position bl() const {
+            Position bottom_left() const {
                 return m_bottom_left;
             }
 
             /**
              * Top-right position.
              */
-            Position tr() const {
+            Position top_right() const {
                 return m_top_right;
             }
 
@@ -78,8 +76,8 @@ namespace Osmium {
         }; // class Bounds
 
         inline std::ostream& operator<<(std::ostream& out, const Bounds& bounds) {
-            out << '(' << bounds.bl().lon() << ',' << bounds.bl().lat() << ','
-                << bounds.tr().lon() << ',' << bounds.tr().lat() << ')';
+            out << '(' << bounds.bottom_left().lon() << ',' << bounds.bottom_left().lat() << ','
+                << bounds.top_right().lon() << ',' << bounds.top_right().lat() << ')';
             return out;
         }
 

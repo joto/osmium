@@ -881,10 +881,10 @@ namespace Osmium {
 
                 if (meta.bounds().defined()) {
                     OSMPBF::HeaderBBox* bbox = pbf_header_block.mutable_bbox();
-                    bbox->set_left(meta.bounds().bl().lon() * OSMPBF::lonlat_resolution);
-                    bbox->set_bottom(meta.bounds().bl().lat() * OSMPBF::lonlat_resolution);
-                    bbox->set_right(meta.bounds().tr().lon() * OSMPBF::lonlat_resolution);
-                    bbox->set_top(meta.bounds().tr().lat() * OSMPBF::lonlat_resolution);
+                    bbox->set_left(meta.bounds().bottom_left().lon() * OSMPBF::lonlat_resolution);
+                    bbox->set_bottom(meta.bounds().bottom_left().lat() * OSMPBF::lonlat_resolution);
+                    bbox->set_right(meta.bounds().top_right().lon() * OSMPBF::lonlat_resolution);
+                    bbox->set_top(meta.bounds().top_right().lat() * OSMPBF::lonlat_resolution);
                 }
 
                 store_header_block();

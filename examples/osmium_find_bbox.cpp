@@ -45,11 +45,11 @@ int main(int argc, char *argv[]) {
     Osmium::Handler::FindBbox handler;
     Osmium::Input::read(infile, handler);
 
-    Osmium::OSM::Bounds b = handler.bounds();
-    std::cout <<  "minlon=" << b.bl().lon()
-              << " minlat=" << b.bl().lat()
-              << " maxlon=" << b.tr().lon()
-              << " maxlat=" << b.tr().lat() << std::endl;
+    Osmium::OSM::Bounds bounds = handler.bounds();
+    std::cout <<  "minlon=" << bounds.bottom_left().lon()
+              << " minlat=" << bounds.bottom_left().lat()
+              << " maxlon=" << bounds.top_right().lon()
+              << " maxlat=" << bounds.top_right().lat() << std::endl;
 
     google::protobuf::ShutdownProtobufLibrary();
 }

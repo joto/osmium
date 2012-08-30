@@ -79,10 +79,10 @@ namespace Osmium {
                 if (meta.bounds().defined()) {
                     check_for_error(xmlTextWriterStartElement(m_xml_writer, BAD_CAST "bounds")); // <bounds>
 
-                    check_for_error(xmlTextWriterWriteFormatAttribute(m_xml_writer, BAD_CAST "minlon", "%.7f", meta.bounds().bl().lon()));
-                    check_for_error(xmlTextWriterWriteFormatAttribute(m_xml_writer, BAD_CAST "minlat", "%.7f", meta.bounds().bl().lat()));
-                    check_for_error(xmlTextWriterWriteFormatAttribute(m_xml_writer, BAD_CAST "maxlon", "%.7f", meta.bounds().tr().lon()));
-                    check_for_error(xmlTextWriterWriteFormatAttribute(m_xml_writer, BAD_CAST "maxlat", "%.7f", meta.bounds().tr().lat()));
+                    check_for_error(xmlTextWriterWriteFormatAttribute(m_xml_writer, BAD_CAST "minlon", "%.7f", meta.bounds().bottom_left().lon()));
+                    check_for_error(xmlTextWriterWriteFormatAttribute(m_xml_writer, BAD_CAST "minlat", "%.7f", meta.bounds().bottom_left().lat()));
+                    check_for_error(xmlTextWriterWriteFormatAttribute(m_xml_writer, BAD_CAST "maxlon", "%.7f", meta.bounds().top_right().lon()));
+                    check_for_error(xmlTextWriterWriteFormatAttribute(m_xml_writer, BAD_CAST "maxlat", "%.7f", meta.bounds().top_right().lat()));
 
                     check_for_error(xmlTextWriterEndElement(m_xml_writer)); // </bounds>
                 }
