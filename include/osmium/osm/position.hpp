@@ -27,21 +27,22 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <ostream>
 #include <stdint.h>
 #include <boost/operators.hpp>
+#include <boost/integer_traits.hpp>
 
 namespace Osmium {
 
     namespace OSM {
 
+        const int coordinate_precision = 10000000;
+
         namespace {
 
-            const int precision = 10000000;
-
             inline int32_t double_to_fix(double c) {
-                return round(c * precision);
+                return round(c * coordinate_precision);
             }
 
             inline double fix_to_double(int32_t c) {
-                return static_cast<double>(c) / precision;
+                return static_cast<double>(c) / coordinate_precision;
             }
 
         }
@@ -56,12 +57,20 @@ namespace Osmium {
 
         public:
 
+            /// this value is used for a coordinate to mark it as invalid or unknown
+            static const int32_t invalid = boost::integer_traits<int32_t>::const_max;
+
             explicit Position() :
-                m_x(std::numeric_limits<int32_t>::max()),
-                m_y(std::numeric_limits<int32_t>::max()) {
+                m_x(invalid),
+                m_y(invalid) {
             }
 
             explicit Position(int32_t x, int32_t y) :
+                m_x(x),
+                m_y(y) {
+            }
+
+            explicit Position(int64_t x, int64_t y) :
                 m_x(x),
                 m_y(y) {
             }
@@ -72,7 +81,7 @@ namespace Osmium {
             }
 
             bool defined() const {
-                return m_x != std::numeric_limits<int32_t>::max() && m_x != std::numeric_limits<int32_t>::min();
+                return m_x != invalid && m_y != invalid;
             }
 
             int32_t x() const {
@@ -81,6 +90,16 @@ namespace Osmium {
 
             int32_t y() const {
                 return m_y;
+            }
+
+            Position& x(int32_t x) {
+                m_x = x;
+                return *this;
+            }
+
+            Position& y(int32_t y) {
+                m_y = y;
+                return *this;
             }
 
             double lon() const {
@@ -102,8 +121,8 @@ namespace Osmium {
             }
 
             operator uint32_t() const {
-                int32_t x = 180 + m_x / precision;
-                int32_t y =  90 - m_y / precision;
+                int32_t x = 180 + m_x / coordinate_precision;
+                int32_t y =  90 - m_y / coordinate_precision;
 
                 if (x < 0) x = 0;
                 if (y < 0) y = 0;

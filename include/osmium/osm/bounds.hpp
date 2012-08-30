@@ -35,44 +35,45 @@ namespace Osmium {
         public:
 
             Bounds() :
-                m_min_x(std::numeric_limits<int32_t>::max()),
-                m_max_x(std::numeric_limits<int32_t>::min()),
-                m_min_y(std::numeric_limits<int32_t>::max()),
-                m_max_y(std::numeric_limits<int32_t>::min()) {
+                m_bottom_left(),
+                m_top_right() {
             }
 
             Bounds& extend(const Position& position) {
-                if (position.x() < m_min_x) m_min_x = position.x();
-                if (position.x() > m_max_x) m_max_x = position.x();
-                if (position.y() < m_min_y) m_min_y = position.y();
-                if (position.y() > m_max_y) m_max_y = position.y();
+                if (m_bottom_left.defined()) {
+                    if (position.x() < m_bottom_left.x()) m_bottom_left.x(position.x());
+                    if (position.x() > m_top_right.x()  ) m_top_right.x(position.x());
+                    if (position.y() < m_bottom_left.y()) m_bottom_left.y(position.y());
+                    if (position.y() > m_top_right.y()  ) m_top_right.y(position.y());
+                } else {
+                    m_bottom_left = position;
+                    m_top_right = position;
+                }
                 return *this;
             }
 
             bool defined() const {
-                return m_min_x != std::numeric_limits<int32_t>::max();
+                return m_bottom_left.defined();
             }
 
             /**
              * Bottom-left position.
              */
             Position bl() const {
-                return Position(m_min_x, m_min_y);
+                return m_bottom_left;
             }
 
             /**
              * Top-right position.
              */
             Position tr() const {
-                return Position(m_max_x, m_max_y);
+                return m_top_right;
             }
 
         private:
 
-            int32_t m_min_x;
-            int32_t m_max_x;
-            int32_t m_min_y;
-            int32_t m_max_y;
+            Osmium::OSM::Position m_bottom_left;
+            Osmium::OSM::Position m_top_right;
 
         }; // class Bounds
 
