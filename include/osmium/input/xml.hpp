@@ -62,7 +62,9 @@ namespace Osmium {
             XML(const Osmium::OSMFile& file, THandler& handler) :
                 Base<THandler>(file, handler),
                 m_current_object(NULL),
-                m_in_delete_section(false) {
+                m_in_delete_section(false),
+                m_context(context_root),
+                m_last_context(context_root) {
             }
 
             void parse() {
@@ -116,6 +118,18 @@ namespace Osmium {
 
             Osmium::OSM::Object* m_current_object;
 
+            enum context_t {
+                context_root,
+                context_top,
+                context_node,
+                context_way,
+                context_relation,
+                context_in_object
+            };
+            
+            context_t m_context;
+            context_t m_last_context;
+
             /**
              * This is used only for change files which contain create, modify,
              * and delete sections.
@@ -150,19 +164,10 @@ namespace Osmium {
                 }
             }
 
-            void start_element(const XML_Char* element, const XML_Char** attrs) {
-                // order in the following "if" statements is based on frequency of tags in planet file
-                if (!strcmp(element, "nd")) {
-                    for (int count = 0; attrs[count]; count += 2) {
-                        if (!strcmp(attrs[count], "ref")) {
-                            this->m_way->add_node(atoll(attrs[count+1]));
-                        }
-                    }
-                } else if (!strcmp(element, "node")) {
-                    this->call_after_and_before_on_handler(NODE);
-                    init_object(this->prepare_node(), attrs);
-                } else if (!strcmp(element, "tag")) {
-                    const char *key = "", *value = "";
+            void check_tag(const XML_Char* element, const XML_Char** attrs) {
+                if (!strcmp(element, "tag")) {
+                    const char* key = "";
+                    const char* value = "";
                     for (int count = 0; attrs[count]; count += 2) {
                         if (attrs[count][0] == 'k' && attrs[count][1] == 0) {
                             key = attrs[count+1];
@@ -171,75 +176,139 @@ namespace Osmium {
                             value = attrs[count+1];
                         }
                     }
-                    // XXX assert key, value exist
-                    if (m_current_object) {
-                        m_current_object->tags().add(key, value);
-                    }
-                } else if (!strcmp(element, "way")) {
-                    this->call_after_and_before_on_handler(WAY);
-                    init_object(this->prepare_way(), attrs);
-                } else if (!strcmp(element, "member")) {
-                    char        type = 'x';
-                    uint64_t    ref  = 0;
-                    const char *role = "";
-                    for (int count = 0; attrs[count]; count += 2) {
-                        if (!strcmp(attrs[count], "type")) {
-                            type = static_cast<char>(attrs[count+1][0]);
-                        } else if (!strcmp(attrs[count], "ref")) {
-                            ref = atoll(attrs[count+1]);
-                        } else if (!strcmp(attrs[count], "role")) {
-                            role = static_cast<const char*>(attrs[count+1]);
-                        }
-                    }
-                    // XXX assert type, ref, role are set
-                    if (m_current_object && this->m_relation) {
-                        this->m_relation->add_member(type, ref, role);
-                    }
-                } else if (!strcmp(element, "relation")) {
-                    this->call_after_and_before_on_handler(RELATION);
-                    init_object(this->prepare_relation(), attrs);
-                } else if (!strcmp(element, "bounds")) {
-                    Osmium::OSM::Position min;
-                    Osmium::OSM::Position max;
-                    for (int count = 0; attrs[count]; count += 2) {
-                        if (!strcmp(attrs[count], "minlon")) {
-                            min.lon(atof(attrs[count+1]));
-                        } else if (!strcmp(attrs[count], "minlat")) {
-                            min.lat(atof(attrs[count+1]));
-                        } else if (!strcmp(attrs[count], "maxlon")) {
-                            max.lon(atof(attrs[count+1]));
-                        } else if (!strcmp(attrs[count], "maxlat")) {
-                            max.lat(atof(attrs[count+1]));
-                        }
-                    }
-                    this->meta().bounds().extend(min).extend(max);
-                } else if (!strcmp(element, "delete")) {
-                    m_in_delete_section = true;
-                } else if (!strcmp(element, "osm")) {
-                    for (int count = 0; attrs[count]; count += 2) {
-                        if (!strcmp(attrs[count], "version")) {
-                            if (strcmp(attrs[count+1], "0.6")) {
-                                throw std::runtime_error("can only read version 0.6 files");
+                    m_current_object->tags().add(key, value);
+                }
+            }
+
+            void start_element(const XML_Char* element, const XML_Char** attrs) {
+                switch (m_context) {
+                    case context_root:
+                        if (!strcmp(element, "osm") || !strcmp(element, "osmChange")) {
+                            for (int count = 0; attrs[count]; count += 2) {
+                                if (!strcmp(attrs[count], "version")) {
+                                    if (strcmp(attrs[count+1], "0.6")) {
+                                        throw std::runtime_error("can only read version 0.6 files");
+                                    }
+                                } else if (!strcmp(attrs[count], "generator")) {
+                                    this->meta().generator(attrs[count+1]);
+                                }
                             }
-                        } else if (!strcmp(attrs[count], "generator")) {
-                            this->meta().generator(attrs[count+1]);
                         }
-                    }
+                        m_context = context_top;
+                        break;
+                    case context_top:
+                        if (!strcmp(element, "node")) {
+                            this->call_after_and_before_on_handler(NODE);
+                            init_object(this->prepare_node(), attrs);
+                            m_context = context_node;
+                        } else if (!strcmp(element, "way")) {
+                            this->call_after_and_before_on_handler(WAY);
+                            init_object(this->prepare_way(), attrs);
+                            m_context = context_way;
+                        } else if (!strcmp(element, "relation")) {
+                            this->call_after_and_before_on_handler(RELATION);
+                            init_object(this->prepare_relation(), attrs);
+                            m_context = context_relation;
+                        } else if (!strcmp(element, "bounds")) {
+                            Osmium::OSM::Position min;
+                            Osmium::OSM::Position max;
+                            for (int count = 0; attrs[count]; count += 2) {
+                                if (!strcmp(attrs[count], "minlon")) {
+                                    min.lon(atof(attrs[count+1]));
+                                } else if (!strcmp(attrs[count], "minlat")) {
+                                    min.lat(atof(attrs[count+1]));
+                                } else if (!strcmp(attrs[count], "maxlon")) {
+                                    max.lon(atof(attrs[count+1]));
+                                } else if (!strcmp(attrs[count], "maxlat")) {
+                                    max.lat(atof(attrs[count+1]));
+                                }
+                            }
+                            this->meta().bounds().extend(min).extend(max);
+                        } else if (!strcmp(element, "delete")) {
+                            m_in_delete_section = true;
+                        }
+                        break;
+                    case context_node:
+                        m_last_context = context_node;
+                        m_context = context_in_object;
+                        check_tag(element, attrs);
+                        break;
+                    case context_way:
+                        m_last_context = context_way;
+                        m_context = context_in_object;
+                        if (!strcmp(element, "nd")) {
+                            for (int count = 0; attrs[count]; count += 2) {
+                                if (!strcmp(attrs[count], "ref")) {
+                                    this->m_way->add_node(atoll(attrs[count+1]));
+                                }
+                            }
+                        } else {
+                            check_tag(element, attrs);
+                        }
+                        break;
+                    case context_relation:
+                        m_last_context = context_relation;
+                        m_context = context_in_object;
+                        if (!strcmp(element, "member")) {
+                            char        type = 'x';
+                            uint64_t    ref  = 0;
+                            const char *role = "";
+                            for (int count = 0; attrs[count]; count += 2) {
+                                if (!strcmp(attrs[count], "type")) {
+                                    type = static_cast<char>(attrs[count+1][0]);
+                                } else if (!strcmp(attrs[count], "ref")) {
+                                    ref = atoll(attrs[count+1]);
+                                } else if (!strcmp(attrs[count], "role")) {
+                                    role = static_cast<const char*>(attrs[count+1]);
+                                }
+                            }
+                            // XXX assert type, ref, role are set
+                            if (m_current_object && this->m_relation) {
+                                this->m_relation->add_member(type, ref, role);
+                            }
+                        } else {
+                            check_tag(element, attrs);
+                        }
+                        break;
+                    case context_in_object:
+                        // fallthrough
+                    default:
+                        assert(false); // should never be here
                 }
             }
 
             void end_element(const XML_Char* element) {
-                if (!strcmp(element, "node")) {
-                    this->call_node_on_handler();
-                    m_current_object = NULL;
-                } else if (!strcmp(element, "way")) {
-                    this->call_way_on_handler();
-                    m_current_object = NULL;
-                } else if (!strcmp(element, "relation")) {
-                    this->call_relation_on_handler();
-                    m_current_object = NULL;
-                } else if (!strcmp(element, "delete")) {
-                    m_in_delete_section = false;
+                switch (m_context) {
+                    case context_root:
+                        assert(false); // should never be here
+                        break;
+                    case context_top:
+                        if (!strcmp(element, "osm") || !strcmp(element, "osmChange")) {
+                            m_context = context_root;
+                        } else if (!strcmp(element, "delete")) {
+                            m_in_delete_section = false;
+                        }
+                        break;
+                    case context_node:
+                        this->call_node_on_handler();
+                        m_current_object = NULL;
+                        m_context = context_top;
+                        break;
+                    case context_way:
+                        this->call_way_on_handler();
+                        m_current_object = NULL;
+                        m_context = context_top;
+                        break;
+                    case context_relation:
+                        this->call_relation_on_handler();
+                        m_current_object = NULL;
+                        m_context = context_top;
+                        break;
+                    case context_in_object:
+                        m_context = m_last_context;
+                        break;
+                    default:
+                        assert(false); // should never be here
                 }
             }
 
