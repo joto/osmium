@@ -126,7 +126,7 @@ namespace Osmium {
                 context_relation,
                 context_in_object
             };
-            
+
             context_t m_context;
             context_t m_last_context;
 

@@ -84,7 +84,8 @@ namespace Osmium {
 
             typedef std::map<Osmium::OSMFile::FileEncoding*, create_output_t> encoding2create_t;
 
-            Factory() {}
+            Factory() :
+                m_callbacks() {}
 
         public:
 
@@ -92,7 +93,7 @@ namespace Osmium {
                 static Factory factory;
                 return factory;
             }
-        
+
             bool register_output_format(Osmium::OSMFile::FileEncoding* encoding, create_output_t create_function) {
                 return m_callbacks.insert(encoding2create_t::value_type(encoding, create_function)).second;
             }

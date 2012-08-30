@@ -240,7 +240,7 @@ namespace Osmium {
             LonLatListWriter(std::ostream& out,      ///< The output stream
                              char delim_lonlat=' ',  ///< The delimiter between longitude and latitude
                              char delim_items=',')   ///< The delimiter between consecutive coordinates
-                             :
+                :
                 m_out(out),
                 m_delim_lonlat(delim_lonlat),
                 m_delim_items(delim_items),
