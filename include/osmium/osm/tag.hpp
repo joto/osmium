@@ -54,12 +54,20 @@ namespace Osmium {
                 return m_value.c_str();
             }
 
+            bool operator==(const Tag& other) const {
+                return this->m_key == other.m_key && this->m_value == other.m_value;
+            }
+
         private:
 
             std::string m_key;
             std::string m_value;
 
         };
+
+        inline bool operator!=(const Tag& lhs, const Tag& rhs) {
+            return !(lhs == rhs);
+        }
 
     } // namespace OSM
 
