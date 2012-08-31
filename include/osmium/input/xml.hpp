@@ -88,7 +88,7 @@ namespace Osmium {
 
                         int result = read(this->fd(), buffer, c_buffer_size);
                         if (result < 0) {
-                            exit(1);
+                            throw std::runtime_error("read error");
                         }
                         done = (result == 0);
                         if (XML_ParseBuffer(parser, result, done) == XML_STATUS_ERROR) {
