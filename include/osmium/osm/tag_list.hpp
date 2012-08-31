@@ -101,20 +101,6 @@ namespace Osmium {
                 return 0;
             }
 
-            const char* get_tag_key(unsigned int n) const {
-                if (n < m_tags.size()) {
-                    return m_tags[n].key();
-                }
-                throw std::range_error("no tag with this index");
-            }
-
-            const char* get_tag_value(unsigned int n) const {
-                if (n < m_tags.size()) {
-                    return m_tags[n].value();
-                }
-                throw std::range_error("no tag with this index");
-            }
-
         private:
 
             std::vector<Tag> m_tags;
