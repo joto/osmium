@@ -62,9 +62,9 @@ namespace Osmium {
             XML(const Osmium::OSMFile& file, THandler& handler) :
                 Base<THandler>(file, handler),
                 m_current_object(NULL),
-                m_in_delete_section(false),
                 m_context(context_root),
-                m_last_context(context_root) {
+                m_last_context(context_root),
+                m_in_delete_section(false) {
             }
 
             void parse() {
