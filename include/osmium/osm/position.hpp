@@ -23,7 +23,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 */
 
 #include <cmath>
-#include <limits>
 #include <ostream>
 #include <stdint.h>
 #include <boost/operators.hpp>
@@ -48,18 +47,28 @@ namespace Osmium {
         }
 
         /**
-        * Positions are stored in 32 bit integers for the x and y
-        * coordinates, respectively. This gives you an accuracy of a few
-        * centimeters, good enough for OSM use. (The main OSM database uses
-        * the same scheme.)
-        */
+         * Positions define a place on earth.
+         *
+         * Positions are stored in 32 bit integers for the x and y
+         * coordinates, respectively. This gives you an accuracy of a few
+         * centimeters, good enough for %OSM use. (The main %OSM database
+         * uses the same scheme.)
+         *
+         * An undefined (invalid) Position can be created by calling the
+         * constructor without parameters.
+         *
+         * Coordinates are never checked whether they are inside bounds.
+         */
         class Position : boost::totally_ordered<Position> {
 
         public:
 
-            /// this value is used for a coordinate to mark it as invalid or unknown
+            /// this value is used for a coordinate to mark it as invalid or undefined
             static const int32_t invalid = boost::integer_traits<int32_t>::const_max;
 
+            /**
+             * Create undefined Position.
+             */
             explicit Position() :
                 m_x(invalid),
                 m_y(invalid) {
@@ -127,10 +136,18 @@ namespace Osmium {
 
         };
 
+        /**
+         * Positions are equal if both coordinates are equal.
+         */
         inline bool operator==(const Position& p1, const Position& p2) {
             return p1.x() == p2.x() && p1.y() == p2.y();
         }
 
+        /**
+         * Compare two positions by comparing first the x and then the
+         * y coordinate.
+         * If the position is invalid the result is undefined.
+         */
         inline bool operator<(const Position& p1, const Position& p2) {
             if (p1.x() == p2.x()) {
                 return p1.y() < p2.y();
