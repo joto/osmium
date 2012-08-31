@@ -13,20 +13,20 @@ BOOST_AUTO_TEST_SUITE(Bounds)
 BOOST_AUTO_TEST_CASE(instantiation) {
     Osmium::OSM::Bounds b;
     BOOST_CHECK(!b.defined());
-    BOOST_CHECK(!b.bl().defined());
-    BOOST_CHECK(!b.tr().defined());
+    BOOST_CHECK(!b.bottom_left().defined());
+    BOOST_CHECK(!b.top_right().defined());
 }
 
 BOOST_AUTO_TEST_CASE(instantiation_and_extend) {
     Osmium::OSM::Bounds b;
     b.extend(Osmium::OSM::Position(1.2, 3.4));
     BOOST_CHECK(b.defined());
-    BOOST_CHECK(b.bl().defined());
-    BOOST_CHECK(b.tr().defined());
+    BOOST_CHECK(b.bottom_left().defined());
+    BOOST_CHECK(b.top_right().defined());
     b.extend(Osmium::OSM::Position(3.4, 4.5));
     b.extend(Osmium::OSM::Position(5.6, 7.8));
-    BOOST_CHECK_EQUAL(b.bl(), Osmium::OSM::Position(1.2, 3.4));
-    BOOST_CHECK_EQUAL(b.tr(), Osmium::OSM::Position(5.6, 7.8));
+    BOOST_CHECK_EQUAL(b.bottom_left(), Osmium::OSM::Position(1.2, 3.4));
+    BOOST_CHECK_EQUAL(b.top_right(), Osmium::OSM::Position(5.6, 7.8));
 }
 
 BOOST_AUTO_TEST_CASE(output) {
