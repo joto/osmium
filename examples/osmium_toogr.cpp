@@ -142,7 +142,7 @@ public:
 
     void node(const shared_ptr<Osmium::OSM::Node const>& node) {
         handler_cfw->node(node);
-        const char* amenity = node->tags().get_tag_by_key("amenity");
+        const char* amenity = node->tags().get_value_by_key("amenity");
         if (amenity && !strcmp(amenity, "post_box")) {
             try {
                 Osmium::Geometry::Point point(*node);
@@ -151,7 +151,7 @@ public:
                 OGRPoint* ogrpoint = Osmium::Geometry::create_ogr_geometry(point);
                 feature->SetGeometry(ogrpoint);
                 feature->SetField("id", node->id());
-                feature->SetField("operator", node->tags().get_tag_by_key("operator"));
+                feature->SetField("operator", node->tags().get_value_by_key("operator"));
 
                 if (m_layer_point->CreateFeature(feature) != OGRERR_NONE) {
                     std::cerr << "Failed to create feature.\n";
@@ -178,7 +178,7 @@ public:
 
     void way(const shared_ptr<Osmium::OSM::Way>& way) {
         handler_cfw->way(way);
-        const char* highway = way->tags().get_tag_by_key("highway");
+        const char* highway = way->tags().get_value_by_key("highway");
         if (highway) {
             try {
                 Osmium::Geometry::LineString linestring(*way);

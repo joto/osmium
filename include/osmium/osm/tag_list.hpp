@@ -92,7 +92,7 @@ namespace Osmium {
                 m_tags.push_back(Tag(key, value));
             }
 
-            const char* get_tag_by_key(const char* key) const {
+            const char* get_value_by_key(const char* key) const {
                 for (const_iterator it = begin(); it != end(); ++it) {
                     if (!strcmp(it->key(), key)) {
                         return it->value();

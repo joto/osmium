@@ -58,7 +58,7 @@ namespace Osmium {
             }
 
             void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
-                const char* type = relation->tags().get_tag_by_key("type");
+                const char* type = relation->tags().get_value_by_key("type");
 
                 // ignore relations without "type" tag
                 if (!type) {

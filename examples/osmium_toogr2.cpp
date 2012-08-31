@@ -95,7 +95,7 @@ public:
     }
 
     void area(const shared_ptr<Osmium::OSM::Area const>& area) {
-        const char* building = area->tags().get_tag_by_key("building");
+        const char* building = area->tags().get_value_by_key("building");
         if (building) {
             try {
                 Osmium::Geometry::MultiPolygon mp(*area);

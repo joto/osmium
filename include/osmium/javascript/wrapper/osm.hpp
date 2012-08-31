@@ -42,9 +42,9 @@ namespace Osmium {
 
             struct OSMTagList : public Osmium::Javascript::Template {
 
-                static v8::Handle<v8::Value> get_tag_value_by_key(v8::Local<v8::String> property, Osmium::OSM::TagList* tag_list) {
+                static v8::Handle<v8::Value> get_value_by_key(v8::Local<v8::String> property, Osmium::OSM::TagList* tag_list) {
                     const char* key = Osmium::v8_String_to_utf8<Osmium::OSM::Tag::max_utf16_length_key>(property);
-                    const char* value = tag_list->get_tag_by_key(key);
+                    const char* value = tag_list->get_value_by_key(key);
                     if (value) {
                         return Osmium::utf8_to_v8_String<Osmium::OSM::Tag::max_utf16_length_value>(value);
                     }
@@ -67,7 +67,7 @@ namespace Osmium {
                 OSMTagList() :
                     Osmium::Javascript::Template() {
                     js_template->SetNamedPropertyHandler(
-                        named_property_getter<Osmium::OSM::TagList, get_tag_value_by_key>,
+                        named_property_getter<Osmium::OSM::TagList, get_value_by_key>,
                         0,
                         0,
                         0,

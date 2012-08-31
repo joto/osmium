@@ -73,13 +73,13 @@ public:
 
     void node(const shared_ptr<Osmium::OSM::Node const>& node) {
         handler_cfw->node(node);
-        const char* amenity = node->tags().get_tag_by_key("amenity");
+        const char* amenity = node->tags().get_value_by_key("amenity");
         if (amenity && !strcmp(amenity, "post_box")) {
             try {
                 Osmium::Geometry::Point point(*node);
                 shapefile_point->add_geometry(Osmium::Geometry::create_shp_object(point));
                 shapefile_point->add_attribute(0, node->id());
-                const char* op = node->tags().get_tag_by_key("operator");
+                const char* op = node->tags().get_value_by_key("operator");
                 if (op) {
                     shapefile_point->add_attribute_with_truncate(1, std::string(op));
                 }
@@ -95,7 +95,7 @@ public:
 
     void way(const shared_ptr<Osmium::OSM::Way>& way) {
         handler_cfw->way(way);
-        const char* highway = way->tags().get_tag_by_key("highway");
+        const char* highway = way->tags().get_value_by_key("highway");
         if (highway) {
             try {
                 Osmium::Geometry::LineString linestring(*way);
