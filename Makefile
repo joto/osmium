@@ -4,6 +4,8 @@
 #
 #------------------------------------------------------------------------------
 
+CXX=g++
+
 all:
 
 .PHONY: clean install check check-includes test indent
@@ -34,7 +36,7 @@ check-includes:
 	for FILE in include/*.hpp include/*/*.hpp include/*/*/*.hpp include/*/*/*/*.hpp; do \
         flags=`./get_options.sh --cflags $${FILE}`; \
         eval eflags=$${flags}; \
-        compile="g++ $(WARNINGFLAGS) -I include $${eflags} $${FILE}"; \
+        compile="$(CXX) $(WARNINGFLAGS) -I include $${eflags} $${FILE}"; \
         echo "\n======== $${FILE}\n$${compile}" >>check-includes-report; \
         if `$${compile} 2>>check-includes-report`; then \
             echo "[OK] $${FILE}"; \
