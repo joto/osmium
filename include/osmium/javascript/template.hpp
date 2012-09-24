@@ -96,22 +96,22 @@ namespace Osmium {
 
             */
             template <class TWrapped, v8::Handle<v8::Value> (func)(TWrapped*)>
-            static v8::Handle<v8::Value> accessor_getter(v8::Local<v8::String>, const v8::AccessorInfo &info) {
+            static v8::Handle<v8::Value> accessor_getter(v8::Local<v8::String>, const v8::AccessorInfo& info) {
                 return func(reinterpret_cast<TWrapped*>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()));
             }
 
             template <class TWrapped, v8::Handle<v8::Value> func(v8::Local<v8::String>, TWrapped*)>
-            static v8::Handle<v8::Value> named_property_getter(v8::Local<v8::String> property, const v8::AccessorInfo &info) {
+            static v8::Handle<v8::Value> named_property_getter(v8::Local<v8::String> property, const v8::AccessorInfo& info) {
                 return func(property, reinterpret_cast<TWrapped*>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()));
             }
 
             template <class TWrapped, v8::Handle<v8::Value> func(uint32_t, TWrapped*)>
-            static v8::Handle<v8::Value> indexed_property_getter(uint32_t index, const v8::AccessorInfo &info) {
+            static v8::Handle<v8::Value> indexed_property_getter(uint32_t index, const v8::AccessorInfo& info) {
                 return func(index, reinterpret_cast<TWrapped*>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()));
             }
 
             template <class TWrapped, v8::Handle<v8::Array> func(TWrapped*)>
-            static v8::Handle<v8::Array> property_enumerator(const v8::AccessorInfo &info) {
+            static v8::Handle<v8::Array> property_enumerator(const v8::AccessorInfo& info) {
                 return func(reinterpret_cast<TWrapped*>(v8::Local<v8::External>::Cast(info.Holder()->GetInternalField(0))->Value()));
             }
 

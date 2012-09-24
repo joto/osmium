@@ -40,7 +40,7 @@ namespace Osmium {
                 m_members() {
             }
 
-            Relation(const Relation &relation) :
+            Relation(const Relation& relation) :
                 Object(relation),
                 m_members(relation.members()) {
             }

@@ -95,7 +95,7 @@ namespace Osmium {
                             XML_Error errorCode = XML_GetErrorCode(parser);
                             long errorLine = XML_GetCurrentLineNumber(parser);
                             long errorCol = XML_GetCurrentColumnNumber(parser);
-                            const XML_LChar *errorString = XML_ErrorString(errorCode);
+                            const XML_LChar* errorString = XML_ErrorString(errorCode);
 
                             std::stringstream errorDesc;
                             errorDesc << "XML parsing error at line " << errorLine << ":" << errorCol;
@@ -252,7 +252,7 @@ namespace Osmium {
                         if (!strcmp(element, "member")) {
                             char        type = 'x';
                             uint64_t    ref  = 0;
-                            const char *role = "";
+                            const char* role = "";
                             for (int count = 0; attrs[count]; count += 2) {
                                 if (!strcmp(attrs[count], "type")) {
                                     type = static_cast<char>(attrs[count+1][0]);

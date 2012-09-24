@@ -62,8 +62,8 @@ public:
     }
 
     void node(const shared_ptr<Osmium::OSM::Node const>& node) {
-        int x = int( (180 + node->position().lon()) * m_factor );
-        int y = int( ( 90 - node->position().lat()) * m_factor );
+        int x = int((180 + node->position().lon()) * m_factor);
+        int y = int(( 90 - node->position().lat()) * m_factor);
         if (x <        0) x =         0;
         if (x >= m_xsize) x = m_xsize-1;
         if (y <        0) y =         0;
@@ -104,7 +104,7 @@ public:
 
 /* ================================================== */
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     if (argc != 5) {
         std::cerr << "Usage: " << argv[0] << " OSMFILE SIZE MIN MAX\n\n";
         std::cerr << "  OSMFILE - OSM file of any type.\n";

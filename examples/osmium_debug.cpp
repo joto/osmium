@@ -40,7 +40,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 # include <osmium/handler/endtime.hpp>
 #endif // OSMIUM_DEBUG_WITH_ENDTIME
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     std::ios_base::sync_with_stdio(false);
 
     if (argc != 2) {

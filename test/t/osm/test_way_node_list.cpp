@@ -31,7 +31,7 @@ BOOST_AUTO_TEST_CASE(closed_or_not) {
     wnl.add(8);
     BOOST_CHECK(!wnl.is_closed());
     wnl.add(5);
-    BOOST_CHECK( wnl.is_closed());
+    BOOST_CHECK(wnl.is_closed());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

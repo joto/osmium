@@ -33,7 +33,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <osmium/handler/debug.hpp>
 #include <osmium/storage/objectstore.hpp>
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     if (argc != 3) {
         std::cerr << "Usage: " << argv[0] << " OSM-CHANGE-FILE OSM-FILE\n";
         exit(1);

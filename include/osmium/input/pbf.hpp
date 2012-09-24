@@ -199,13 +199,13 @@ namespace Osmium {
 
                     Osmium::OSM::TagList& tags = node.tags();
                     for (int tag=0; tag < pbf_node.keys_size(); ++tag) {
-                        tags.add(stringtable.s( pbf_node.keys( tag ) ).data(),
-                                 stringtable.s( pbf_node.vals( tag ) ).data());
+                        tags.add(stringtable.s(pbf_node.keys(tag)).data(),
+                                 stringtable.s(pbf_node.vals(tag)).data());
                     }
 
                     node.position(Osmium::OSM::Position(
-                                      ( pbf_node.lon() * m_pbf_primitive_block.granularity() + m_pbf_primitive_block.lon_offset() ) / (OSMPBF::lonlat_resolution / Osmium::OSM::coordinate_precision),
-                                      ( pbf_node.lat() * m_pbf_primitive_block.granularity() + m_pbf_primitive_block.lat_offset() ) / (OSMPBF::lonlat_resolution / Osmium::OSM::coordinate_precision)));
+                                      (pbf_node.lon() * m_pbf_primitive_block.granularity() + m_pbf_primitive_block.lon_offset()) / (OSMPBF::lonlat_resolution / Osmium::OSM::coordinate_precision),
+                                      (pbf_node.lat() * m_pbf_primitive_block.granularity() + m_pbf_primitive_block.lat_offset()) / (OSMPBF::lonlat_resolution / Osmium::OSM::coordinate_precision)));
                     this->call_node_on_handler();
                 }
             }
@@ -237,8 +237,8 @@ namespace Osmium {
 
                     Osmium::OSM::TagList& tags = way.tags();
                     for (int tag=0; tag < pbf_way.keys_size(); ++tag) {
-                        tags.add(stringtable.s( pbf_way.keys( tag ) ).data(),
-                                 stringtable.s( pbf_way.vals( tag ) ).data());
+                        tags.add(stringtable.s(pbf_way.keys(tag)).data(),
+                                 stringtable.s(pbf_way.vals(tag)).data());
                     }
 
                     uint64_t ref = 0;
@@ -278,8 +278,8 @@ namespace Osmium {
 
                     Osmium::OSM::TagList& tags = relation.tags();
                     for (int tag=0; tag < pbf_relation.keys_size(); ++tag) {
-                        tags.add(stringtable.s( pbf_relation.keys(tag) ).data(),
-                                 stringtable.s( pbf_relation.vals(tag) ).data());
+                        tags.add(stringtable.s(pbf_relation.keys(tag)).data(),
+                                 stringtable.s(pbf_relation.vals(tag)).data());
                     }
 
                     uint64_t ref = 0;
@@ -297,7 +297,7 @@ namespace Osmium {
                                 break;
                         }
                         ref += pbf_relation.memids(i);
-                        relation.add_member(type, ref, stringtable.s( pbf_relation.roles_sid( i ) ).data());
+                        relation.add_member(type, ref, stringtable.s(pbf_relation.roles_sid(i)).data());
                     }
 
                     this->call_relation_on_handler();
@@ -348,8 +348,8 @@ namespace Osmium {
                     last_dense_latitude  += dense.lat(entity);
                     last_dense_longitude += dense.lon(entity);
                     node.position(Osmium::OSM::Position(
-                                      ( last_dense_longitude * m_pbf_primitive_block.granularity() + m_pbf_primitive_block.lon_offset() ) / (OSMPBF::lonlat_resolution / Osmium::OSM::coordinate_precision),
-                                      ( last_dense_latitude  * m_pbf_primitive_block.granularity() + m_pbf_primitive_block.lat_offset() ) / (OSMPBF::lonlat_resolution / Osmium::OSM::coordinate_precision)));
+                                      (last_dense_longitude * m_pbf_primitive_block.granularity() + m_pbf_primitive_block.lon_offset()) / (OSMPBF::lonlat_resolution / Osmium::OSM::coordinate_precision),
+                                      (last_dense_latitude  * m_pbf_primitive_block.granularity() + m_pbf_primitive_block.lat_offset()) / (OSMPBF::lonlat_resolution / Osmium::OSM::coordinate_precision)));
 
                     while (last_dense_tag < dense.keys_vals_size()) {
                         int tag_key_pos = dense.keys_vals(last_dense_tag);

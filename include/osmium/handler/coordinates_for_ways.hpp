@@ -52,7 +52,7 @@ namespace Osmium {
             void node(const shared_ptr<Osmium::OSM::Node const>& node) {
                 int64_t id = node->id();
                 if (id >= 0) {
-                    m_storage_pos.set( id, node->position());
+                    m_storage_pos.set(id, node->position());
                 } else {
                     m_storage_neg.set(-id, node->position());
                 }

@@ -238,7 +238,7 @@ namespace Osmium {
             struct OSMWay : public OSMObject {
 
                 static v8::Handle<v8::Value> nodes(Osmium::OSM::Way* way) {
-                    return OSMWayNodeList::get<OSMWayNodeList>().create_instance((void *)&(way->nodes()));
+                    return OSMWayNodeList::get<OSMWayNodeList>().create_instance((void*)&(way->nodes()));
                 }
 
                 static v8::Handle<v8::Value> geom(Osmium::OSM::Way* way) {
@@ -284,7 +284,7 @@ namespace Osmium {
             struct OSMRelation : public OSMObject {
 
                 static v8::Handle<v8::Value> members(Osmium::OSM::Relation* relation) {
-                    return OSMRelationMemberList::get<OSMRelationMemberList>().create_instance((void *)&(relation->members()));
+                    return OSMRelationMemberList::get<OSMRelationMemberList>().create_instance((void*)&(relation->members()));
                 }
 
                 OSMRelation() :

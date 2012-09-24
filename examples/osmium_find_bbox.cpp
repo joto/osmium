@@ -35,7 +35,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 /* ================================================== */
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     if (argc != 2) {
         std::cerr << "Usage: " << argv[0] << " OSMFILE" << std::endl;
         exit(1);

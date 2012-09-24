@@ -133,7 +133,7 @@ void print_help() {
               << "  -d, --debug          Enable debugging output\n";
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     static struct option long_options[] = {
         {"debug",  no_argument, 0, 'd'},
         {"help",   no_argument, 0, 'h'},

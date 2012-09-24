@@ -246,7 +246,7 @@ namespace Osmium {
                 if (object == NULL) return true;
 
                 BOOST_FOREACH(const Osmium::OSM::Tag& tag, object->tags()) {
-                    if (!ignore_tag(tag.key()) ) {
+                    if (!ignore_tag(tag.key())) {
                         return false;
                     }
                 }

@@ -219,7 +219,7 @@ namespace Osmium {
                 }
             }
 
-            void add_attribute(const int field, const char *value) const {
+            void add_attribute(const int field, const char* value) const {
                 int ok = DBFWriteStringAttribute(m_dbf_handle, m_current_shape, field, value);
                 if (!ok) {
                     throw std::runtime_error("Can't add char* to field");

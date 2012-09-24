@@ -14,7 +14,7 @@ BOOST_AUTO_TEST_CASE(tag) {
     Osmium::OSM::Tag t2("foo", "bar");
     Osmium::OSM::Tag t3("foo", "baz");
     Osmium::OSM::Tag t4("x", "y");
-    
+
     BOOST_CHECK_EQUAL(t1, t2);
     BOOST_CHECK(t1 != t3);
     BOOST_CHECK(t1 != t4);

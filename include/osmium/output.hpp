@@ -78,7 +78,7 @@ namespace Osmium {
 
         public:
 
-            typedef Osmium::Output::Base* (*create_output_t)(const Osmium::OSMFile&);
+            typedef Osmium::Output::Base*(*create_output_t)(const Osmium::OSMFile&);
 
         private:
 
@@ -98,7 +98,7 @@ namespace Osmium {
                 return m_callbacks.insert(encoding2create_t::value_type(encoding, create_function)).second;
             }
 
-            bool unregister_output_format(Osmium::OSMFile::FileEncoding* encoding ) {
+            bool unregister_output_format(Osmium::OSMFile::FileEncoding* encoding) {
                 return m_callbacks.erase(encoding) == 1;
             }
 

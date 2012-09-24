@@ -72,7 +72,7 @@ namespace Osmium {
                 Object(relation),
                 m_node_list(),
                 m_geos_geometry() {
-                id( (id() * 2) + sgn(id()) );
+                id((id() * 2) + sgn(id()));
             }
 
             /// Construct an Area object from a Way object.
@@ -80,7 +80,7 @@ namespace Osmium {
                 Object(way),
                 m_node_list(way.nodes()),
                 m_geos_geometry() {
-                id( id() * 2 );
+                id(id() * 2);
             }
 
             Area(const Area& area) :

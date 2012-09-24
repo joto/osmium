@@ -88,7 +88,7 @@ public:
         OGRFieldDefn layer_point_field_id("id", OFTInteger);
         layer_point_field_id.SetWidth(10);
 
-        if (m_layer_point->CreateField(&layer_point_field_id) != OGRERR_NONE ) {
+        if (m_layer_point->CreateField(&layer_point_field_id) != OGRERR_NONE) {
             std::cerr << "Creating id field failed.\n";
             exit(1);
         }
@@ -96,7 +96,7 @@ public:
         OGRFieldDefn layer_point_field_operator("operator", OFTString);
         layer_point_field_operator.SetWidth(30);
 
-        if (m_layer_point->CreateField(&layer_point_field_operator) != OGRERR_NONE ) {
+        if (m_layer_point->CreateField(&layer_point_field_operator) != OGRERR_NONE) {
             std::cerr << "Creating operator field failed.\n";
             exit(1);
         }
@@ -114,7 +114,7 @@ public:
         OGRFieldDefn layer_linestring_field_id("id", OFTInteger);
         layer_linestring_field_id.SetWidth(10);
 
-        if (m_layer_linestring->CreateField(&layer_linestring_field_id) != OGRERR_NONE ) {
+        if (m_layer_linestring->CreateField(&layer_linestring_field_id) != OGRERR_NONE) {
             std::cerr << "Creating id field failed.\n";
             exit(1);
         }
@@ -122,7 +122,7 @@ public:
         OGRFieldDefn layer_linestring_field_type("type", OFTString);
         layer_linestring_field_type.SetWidth(30);
 
-        if (m_layer_linestring->CreateField(&layer_linestring_field_type) != OGRERR_NONE ) {
+        if (m_layer_linestring->CreateField(&layer_linestring_field_type) != OGRERR_NONE) {
             std::cerr << "Creating type field failed.\n";
             exit(1);
         }
@@ -220,7 +220,7 @@ void print_help() {
               << "  -f, --format=FORMAT  Output OGR format (Default: 'SQLite')\n";
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     static struct option long_options[] = {
         {"debug",  no_argument, 0, 'd'},
         {"help",   no_argument, 0, 'h'},

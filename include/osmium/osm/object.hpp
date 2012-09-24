@@ -274,7 +274,7 @@ namespace Osmium {
                 m_tags() {
             }
 
-            Object(const Object &o) :
+            Object(const Object& o) :
                 m_id(o.m_id),
                 m_version(o.m_version),
                 m_changeset(o.m_changeset),

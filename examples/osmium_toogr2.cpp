@@ -83,7 +83,7 @@ public:
         OGRFieldDefn layer_mp_field_id("id", OFTInteger);
         layer_mp_field_id.SetWidth(10);
 
-        if (m_layer_mp->CreateField(&layer_mp_field_id) != OGRERR_NONE ) {
+        if (m_layer_mp->CreateField(&layer_mp_field_id) != OGRERR_NONE) {
             std::cerr << "Creating id field failed.\n";
             exit(1);
         }
@@ -125,7 +125,7 @@ public:
 typedef Osmium::Storage::ById::SparseTable<Osmium::OSM::Position> storage_sparsetable_t;
 typedef Osmium::Storage::ById::MmapFile<Osmium::OSM::Position> storage_mmap_t;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     if (argc != 2) {
         std::cerr << "Usage: " << argv[0] << " OSMFILE" << std::endl;
         exit(1);

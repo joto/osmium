@@ -64,7 +64,7 @@ namespace Osmium {
                     }
 
                     bool operator!=(const item_t& other) const {
-                        return ! (*this == other);
+                        return !(*this == other);
                     }
                 };
 
