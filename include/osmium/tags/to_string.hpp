@@ -1,5 +1,5 @@
-#ifndef OSMIUM_OSM_TAG_LIST_TO_STRING_HPP
-#define OSMIUM_OSM_TAG_LIST_TO_STRING_HPP
+#ifndef OSMIUM_TAGS_TAG_LIST_TO_STRING_HPP
+#define OSMIUM_TAGS_TAG_LIST_TO_STRING_HPP
 
 /*
 
@@ -29,9 +29,18 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 namespace Osmium {
 
-    namespace OSM {
+    namespace Tags {
 
-        class TagToStringOp : public std::binary_function<std::string*, const Osmium::OSM::Tag&, std::string*> {
+        /**
+         * Operation that turns a Tag into a string with many parameters that define how this is done.
+         *
+         * @parameter escape String that contains all characters that should be escaped with a backslash (\)
+         * @parameter prefix String printed before a tag.
+         * @parameter infix String printed between key and value of a tag.
+         * @parameter suffix String printed after a tag.
+         * @parameter join String used to join several tags together.
+         */
+        class TagToStringOp : public std::binary_function<std::string&, const Osmium::OSM::Tag&, std::string&> {
 
         public:
 
@@ -43,16 +52,16 @@ namespace Osmium {
                 m_join(join) {
             }
 
-            std::string* operator()(std::string* string, const Osmium::OSM::Tag& tag) const {
-                if (!string->empty()) {
-                    string->append(m_join);
+            std::string& operator()(std::string& output, const Osmium::OSM::Tag& tag) const {
+                if (!output.empty()) {
+                    output.append(m_join);
                 }
-                string->append(m_prefix);
-                append_escaped_string(string, tag.key());
-                string->append(m_infix);
-                append_escaped_string(string, tag.value());
-                string->append(m_suffix);
-                return string;
+                output.append(m_prefix);
+                append_escaped_string(output, tag.key());
+                output.append(m_infix);
+                append_escaped_string(output, tag.value());
+                output.append(m_suffix);
+                return output;
             }
 
         private:
@@ -63,17 +72,20 @@ namespace Osmium {
             const char* m_suffix;
             const char* m_join;
 
-            void append_escaped_string(std::string* out, const char* in) const {
+            void append_escaped_string(std::string& output, const char* in) const {
                 while (*in) {
                     if (m_escape.find(*in) != std::string::npos) {
-                        out->append(1, '\\');
+                        output.append(1, '\\');
                     }
-                    out->append(1, *in++);
+                    output.append(1, *in++);
                 }
             }
 
-        };
+        }; // class TagToStringOp
 
+        /**
+         * Operation that turns a Tag into a string in the format "key=value".
+         */
         class TagToKeyEqualsValueStringOp : public TagToStringOp {
 
         public:
@@ -82,20 +94,23 @@ namespace Osmium {
                 TagToStringOp("", "", "=", "", join) {
             }
 
-        };
+        }; // class TagToKeyEqualsValueStringOp
 
-        class TagToHstoreStringOp : public TagToStringOp {
+        /**
+         * Operation that turns a Tag into a string in the format used for the hstore PostgreSQL extension.
+         */
+        class TagToHStoreStringOp : public TagToStringOp {
 
         public:
 
-            TagToHstoreStringOp() :
+            TagToHStoreStringOp() :
                 TagToStringOp("\\\"", "\"", "\"=>\"", "\"", ",") {
             }
 
-        };
+        }; // class TagToHStoreStringOp
 
-    } // namespace OSM
+    } // namespace Tags
 
 } // namespace Osmium
 
-#endif // OSMIUM_OSM_TAG_LIST_TO_STRING_HPP
+#endif // OSMIUM_TAGS_TAG_LIST_TO_STRING_HPP

@@ -1,5 +1,5 @@
-#ifndef OSMIUM_OSM_TAG_FILTER_HPP
-#define OSMIUM_OSM_TAG_FILTER_HPP
+#ifndef OSMIUM_TAGS_KEY_FILTER_HPP
+#define OSMIUM_TAGS_KEY_FILTER_HPP
 
 /*
 
@@ -23,7 +23,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 */
 
 #include <functional>
-#include <numeric>
 #include <vector>
 #include <boost/foreach.hpp>
 #include <boost/iterator/filter_iterator.hpp>
@@ -33,48 +32,51 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 namespace Osmium {
 
-    namespace OSM {
+    namespace Tags {
 
-        class TagKeyFilterOp : public std::unary_function<const Osmium::OSM::Tag&, bool> {
+        class KeyFilter : public std::unary_function<const Osmium::OSM::Tag&, bool> {
+
+            struct rule_t {
+                bool result;
+                std::string key;
+
+                rule_t(bool r, const char* k) :
+                    result(r),
+                    key(k) {
+                }
+
+            };
+
+            std::vector<rule_t> m_rules;
+            bool m_default_result;
 
         public:
 
-            TagKeyFilterOp() :
-                m_keys() {
+            typedef boost::filter_iterator<KeyFilter, Osmium::OSM::TagList::const_iterator> iterator;
+
+            KeyFilter(bool default_result) :
+                m_rules(),
+                m_default_result(default_result) {
             }
 
-            TagKeyFilterOp& add(const char* key) {
-                m_keys.push_back(key);
+            KeyFilter& add(bool result, const char* key) {
+                m_rules.push_back(rule_t(result, key));
                 return *this;
             }
 
             bool operator()(const Osmium::OSM::Tag& tag) const {
-                BOOST_FOREACH(const std::string& key, m_keys) {
-                    if (key == tag.key()) {
-                        return false;
+                BOOST_FOREACH(const rule_t& rule, m_rules) {
+                    if (tag.key() == rule.key) {
+                        return rule.result;
                     }
                 }
-                return true;
+                return m_default_result;
             }
-
-        private:
-
-            std::vector<std::string> m_keys;
 
         };
 
-        typedef boost::filter_iterator<TagKeyFilterOp, TagList::const_iterator> TagKeyFilterOpIterator;
-
-        template <class T>
-        inline void tags_filter_and_accumulate(const TagList& tags, TagKeyFilterOp& filter, std::string* stringptr, T convert) {
-            TagKeyFilterOpIterator fi_begin(filter, tags.begin(), tags.end());
-            TagKeyFilterOpIterator fi_end(filter, tags.end(), tags.end());
-
-            std::accumulate(fi_begin, fi_end, stringptr, convert);
-        }
-
-    } // namespace OSM
+    } // namespace Tags
 
 } // namespace Osmium
 
-#endif // OSMIUM_OSM_TAG_FILTER_HPP
+#endif // OSMIUM_TAGS_KEY_FILTER_HPP

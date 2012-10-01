@@ -3,6 +3,9 @@
   This is an example tool that loads OSM data into a PostGIS
   database with hstore tags column using the OGR library.
 
+  The database must have the HSTORE and POSTGIS extentions
+  loaded.
+
 */
 
 /*
@@ -38,8 +41,9 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #define OSMIUM_WITH_XML_INPUT
 
 #include <osmium.hpp>
-#include <osmium/osm/tag_filter.hpp>
-#include <osmium/osm/tag_list_to_string.hpp>
+#include <osmium/utils/filter_and_accumulate.hpp>
+#include <osmium/tags/key_filter.hpp>
+#include <osmium/tags/to_string.hpp>
 #include <osmium/geometry/point.hpp>
 #include <osmium/geometry/ogr.hpp>
 
@@ -47,16 +51,16 @@ class MyOGRHandler : public Osmium::Handler::Base {
 
     OGRDataSource* m_data_source;
     OGRLayer* m_layer_point;
-    Osmium::OSM::TagKeyFilterOp m_filter;
-    Osmium::OSM::TagToHstoreStringOp m_tohstore;
+    Osmium::Tags::KeyFilter m_filter;
+    Osmium::Tags::TagToHStoreStringOp m_tohstore;
 
 public:
 
     MyOGRHandler(const std::string& filename) :
         m_data_source(NULL),
         m_layer_point(NULL),
-        m_filter(),
-        m_tohstore(Osmium::OSM::TagToHstoreStringOp()) {
+        m_filter(true),
+        m_tohstore() {
         OGRRegisterAll();
 
         OGRSFDriver* driver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName("PostgreSQL");
@@ -83,8 +87,8 @@ public:
         // using transactions make this much faster than without
         m_layer_point->StartTransaction();
 
-        m_filter.add("created_by");
-        m_filter.add("odbl");
+        m_filter.add(false, "created_by");
+        m_filter.add(false, "odbl");
     }
 
     ~MyOGRHandler() {
@@ -96,7 +100,7 @@ public:
         if (!node->tags().empty()) {
             std::string tags;
 
-            Osmium::OSM::tags_filter_and_accumulate(node->tags(), m_filter, &tags, m_tohstore);
+            Osmium::filter_and_accumulate(node->tags(), m_filter, tags, m_tohstore);
 
             if (!tags.empty()) {
                 try {
