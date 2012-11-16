@@ -45,6 +45,9 @@ namespace Osmium {
             // this limit has been arrived at experimentally
             static const unsigned int max_dbf_fields = 2047;
 
+            // shape files with more than 2 GB don't work
+            static const unsigned int max_file_size = INT_MAX;
+
         private:
 
             class Field {
@@ -115,6 +118,8 @@ namespace Osmium {
                         throw std::runtime_error("Failed to add field:" + field.name());
                     }
                     m_fields.push_back(field);
+                    m_dbf_bytes += 32;
+                    m_record_length += field.width();
                 } else {
                     throw std::out_of_range("Too many fields in the shapefile.");
                 }
@@ -184,14 +189,18 @@ namespace Osmium {
                 if (!shp_object || shp_object->nSHPType != m_shp_handle->nShapeType) {
                     throw Osmium::Geometry::IllegalGeometry();
                 }
-                m_current_shape = SHPWriteObject(m_shp_handle, -1, shp_object);
-                if (m_current_shape == -1 && errno == EINVAL) {
-                    // second chance if likely cause is having reached the 2GB limit
+                m_dbf_bytes += m_record_length;
+                m_shp_bytes += length_on_disk(shp_object);
+
+                if (m_dbf_bytes > max_file_size || m_shp_bytes > max_file_size) {
                     close();
                     m_sequence_number++;
                     open();
-                    m_current_shape = SHPWriteObject(m_shp_handle, -1, shp_object);
+                    m_dbf_bytes += m_record_length;
+                    m_shp_bytes += length_on_disk(shp_object);
                 }
+
+                m_current_shape = SHPWriteObject(m_shp_handle, -1, shp_object);
                 if (m_current_shape == -1) {
                     throw std::runtime_error("error writing to shapefile");
                 }
@@ -209,6 +218,13 @@ namespace Osmium {
                 int ok = DBFWriteIntegerAttribute(m_dbf_handle, m_current_shape, field, value);
                 if (!ok) {
                     throw std::runtime_error("Can't add integer to field");
+                }
+            }
+
+            void add_attribute(const int field, const double value) const {
+                int ok = DBFWriteDoubleAttribute(m_dbf_handle, m_current_shape, field, value);
+                if (!ok) {
+                    throw std::runtime_error("Can't add double to field");
                 }
             }
 
@@ -269,7 +285,10 @@ namespace Osmium {
                 m_dbf_handle(NULL),
                 m_current_shape(0),
                 m_type(type),
-                m_sequence_number(0) {
+                m_sequence_number(0),
+                m_record_length(1),
+                m_shp_bytes(0), 
+                m_dbf_bytes(0) { 
                 open();
             }
 
@@ -292,7 +311,16 @@ namespace Osmium {
             int m_type;
 
             /// shapefile sequence number for auto-overflow (0=first)
-            int m_sequence_number;
+            unsigned int m_sequence_number;
+
+            /// number of bytes per DBF record
+            unsigned int m_record_length;
+
+            /// number of bytes wriotten to SHP file
+            unsigned int m_shp_bytes;
+
+            /// number of bytes written to DBF file
+            unsigned int m_dbf_bytes;
 
             /**
              * Open and initialize all files belonging to shapefile (.shp/shx/dbf/prj/cpg).
@@ -334,7 +362,63 @@ namespace Osmium {
                 for (std::vector<Field>::const_iterator it = m_fields.begin(); it != m_fields.end(); ++it) {
                     DBFAddField(m_dbf_handle, it->name().c_str(), it->type(), it->width(), it->decimals());
                 }
+
+                m_shp_bytes = 100;
+                m_dbf_bytes = 33 + 32 * (m_fields.size());
             }
+
+            /**
+             * Computes the number of bytes a shape will take up when saved to the .shp file.
+             *
+             * @param shp_object A pointer to the shape object to be added. 
+             */
+            size_t length_on_disk(SHPObject *s) {
+                #define RECORD_HEADER 8
+                #define TYPE 4
+                #define NUMPTS 4
+                #define NUMPART 4
+                #define BOX 32
+                #define RANGE 32
+                #define COORD 8
+                #define PART 4
+                switch(s->nSHPType) {
+                    case SHPT_NULL:             return RECORD_HEADER + TYPE;
+                    case SHPT_POINT:            return RECORD_HEADER + TYPE + 2 * COORD;
+                    case SHPT_MULTIPOINT:       return RECORD_HEADER + TYPE + BOX + NUMPTS + 
+                                                    s->nVertices * 2 * COORD;
+                    case SHPT_ARC:              // like polygon
+                    case SHPT_POLYGON:          return RECORD_HEADER + TYPE + BOX + NUMPART + 
+                                                    s->nParts * PART + NUMPTS + s->nVertices * 2 * COORD;
+
+                    case SHPT_POINTM:           return RECORD_HEADER + TYPE + 3 * COORD;
+                    case SHPT_MULTIPOINTM:      return RECORD_HEADER + TYPE + BOX + RANGE + 
+                                                    NUMPTS + s->nVertices * 3 * COORD;
+                    case SHPT_ARCM:             // like polygon
+                    case SHPT_POLYGONM:         return RECORD_HEADER + TYPE + BOX + RANGE + 
+                                                    NUMPART + s->nParts * PART + NUMPTS + s->nVertices * 3 * COORD;
+
+                    case SHPT_POINTZ:           return RECORD_HEADER + TYPE + 4 * COORD;
+                    case SHPT_MULTIPOINTZ:      return RECORD_HEADER + TYPE + BOX + 2 * RANGE + 
+                                                    NUMPTS + s->nVertices * 4 * COORD;
+                    case SHPT_ARCZ:             // like polygon
+                    case SHPT_POLYGONZ:         return RECORD_HEADER + TYPE + BOX + 2 * RANGE + NUMPART + 
+                                                    s->nParts * PART + NUMPTS + s->nVertices * 4 * COORD;
+
+                    case SHPT_MULTIPATCH:       return RECORD_HEADER + TYPE + BOX + 2 * RANGE + NUMPART +
+                                                    s->nParts * 2 * PART + NUMPTS + s->nVertices * 4 * COORD;
+                    default:
+                        throw std::runtime_error("unrecognized shape type");
+                }
+                #undef RECORD_HEADER
+                #undef TYPE
+                #undef NUMPTS
+                #undef NUMPART
+                #undef BOX
+                #undef COORD
+                #undef RANGE
+                #undef PART
+            }
+
 
         }; // class Shapefile
 
