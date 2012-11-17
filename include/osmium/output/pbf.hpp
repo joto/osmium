@@ -887,6 +887,10 @@ namespace Osmium {
                     bbox->set_top(meta.bounds().top_right().lat() * OSMPBF::lonlat_resolution);
                 }
 
+                if (meta.timestamp() != 0) {
+                    pbf_header_block.set_timestamp(meta.timestamp());
+                }
+
                 store_header_block();
             }
 

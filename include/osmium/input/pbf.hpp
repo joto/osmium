@@ -126,6 +126,9 @@ namespace Osmium {
                             if (pbf_header_block.has_writingprogram()) {
                                 this->meta().generator(pbf_header_block.writingprogram());
                             }
+                            if (pbf_header_block.has_timestamp()) {
+                                this->meta().timestamp(pbf_header_block.timestamp());
+                            }
                             if (pbf_header_block.has_bbox()) {
                                 const OSMPBF::HeaderBBox& bbox = pbf_header_block.bbox();
                                 const int64_t resolution_convert = OSMPBF::lonlat_resolution / Osmium::OSM::coordinate_precision;

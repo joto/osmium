@@ -49,7 +49,13 @@ namespace Osmium {
                 if (meta.has_multiple_object_versions()) {
                     m_has_multiple_object_versions = true;
                 }
-
+                if (meta.timestamp()) {
+                    time_t timestamp = meta.timestamp();
+                    std::cout << "  internal timestamp=";
+                    std::cout << ctime(&timestamp);
+                } else {
+                    std::cout << "  no timestamp" << std::endl;
+                }
                 if (meta.bounds().defined()) {
                     std::cout << "  bounds=" << meta.bounds() << "\n";
                 }

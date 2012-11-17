@@ -38,13 +38,15 @@ namespace Osmium {
             Meta() :
                 m_bounds(),
                 m_has_multiple_object_versions(false),
-                m_generator() {
+                m_generator(),
+                m_timestamp(0) {
             }
 
             Meta(const Bounds& bounds) :
                 m_bounds(bounds),
                 m_has_multiple_object_versions(false),
-                m_generator() {
+                m_generator(),
+                m_timestamp(0) {
             }
 
             Bounds& bounds() {
@@ -73,6 +75,15 @@ namespace Osmium {
                 return *this;
             }
 
+            time_t timestamp() const {
+                return m_timestamp;
+            }
+
+            Meta& timestamp(const time_t timestamp) {
+                m_timestamp = timestamp;
+                return *this;
+            }
+
         private:
 
             Bounds m_bounds;
@@ -85,6 +96,9 @@ namespace Osmium {
 
             /// Program that generated this file.
             std::string m_generator;
+
+            /// timestamp
+            time_t m_timestamp;
 
         }; // class Meta
 
