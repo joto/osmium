@@ -14,7 +14,7 @@ version 3 of the Licenses, or (at your option) any later version.
 
 Osmium is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE. See the GNU Lesser General Public License and the GNU
+size_part_indexICULAR PURPOSE. See the GNU Lesser General Public License and the GNU
 General Public License for more details.
 
 You should have received a copy of the Licenses along with Osmium. If not, see
@@ -25,6 +25,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <fstream>
 #include <sstream>
 #include <cerrno>
+#include <limits>
+#include <stdint.h>
 #include <shapefil.h>
 #include <boost/utility.hpp>
 
@@ -44,6 +46,18 @@ namespace Osmium {
 
             // this limit has been arrived at experimentally
             static const unsigned int max_dbf_fields = 2047;
+
+            // shape files with more than 2 GB don't work
+            static const unsigned int max_file_size = 2147483647;
+
+            // size of a shape file header
+            static const size_t size_shapefile_header = 100;
+
+            // size of a DBF file header
+            static const size_t size_dbf_header = 33;
+
+            // size of a DBF field descriptor
+            static const size_t size_dbf_field_header = 32;
 
         private:
 
@@ -115,6 +129,8 @@ namespace Osmium {
                         throw std::runtime_error("Failed to add field:" + field.name());
                     }
                     m_fields.push_back(field);
+                    m_dbf_bytes += size_dbf_field_header;
+                    m_record_length += field.width();
                 } else {
                     throw std::out_of_range("Too many fields in the shapefile.");
                 }
@@ -184,14 +200,18 @@ namespace Osmium {
                 if (!shp_object || shp_object->nSHPType != m_shp_handle->nShapeType) {
                     throw Osmium::Geometry::IllegalGeometry();
                 }
-                m_current_shape = SHPWriteObject(m_shp_handle, -1, shp_object);
-                if (m_current_shape == -1 && errno == EINVAL) {
-                    // second chance if likely cause is having reached the 2GB limit
+                m_dbf_bytes += m_record_length;
+                m_shp_bytes += length_on_disk(shp_object);
+
+                if (m_dbf_bytes > max_file_size || m_shp_bytes > max_file_size) {
                     close();
                     m_sequence_number++;
                     open();
-                    m_current_shape = SHPWriteObject(m_shp_handle, -1, shp_object);
+                    m_dbf_bytes += m_record_length;
+                    m_shp_bytes += length_on_disk(shp_object);
                 }
+
+                m_current_shape = SHPWriteObject(m_shp_handle, -1, shp_object);
                 if (m_current_shape == -1) {
                     throw std::runtime_error("error writing to shapefile");
                 }
@@ -209,6 +229,13 @@ namespace Osmium {
                 int ok = DBFWriteIntegerAttribute(m_dbf_handle, m_current_shape, field, value);
                 if (!ok) {
                     throw std::runtime_error("Can't add integer to field");
+                }
+            }
+
+            void add_attribute(const int field, const double value) const {
+                int ok = DBFWriteDoubleAttribute(m_dbf_handle, m_current_shape, field, value);
+                if (!ok) {
+                    throw std::runtime_error("Can't add double to field");
                 }
             }
 
@@ -269,7 +296,10 @@ namespace Osmium {
                 m_dbf_handle(NULL),
                 m_current_shape(0),
                 m_type(type),
-                m_sequence_number(0) {
+                m_sequence_number(0),
+                m_record_length(1),
+                m_shp_bytes(0), 
+                m_dbf_bytes(0) { 
                 open();
             }
 
@@ -292,13 +322,23 @@ namespace Osmium {
             int m_type;
 
             /// shapefile sequence number for auto-overflow (0=first)
-            int m_sequence_number;
+            unsigned int m_sequence_number;
+
+            /// number of bytes per DBF record
+            unsigned int m_record_length;
+
+            /// number of bytes written to SHP file
+            unsigned int m_shp_bytes;
+
+            /// number of bytes written to DBF file
+            unsigned int m_dbf_bytes;
 
             /**
              * Open and initialize all files belonging to shapefile (.shp/shx/dbf/prj/cpg).
              * Uses m_filename_base and m_sequence_number plus suffix to build filename.
              */
             void open() {
+
                 std::ostringstream filename;
                 filename << m_filename_base;
                 if (m_sequence_number) {
@@ -334,7 +374,62 @@ namespace Osmium {
                 for (std::vector<Field>::const_iterator it = m_fields.begin(); it != m_fields.end(); ++it) {
                     DBFAddField(m_dbf_handle, it->name().c_str(), it->type(), it->width(), it->decimals());
                 }
+
+                m_shp_bytes = size_shapefile_header;
+                m_dbf_bytes = size_dbf_header + size_dbf_field_header * (m_fields.size());
             }
+
+            /**
+             * Computes the number of bytes a shape will take up when saved to the .shp file.
+             *
+             * @param shp_object A pointer to the shape object to be added. 
+             */
+            size_t length_on_disk(SHPObject *shp_object) {
+
+                // sizes of various elements making up a shape record
+                const size_t size_record_header = 8;  // record header
+                const size_t size_type_field = 4;     // shape type identifier
+                const size_t size_num_points = 4;     // number of points
+                const size_t size_num_parts = 4;      // number of parts
+                const size_t size_box = 32;           // bounding box
+                const size_t size_range = 16;         // measurement or Z range
+                const size_t size_coordinate = 8;     // one coordinate
+                const size_t size_part_index = 4;     // pointer to shape part
+
+                switch(shp_object->nSHPType) {
+                    case SHPT_NULL:             return size_record_header + size_type_field;
+
+                    // standard shapes have 2-dimensional coordinates
+                    case SHPT_POINT:            return size_record_header + size_type_field + 2 * size_coordinate;
+                    case SHPT_MULTIPOINT:       return size_record_header + size_type_field + size_box + size_num_points + 
+                                                    shp_object->nVertices * 2 * size_coordinate;
+                    case SHPT_ARC:              // like polygon
+                    case SHPT_POLYGON:          return size_record_header + size_type_field + size_box + size_num_parts + 
+                                                    shp_object->nParts * size_part_index + size_num_points + shp_object->nVertices * 2 * size_coordinate;
+
+                    // "M" shapes have 3-dimensional coordinates (x/y/measurement)
+                    case SHPT_POINTM:           return size_record_header + size_type_field + 3 * size_coordinate;
+                    case SHPT_MULTIPOINTM:      return size_record_header + size_type_field + size_box + size_range + 
+                                                    size_num_points + shp_object->nVertices * 3 * size_coordinate;
+                    case SHPT_ARCM:             // like polygon
+                    case SHPT_POLYGONM:         return size_record_header + size_type_field + size_box + size_range + 
+                                                    size_num_parts + shp_object->nParts * size_part_index + size_num_points + shp_object->nVertices * 3 * size_coordinate;
+
+                    // "Z" shapes have 4-dimensional coordinates (x/y/z/measurement)
+                    case SHPT_POINTZ:           return size_record_header + size_type_field + 4 * size_coordinate;
+                    case SHPT_MULTIPOINTZ:      return size_record_header + size_type_field + size_box + 2 * size_range + 
+                                                    size_num_points + shp_object->nVertices * 4 * size_coordinate;
+                    case SHPT_ARCZ:             // like polygon
+                    case SHPT_POLYGONZ:         return size_record_header + size_type_field + size_box + 2 * size_range + size_num_parts + 
+                                                    shp_object->nParts * size_part_index + size_num_points + shp_object->nVertices * 4 * size_coordinate;
+
+                    case SHPT_MULTIPATCH:       return size_record_header + size_type_field + size_box + 2 * size_range + size_num_parts +
+                                                    shp_object->nParts * 2 * size_part_index + size_num_points + shp_object->nVertices * 4 * size_coordinate;
+                    default:
+                        throw std::runtime_error("unrecognized shape type");
+                }
+            }
+
 
         }; // class Shapefile
 
