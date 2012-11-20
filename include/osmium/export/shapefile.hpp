@@ -14,7 +14,7 @@ version 3 of the Licenses, or (at your option) any later version.
 
 Osmium is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-size_part_indexICULAR PURPOSE. See the GNU Lesser General Public License and the GNU
+PARTICULAR PURPOSE. See the GNU Lesser General Public License and the GNU
 General Public License for more details.
 
 You should have received a copy of the Licenses along with Osmium. If not, see
@@ -25,7 +25,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <fstream>
 #include <sstream>
 #include <cerrno>
-#include <limits>
 #include <stdint.h>
 #include <shapefil.h>
 #include <boost/utility.hpp>
@@ -338,7 +337,6 @@ namespace Osmium {
              * Uses m_filename_base and m_sequence_number plus suffix to build filename.
              */
             void open() {
-
                 std::ostringstream filename;
                 filename << m_filename_base;
                 if (m_sequence_number) {
@@ -382,10 +380,9 @@ namespace Osmium {
             /**
              * Computes the number of bytes a shape will take up when saved to the .shp file.
              *
-             * @param shp_object A pointer to the shape object to be added. 
+             * @param shp_object A pointer to the shape object we want to size up.
              */
-            size_t length_on_disk(SHPObject *shp_object) {
-
+            size_t length_on_disk(SHPObject* shp_object) const {
                 // sizes of various elements making up a shape record
                 const size_t size_record_header = 8;  // record header
                 const size_t size_type_field = 4;     // shape type identifier
@@ -429,7 +426,6 @@ namespace Osmium {
                         throw std::runtime_error("unrecognized shape type");
                 }
             }
-
 
         }; // class Shapefile
 
