@@ -86,7 +86,7 @@ namespace Osmium {
                     const item_t item(id);
                     const item_vector_it_t result = std::lower_bound(m_items.begin(), m_items.end(), item);
                     if (result == m_items.end() || *result != item) {
-                        return TValue(); // nothing found
+                        throw std::out_of_range("nothing found");
                     } else {
                         return result->value;
                     }
