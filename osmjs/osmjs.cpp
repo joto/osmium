@@ -157,7 +157,7 @@ int main(int argc, char* argv[]) {
                 } else if (!strcmp(optarg, "sparsetable")) {
                     location_store = SPARSETABLE;
                 } else {
-                    std::cerr << "Unknown location store: " << optarg << " (available are: 'none, 'array', 'disk' and 'sparsetable')" << std::endl;
+                    std::cerr << "Unknown location store: " << optarg << " (available are: 'none, 'array', 'disk', 'vector' and 'sparsetable')" << std::endl;
                     exit(1);
                 }
                 break;
