@@ -25,6 +25,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <fstream>
 #include <sstream>
 #include <cerrno>
+#include <stdint.h>
 #include <shapefil.h>
 #include <boost/utility.hpp>
 
@@ -46,7 +47,16 @@ namespace Osmium {
             static const unsigned int max_dbf_fields = 2047;
 
             // shape files with more than 2 GB don't work
-            static const unsigned int max_file_size = INT_MAX;
+            static const unsigned int max_file_size = 2147483647;
+
+            // size of a shape file header
+            static const size_t size_shapefile_header = 100;
+
+            // size of a DBF file header
+            static const size_t size_dbf_header = 33;
+
+            // size of a DBF field descriptor
+            static const size_t size_dbf_field_header = 32;
 
         private:
 
@@ -118,7 +128,7 @@ namespace Osmium {
                         throw std::runtime_error("Failed to add field:" + field.name());
                     }
                     m_fields.push_back(field);
-                    m_dbf_bytes += 32;
+                    m_dbf_bytes += size_dbf_field_header;
                     m_record_length += field.width();
                 } else {
                     throw std::out_of_range("Too many fields in the shapefile.");
@@ -316,7 +326,7 @@ namespace Osmium {
             /// number of bytes per DBF record
             unsigned int m_record_length;
 
-            /// number of bytes wriotten to SHP file
+            /// number of bytes written to SHP file
             unsigned int m_shp_bytes;
 
             /// number of bytes written to DBF file
@@ -363,62 +373,59 @@ namespace Osmium {
                     DBFAddField(m_dbf_handle, it->name().c_str(), it->type(), it->width(), it->decimals());
                 }
 
-                m_shp_bytes = 100;
-                m_dbf_bytes = 33 + 32 * (m_fields.size());
+                m_shp_bytes = size_shapefile_header;
+                m_dbf_bytes = size_dbf_header + size_dbf_field_header * (m_fields.size());
             }
 
             /**
              * Computes the number of bytes a shape will take up when saved to the .shp file.
              *
-             * @param shp_object A pointer to the shape object to be added. 
+             * @param shp_object A pointer to the shape object we want to size up.
              */
-            size_t length_on_disk(SHPObject *s) {
-                #define RECORD_HEADER 8
-                #define TYPE 4
-                #define NUMPTS 4
-                #define NUMPART 4
-                #define BOX 32
-                #define RANGE 32
-                #define COORD 8
-                #define PART 4
-                switch(s->nSHPType) {
-                    case SHPT_NULL:             return RECORD_HEADER + TYPE;
-                    case SHPT_POINT:            return RECORD_HEADER + TYPE + 2 * COORD;
-                    case SHPT_MULTIPOINT:       return RECORD_HEADER + TYPE + BOX + NUMPTS + 
-                                                    s->nVertices * 2 * COORD;
+            size_t length_on_disk(SHPObject* shp_object) const {
+                // sizes of various elements making up a shape record
+                const size_t size_record_header = 8;  // record header
+                const size_t size_type_field = 4;     // shape type identifier
+                const size_t size_num_points = 4;     // number of points
+                const size_t size_num_parts = 4;      // number of parts
+                const size_t size_box = 32;           // bounding box
+                const size_t size_range = 16;         // measurement or Z range
+                const size_t size_coordinate = 8;     // one coordinate
+                const size_t size_part_index = 4;     // pointer to shape part
+
+                switch(shp_object->nSHPType) {
+                    case SHPT_NULL:             return size_record_header + size_type_field;
+
+                    // standard shapes have 2-dimensional coordinates
+                    case SHPT_POINT:            return size_record_header + size_type_field + 2 * size_coordinate;
+                    case SHPT_MULTIPOINT:       return size_record_header + size_type_field + size_box + size_num_points + 
+                                                    shp_object->nVertices * 2 * size_coordinate;
                     case SHPT_ARC:              // like polygon
-                    case SHPT_POLYGON:          return RECORD_HEADER + TYPE + BOX + NUMPART + 
-                                                    s->nParts * PART + NUMPTS + s->nVertices * 2 * COORD;
+                    case SHPT_POLYGON:          return size_record_header + size_type_field + size_box + size_num_parts + 
+                                                    shp_object->nParts * size_part_index + size_num_points + shp_object->nVertices * 2 * size_coordinate;
 
-                    case SHPT_POINTM:           return RECORD_HEADER + TYPE + 3 * COORD;
-                    case SHPT_MULTIPOINTM:      return RECORD_HEADER + TYPE + BOX + RANGE + 
-                                                    NUMPTS + s->nVertices * 3 * COORD;
+                    // "M" shapes have 3-dimensional coordinates (x/y/measurement)
+                    case SHPT_POINTM:           return size_record_header + size_type_field + 3 * size_coordinate;
+                    case SHPT_MULTIPOINTM:      return size_record_header + size_type_field + size_box + size_range + 
+                                                    size_num_points + shp_object->nVertices * 3 * size_coordinate;
                     case SHPT_ARCM:             // like polygon
-                    case SHPT_POLYGONM:         return RECORD_HEADER + TYPE + BOX + RANGE + 
-                                                    NUMPART + s->nParts * PART + NUMPTS + s->nVertices * 3 * COORD;
+                    case SHPT_POLYGONM:         return size_record_header + size_type_field + size_box + size_range + 
+                                                    size_num_parts + shp_object->nParts * size_part_index + size_num_points + shp_object->nVertices * 3 * size_coordinate;
 
-                    case SHPT_POINTZ:           return RECORD_HEADER + TYPE + 4 * COORD;
-                    case SHPT_MULTIPOINTZ:      return RECORD_HEADER + TYPE + BOX + 2 * RANGE + 
-                                                    NUMPTS + s->nVertices * 4 * COORD;
+                    // "Z" shapes have 4-dimensional coordinates (x/y/z/measurement)
+                    case SHPT_POINTZ:           return size_record_header + size_type_field + 4 * size_coordinate;
+                    case SHPT_MULTIPOINTZ:      return size_record_header + size_type_field + size_box + 2 * size_range + 
+                                                    size_num_points + shp_object->nVertices * 4 * size_coordinate;
                     case SHPT_ARCZ:             // like polygon
-                    case SHPT_POLYGONZ:         return RECORD_HEADER + TYPE + BOX + 2 * RANGE + NUMPART + 
-                                                    s->nParts * PART + NUMPTS + s->nVertices * 4 * COORD;
+                    case SHPT_POLYGONZ:         return size_record_header + size_type_field + size_box + 2 * size_range + size_num_parts + 
+                                                    shp_object->nParts * size_part_index + size_num_points + shp_object->nVertices * 4 * size_coordinate;
 
-                    case SHPT_MULTIPATCH:       return RECORD_HEADER + TYPE + BOX + 2 * RANGE + NUMPART +
-                                                    s->nParts * 2 * PART + NUMPTS + s->nVertices * 4 * COORD;
+                    case SHPT_MULTIPATCH:       return size_record_header + size_type_field + size_box + 2 * size_range + size_num_parts +
+                                                    shp_object->nParts * 2 * size_part_index + size_num_points + shp_object->nVertices * 4 * size_coordinate;
                     default:
                         throw std::runtime_error("unrecognized shape type");
                 }
-                #undef RECORD_HEADER
-                #undef TYPE
-                #undef NUMPTS
-                #undef NUMPART
-                #undef BOX
-                #undef COORD
-                #undef RANGE
-                #undef PART
             }
-
 
         }; // class Shapefile
 
