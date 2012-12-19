@@ -235,7 +235,7 @@ int main(int argc, char* argv[]) {
     } else if (location_store == SPARSETABLE) {
         store_pos = new Osmium::Storage::ById::SparseTable<Osmium::OSM::Position>();
     } else if (location_store == VECTOR) {
-    	store_pos = new Osmium::Storage::ById::Vector<Osmium::OSM::Position>();
+        store_pos = new Osmium::Storage::ById::Vector<Osmium::OSM::Position>();
     }
     Osmium::Storage::ById::MmapFile<Osmium::OSM::Position> store_neg;
     Osmium::Javascript::Handler handler_javascript(include_files, javascript_filename.c_str());
