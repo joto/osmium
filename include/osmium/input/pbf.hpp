@@ -42,7 +42,7 @@ namespace Osmium {
         * Class for parsing PBF files.
         *
         * Generally you are not supposed to instantiate this class yourself.
-        * Instead create an OSMFile object and call its read() method.
+        * Use the Osmium::Input::read() function instead.
         *
         * @tparam THandler A handler class (subclass of Osmium::Handler::Base).
         */
