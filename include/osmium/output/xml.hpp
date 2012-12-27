@@ -117,7 +117,7 @@ namespace Osmium {
                 Osmium::OSM::WayNodeList::const_iterator end = way->nodes().end();
                 for (Osmium::OSM::WayNodeList::const_iterator it = way->nodes().begin(); it != end; ++it) {
                     check_for_error(xmlTextWriterStartElement(m_xml_writer, BAD_CAST "nd")); // <nd>
-                    check_for_error(xmlTextWriterWriteFormatAttribute(m_xml_writer, BAD_CAST "ref", "%d", it->ref()));
+                    check_for_error(xmlTextWriterWriteFormatAttribute(m_xml_writer, BAD_CAST "ref", "%ld", it->ref()));
                     check_for_error(xmlTextWriterEndElement(m_xml_writer)); // </nd>
                 }
 
@@ -139,7 +139,7 @@ namespace Osmium {
                     check_for_error(xmlTextWriterStartElement(m_xml_writer, BAD_CAST "member")); // <member>
 
                     check_for_error(xmlTextWriterWriteAttribute(m_xml_writer, BAD_CAST "type", BAD_CAST it->type_name()));
-                    check_for_error(xmlTextWriterWriteFormatAttribute(m_xml_writer, BAD_CAST "ref", "%d", it->ref()));
+                    check_for_error(xmlTextWriterWriteFormatAttribute(m_xml_writer, BAD_CAST "ref", "%ld", it->ref()));
                     check_for_error(xmlTextWriterWriteAttribute(m_xml_writer, BAD_CAST "role", BAD_CAST it->role()));
 
                     check_for_error(xmlTextWriterEndElement(m_xml_writer)); // </member>
@@ -166,7 +166,7 @@ namespace Osmium {
             char m_last_op;
 
             void write_meta(const shared_ptr<Osmium::OSM::Object const>& object) {
-                check_for_error(xmlTextWriterWriteFormatAttribute(m_xml_writer, BAD_CAST "id",      "%d", object->id()));
+                check_for_error(xmlTextWriterWriteFormatAttribute(m_xml_writer, BAD_CAST "id",      "%ld", object->id()));
                 if (object->version()) {
                     check_for_error(xmlTextWriterWriteFormatAttribute(m_xml_writer, BAD_CAST "version", "%d", object->version()));
                 }
