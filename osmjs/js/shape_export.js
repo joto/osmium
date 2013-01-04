@@ -9,7 +9,7 @@
 */
 
 var shp_pois = Osmium.Output.Shapefile.open('./pois', 'point');
-shp_pois.add_field('id', 'integer', 10);
+shp_pois.add_field('id', 'string', 12);
 shp_pois.add_field('type', 'string', 32);
 shp_pois.add_field('name', 'string', 32);
 

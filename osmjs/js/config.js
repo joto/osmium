@@ -15,7 +15,7 @@
 
 shapefile('natural_pois').
     type(POINT).
-    column('id', INTEGER, 10).
+    column('id', STRING, 12).
     column('type', STRING, 32).
     column('name', STRING, 32);
 
