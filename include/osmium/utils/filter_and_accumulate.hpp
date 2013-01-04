@@ -36,11 +36,11 @@ namespace Osmium {
      * @parameter binary_op Operation called when accumulating.
      */
     template <class TContainer, class TFilter, class TAccum, class TBinaryOp>
-    inline void filter_and_accumulate(TContainer& container, TFilter& filter, TAccum init, TBinaryOp binary_op) {
+    inline TAccum filter_and_accumulate(TContainer& container, TFilter& filter, const TAccum& init, TBinaryOp binary_op) {
         typename TFilter::iterator fi_begin(filter, container.begin(), container.end());
         typename TFilter::iterator fi_end(filter, container.end(), container.end());
 
-        std::accumulate(fi_begin, fi_end, init, binary_op);
+        return std::accumulate(fi_begin, fi_end, init, binary_op);
     }
 
 } // namespace Osmium

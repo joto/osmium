@@ -34,6 +34,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <numeric>
 #include <string>
 
+#include <boost/lexical_cast.hpp>
+
 #include <ogr_api.h>
 #include <ogrsf_frmts.h>
 
@@ -79,7 +81,7 @@ public:
         }
 
         // OGR can't create a table with hstore column, so we do it ourselves here
-        OGRLayer* dummy = m_data_source->ExecuteSQL("CREATE TABLE nodes (id BIGINT, tags hstore);", NULL, NULL);
+        OGRLayer* dummy = m_data_source->ExecuteSQL("CREATE TABLE nodes (id VARCHAR, tags hstore);", NULL, NULL);
         if (dummy) {
             m_data_source->ReleaseResultSet(dummy);
         }
@@ -94,7 +96,7 @@ public:
             exit(1);
         }
 
-        // using transactions make this much faster than without
+        // using transactions makes this much faster than without
         m_layer_point->StartTransaction();
 
         m_filter.add(false, "created_by");
@@ -108,9 +110,7 @@ public:
 
     void node(const shared_ptr<Osmium::OSM::Node const>& node) {
         if (!node->tags().empty()) {
-            std::string tags;
-
-            Osmium::filter_and_accumulate(node->tags(), m_filter, tags, m_tohstore);
+            std::string tags = Osmium::filter_and_accumulate(node->tags(), m_filter, std::string(), m_tohstore);
 
             if (!tags.empty()) {
                 try {
@@ -119,7 +119,7 @@ public:
                     OGRFeature* feature = OGRFeature::CreateFeature(m_layer_point->GetLayerDefn());
                     OGRPoint* ogrpoint = Osmium::Geometry::create_ogr_geometry(point);
                     feature->SetGeometry(ogrpoint);
-                    feature->SetField("id", static_cast<double>(node->id()));
+                    feature->SetField("id", boost::lexical_cast<std::string>(node->id()).c_str());
                     feature->SetField("tags", tags.c_str());
 
                     if (m_layer_point->CreateFeature(feature) != OGRERR_NONE) {
@@ -134,6 +134,10 @@ public:
                 }
             }
         }
+    }
+
+    void after_nodes() {
+        m_layer_point->CommitTransaction();
     }
 
 };
