@@ -96,9 +96,15 @@ namespace Osmium {
 
             struct js_cb {
                 v8::Handle<v8::Function> init;
+                v8::Handle<v8::Function> before_nodes;
                 v8::Handle<v8::Function> node;
+                v8::Handle<v8::Function> after_nodes;
+                v8::Handle<v8::Function> before_ways;
                 v8::Handle<v8::Function> way;
+                v8::Handle<v8::Function> after_ways;
+                v8::Handle<v8::Function> before_relations;
                 v8::Handle<v8::Function> relation;
+                v8::Handle<v8::Function> after_relations;
                 v8::Handle<v8::Function> area;
                 v8::Handle<v8::Function> end;
             } cb;
@@ -211,18 +217,46 @@ namespace Osmium {
                 if (cc->IsFunction()) {
                     cb.init = v8::Handle<v8::Function>::Cast(cc);
                 }
+
+                cc = callbacks_object->Get(v8::String::NewSymbol("before_nodes"));
+                if (cc->IsFunction()) {
+                    cb.before_nodes = v8::Handle<v8::Function>::Cast(cc);
+                }
                 cc = callbacks_object->Get(v8::String::NewSymbol("node"));
                 if (cc->IsFunction()) {
                     cb.node = v8::Handle<v8::Function>::Cast(cc);
+                }
+                cc = callbacks_object->Get(v8::String::NewSymbol("after_nodes"));
+                if (cc->IsFunction()) {
+                    cb.after_nodes = v8::Handle<v8::Function>::Cast(cc);
+                }
+
+                cc = callbacks_object->Get(v8::String::NewSymbol("before_ways"));
+                if (cc->IsFunction()) {
+                    cb.before_ways = v8::Handle<v8::Function>::Cast(cc);
                 }
                 cc = callbacks_object->Get(v8::String::NewSymbol("way"));
                 if (cc->IsFunction()) {
                     cb.way = v8::Handle<v8::Function>::Cast(cc);
                 }
+                cc = callbacks_object->Get(v8::String::NewSymbol("after_ways"));
+                if (cc->IsFunction()) {
+                    cb.after_ways = v8::Handle<v8::Function>::Cast(cc);
+                }
+
+                cc = callbacks_object->Get(v8::String::NewSymbol("before_relations"));
+                if (cc->IsFunction()) {
+                    cb.before_relations = v8::Handle<v8::Function>::Cast(cc);
+                }
                 cc = callbacks_object->Get(v8::String::NewSymbol("relation"));
                 if (cc->IsFunction()) {
                     cb.relation = v8::Handle<v8::Function>::Cast(cc);
                 }
+                cc = callbacks_object->Get(v8::String::NewSymbol("after_relations"));
+                if (cc->IsFunction()) {
+                    cb.after_relations = v8::Handle<v8::Function>::Cast(cc);
+                }
+
                 cc = callbacks_object->Get(v8::String::NewSymbol("area"));
                 if (cc->IsFunction()) {
                     cb.area = v8::Handle<v8::Function>::Cast(cc);
@@ -243,6 +277,13 @@ namespace Osmium {
                 }
             }
 
+            void before_nodes() {
+                if (!cb.before_nodes.IsEmpty()) {
+                    v8::HandleScope handle_scope;
+                    (void) cb.before_nodes->Call(cb.before_nodes, 0, 0);
+                }
+            }
+
             void node(const shared_ptr<Osmium::OSM::Node const>& node) {
                 if (!cb.node.IsEmpty()) {
                     v8::HandleScope handle_scope;
@@ -252,6 +293,20 @@ namespace Osmium {
 #ifdef OSMIUM_V8_FORCE_GC
                 while (!v8::V8::IdleNotification()) { };
 #endif // OSMIUM_V8_FORCE_GC
+            }
+
+            void after_nodes() {
+                if (!cb.after_nodes.IsEmpty()) {
+                    v8::HandleScope handle_scope;
+                    (void) cb.after_nodes->Call(cb.after_nodes, 0, 0);
+                }
+            }
+
+            void before_ways() {
+                if (!cb.before_ways.IsEmpty()) {
+                    v8::HandleScope handle_scope;
+                    (void) cb.before_ways->Call(cb.before_ways, 0, 0);
+                }
             }
 
             void way(const shared_ptr<Osmium::OSM::Way const>& way) {
@@ -265,6 +320,20 @@ namespace Osmium {
 #endif // OSMIUM_V8_FORCE_GC
             }
 
+            void after_ways() {
+                if (!cb.after_ways.IsEmpty()) {
+                    v8::HandleScope handle_scope;
+                    (void) cb.after_ways->Call(cb.after_ways, 0, 0);
+                }
+            }
+
+            void before_relations() {
+                if (!cb.before_relations.IsEmpty()) {
+                    v8::HandleScope handle_scope;
+                    (void) cb.before_relations->Call(cb.before_relations, 0, 0);
+                }
+            }
+
             void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
                 if (!cb.relation.IsEmpty()) {
                     v8::HandleScope handle_scope;
@@ -274,6 +343,13 @@ namespace Osmium {
 #ifdef OSMIUM_V8_FORCE_GC
                 while (!v8::V8::IdleNotification()) { };
 #endif // OSMIUM_V8_FORCE_GC
+            }
+
+            void after_relations() {
+                if (!cb.after_relations.IsEmpty()) {
+                    v8::HandleScope handle_scope;
+                    (void) cb.after_relations->Call(cb.after_relations, 0, 0);
+                }
             }
 
             void area(const shared_ptr<Osmium::OSM::Area const>& area) {
