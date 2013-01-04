@@ -93,22 +93,22 @@ The following callbacks can be defined:
     Osmium.Callbacks.before_relations
     Osmium.Callbacks.relation
     Osmium.Callbacks.after_relations
-    Osmium.Callbacks.multipolygon
+    Osmium.Callbacks.area
     Osmium.Callbacks.end
 
 If the --2pass/-2 option is *not* given, the callbacks are called in the
 following order: init, before_nodes, node (for each node), after_nodes,
 before_ways, way (for each way), after_ways, before_relations, relation (for
-each relation), after_relations, end. The 'multipolygon' callback is never
+each relation), after_relations, end. The 'area' callback is never
 called!
 
 If the --2pass/-2 option is given, the callbacks are called in the following
-order: init, before_relations, relation (for each relation), after_relations,
-before_nodes, node (for each node), after_nodes, before_ways, way (for each
-way) / multipolygon (for each completed multipolygon), after_ways, end. The
-way and multipolygon callbacks can come in any order.
+order: init, before_nodes, node (for each node), after_nodes, before_ways,
+way (for each way) / area (for each completed multipolygon), after_ways,
+before_relations, relation (for each relation), after_relations, end. The
+way and area callbacks can come in any order.
 
-The 'node', 'way', 'relation' and 'multipolygon' callbacks will be called
+The 'node', 'way', 'relation' and 'area' callbacks will be called
 with an OSM object as 'this'.
 
 Objects have the following attributes: id, version, timestamp, uid, user,
