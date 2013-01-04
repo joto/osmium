@@ -55,10 +55,10 @@ public:
     MyShapeHandler() {
         handler_cfw = new cfw_handler_t(store_pos, store_neg);
         shapefile_point = new Osmium::Export::PointShapefile("postboxes");
-        shapefile_point->add_field("id", FTInteger, 10);
+        shapefile_point->add_field("id", FTDouble, 12);
         shapefile_point->add_field("operator", FTString, 30);
         shapefile_linestring = new Osmium::Export::LineStringShapefile("roads");
-        shapefile_linestring->add_field("id", FTInteger, 10);
+        shapefile_linestring->add_field("id", FTDouble, 12);
         shapefile_linestring->add_field("type", FTString, 30);
     }
 
@@ -78,7 +78,7 @@ public:
             try {
                 Osmium::Geometry::Point point(*node);
                 shapefile_point->add_geometry(Osmium::Geometry::create_shp_object(point));
-                shapefile_point->add_attribute(0, node->id());
+                shapefile_point->add_attribute(0, static_cast<double>(node->id()));
                 const char* op = node->tags().get_value_by_key("operator");
                 if (op) {
                     shapefile_point->add_attribute_with_truncate(1, std::string(op));
@@ -100,7 +100,7 @@ public:
             try {
                 Osmium::Geometry::LineString linestring(*way);
                 shapefile_linestring->add_geometry(Osmium::Geometry::create_shp_object(linestring));
-                shapefile_linestring->add_attribute(0, way->id());
+                shapefile_linestring->add_attribute(0, static_cast<double>(way->id()));
                 shapefile_linestring->add_attribute_with_truncate(1, std::string(highway));
             } catch (Osmium::Geometry::IllegalGeometry) {
                 std::cerr << "Ignoring illegal geometry for way " << way->id() << ".\n";

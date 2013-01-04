@@ -103,7 +103,8 @@ public:
                 OGRFeature* feature = OGRFeature::CreateFeature(m_layer_mp->GetLayerDefn());
                 OGRMultiPolygon* ogrmp = Osmium::Geometry::create_ogr_geometry(mp);
                 feature->SetGeometry(ogrmp);
-                feature->SetField("id", area->id());
+                // there are not so many multipolygon relations, so these ids will still fit into a 32bit int
+                feature->SetField("id", static_cast<int>(area->id()));
 
                 if (m_layer_mp->CreateFeature(feature) != OGRERR_NONE) {
                     std::cerr << "Failed to create feature.\n";

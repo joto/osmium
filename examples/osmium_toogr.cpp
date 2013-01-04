@@ -85,7 +85,7 @@ public:
             exit(1);
         }
 
-        OGRFieldDefn layer_point_field_id("id", OFTInteger);
+        OGRFieldDefn layer_point_field_id("id", OFTReal);
         layer_point_field_id.SetWidth(10);
 
         if (m_layer_point->CreateField(&layer_point_field_id) != OGRERR_NONE) {
@@ -111,7 +111,7 @@ public:
             exit(1);
         }
 
-        OGRFieldDefn layer_linestring_field_id("id", OFTInteger);
+        OGRFieldDefn layer_linestring_field_id("id", OFTReal);
         layer_linestring_field_id.SetWidth(10);
 
         if (m_layer_linestring->CreateField(&layer_linestring_field_id) != OGRERR_NONE) {
@@ -150,7 +150,7 @@ public:
                 OGRFeature* feature = OGRFeature::CreateFeature(m_layer_point->GetLayerDefn());
                 OGRPoint* ogrpoint = Osmium::Geometry::create_ogr_geometry(point);
                 feature->SetGeometry(ogrpoint);
-                feature->SetField("id", node->id());
+                feature->SetField("id", static_cast<double>(node->id()));
                 feature->SetField("operator", node->tags().get_value_by_key("operator"));
 
                 if (m_layer_point->CreateFeature(feature) != OGRERR_NONE) {
@@ -186,7 +186,7 @@ public:
                 OGRFeature* feature = OGRFeature::CreateFeature(m_layer_linestring->GetLayerDefn());
                 OGRLineString* ogrlinestring = Osmium::Geometry::create_ogr_geometry(linestring);
                 feature->SetGeometry(ogrlinestring);
-                feature->SetField("id", way->id());
+                feature->SetField("id", static_cast<double>(way->id()));
                 feature->SetField("type", highway);
 
                 if (m_layer_linestring->CreateFeature(feature) != OGRERR_NONE) {

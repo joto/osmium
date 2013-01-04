@@ -79,10 +79,20 @@ public:
         }
 
         // OGR can't create a table with hstore column, so we do it ourselves here
-        m_data_source->ExecuteSQL("CREATE TABLE nodes (id BIGINT, tags hstore);", NULL, NULL);
-        m_data_source->ExecuteSQL("SELECT AddGeometryColumn('nodes', 'geom', 4326, 'POINT', 2);", NULL, NULL);
+        OGRLayer* dummy = m_data_source->ExecuteSQL("CREATE TABLE nodes (id BIGINT, tags hstore);", NULL, NULL);
+        if (dummy) {
+            m_data_source->ReleaseResultSet(dummy);
+        }
+        dummy = m_data_source->ExecuteSQL("SELECT AddGeometryColumn('nodes', 'geom', 4326, 'POINT', 2);", NULL, NULL);
+        if (dummy) {
+            m_data_source->ReleaseResultSet(dummy);
+        }
 
         m_layer_point = m_data_source->GetLayerByName("nodes");
+        if (!m_layer_point) {
+            std::cerr << "Something went wrong setting up the 'nodes' layer.\n";
+            exit(1);
+        }
 
         // using transactions make this much faster than without
         m_layer_point->StartTransaction();
@@ -109,7 +119,7 @@ public:
                     OGRFeature* feature = OGRFeature::CreateFeature(m_layer_point->GetLayerDefn());
                     OGRPoint* ogrpoint = Osmium::Geometry::create_ogr_geometry(point);
                     feature->SetGeometry(ogrpoint);
-                    feature->SetField("id", node->id());
+                    feature->SetField("id", static_cast<double>(node->id()));
                     feature->SetField("tags", tags.c_str());
 
                     if (m_layer_point->CreateFeature(feature) != OGRERR_NONE) {

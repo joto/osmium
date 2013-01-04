@@ -35,7 +35,7 @@ enum osm_object_type_t {
 /*
 * The following typedefs are chosen so that they can represent all needed
 * numbers and still be reasonably space efficient. As the %OSM database is
-* growing rapidly, 64 bit IDs will be needed at some point!
+* growing rapidly, 64 bit IDs are used.
 */
 typedef int64_t  osm_object_id_t;    ///< type for %OSM object (node, way, or relation) IDs
 typedef uint32_t osm_version_t;      ///< type for %OSM object version number
