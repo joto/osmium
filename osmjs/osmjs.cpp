@@ -66,6 +66,7 @@ void print_help() {
 
 std::string find_include_file(std::string filename) {
     std::vector<std::string> search_path;
+    search_path.push_back("/");
     search_path.push_back(".");
     search_path.push_back("js");
     search_path.push_back(std::string(getenv("HOME")) + "/.osmjs");
