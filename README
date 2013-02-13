@@ -50,7 +50,7 @@ libsqlite3 (for some applications only)
     http://sqlite.org/
     Debian/Ubuntu: libsqlite3-dev
 
-libgd (for tagstats and nodedensity applications only)
+libgd (for nodedensity example only)
     http://www.libgd.org/
     Debian/Ubuntu: libgd2-xpm-dev
 
@@ -64,7 +64,7 @@ Expat (for parsing XML files)
 
 GEOS (for assembling multipolygons etc.)
     http://trac.osgeo.org/geos/
-    Debian/Ubuntu: libgeos-dev, newer versions also libgeos++-dev
+    Debian/Ubuntu: libgeos++-dev
 
 Google sparsehash
     http://code.google.com/p/google-sparsehash/
@@ -93,7 +93,7 @@ libboost-test (for tests)
 
 OSMPBF (for PBF support)
     https://github.com/scrosby/OSM-binary
-    You need to build this first.
+    Debian/Ubuntu: libosmpbf-dev
 
 You need to either install the Debian/Ubuntu packages (or equivalent for other
 distributions) or install those libraries from source. Most libraries should be
