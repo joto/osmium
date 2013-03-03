@@ -151,7 +151,7 @@ Do not give any suffix for the filename. The suffixes '.shp', '.shx', and
 
 Define a shapefile named "example" with point geometries:
     var shp = Osmium.Output.Shapefile.open("example", "point");
-    shp.add_field("id", "integer", 10);
+    shp.add_field("id", "string", 12);
     shp.add_field("name", "string", 40);
 
 Field types are integer, string, double, and bool. Bools are always of length
@@ -182,7 +182,7 @@ You can define shapefiles like this:
 
     shapefile('pois').
         type(POINT).
-        column('id', INTEGER, 10).
+        column('id', STRING, 12).
         column('type', STRING, 32).
         column('name', STRING, 32);
 
