@@ -30,10 +30,11 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <osmium/osm/node.hpp>
 #include <osmium/osm/way.hpp>
 #include <osmium/osm/relation.hpp>
-#include <osmium/osm/area.hpp>
 
 namespace Osmium {
-
+    namespace OSM {
+       class Area;
+    }  // namespace OSM
     /**
      * @brief Handlers operate on %OSM data through callbacks.
      *
