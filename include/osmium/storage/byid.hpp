@@ -68,7 +68,7 @@ namespace Osmium {
                 virtual void set(const uint64_t id, const TValue value) = 0;
 
                 /// Retrieve value by key. Does not check for overflow or empty fields.
-                virtual const TValue& operator[](const uint64_t id) const = 0;
+                virtual const TValue operator[](const uint64_t id) const = 0;
 
                 /**
                 * Get the approximate number of items in the storage. The storage

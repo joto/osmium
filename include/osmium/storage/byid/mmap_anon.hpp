@@ -89,7 +89,7 @@ namespace Osmium {
                     m_items[id] = value;
                 }
 
-                const TValue& operator[](const uint64_t id) const {
+                const TValue operator[](const uint64_t id) const {
                     return m_items[id];
                 }
 

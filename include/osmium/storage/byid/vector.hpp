@@ -82,7 +82,7 @@ namespace Osmium {
                     m_items.push_back(item_t(id, value));
                 }
 
-                const TValue& operator[](const uint64_t id) const {
+                const TValue operator[](const uint64_t id) const {
                     const item_t item(id);
                     const item_vector_it_t result = std::lower_bound(m_items.begin(), m_items.end(), item);
                     if (result == m_items.end() || *result != item) {
