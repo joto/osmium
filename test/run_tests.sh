@@ -29,8 +29,8 @@ test_file () {
     eval CFLAGS=`../get_options.sh --cflags $FILES`
     eval LIBS=`../get_options.sh --libs $FILES`
     echo "Checking $BOLD$1$NORM..."
-    echo $COMPILE $FILES $CFLAGS $LIBS -lboost_unit_test_framework
-    $COMPILE $FILES $CFLAGS $LIBS -lboost_unit_test_framework
+    echo $COMPILE $FILES $CFLAGS $LIBS -DBOOST_TEST_DYN_LINK -lboost_unit_test_framework
+    $COMPILE $FILES $CFLAGS $LIBS -DBOOST_TEST_DYN_LINK -lboost_unit_test_framework
     $VALGRIND ./tests
 }
 
