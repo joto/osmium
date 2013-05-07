@@ -664,7 +664,8 @@ namespace Osmium {
              * used so they are not used again.
              */
             void make_rings(std::vector< shared_ptr<WayInfo> >& ways) {
-                while (make_one_ring(ways));
+                while (make_one_ring(ways)) {
+                };
 
                 if (m_ringlist.empty()) {
                     // FIXME throw NoRings("no rings");
@@ -676,7 +677,8 @@ namespace Osmium {
 
                 // re-run ring building, taking into account the newly created "repair" bits.
                 // (in case there were no dangling bits, make_one_ring terminates quickly.)
-                while (make_one_ring(ways));
+                while (make_one_ring(ways)) {
+                };
 
                 if (m_ringlist.empty()) {
                     throw NoRings("no rings");

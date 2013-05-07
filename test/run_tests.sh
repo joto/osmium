@@ -11,7 +11,7 @@
 set -e
 
 CXX="g++"
-CXXFLAGS="-g -Wall -Wextra -Wredundant-decls -Wdisabled-optimization -pedantic -Wctor-dtor-privacy -Wnon-virtual-dtor -Woverloaded-virtual -Wsign-promo"
+CXXFLAGS="-g -Wall -Wextra -Wredundant-decls -Wdisabled-optimization -pedantic -Wctor-dtor-privacy -Wnon-virtual-dtor -Woverloaded-virtual -Wsign-promo -Wno-long-long"
 COMPILE="$CXX -I../include -I. $CXXFLAGS -o tests"
 
 if [ "x$1" = "x-v" ]; then
