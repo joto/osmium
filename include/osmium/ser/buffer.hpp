@@ -43,8 +43,20 @@ namespace Osmium {
             ~Buffer() {
             }
 
-            size_t size() const {
+            void* ptr() const {
+                return m_data;
+            }
+
+            size_t pos() const {
                 return m_pos;
+            }
+
+            size_t size() const {
+                return m_size;
+            }
+
+            void clear() {
+                m_pos = 0;
             }
 
             /**
@@ -139,10 +151,10 @@ namespace Osmium {
             }
 
             void add_tag(const char* key, const char* value) {
-                size_t old_size = m_buffer.size();
+                size_t old_size = m_buffer.pos();
                 m_buffer.append(key);
                 m_buffer.append(value);
-                add_size(m_buffer.size() - old_size);
+                add_size(m_buffer.pos() - old_size);
             }
 
             // unfortunately we can't do this in the destructor, because

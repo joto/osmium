@@ -42,6 +42,8 @@ PROGRAMS = \
     osmium_range_from_history \
     osmium_relation_members \
     osmium_sizeof \
+    osmium_serdebug \
+    osmium_serdump \
     osmium_store_and_debug \
     osmium_time \
     osmium_toogr \
@@ -77,6 +79,12 @@ osmium_relation_members: osmium_relation_members.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS)
 
 osmium_sizeof: osmium_sizeof.cpp
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS)
+
+osmium_serdebug: osmium_serdebug.cpp
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS)
+
+osmium_serdump: osmium_serdump.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS)
 
 osmium_store_and_debug: osmium_store_and_debug.cpp

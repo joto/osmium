@@ -204,12 +204,12 @@ namespace Osmium {
 
             void feed(THandler& handler) {
                 while (m_offset < m_data.size()) {
-                    hexDump("item", &m_data[m_offset], 120);
+//                    hexDump("item", &m_data[m_offset], 120);
                     const length_t length = *reinterpret_cast<const length_t*>(&m_data[m_offset]);
                     const Osmium::Ser::Item* item = reinterpret_cast<const Osmium::Ser::Item*>(&m_data[m_offset+sizeof(length_t)]);
                     if (item->type == 'n') {
                         const Osmium::Ser::Node* node_item = reinterpret_cast<const Osmium::Ser::Node*>(item);
-                        std::cout << "found node (length=" << length << ")\n";
+ //                       std::cout << "found node (length=" << length << ")\n";
                         shared_ptr<Osmium::OSM::Node> node = make_shared<Osmium::OSM::Node>();
                         node->id(node_item->id);
                         node->version(node_item->version);
@@ -225,7 +225,7 @@ namespace Osmium {
 
                         handler.node(node);
 
-                        std::cout << "node end\n";
+//                        std::cout << "node end\n";
                     } else {
                         std::cout << "found something else (length=" << length << ")\n";
                     }
