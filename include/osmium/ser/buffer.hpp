@@ -26,6 +26,8 @@ namespace Osmium {
 
     namespace Ser {
 
+        typedef uint64_t length_t;
+
         /**
          * Buffer for serialized OSM objects. Is initialized with memory pointer and size.
          * Future versions of this might be initialized based on a file to mmap, resize
@@ -80,7 +82,131 @@ namespace Osmium {
             size_t m_size;
             size_t m_pos;
 
+        }; // class Buffer
+
+        class Builder {
+
+        public:
+
+            Builder(Buffer& buffer, Builder* parent) : m_buffer(buffer), m_parent(parent) {
+                m_size = reinterpret_cast<length_t*>(buffer.get_space(sizeof(length_t)));
+                if (m_parent) {
+                    m_parent->add_size(sizeof(length_t));
+                }
+            }
+
+            virtual add_size(length_t size) {
+                *m_size += size;
+                if (m_parent) {
+                    m_parent->add_size(size);
+                }
+            }
+
+            length_t size() const {
+                return *m_size;
+            }
+
+            static const int pad_bytes = 8;
+
+            /**
+             * Add padding if needed.
+             *
+             * Adds size to parent, but not to self!
+             */
+            void add_padding() {
+                length_t mod = size() % pad_bytes;
+                if (mod != 0) {
+                    m_buffer.get_space(8-mod);
+                    if (m_parent) {
+                        m_parent->add_size(8-mod);
+                    }
+                }
+            }
+
+        protected:
+
+            Buffer& m_buffer;
+            Builder* m_parent;
+            length_t* m_size;
+
+        }; // Builder
+
+        class TagListBuilder : public Builder {
+
+        public:
+
+            TagListBuilder(Buffer& buffer, Builder* parent=NULL) : Builder(buffer, parent) {
+            }
+
+            void add_tag(const char* key, const char* value) {
+                size_t old_size = m_buffer.size();
+                m_buffer.append(key);
+                m_buffer.append(value);
+                add_size(m_buffer.size() - old_size);
+            }
+
+            // unfortunately we can't do this in the destructor, because
+            // the destructor is not allowed to fail and this might fail
+            // if the buffer is full.
+            // XXX maybe we can do something clever here?
+            void done() {
+                add_padding();
+            }
+
+        }; // class TagListBuilder
+
+        // serialized form of OSM node
+        class Node {
+        public:
+
+            // same as Item from here...
+            uint64_t offset;
+            char type;
+            char padding[7];
+            // ...to here
+
+            uint64_t id;
+            uint64_t version;
+            uint32_t timestamp;
+            uint32_t uid;
+            uint64_t changeset;
+            Osmium::OSM::Position pos;
         };
+
+        class NodeBuilder : public Builder {
+
+        public:
+
+            NodeBuilder(Buffer& buffer, Builder* parent=NULL) : Builder(buffer, parent) {
+                m_node = reinterpret_cast<Node*>(buffer.get_space(sizeof(Node)));
+                add_size(sizeof(Node));
+                m_node->type = 'n';
+            }
+
+            Node& node() {
+                return *m_node;
+            }
+
+            Node* m_node;
+
+        }; // class NodeBuilder
+
+#if 0
+        class WayBuilder {
+
+        public:
+
+            WayBuilder() {
+            }
+
+            add_tag_list() {
+            }
+
+            add_node_list() {
+            }
+
+        }; // class WayBuilder
+#endif
 
     } // namespace Ser
 

@@ -89,29 +89,9 @@ namespace Osmium {
         // all items that are serialized start with this header
         class Item {
         public:
-            uint64_t length;
             uint64_t offset;
             char type;
             char padding[7];
-        };
-
-        // serialized form of OSM node
-        class Node {
-        public:
-
-            // same as Item from here...
-            uint64_t length;
-            uint64_t offset;
-            char type;
-            char padding[7];
-            // ...to here
-
-            uint64_t id;
-            uint64_t version;
-            uint32_t timestamp;
-            uint32_t uid;
-            uint64_t changeset;
-            Osmium::OSM::Position pos;
         };
 
         /**
@@ -157,7 +137,7 @@ namespace Osmium {
 
         public:
 
-            TagList(const char* buffer) : m_buffer(buffer+4), m_size(*reinterpret_cast<const uint32_t*>(buffer)) {
+            TagList(const char* buffer) : m_buffer(buffer+sizeof(length_t)), m_size(*reinterpret_cast<const length_t*>(buffer)) {
             }
 
             TagListIter begin() {
@@ -185,40 +165,24 @@ namespace Osmium {
             Serializer(Osmium::Ser::Buffer& data) : m_data(data) {
             }
 
-            uint64_t add_tag(const Osmium::OSM::Tag& tag) {
-                uint64_t old_size = m_data.size();
-                m_data.append(tag.key()).append(tag.value());
-                return m_data.size() - old_size;
-            }
+            void add_node(const Osmium::OSM::Node& node) {
+                Osmium::Ser::NodeBuilder nb(m_data);
 
-            uint64_t add_tags(const Osmium::OSM::TagList& tags) {
-                uint32_t size = 0;
+                Osmium::Ser::Node& sn = nb.node();
+                sn.offset    = 0;
+                sn.id        = node.id();
+                sn.version   = node.version();
+                sn.timestamp = node.timestamp();
+                sn.uid       = node.uid();
+                sn.changeset = node.changeset();
+                sn.pos       = node.position();
 
-                void* x = m_data.get_space(4);
-                BOOST_FOREACH(const Osmium::OSM::Tag& tag, tags) {
-                    size += add_tag(tag);
+                Osmium::Ser::TagListBuilder tags(m_data, &nb);
+                BOOST_FOREACH(const Osmium::OSM::Tag& tag, node.tags()) {
+                    tags.add_tag(tag.key(), tag.value());
                 }
-                memcpy(x, &size, 4);
+                tags.done();
 
-                return size + 4;
-            }
-
-            uint64_t add_node(const Osmium::OSM::Node& node) {
-                Osmium::Ser::Node* sn = reinterpret_cast<Osmium::Ser::Node*>(m_data.get_space(sizeof(Osmium::Ser::Node)));
-                sn->offset = 0;
-                sn->type = 'n';
-                sn->id = node.id();
-                sn->version = node.version();
-                sn->timestamp = node.timestamp();
-                sn->uid = node.uid();
-                sn->changeset = node.changeset();
-                sn->pos = node.position();
-
-                uint64_t tags_size = add_tags(node.tags());
-                sn->length = sizeof(Osmium::Ser::Node) + tags_size;
-                std::cout << "size: " << sizeof(Osmium::Ser::Node) << " " << tags_size << " " << sn->length << "\n";
-
-                return sn->length;
             }
 
         private:
@@ -240,11 +204,12 @@ namespace Osmium {
 
             void feed(THandler& handler) {
                 while (m_offset < m_data.size()) {
-                    hexDump("item", &m_data[m_offset], 90);
-                    const Osmium::Ser::Item* item = reinterpret_cast<const Osmium::Ser::Item*>(&m_data[m_offset]);
+                    hexDump("item", &m_data[m_offset], 120);
+                    const length_t length = *reinterpret_cast<const length_t*>(&m_data[m_offset]);
+                    const Osmium::Ser::Item* item = reinterpret_cast<const Osmium::Ser::Item*>(&m_data[m_offset+sizeof(length_t)]);
                     if (item->type == 'n') {
                         const Osmium::Ser::Node* node_item = reinterpret_cast<const Osmium::Ser::Node*>(item);
-                        std::cout << "found node " << node_item->length << "\n";
+                        std::cout << "found node (length=" << length << ")\n";
                         shared_ptr<Osmium::OSM::Node> node = make_shared<Osmium::OSM::Node>();
                         node->id(node_item->id);
                         node->version(node_item->version);
@@ -252,7 +217,7 @@ namespace Osmium {
                         node->timestamp(node_item->timestamp);
                         node->position(node_item->pos);
 
-                        Osmium::Ser::TagList tags(&m_data[m_offset+sizeof(Osmium::Ser::Node)]);
+                        Osmium::Ser::TagList tags(&m_data[m_offset+sizeof(length_t)+sizeof(Osmium::Ser::Node)]);
                         for (Osmium::Ser::TagListIter it = tags.begin(); it != tags.end(); ++it) {
                             const std::pair<const char*, const char*>& kv = *it;
                             node->tags().add(kv.first, kv.second);
@@ -262,9 +227,9 @@ namespace Osmium {
 
                         std::cout << "node end\n";
                     } else {
-                        std::cout << "found something else\n";
+                        std::cout << "found something else (length=" << length << ")\n";
                     }
-                    m_offset += item->length;
+                    m_offset += sizeof(length_t) + length;
                 }
             }
 
