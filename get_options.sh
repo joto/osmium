@@ -15,6 +15,6 @@ else
 fi
 
 (for input in $*; do
-    cpp -x c++ -dD $input 2>/dev/null | grep $macro | cut -d' ' -f3-
+    cpp -xc++ -dD -E -Iinclude -I../include $input 2>/dev/null | grep $macro | cut -d' ' -f3-
 done) | sort -u | xargs echo
 
