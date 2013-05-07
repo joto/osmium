@@ -724,7 +724,7 @@ namespace Osmium {
                             pbf_relation->add_types(OSMPBF::Relation::RELATION);
                             break;
                         default:
-                            throw std::runtime_error("Unknown relation member type: " + mem->type());
+                            throw std::runtime_error("Unknown relation member type");
                     }
                 }
 
