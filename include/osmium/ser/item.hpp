@@ -257,22 +257,17 @@ namespace Osmium {
                         way->uid(way_item->uid);
                         way->changeset(way_item->changeset);
                         way->timestamp(way_item->timestamp);
+                        way->user(way_item->user());
 
-                        const char* pos = &m_data[m_offset + sizeof(length_t) + sizeof(Osmium::Ser::Way)];
-                        size_t username_length = *reinterpret_cast<const length_t*>(pos);
-                        way->user(pos + sizeof(length_t));
-                        size_t length_plus_padding = (username_length % 8 == 0) ? username_length : ((username_length | 7 ) + 1);
-                        const char* pos2 = pos + sizeof(length_t) + length_plus_padding;
-
-                        Osmium::Ser::TagList tags(pos2);
+                        Osmium::Ser::TagList tags(way_item->tags_position());
                         for (Osmium::Ser::TagListIter it = tags.begin(); it != tags.end(); ++it) {
                             const std::pair<const char*, const char*>& kv = *it;
                             way->tags().add(kv.first, kv.second);
                         }
 
-                        size_t tags_length = *reinterpret_cast<const length_t*>(pos2);
+                        size_t tags_length = *reinterpret_cast<const length_t*>(way_item->tags_position());
                         size_t tags_length_plus_padding = (tags_length % 8 == 0) ? tags_length : ((tags_length | 7 ) + 1);
-                        const char* pos3 = pos2 + sizeof(length_t) + tags_length_plus_padding;
+                        const char* pos3 = way_item->tags_position() + sizeof(length_t) + tags_length_plus_padding;
                         Osmium::Ser::NodeList nodes(pos3);
                         for (Osmium::Ser::NodeListIter it = nodes.begin(); it != nodes.end(); ++it) {
                             way->nodes().add(*it);
@@ -287,14 +282,9 @@ namespace Osmium {
                         relation->uid(relation_item->uid);
                         relation->changeset(relation_item->changeset);
                         relation->timestamp(relation_item->timestamp);
+                        relation->user(relation_item->user());
 
-                        const char* pos = &m_data[m_offset + sizeof(length_t) + sizeof(Osmium::Ser::Relation)];
-                        size_t username_length = *reinterpret_cast<const length_t*>(pos);
-                        relation->user(pos + sizeof(length_t));
-                        size_t length_plus_padding = (username_length % 8 == 0) ? username_length : ((username_length | 7 ) + 1);
-                        const char* pos2 = pos + sizeof(length_t) + length_plus_padding;
-
-                        Osmium::Ser::TagList tags(pos2);
+                        Osmium::Ser::TagList tags(relation_item->tags_position());
                         for (Osmium::Ser::TagListIter it = tags.begin(); it != tags.end(); ++it) {
                             const std::pair<const char*, const char*>& kv = *it;
                             relation->tags().add(kv.first, kv.second);

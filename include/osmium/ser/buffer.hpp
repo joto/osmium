@@ -308,7 +308,7 @@ namespace Osmium {
         };
 
         // serialized form of OSM object
-        class Object {
+        class Object : public BufferItem {
         public:
 
             // same as Item from here...
@@ -322,6 +322,19 @@ namespace Osmium {
             uint32_t timestamp;
             uint32_t uid;
             uint64_t changeset;
+
+            const char* const user() const {
+                return get_ptr(sizeof(Object) + sizeof(length_t));
+            }
+
+            length_t user_length() const {
+                return *reinterpret_cast<const length_t*>(get_ptr(sizeof(Object)));
+            }
+
+            const char* tags_position() const {
+                return get_ptr(sizeof(Object) + sizeof(length_t) + padded_length(user_length()));
+            }
+
         };
 
         class Way : public Object {
