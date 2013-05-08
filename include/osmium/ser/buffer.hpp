@@ -255,6 +255,7 @@ namespace Osmium {
 
         // serialized form of OSM node
         class Node {
+
         public:
 
             // same as Item from here...
@@ -269,6 +270,23 @@ namespace Osmium {
             uint32_t uid;
             uint64_t changeset;
             Osmium::OSM::Position pos;
+
+            const char* const user() const {
+                return reinterpret_cast<const char* const>(this) + sizeof(Node) + sizeof(length_t);
+            }
+
+            length_t user_length() const {
+                return *reinterpret_cast<const length_t*>(reinterpret_cast<const char* const>(this) + sizeof(Node));
+            }
+
+            length_t padded_length(length_t length) const {
+                return (length % 8 == 0) ? length : ((length | 7 ) + 1);
+            }
+
+            const void* tags_position() const {
+                return reinterpret_cast<const void* const>(this) + sizeof(Node) + sizeof(length_t) + padded_length(user_length());
+            }
+
         };
 
         // serialized form of OSM object

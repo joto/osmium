@@ -243,11 +243,17 @@ namespace Osmium {
 
                         const char* pos = &m_data[m_offset + sizeof(length_t) + sizeof(Osmium::Ser::Node)];
                         size_t username_length = *reinterpret_cast<const length_t*>(pos);
-                        node->user(pos + sizeof(length_t));
+                        assert(pos + sizeof(length_t) == node_item->user());
+                        //node->user(pos + sizeof(length_t));
+                        node->user(node_item->user());
                         size_t length_plus_padding = (username_length % 8 == 0) ? username_length : ((username_length | 7 ) + 1);
+                        assert(length_plus_padding == node_item->padded_length(node_item->user_length()));
                         const char* pos2 = pos + sizeof(length_t) + length_plus_padding;
 
-                        Osmium::Ser::TagList tags(pos2);
+                        //Osmium::Ser::TagList tags(pos2);
+                        const char* pos_tags = static_cast<const char*>(node_item->tags_position());
+                        assert(pos2==pos_tags);
+                        Osmium::Ser::TagList tags(pos_tags);
                         for (Osmium::Ser::TagListIter it = tags.begin(); it != tags.end(); ++it) {
                             const std::pair<const char*, const char*>& kv = *it;
                             node->tags().add(kv.first, kv.second);
