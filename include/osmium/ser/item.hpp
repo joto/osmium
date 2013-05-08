@@ -86,66 +86,6 @@ namespace Osmium {
     /* namespace for code related to serializing osm objects */
     namespace Ser {
 
-        /**
-         * Iterator to iterate over tags in a NodeList
-         */
-        class NodeListIter {
-
-        public:
-
-            NodeListIter(const char* start, const char* end) : m_start(start), m_end(end) {
-            }
-
-            NodeListIter& operator++() {
-                m_start += sizeof(uint64_t);
-                return *this;
-            }
-
-            NodeListIter operator++(int) {
-                NodeListIter tmp(*this);
-                operator++();
-                return tmp;
-            }
-
-            bool operator==(const NodeListIter& rhs) {return m_start==rhs.m_start;}
-            bool operator!=(const NodeListIter& rhs) {return m_start!=rhs.m_start;}
-
-            uint64_t operator*() {
-                return *reinterpret_cast<const uint64_t*>(m_start);
-            }
-            
-        private:
-
-            const char* m_start;
-            const char* m_end;
-
-        }; // class NodeListIter
-
-        /**
-         * List of nodes in a buffer.
-         */
-        class NodeList {
-
-        public:
-
-            NodeList(const char* buffer) : m_buffer(buffer+sizeof(length_t)), m_size(*reinterpret_cast<const length_t*>(buffer)) {
-            }
-
-            NodeListIter begin() {
-                return NodeListIter(m_buffer, m_buffer + m_size);
-            }
-
-            NodeListIter end() {
-                return NodeListIter(m_buffer + m_size, m_buffer + m_size);
-            }
-
-        private:
-
-            const char* m_buffer;
-            int32_t m_size;
-
-        }; // class NodeList
-
         template <class THandler>
         class Deserializer {
 
@@ -194,8 +134,8 @@ namespace Osmium {
                             way->tags().add(it->key(), it->value());
                         }
 
-                        Osmium::Ser::NodeList nodes(way_item->members_position());
-                        for (Osmium::Ser::NodeListIter it = nodes.begin(); it != nodes.end(); ++it) {
+                        Osmium::Ser::Nodes nodes(*way_item);
+                        for (Osmium::Ser::NodesIter it = nodes.begin(); it != nodes.end(); ++it) {
                             way->nodes().add(*it);
                         }
 

@@ -315,6 +315,10 @@ namespace Osmium {
                 return tags_position() + sizeof(length_t) + padded_length(tags_length());
             }
 
+            length_t members_length() const {
+                return *reinterpret_cast<const length_t*>(members_position());
+            }
+
         };
 
         // serialized form of OSM node
@@ -418,6 +422,69 @@ namespace Osmium {
             size_t m_size;
 
         }; // class Tags
+
+        /**
+         * Iterator to iterate over nodes in Nodes
+         */
+        class NodesIter {
+
+        public:
+
+            NodesIter(const char* start, const char* end) : m_start(start), m_end(end) {
+            }
+
+            NodesIter& operator++() {
+                m_start += sizeof(uint64_t);
+                return *this;
+            }
+
+            NodesIter operator++(int) {
+                NodesIter tmp(*this);
+                operator++();
+                return tmp;
+            }
+
+            bool operator==(const NodesIter& rhs) {return m_start==rhs.m_start;}
+            bool operator!=(const NodesIter& rhs) {return m_start!=rhs.m_start;}
+
+            uint64_t operator*() {
+                return *reinterpret_cast<const uint64_t*>(m_start);
+            }
+            
+        private:
+
+            const char* m_start;
+            const char* m_end;
+
+        }; // class NodesIter
+
+        /**
+         * List of nodes in a buffer.
+         */
+        class Nodes {
+
+        public:
+
+            Nodes(const char* data) : m_data(data+sizeof(length_t)), m_size(*reinterpret_cast<const length_t*>(data)) {
+            }
+
+            Nodes(const Osmium::Ser::Way& way) : m_data(way.members_position() + sizeof(length_t)), m_size(way.members_length()) {
+            }
+
+            NodesIter begin() {
+                return NodesIter(m_data, m_data + m_size);
+            }
+
+            NodesIter end() {
+                return NodesIter(m_data + m_size, m_data + m_size);
+            }
+
+        private:
+
+            const char* m_data;
+            int32_t m_size;
+
+        }; // class Nodes
 
 
         class NodeBuilder : public Builder {
