@@ -60,6 +60,7 @@ namespace Osmium {
 
             void clear() {
                 m_pos = 0;
+                m_committed = 0;
             }
 
             /**

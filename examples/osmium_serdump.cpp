@@ -25,8 +25,7 @@ int main(int argc, char* argv[]) {
 
     Osmium::OSMFile infile(argv[1]);
     Osmium::Ser::BufferManager::Malloc manager(10000);
-    Osmium::Ser::Buffer& buffer = manager.buffer();
-    Osmium::Ser::Handler handler(buffer);
+    Osmium::Ser::Handler<Osmium::Ser::BufferManager::Malloc> handler(manager);
     Osmium::Input::read(infile, handler);
 
     google::protobuf::ShutdownProtobufLibrary();

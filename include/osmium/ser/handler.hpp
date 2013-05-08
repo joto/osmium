@@ -31,11 +31,12 @@ namespace Osmium {
 
     namespace Ser {
 
+        template<class TBufferManager>
         class Handler : public Osmium::Handler::Base {
 
         public:
 
-            Handler(Osmium::Ser::Buffer& buffer) : Osmium::Handler::Base(), m_buffer(buffer) {
+            Handler(TBufferManager& buffer_manager) : Osmium::Handler::Base(), m_buffer_manager(buffer_manager), m_buffer(buffer_manager.buffer()) {
             }
 
             void init(Osmium::OSM::Meta&) const {
@@ -69,6 +70,7 @@ namespace Osmium {
 
         private:
 
+            TBufferManager& m_buffer_manager;
             Osmium::Ser::Buffer& m_buffer;
 
         }; // class Handler

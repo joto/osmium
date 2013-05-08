@@ -13,8 +13,7 @@ BOOST_AUTO_TEST_SUITE(SerNode)
 
 BOOST_AUTO_TEST_CASE(instantiation_with_default_parameters) {
     Osmium::Ser::BufferManager::Malloc manager(10000);
-    Osmium::Ser::Buffer& out = manager.buffer();
-    Osmium::Ser::Handler handler(out);
+    Osmium::Ser::Handler<Osmium::Ser::BufferManager::Malloc> handler(manager);
 
     shared_ptr<Osmium::OSM::Node> n1 = make_shared<Osmium::OSM::Node>();
     n1->id(10);
@@ -38,6 +37,7 @@ BOOST_AUTO_TEST_CASE(instantiation_with_default_parameters) {
     n2->lat(22);
     handler.node(n2);
 
+    Osmium::Ser::Buffer& out = manager.buffer();
     Osmium::Ser::Deserializer<Osmium::Handler::Debug> deser(out);
     Osmium::Handler::Debug debug;
     deser.feed(debug);
