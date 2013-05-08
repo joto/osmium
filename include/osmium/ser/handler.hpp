@@ -42,6 +42,11 @@ namespace Osmium {
             void init(Osmium::OSM::Meta&) const {
             }
 
+            void flush_buffer() const {
+                std::cout.write(reinterpret_cast<const char*>(m_buffer.ptr()), m_buffer.committed());
+                m_buffer.clear_committed();
+            }
+
             void node(const shared_ptr<Osmium::OSM::Node const>& node) const {
                 try {
                     Osmium::Ser::NodeBuilder nb(m_buffer);
@@ -63,8 +68,7 @@ namespace Osmium {
 
                     m_buffer.commit();
                 } catch (std::range_error& e) {
-                    std::cout.write(reinterpret_cast<const char*>(m_buffer.ptr()), m_buffer.pos());
-                    m_buffer.clear();
+                    flush_buffer();
                 }
             }
 

@@ -54,12 +54,24 @@ namespace Osmium {
                 return m_pos;
             }
 
+            size_t committed() const {
+                return m_committed;
+            }
+
             size_t size() const {
                 return m_size;
             }
 
             void clear() {
                 m_pos = 0;
+                m_committed = 0;
+            }
+
+            void clear_committed() {
+                if (m_pos != m_committed) {
+                    memmove(m_data, &m_data[m_committed], m_pos - m_committed);
+                }
+                m_pos = m_pos - m_committed;
                 m_committed = 0;
             }
 
