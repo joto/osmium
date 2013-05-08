@@ -213,6 +213,7 @@ namespace Osmium {
                         shared_ptr<Osmium::OSM::Node> node = make_shared<Osmium::OSM::Node>();
                         node->id(node_item->id);
                         node->version(node_item->version);
+                        node->uid(node_item->uid);
                         node->changeset(node_item->changeset);
                         node->timestamp(node_item->timestamp);
                         node->position(node_item->pos);
