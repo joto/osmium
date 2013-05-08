@@ -183,6 +183,7 @@ namespace Osmium {
                 }
                 tags.done();
 
+                m_data.commit();
             }
 
         private:

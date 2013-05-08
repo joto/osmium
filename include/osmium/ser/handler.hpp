@@ -59,6 +59,8 @@ namespace Osmium {
                         tags.add_tag(tag.key(), tag.value());
                     }
                     tags.done();
+
+                    m_buffer.commit();
                 } catch (std::range_error& e) {
                     std::cout.write(reinterpret_cast<const char*>(m_buffer.ptr()), m_buffer.pos());
                     m_buffer.clear();

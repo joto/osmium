@@ -40,7 +40,7 @@ namespace Osmium {
 
         public:
 
-            Buffer(char* data, size_t size, boost::function<void()> full_callback) : m_data(data), m_size(size), m_pos(0), m_full_callback(full_callback) {
+            Buffer(char* data, size_t size, boost::function<void()> full_callback) : m_data(data), m_size(size), m_pos(0), m_committed(0), m_full_callback(full_callback) {
             }
 
             ~Buffer() {
@@ -91,11 +91,16 @@ namespace Osmium {
                 return m_data[offset];
             }
 
+            void commit() {
+                m_committed = m_pos;
+            }
+
         private:
 
             char* m_data;
             size_t m_size;
             size_t m_pos;
+            size_t m_committed;
             boost::function<void()> m_full_callback;
 
         }; // class Buffer
