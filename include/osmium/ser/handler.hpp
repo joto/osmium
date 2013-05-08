@@ -43,32 +43,39 @@ namespace Osmium {
             }
 
             void flush_buffer() const {
+                std::cerr << "flush_buffer() BGN pos=" << m_buffer.pos() << " committed=" << m_buffer.committed() << "\n";
                 std::cout.write(reinterpret_cast<const char*>(m_buffer.ptr()), m_buffer.committed());
-                m_buffer.clear_committed();
+                m_buffer.clear();
+            }
+
+            void write_node(const shared_ptr<Osmium::OSM::Node const>& node) const {
+                Osmium::Ser::NodeBuilder nb(m_buffer);
+
+                Osmium::Ser::Node& sn = nb.node();
+                sn.offset    = 0;
+                sn.id        = node->id();
+                sn.version   = node->version();
+                sn.timestamp = node->timestamp();
+                sn.uid       = node->uid();
+                sn.changeset = node->changeset();
+                sn.pos       = node->position();
+
+                Osmium::Ser::TagListBuilder tags(m_buffer, &nb);
+                BOOST_FOREACH(const Osmium::OSM::Tag& tag, node->tags()) {
+                    tags.add_tag(tag.key(), tag.value());
+                }
+                tags.done();
+
+                m_buffer.commit();
             }
 
             void node(const shared_ptr<Osmium::OSM::Node const>& node) const {
                 try {
-                    Osmium::Ser::NodeBuilder nb(m_buffer);
-
-                    Osmium::Ser::Node& sn = nb.node();
-                    sn.offset    = 0;
-                    sn.id        = node->id();
-                    sn.version   = node->version();
-                    sn.timestamp = node->timestamp();
-                    sn.uid       = node->uid();
-                    sn.changeset = node->changeset();
-                    sn.pos       = node->position();
-
-                    Osmium::Ser::TagListBuilder tags(m_buffer, &nb);
-                    BOOST_FOREACH(const Osmium::OSM::Tag& tag, node->tags()) {
-                        tags.add_tag(tag.key(), tag.value());
-                    }
-                    tags.done();
-
-                    m_buffer.commit();
+                    write_node(node);
                 } catch (std::range_error& e) {
+                    std::cerr << "flush during node " << node->id() << "\n";
                     flush_buffer();
+                    write_node(node);
                 }
             }
 

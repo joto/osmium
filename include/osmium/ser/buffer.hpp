@@ -67,14 +67,6 @@ namespace Osmium {
                 m_committed = 0;
             }
 
-            void clear_committed() {
-                if (m_pos != m_committed) {
-                    memmove(m_data, &m_data[m_committed], m_pos - m_committed);
-                }
-                m_pos = m_pos - m_committed;
-                m_committed = 0;
-            }
-
             /**
              * Reserve space of size size in buffer and return pointer to it.
              */
@@ -159,6 +151,7 @@ namespace Osmium {
 
             Builder(Buffer& buffer, Builder* parent) : m_buffer(buffer), m_parent(parent) {
                 m_size = reinterpret_cast<length_t*>(buffer.get_space(sizeof(length_t)));
+                *m_size = 0;
                 if (m_parent) {
                     m_parent->add_size(sizeof(length_t));
                 }
