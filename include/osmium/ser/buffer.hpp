@@ -258,8 +258,20 @@ namespace Osmium {
 
         }; // class TagListBuilder
 
+        class BufferItem {
+
+        public:
+        
+            BufferItem() {}
+
+            const char* const get_ptr(ptrdiff_t offset) const {
+                return reinterpret_cast<const char* const>(this) + offset;
+            }
+
+        };
+
         // serialized form of OSM node
-        class Node {
+        class Node : public BufferItem {
 
         public:
 
@@ -277,11 +289,11 @@ namespace Osmium {
             Osmium::OSM::Position pos;
 
             const char* const user() const {
-                return reinterpret_cast<const char* const>(this) + sizeof(Node) + sizeof(length_t);
+                return get_ptr(sizeof(Node) + sizeof(length_t));
             }
 
             length_t user_length() const {
-                return *reinterpret_cast<const length_t*>(reinterpret_cast<const char* const>(this) + sizeof(Node));
+                return *reinterpret_cast<const length_t*>(get_ptr(sizeof(Node)));
             }
 
             length_t padded_length(length_t length) const {
@@ -289,7 +301,7 @@ namespace Osmium {
             }
 
             const char* tags_position() const {
-                return reinterpret_cast<const char* const>(this) + sizeof(Node) + sizeof(length_t) + padded_length(user_length());
+                return get_ptr(sizeof(Node) + sizeof(length_t) + padded_length(user_length()));
             }
 
         };
