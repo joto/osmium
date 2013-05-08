@@ -193,6 +193,19 @@ namespace Osmium {
 
         }; // Builder
 
+        class UserNameBuilder : public Builder {
+
+        public:
+
+            UserNameBuilder(Buffer& buffer, Builder* parent=NULL, const char* username=NULL) : Builder(buffer, parent) {
+                size_t old_size = m_buffer.pos();
+                m_buffer.append(username);
+                add_size(m_buffer.pos() - old_size);
+                add_padding();
+            }
+
+        }; // UserNameBuilder
+
         class TagListBuilder : public Builder {
 
         public:
