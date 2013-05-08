@@ -18,6 +18,10 @@
 #include <osmium/ser/buffer.hpp>
 #include <osmium/ser/item.hpp>
 
+void full() {
+    std::cerr << "full\n";
+}
+
 int main(int argc, char* argv[]) {
     std::ios_base::sync_with_stdio(false);
 
@@ -40,7 +44,7 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
-    Osmium::Ser::Buffer buffer(mem, bufsize);
+    Osmium::Ser::Buffer buffer(mem, bufsize, boost::bind(&full));
 
     Osmium::Ser::Deserializer<Osmium::Handler::Debug> deser(buffer);
     Osmium::Handler::Debug debug;

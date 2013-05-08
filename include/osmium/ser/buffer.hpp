@@ -22,6 +22,9 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#include <boost/bind.hpp>
+#include <boost/function.hpp>
+
 namespace Osmium {
 
     namespace Ser {
@@ -37,7 +40,7 @@ namespace Osmium {
 
         public:
 
-            Buffer(char* data, size_t size) : m_data(data), m_size(size), m_pos(0) {
+            Buffer(char* data, size_t size, boost::function<void()> full_callback) : m_data(data), m_size(size), m_pos(0), m_full_callback(full_callback) {
             }
 
             ~Buffer() {
@@ -64,7 +67,7 @@ namespace Osmium {
              */
             void* get_space(size_t size) {
                 if (m_pos + size > m_size) {
-                    throw std::range_error("buffer too small");
+                    m_full_callback();
                 }
                 void* ptr = &m_data[m_pos];
                 m_pos += size;
@@ -77,7 +80,7 @@ namespace Osmium {
             Buffer& append(const char* str) {
                 size_t l = strlen(str) + 1;
                 if (m_pos + l > m_size) {
-                    throw std::range_error("buffer too small");
+                    m_full_callback();
                 }
                 memcpy(&m_data[m_pos], str, l);
                 m_pos += l;
@@ -93,8 +96,44 @@ namespace Osmium {
             char* m_data;
             size_t m_size;
             size_t m_pos;
+            boost::function<void()> m_full_callback;
 
         }; // class Buffer
+
+        namespace BufferManager {
+
+            class Malloc {
+
+            public:
+            
+                Malloc(size_t size) : m_buffer(0) {
+                    void* mem = malloc(size);
+                    if (!mem) {
+                        throw std::bad_alloc();
+                    }
+                    m_buffer = new Osmium::Ser::Buffer(static_cast<char*>(mem), size, boost::bind(&Malloc::full, this));
+                }
+
+                ~Malloc() {
+                    free(m_buffer->ptr());
+                    delete m_buffer;
+                }
+
+                Osmium::Ser::Buffer& buffer() {
+                    return *m_buffer;
+                }
+
+                void full() {
+                    throw std::range_error("buffer too small");
+                }
+
+            private:
+            
+                Osmium::Ser::Buffer* m_buffer;
+
+            }; // class Malloc
+
+        } // namespace BufferManager
 
         class Builder {
 

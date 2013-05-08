@@ -10,9 +10,8 @@
 BOOST_AUTO_TEST_SUITE(SerNode)
 
 BOOST_AUTO_TEST_CASE(instantiation_with_default_parameters) {
-    size_t bufsize = 10000;
-    char* buffer = reinterpret_cast<char*>(malloc(bufsize));
-    Osmium::Ser::Buffer out(buffer, bufsize);
+    Osmium::Ser::BufferManager::Malloc manager(10000);
+    Osmium::Ser::Buffer& out = manager.buffer();
     Osmium::Ser::Serializer ser(out);
 
     Osmium::OSM::Node n1;
