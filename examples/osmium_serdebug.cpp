@@ -11,6 +11,7 @@
 #include <sys/mman.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <unistd.h>
 #include <fcntl.h>
 
 #include <osmium.hpp>
@@ -37,7 +38,14 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
-    size_t bufsize = 10000;
+    struct stat file_stat;
+    if (fstat(fd, &file_stat) < 0) {
+        std::cerr << "Can't stat file " << argv[1] << "\n";
+        exit(1);
+    }
+    
+    size_t bufsize = file_stat.st_size;
+    std::cerr << "Reading " << bufsize << " bytes from file " << argv[1] << "\n";
     char* mem = reinterpret_cast<char*>(mmap(NULL, bufsize, PROT_READ, MAP_SHARED, fd, 0));
     if (!mem) {
         std::cerr << "Can't mmap file " << argv[1] << "\n";
