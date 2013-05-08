@@ -155,43 +155,6 @@ namespace Osmium {
 
         }; // class TagList
 
-        /**
-         * Serializes OSM objects into a given buffer.
-         */
-        class Serializer {
-
-        public:
-
-            Serializer(Osmium::Ser::Buffer& data) : m_data(data) {
-            }
-
-            void add_node(const Osmium::OSM::Node& node) {
-                Osmium::Ser::NodeBuilder nb(m_data);
-
-                Osmium::Ser::Node& sn = nb.node();
-                sn.offset    = 0;
-                sn.id        = node.id();
-                sn.version   = node.version();
-                sn.timestamp = node.timestamp();
-                sn.uid       = node.uid();
-                sn.changeset = node.changeset();
-                sn.pos       = node.position();
-
-                Osmium::Ser::TagListBuilder tags(m_data, &nb);
-                BOOST_FOREACH(const Osmium::OSM::Tag& tag, node.tags()) {
-                    tags.add_tag(tag.key(), tag.value());
-                }
-                tags.done();
-
-                m_data.commit();
-            }
-
-        private:
-
-            Osmium::Ser::Buffer& m_data;
-
-        }; // class Serializer
-
         template <class THandler>
         class Deserializer {
 
