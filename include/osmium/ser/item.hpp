@@ -234,10 +234,9 @@ namespace Osmium {
                         node->position(node_item->pos);
                         node->user(node_item->user());
 
-                        Osmium::Ser::TagList tags(node_item->tags_position());
-                        for (Osmium::Ser::TagListIter it = tags.begin(); it != tags.end(); ++it) {
-                            const std::pair<const char*, const char*>& kv = *it;
-                            node->tags().add(kv.first, kv.second);
+                        Osmium::Ser::Tags tags(*node_item);
+                        for (Osmium::Ser::TagsIter it = tags.begin(); it != tags.end(); ++it) {
+                            node->tags().add(it->key(), it->value());
                         }
 
                         handler.node(node);

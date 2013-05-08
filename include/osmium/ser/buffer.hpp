@@ -324,13 +324,101 @@ namespace Osmium {
 
             Osmium::OSM::Position pos;
 
-        };
+        }; // class Node
 
         class Way : public Object {
-        };
+        }; // class Way
 
         class Relation : public Object {
-        };
+        }; // class Relation
+
+
+        class Tag {
+
+        public:
+
+            Tag(const char* const data) : m_data(data) {
+            }
+
+            const char* const key() const {
+                return m_data;
+            }
+
+            const char* const value() const {
+                return m_data + strlen(m_data) + 1;
+            }
+
+        private:
+
+            const char* const m_data;
+
+        }; // class Tag
+
+        /**
+         * Iterator to iterate over tags in a Tags
+         */
+        class TagsIter {
+
+        public:
+
+            TagsIter(const char* start, const char* end) : m_start(start), m_end(end) {
+            }
+
+            TagsIter& operator++() {
+                m_start += strlen(m_start) + 1;
+                m_start += strlen(m_start) + 1;
+                return *this;
+            }
+
+            TagsIter operator++(int) {
+                TagsIter tmp(*this);
+                operator++();
+                return tmp;
+            }
+
+            bool operator==(const TagsIter& rhs) {return m_start==rhs.m_start;}
+            bool operator!=(const TagsIter& rhs) {return m_start!=rhs.m_start;}
+
+            const Tag operator*() {
+                return Tag(m_start);
+            }
+            
+            const Tag* operator->() {
+                return reinterpret_cast<const Tag*>(&m_start);
+            }
+
+        private:
+
+            const char* m_start;
+            const char* m_end;
+
+        }; // class TagsIter
+
+        class Tags {
+
+        public:
+
+            Tags(const char* data, size_t size) : m_data(data), m_size(size) {
+            }
+
+            Tags(const Object& object) : m_data(object.tags_position() + sizeof(length_t)), m_size(object.tags_length()) {
+            }
+
+            TagsIter begin() {
+                return TagsIter(m_data, m_data + m_size);
+            }
+
+            TagsIter end() {
+                return TagsIter(m_data + m_size, m_data + m_size);
+            }
+
+        private:
+
+            const char* m_data;
+            size_t m_size;
+
+        }; // class Tags
+
 
         class NodeBuilder : public Builder {
 
