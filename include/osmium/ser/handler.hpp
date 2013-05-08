@@ -97,6 +97,11 @@ namespace Osmium {
                     tags.add_tag(tag.key(), tag.value());
                 }
                 tags.done();
+                Osmium::Ser::NodeListBuilder nodes(m_buffer, &builder);
+                BOOST_FOREACH(const Osmium::OSM::WayNode& way_node, way->nodes()) {
+                    nodes.add_node(way_node.ref());
+                }
+                nodes.done();
 
                 m_buffer.commit();
             }

@@ -206,6 +206,29 @@ namespace Osmium {
 
         }; // UserNameBuilder
 
+        class NodeListBuilder : public Builder {
+
+        public:
+
+            NodeListBuilder(Buffer& buffer, Builder* parent=NULL) : Builder(buffer, parent) {
+            }
+
+            void add_node(uint64_t ref) {
+                uint64_t* nodeidptr = reinterpret_cast<uint64_t*>(m_buffer.get_space(sizeof(uint64_t)));
+                *nodeidptr = ref;
+                add_size(sizeof(uint64_t));
+            }
+
+            // unfortunately we can't do this in the destructor, because
+            // the destructor is not allowed to fail and this might fail
+            // if the buffer is full.
+            // XXX maybe we can do something clever here?
+            void done() {
+                add_padding();
+            }
+
+        }; // class NodeListBuilder
+
         class TagListBuilder : public Builder {
 
         public:
