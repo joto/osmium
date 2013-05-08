@@ -49,9 +49,9 @@ namespace Osmium {
             }
 
             void write_node(const shared_ptr<Osmium::OSM::Node const>& node) const {
-                Osmium::Ser::NodeBuilder nb(m_buffer);
+                Osmium::Ser::NodeBuilder builder(m_buffer);
 
-                Osmium::Ser::Node& sn = nb.node();
+                Osmium::Ser::Node& sn = builder.node();
                 sn.offset    = 0;
                 sn.id        = node->id();
                 sn.version   = node->version();
@@ -60,7 +60,7 @@ namespace Osmium {
                 sn.changeset = node->changeset();
                 sn.pos       = node->position();
 
-                Osmium::Ser::TagListBuilder tags(m_buffer, &nb);
+                Osmium::Ser::TagListBuilder tags(m_buffer, &builder);
                 BOOST_FOREACH(const Osmium::OSM::Tag& tag, node->tags()) {
                     tags.add_tag(tag.key(), tag.value());
                 }
@@ -76,6 +76,66 @@ namespace Osmium {
                     std::cerr << "flush during node " << node->id() << "\n";
                     flush_buffer();
                     write_node(node);
+                }
+            }
+
+            void write_way(const shared_ptr<Osmium::OSM::Way const>& way) const {
+                Osmium::Ser::WayBuilder builder(m_buffer);
+
+                Osmium::Ser::Way& sn = builder.way();
+                sn.offset    = 0;
+                sn.id        = way->id();
+                sn.version   = way->version();
+                sn.timestamp = way->timestamp();
+                sn.uid       = way->uid();
+                sn.changeset = way->changeset();
+
+                Osmium::Ser::TagListBuilder tags(m_buffer, &builder);
+                BOOST_FOREACH(const Osmium::OSM::Tag& tag, way->tags()) {
+                    tags.add_tag(tag.key(), tag.value());
+                }
+                tags.done();
+
+                m_buffer.commit();
+            }
+
+            void way(const shared_ptr<Osmium::OSM::Way const>& way) const {
+                try {
+                    write_way(way);
+                } catch (std::range_error& e) {
+                    std::cerr << "flush during way " << way->id() << "\n";
+                    flush_buffer();
+                    write_way(way);
+                }
+            }
+
+            void write_relation(const shared_ptr<Osmium::OSM::Relation const>& relation) const {
+                Osmium::Ser::RelationBuilder builder(m_buffer);
+
+                Osmium::Ser::Relation& sn = builder.relation();
+                sn.offset    = 0;
+                sn.id        = relation->id();
+                sn.version   = relation->version();
+                sn.timestamp = relation->timestamp();
+                sn.uid       = relation->uid();
+                sn.changeset = relation->changeset();
+
+                Osmium::Ser::TagListBuilder tags(m_buffer, &builder);
+                BOOST_FOREACH(const Osmium::OSM::Tag& tag, relation->tags()) {
+                    tags.add_tag(tag.key(), tag.value());
+                }
+                tags.done();
+
+                m_buffer.commit();
+            }
+
+            void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) const {
+                try {
+                    write_relation(relation);
+                } catch (std::range_error& e) {
+                    std::cerr << "flush during relation " << relation->id() << "\n";
+                    flush_buffer();
+                    write_relation(relation);
                 }
             }
 

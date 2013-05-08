@@ -235,6 +235,29 @@ namespace Osmium {
             Osmium::OSM::Position pos;
         };
 
+        // serialized form of OSM object
+        class Object {
+        public:
+
+            // same as Item from here...
+            uint64_t offset;
+            char type;
+            char padding[7];
+            // ...to here
+
+            uint64_t id;
+            uint64_t version;
+            uint32_t timestamp;
+            uint32_t uid;
+            uint64_t changeset;
+        };
+
+        class Way : public Object {
+        };
+
+        class Relation : public Object {
+        };
+
         class NodeBuilder : public Builder {
 
         public:
@@ -253,22 +276,41 @@ namespace Osmium {
 
         }; // class NodeBuilder
 
-#if 0
-        class WayBuilder {
+        class WayBuilder : public Builder {
 
         public:
 
-            WayBuilder() {
+            WayBuilder(Buffer& buffer, Builder* parent=NULL) : Builder(buffer, parent) {
+                m_way = reinterpret_cast<Way*>(buffer.get_space(sizeof(Way)));
+                add_size(sizeof(Way));
+                m_way->type = 'w';
             }
 
-            add_tag_list() {
+            Way& way() {
+                return *m_way;
             }
 
-            add_node_list() {
-            }
+            Way* m_way;
 
         }; // class WayBuilder
-#endif
+
+        class RelationBuilder : public Builder {
+
+        public:
+
+            RelationBuilder(Buffer& buffer, Builder* parent=NULL) : Builder(buffer, parent) {
+                m_relation = reinterpret_cast<Relation*>(buffer.get_space(sizeof(Relation)));
+                add_size(sizeof(Relation));
+                m_relation->type = 'r';
+            }
+
+            Relation& relation() {
+                return *m_relation;
+            }
+
+            Relation* m_relation;
+
+        }; // class RelationBuilder
 
     } // namespace Ser
 

@@ -173,7 +173,6 @@ namespace Osmium {
                     const Osmium::Ser::Item* item = reinterpret_cast<const Osmium::Ser::Item*>(&m_data[m_offset+sizeof(length_t)]);
                     if (item->type == 'n') {
                         const Osmium::Ser::Node* node_item = reinterpret_cast<const Osmium::Ser::Node*>(item);
- //                       std::cout << "found node (length=" << length << ")\n";
                         shared_ptr<Osmium::OSM::Node> node = make_shared<Osmium::OSM::Node>();
                         node->id(node_item->id);
                         node->version(node_item->version);
@@ -189,8 +188,38 @@ namespace Osmium {
                         }
 
                         handler.node(node);
+                    } else if (item->type == 'w') {
+                        const Osmium::Ser::Way* way_item = reinterpret_cast<const Osmium::Ser::Way*>(item);
+                        shared_ptr<Osmium::OSM::Way> way = make_shared<Osmium::OSM::Way>();
+                        way->id(way_item->id);
+                        way->version(way_item->version);
+                        way->uid(way_item->uid);
+                        way->changeset(way_item->changeset);
+                        way->timestamp(way_item->timestamp);
 
-//                        std::cout << "node end\n";
+                        Osmium::Ser::TagList tags(&m_data[m_offset+sizeof(length_t)+sizeof(Osmium::Ser::Way)]);
+                        for (Osmium::Ser::TagListIter it = tags.begin(); it != tags.end(); ++it) {
+                            const std::pair<const char*, const char*>& kv = *it;
+                            way->tags().add(kv.first, kv.second);
+                        }
+
+                        handler.way(way);
+                    } else if (item->type == 'r') {
+                        const Osmium::Ser::Relation* relation_item = reinterpret_cast<const Osmium::Ser::Relation*>(item);
+                        shared_ptr<Osmium::OSM::Relation> relation = make_shared<Osmium::OSM::Relation>();
+                        relation->id(relation_item->id);
+                        relation->version(relation_item->version);
+                        relation->uid(relation_item->uid);
+                        relation->changeset(relation_item->changeset);
+                        relation->timestamp(relation_item->timestamp);
+
+                        Osmium::Ser::TagList tags(&m_data[m_offset+sizeof(length_t)+sizeof(Osmium::Ser::Relation)]);
+                        for (Osmium::Ser::TagListIter it = tags.begin(); it != tags.end(); ++it) {
+                            const std::pair<const char*, const char*>& kv = *it;
+                            relation->tags().add(kv.first, kv.second);
+                        }
+
+                        handler.relation(relation);
                     } else {
                         std::cout << "found something else (length=" << length << ")\n";
                     }
