@@ -87,67 +87,6 @@ namespace Osmium {
     namespace Ser {
 
         /**
-         * Iterator to iterate over tags in a TagList
-         */
-        class TagListIter {
-
-        public:
-
-            TagListIter(const char* start, const char* end) : m_start(start), m_end(end) {
-            }
-
-            TagListIter& operator++() {
-                m_start += strlen(m_start) + 1;
-                m_start += strlen(m_start) + 1;
-                return *this;
-            }
-
-            TagListIter operator++(int) {
-                TagListIter tmp(*this);
-                operator++();
-                return tmp;
-            }
-
-            bool operator==(const TagListIter& rhs) {return m_start==rhs.m_start;}
-            bool operator!=(const TagListIter& rhs) {return m_start!=rhs.m_start;}
-
-            std::pair<const char*, const char*> operator*() {
-                return std::make_pair(m_start, m_start + strlen(m_start) + 1);
-            }
-            
-        private:
-
-            const char* m_start;
-            const char* m_end;
-
-        }; // class TagListIter
-
-        /**
-         * List of tags in a buffer.
-         */
-        class TagList {
-
-        public:
-
-            TagList(const char* buffer) : m_buffer(buffer+sizeof(length_t)), m_size(*reinterpret_cast<const length_t*>(buffer)) {
-            }
-
-            TagListIter begin() {
-                return TagListIter(m_buffer, m_buffer + m_size);
-            }
-
-            TagListIter end() {
-                return TagListIter(m_buffer + m_size, m_buffer + m_size);
-            }
-
-        private:
-
-            const char* m_buffer;
-            int32_t m_size;
-
-        }; // class TagList
-
-        /**
          * Iterator to iterate over tags in a NodeList
          */
         class NodeListIter {
@@ -250,10 +189,9 @@ namespace Osmium {
                         way->timestamp(way_item->timestamp);
                         way->user(way_item->user());
 
-                        Osmium::Ser::TagList tags(way_item->tags_position());
-                        for (Osmium::Ser::TagListIter it = tags.begin(); it != tags.end(); ++it) {
-                            const std::pair<const char*, const char*>& kv = *it;
-                            way->tags().add(kv.first, kv.second);
+                        Osmium::Ser::Tags tags(*way_item);
+                        for (Osmium::Ser::TagsIter it = tags.begin(); it != tags.end(); ++it) {
+                            way->tags().add(it->key(), it->value());
                         }
 
                         Osmium::Ser::NodeList nodes(way_item->members_position());
@@ -272,11 +210,11 @@ namespace Osmium {
                         relation->timestamp(relation_item->timestamp);
                         relation->user(relation_item->user());
 
-                        Osmium::Ser::TagList tags(relation_item->tags_position());
-                        for (Osmium::Ser::TagListIter it = tags.begin(); it != tags.end(); ++it) {
-                            const std::pair<const char*, const char*>& kv = *it;
-                            relation->tags().add(kv.first, kv.second);
+                        Osmium::Ser::Tags tags(*relation_item);
+                        for (Osmium::Ser::TagsIter it = tags.begin(); it != tags.end(); ++it) {
+                            relation->tags().add(it->key(), it->value());
                         }
+
 
                         handler.relation(relation);
                     } else {
