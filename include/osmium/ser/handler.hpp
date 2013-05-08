@@ -44,7 +44,7 @@ namespace Osmium {
 
             void flush_buffer() const {
                 std::cerr << "flush_buffer() BGN pos=" << m_buffer.pos() << " committed=" << m_buffer.committed() << "\n";
-                std::cout.write(reinterpret_cast<const char*>(m_buffer.ptr()), m_buffer.committed());
+                std::cout.write(m_buffer.ptr(), m_buffer.committed());
                 m_buffer.clear();
             }
 

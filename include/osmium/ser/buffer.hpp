@@ -46,7 +46,7 @@ namespace Osmium {
             ~Buffer() {
             }
 
-            void* ptr() const {
+            char* ptr() const {
                 return m_data;
             }
 
@@ -70,13 +70,18 @@ namespace Osmium {
             /**
              * Reserve space of size size in buffer and return pointer to it.
              */
-            void* get_space(size_t size) {
+            char* get_space(size_t size) {
                 if (m_pos + size > m_size) {
                     m_full_callback();
                 }
-                void* ptr = &m_data[m_pos];
+                char* ptr = &m_data[m_pos];
                 m_pos += size;
                 return ptr;
+            }
+
+            template <class T>
+            T* get_space_for() {
+                return reinterpret_cast<T*>(get_space(sizeof(T)));
             }
 
             /**
@@ -117,11 +122,11 @@ namespace Osmium {
             public:
             
                 Malloc(size_t size) : m_buffer(0) {
-                    void* mem = malloc(size);
+                    char* mem = static_cast<char*>(malloc(size));
                     if (!mem) {
                         throw std::bad_alloc();
                     }
-                    m_buffer = new Osmium::Ser::Buffer(static_cast<char*>(mem), size, boost::bind(&Malloc::full, this));
+                    m_buffer = new Osmium::Ser::Buffer(mem, size, boost::bind(&Malloc::full, this));
                 }
 
                 ~Malloc() {
@@ -150,7 +155,7 @@ namespace Osmium {
         public:
 
             Builder(Buffer& buffer, Builder* parent) : m_buffer(buffer), m_parent(parent) {
-                m_size = reinterpret_cast<length_t*>(buffer.get_space(sizeof(length_t)));
+                m_size = buffer.get_space_for<length_t>();
                 *m_size = 0;
                 if (m_parent) {
                     m_parent->add_size(sizeof(length_t));
@@ -214,7 +219,7 @@ namespace Osmium {
             }
 
             void add_node(uint64_t ref) {
-                uint64_t* nodeidptr = reinterpret_cast<uint64_t*>(m_buffer.get_space(sizeof(uint64_t)));
+                uint64_t* nodeidptr = m_buffer.get_space_for<uint64_t>();
                 *nodeidptr = ref;
                 add_size(sizeof(uint64_t));
             }
@@ -283,8 +288,8 @@ namespace Osmium {
                 return (length % 8 == 0) ? length : ((length | 7 ) + 1);
             }
 
-            const void* tags_position() const {
-                return reinterpret_cast<const void* const>(this) + sizeof(Node) + sizeof(length_t) + padded_length(user_length());
+            const char* tags_position() const {
+                return reinterpret_cast<const char* const>(this) + sizeof(Node) + sizeof(length_t) + padded_length(user_length());
             }
 
         };
@@ -317,7 +322,7 @@ namespace Osmium {
         public:
 
             NodeBuilder(Buffer& buffer, Builder* parent=NULL) : Builder(buffer, parent) {
-                m_node = reinterpret_cast<Node*>(buffer.get_space(sizeof(Node)));
+                m_node = buffer.get_space_for<Node>();
                 add_size(sizeof(Node));
                 m_node->type = 'n';
             }
@@ -335,7 +340,7 @@ namespace Osmium {
         public:
 
             WayBuilder(Buffer& buffer, Builder* parent=NULL) : Builder(buffer, parent) {
-                m_way = reinterpret_cast<Way*>(buffer.get_space(sizeof(Way)));
+                m_way = buffer.get_space_for<Way>();
                 add_size(sizeof(Way));
                 m_way->type = 'w';
             }
@@ -353,7 +358,7 @@ namespace Osmium {
         public:
 
             RelationBuilder(Buffer& buffer, Builder* parent=NULL) : Builder(buffer, parent) {
-                m_relation = reinterpret_cast<Relation*>(buffer.get_space(sizeof(Relation)));
+                m_relation = buffer.get_space_for<Relation>();
                 add_size(sizeof(Relation));
                 m_relation->type = 'r';
             }
