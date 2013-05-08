@@ -265,10 +265,7 @@ namespace Osmium {
                             way->tags().add(kv.first, kv.second);
                         }
 
-                        size_t tags_length = *reinterpret_cast<const length_t*>(way_item->tags_position());
-                        size_t tags_length_plus_padding = (tags_length % 8 == 0) ? tags_length : ((tags_length | 7 ) + 1);
-                        const char* pos3 = way_item->tags_position() + sizeof(length_t) + tags_length_plus_padding;
-                        Osmium::Ser::NodeList nodes(pos3);
+                        Osmium::Ser::NodeList nodes(way_item->members_position());
                         for (Osmium::Ser::NodeListIter it = nodes.begin(); it != nodes.end(); ++it) {
                             way->nodes().add(*it);
                         }

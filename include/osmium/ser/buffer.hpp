@@ -335,6 +335,14 @@ namespace Osmium {
                 return get_ptr(sizeof(Object) + sizeof(length_t) + padded_length(user_length()));
             }
 
+            length_t tags_length() const {
+                return *reinterpret_cast<const length_t*>(tags_position());
+            }
+
+            const char* members_position() const {
+                return tags_position() + sizeof(length_t) + padded_length(tags_length());
+            }
+
         };
 
         class Way : public Object {
