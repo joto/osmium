@@ -269,8 +269,8 @@ namespace Osmium {
         
             BufferItem() {}
 
-            const char* const get_ptr(ptrdiff_t offset) const {
-                return reinterpret_cast<const char* const>(this) + offset;
+            const char* const self() const {
+                return reinterpret_cast<const char* const>(this);
             }
 
         };
@@ -293,16 +293,24 @@ namespace Osmium {
             uint64_t changeset;
             Osmium::OSM::Position pos;
 
+            const char* user_position() const {
+                return self() + sizeof(Node);
+            }
+
             const char* const user() const {
-                return get_ptr(sizeof(Node) + sizeof(length_t));
+                return user_position() + sizeof(length_t);
             }
 
             length_t user_length() const {
-                return *reinterpret_cast<const length_t*>(get_ptr(sizeof(Node)));
+                return *reinterpret_cast<const length_t*>(user_position());
             }
 
             const char* tags_position() const {
-                return get_ptr(sizeof(Node) + sizeof(length_t) + padded_length(user_length()));
+                return user_position() + sizeof(length_t) + padded_length(user_length());
+            }
+
+            length_t tags_length() const {
+                return *reinterpret_cast<const length_t*>(tags_position());
             }
 
         };
@@ -323,16 +331,20 @@ namespace Osmium {
             uint32_t uid;
             uint64_t changeset;
 
+            const char* user_position() const {
+                return self() + sizeof(Object);
+            }
+
             const char* const user() const {
-                return get_ptr(sizeof(Object) + sizeof(length_t));
+                return user_position() + sizeof(length_t);
             }
 
             length_t user_length() const {
-                return *reinterpret_cast<const length_t*>(get_ptr(sizeof(Object)));
+                return *reinterpret_cast<const length_t*>(user_position());
             }
 
             const char* tags_position() const {
-                return get_ptr(sizeof(Object) + sizeof(length_t) + padded_length(user_length()));
+                return user_position() + sizeof(length_t) + padded_length(user_length());
             }
 
             length_t tags_length() const {

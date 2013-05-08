@@ -43,7 +43,6 @@ namespace Osmium {
             }
 
             void flush_buffer() const {
-                std::cerr << "flush_buffer() BGN pos=" << m_buffer.pos() << " committed=" << m_buffer.committed() << "\n";
                 std::cout.write(m_buffer.ptr(), m_buffer.committed());
                 m_buffer.clear();
             }
@@ -74,7 +73,6 @@ namespace Osmium {
                 try {
                     write_node(node);
                 } catch (std::range_error& e) {
-                    std::cerr << "flush during node " << node->id() << "\n";
                     flush_buffer();
                     write_node(node);
                 }
@@ -110,7 +108,6 @@ namespace Osmium {
                 try {
                     write_way(way);
                 } catch (std::range_error& e) {
-                    std::cerr << "flush during way " << way->id() << "\n";
                     flush_buffer();
                     write_way(way);
                 }
@@ -141,7 +138,6 @@ namespace Osmium {
                 try {
                     write_relation(relation);
                 } catch (std::range_error& e) {
-                    std::cerr << "flush during relation " << relation->id() << "\n";
                     flush_buffer();
                     write_relation(relation);
                 }
