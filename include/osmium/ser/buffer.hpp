@@ -263,11 +263,17 @@ namespace Osmium {
         }
 
         // any kind of item in a buffer
-        class BufferItem {
+        class Item {
 
         public:
         
-            BufferItem() {}
+            uint64_t offset;
+            char type;
+            char padding[7];
+
+            Item() {}
+
+        protected:
 
             const char* const self() const {
                 return reinterpret_cast<const char* const>(this);
@@ -275,55 +281,9 @@ namespace Osmium {
 
         };
 
-        // serialized form of OSM node
-        class Node : public BufferItem {
-
-        public:
-
-            // same as Item from here...
-            uint64_t offset;
-            char type;
-            char padding[7];
-            // ...to here
-
-            uint64_t id;
-            uint64_t version;
-            uint32_t timestamp;
-            uint32_t uid;
-            uint64_t changeset;
-            Osmium::OSM::Position pos;
-
-            const char* user_position() const {
-                return self() + sizeof(Node);
-            }
-
-            const char* const user() const {
-                return user_position() + sizeof(length_t);
-            }
-
-            length_t user_length() const {
-                return *reinterpret_cast<const length_t*>(user_position());
-            }
-
-            const char* tags_position() const {
-                return user_position() + sizeof(length_t) + padded_length(user_length());
-            }
-
-            length_t tags_length() const {
-                return *reinterpret_cast<const length_t*>(tags_position());
-            }
-
-        };
-
         // serialized form of OSM object
-        class Object : public BufferItem {
+        class Object : public Item {
         public:
-
-            // same as Item from here...
-            uint64_t offset;
-            char type;
-            char padding[7];
-            // ...to here
 
             uint64_t id;
             uint64_t version;
@@ -332,7 +292,7 @@ namespace Osmium {
             uint64_t changeset;
 
             const char* user_position() const {
-                return self() + sizeof(Object);
+                return self() + sizeof(Object) + (type == 'n' ? sizeof(Osmium::OSM::Position) : 0);
             }
 
             const char* const user() const {
@@ -354,6 +314,15 @@ namespace Osmium {
             const char* members_position() const {
                 return tags_position() + sizeof(length_t) + padded_length(tags_length());
             }
+
+        };
+
+        // serialized form of OSM node
+        class Node : public Object {
+
+        public:
+
+            Osmium::OSM::Position pos;
 
         };
 

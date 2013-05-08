@@ -86,14 +86,6 @@ namespace Osmium {
     /* namespace for code related to serializing osm objects */
     namespace Ser {
 
-        // all items that are serialized start with this header
-        class Item {
-        public:
-            uint64_t offset;
-            char type;
-            char padding[7];
-        };
-
         /**
          * Iterator to iterate over tags in a TagList
          */
