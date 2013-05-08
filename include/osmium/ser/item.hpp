@@ -103,7 +103,7 @@ namespace Osmium {
                     const length_t length = *reinterpret_cast<const length_t*>(&m_data[m_offset]);
                     const Osmium::Ser::Item* item = reinterpret_cast<const Osmium::Ser::Item*>(&m_data[m_offset+sizeof(length_t)]);
                     if (item->type == 'n') {
-                        const Osmium::Ser::Node* node_item = reinterpret_cast<const Osmium::Ser::Node*>(item);
+                        const Osmium::Ser::Node* node_item = static_cast<const Osmium::Ser::Node*>(item);
                         shared_ptr<Osmium::OSM::Node> node = make_shared<Osmium::OSM::Node>();
                         node->id(node_item->id);
                         node->version(node_item->version);
@@ -120,7 +120,7 @@ namespace Osmium {
 
                         handler.node(node);
                     } else if (item->type == 'w') {
-                        const Osmium::Ser::Way* way_item = reinterpret_cast<const Osmium::Ser::Way*>(item);
+                        const Osmium::Ser::Way* way_item = static_cast<const Osmium::Ser::Way*>(item);
                         shared_ptr<Osmium::OSM::Way> way = make_shared<Osmium::OSM::Way>();
                         way->id(way_item->id);
                         way->version(way_item->version);
@@ -141,7 +141,7 @@ namespace Osmium {
 
                         handler.way(way);
                     } else if (item->type == 'r') {
-                        const Osmium::Ser::Relation* relation_item = reinterpret_cast<const Osmium::Ser::Relation*>(item);
+                        const Osmium::Ser::Relation* relation_item = static_cast<const Osmium::Ser::Relation*>(item);
                         shared_ptr<Osmium::OSM::Relation> relation = make_shared<Osmium::OSM::Relation>();
                         relation->id(relation_item->id);
                         relation->version(relation_item->version);
@@ -155,6 +155,7 @@ namespace Osmium {
                             relation->tags().add(it->key(), it->value());
                         }
 
+                        // XXX members
 
                         handler.relation(relation);
                     } else {
