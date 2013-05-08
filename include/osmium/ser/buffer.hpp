@@ -258,6 +258,11 @@ namespace Osmium {
 
         }; // class TagListBuilder
 
+        length_t padded_length(length_t length) {
+            return (length % 8 == 0) ? length : ((length | 7 ) + 1);
+        }
+
+        // any kind of item in a buffer
         class BufferItem {
 
         public:
@@ -294,10 +299,6 @@ namespace Osmium {
 
             length_t user_length() const {
                 return *reinterpret_cast<const length_t*>(get_ptr(sizeof(Node)));
-            }
-
-            length_t padded_length(length_t length) const {
-                return (length % 8 == 0) ? length : ((length | 7 ) + 1);
             }
 
             const char* tags_position() const {
