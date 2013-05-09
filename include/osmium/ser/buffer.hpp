@@ -23,21 +23,27 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 */
 
 #include <boost/function.hpp>
+#include <boost/utility.hpp>
 
 namespace Osmium {
 
     namespace Ser {
 
         /**
-         * Buffer for serialized OSM objects. Is initialized with memory pointer and size.
-         * Future versions of this might be initialized based on a file to mmap, resize
-         * automagically, etc.
+         * Buffer for serialized OSM objects. Is initialized with memory pointer, size
+         * and a callback function that is called when the buffer is full. Buffers are
+         * usually created by one of the classes in the BufferManager namespace.
          */
-        class Buffer {
+        class Buffer : boost::noncopyable {
 
         public:
 
-            Buffer(char* data, size_t size, boost::function<void()> full_callback) : m_data(data), m_size(size), m_pos(0), m_committed(0), m_full_callback(full_callback) {
+            Buffer(char* data, size_t size, boost::function<void()> full_callback) :
+                m_data(data),
+                m_size(size),
+                m_pos(0),
+                m_committed(0),
+                m_full_callback(full_callback) {
             }
 
             char* ptr() const {

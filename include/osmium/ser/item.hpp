@@ -46,7 +46,8 @@ namespace Osmium {
             char type;
             char padding[7];
 
-            Item() {}
+            Item() : offset(0), type('-') {
+            }
 
         protected:
 

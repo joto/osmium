@@ -24,6 +24,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
+#include <boost/utility.hpp>
 
 #include <osmium/ser/buffer.hpp>
 
@@ -33,7 +34,7 @@ namespace Osmium {
 
         namespace BufferManager {
 
-            class Malloc {
+            class Malloc : boost::noncopyable {
 
             public:
             

@@ -33,8 +33,10 @@ namespace Osmium {
 
         public:
 
-            Builder(Buffer& buffer, Builder* parent) : m_buffer(buffer), m_parent(parent) {
-                m_size = buffer.get_space_for<length_t>();
+            Builder(Buffer& buffer, Builder* parent) :
+                m_buffer(buffer),
+                m_parent(parent),
+                m_size(buffer.get_space_for<length_t>()) {
                 *m_size = 0;
                 if (m_parent) {
                     m_parent->add_size(sizeof(length_t));
@@ -141,8 +143,9 @@ namespace Osmium {
 
         public:
 
-            NodeBuilder(Buffer& buffer, Builder* parent=NULL) : Builder(buffer, parent) {
-                m_node = buffer.get_space_for<Node>();
+            NodeBuilder(Buffer& buffer, Builder* parent=NULL) :
+                Builder(buffer, parent),
+                m_node(buffer.get_space_for<Node>()) {
                 add_size(sizeof(Node));
                 m_node->type = 'n';
             }
@@ -159,8 +162,9 @@ namespace Osmium {
 
         public:
 
-            WayBuilder(Buffer& buffer, Builder* parent=NULL) : Builder(buffer, parent) {
-                m_way = buffer.get_space_for<Way>();
+            WayBuilder(Buffer& buffer, Builder* parent=NULL) :
+                Builder(buffer, parent),
+                m_way(buffer.get_space_for<Way>()) {
                 add_size(sizeof(Way));
                 m_way->type = 'w';
             }
@@ -177,8 +181,9 @@ namespace Osmium {
 
         public:
 
-            RelationBuilder(Buffer& buffer, Builder* parent=NULL) : Builder(buffer, parent) {
-                m_relation = buffer.get_space_for<Relation>();
+            RelationBuilder(Buffer& buffer, Builder* parent=NULL) :
+                Builder(buffer, parent),
+                m_relation(buffer.get_space_for<Relation>()) {
                 add_size(sizeof(Relation));
                 m_relation->type = 'r';
             }
