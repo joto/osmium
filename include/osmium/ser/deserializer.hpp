@@ -98,6 +98,15 @@ namespace Osmium {
             ~Deserializer() {
             }
 
+            void dump() {
+                while (m_offset < static_cast<int>(m_data.size())) {
+                    const length_t length = *reinterpret_cast<const length_t*>(&m_data[m_offset]);
+                    const Osmium::Ser::Object* item = reinterpret_cast<const Osmium::Ser::Object*>(&m_data[m_offset+sizeof(length_t)]);
+                    std::cout << "object type=" << item->type << " id=" << item->id << "\n";
+                    m_offset += sizeof(length_t) + length;
+                }
+            }
+
             void feed(THandler& handler) {
                 while (m_offset < static_cast<int>(m_data.size())) {
 //                    hexDump("item", &m_data[m_offset], 120);

@@ -57,5 +57,6 @@ int main(int argc, char* argv[]) {
     Osmium::Ser::Deserializer<Osmium::Handler::Debug> deser(buffer);
     Osmium::Handler::Debug debug;
     deser.feed(debug);
+//    deser.dump();
 }
 

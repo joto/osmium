@@ -191,9 +191,7 @@ namespace Osmium {
                 member->type = type;
                 member->ref = ref;
                 add_size(sizeof(RelationMember));
-//                *m_buffer.get_space_for<length_t>() = 0;
-//                add_size(sizeof(length_t));
-//                Osmium::Ser::StringBuilder rolebuilder(m_buffer, this, role);
+                add_string(role);
             }
 
             // unfortunately we can't do this in the destructor, because

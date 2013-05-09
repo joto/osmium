@@ -113,7 +113,7 @@ namespace Osmium {
         }; // class Relation
 
 
-        class RelationMember : public Item {
+        class RelationMember {
 
         public:
 
@@ -121,7 +121,8 @@ namespace Osmium {
             char type;
             char tpadding[7];
 
-            RelationMember() : Item() {
+            RelationMember() : ref(0), type('-') {
+                memset(tpadding, 0, 7);
             }
 
             const char* role_position() const {
@@ -129,8 +130,11 @@ namespace Osmium {
             }
 
             const char* role() const {
-                return "";
-//                return role_position() + sizeof(length_t);
+                return role_position() + sizeof(length_t);
+            }
+
+            const char* self() const {
+                return reinterpret_cast<const char*>(this);
             }
 
         }; // class RelationMember
@@ -147,6 +151,7 @@ namespace Osmium {
 
             RelationMembersIter& operator++() {
                 m_start += sizeof(RelationMember);
+                m_start += padded_length(*reinterpret_cast<const length_t*>(m_start)) + sizeof(length_t);
                 return *this;
             }
 
