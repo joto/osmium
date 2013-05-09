@@ -153,6 +153,10 @@ namespace Osmium {
                 }
             }
 
+            void final() {
+                flush_buffer();
+            }
+
         private:
 
             TBufferManager& m_buffer_manager;
