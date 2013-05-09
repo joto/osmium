@@ -162,7 +162,7 @@ namespace Osmium {
                 }
             }
 
-            virtual add_size(length_t size) {
+            virtual void add_size(length_t size) {
                 *m_size += size;
                 if (m_parent) {
                     m_parent->add_size(size);
