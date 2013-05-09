@@ -113,6 +113,88 @@ namespace Osmium {
         }; // class Relation
 
 
+        class RelationMember : public Item {
+
+        public:
+
+            osm_object_id_t ref;
+            char type;
+            char tpadding[7];
+
+            RelationMember() : Item() {
+            }
+
+            const char* role() const {
+                return "";
+//                return reinterpret_cast<const char*>(this) + sizeof(RelationMember) + sizeof(length_t);
+            }
+
+        }; // class RelationMember
+
+        /**
+         * Iterator to iterate over tags in a RelationMembers
+         */
+        class RelationMembersIter {
+
+        public:
+
+            RelationMembersIter(const char* start, const char* end) : m_start(start), m_end(end) {
+            }
+
+            RelationMembersIter& operator++() {
+                m_start += sizeof(RelationMember);
+                return *this;
+            }
+
+            RelationMembersIter operator++(int) {
+                RelationMembersIter tmp(*this);
+                operator++();
+                return tmp;
+            }
+
+            bool operator==(const RelationMembersIter& rhs) {return m_start==rhs.m_start;}
+            bool operator!=(const RelationMembersIter& rhs) {return m_start!=rhs.m_start;}
+
+            const RelationMember operator*() {
+                return *reinterpret_cast<const RelationMember*>(m_start);
+            }
+           
+            const RelationMember* operator->() {
+                return reinterpret_cast<const RelationMember*>(m_start);
+            }
+
+        private:
+
+            const char* m_start;
+            const char* m_end;
+
+        }; // class RelationMembersIter
+
+        class RelationMembers {
+
+        public:
+
+            RelationMembers(const char* data, size_t size) : m_data(data), m_size(size) {
+            }
+
+            RelationMembers(const Object& object) : m_data(object.members_position() + sizeof(length_t)), m_size(object.members_length()) {
+            }
+
+            RelationMembersIter begin() {
+                return RelationMembersIter(m_data, m_data + m_size);
+            }
+
+            RelationMembersIter end() {
+                return RelationMembersIter(m_data + m_size, m_data + m_size);
+            }
+
+        private:
+
+            const char* m_data;
+            size_t m_size;
+
+        }; // class RelationMembers
+
         class Tag {
 
         public:
@@ -261,6 +343,7 @@ namespace Osmium {
             int32_t m_size;
 
         }; // class Nodes
+
     } // namespace Ser
 
 } // namespace Osmium

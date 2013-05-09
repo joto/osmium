@@ -79,24 +79,26 @@ namespace Osmium {
 
         }; // Builder
 
-        class UserNameBuilder : public Builder {
+        class StringBuilder : public Builder {
 
         public:
 
-            UserNameBuilder(Buffer& buffer, Builder* parent=NULL, const char* username=NULL) : Builder(buffer, parent) {
+            StringBuilder(Buffer& buffer, Builder* parent=NULL, const char* str=NULL) :
+                Builder(buffer, parent) {
                 size_t old_size = m_buffer.pos();
-                m_buffer.append(username);
+                m_buffer.append(str);
                 add_size(m_buffer.pos() - old_size);
                 add_padding();
             }
 
-        }; // UserNameBuilder
+        }; // StringBuilder
 
         class NodeListBuilder : public Builder {
 
         public:
 
-            NodeListBuilder(Buffer& buffer, Builder* parent=NULL) : Builder(buffer, parent) {
+            NodeListBuilder(Buffer& buffer, Builder* parent=NULL) :
+                Builder(buffer, parent) {
             }
 
             void add_node(uint64_t ref) {
@@ -176,6 +178,32 @@ namespace Osmium {
             Way* m_way;
 
         }; // class WayBuilder
+
+        class RelationMemberBuilder : public Builder {
+
+        public:
+
+            RelationMemberBuilder(Buffer& buffer, Builder* parent=NULL) :
+                Builder(buffer, parent) {
+            }
+
+            void add_member(char type, osm_object_id_t ref, const char* role) {
+                RelationMember* member = m_buffer.get_space_for<RelationMember>();
+                member->type = type;
+                member->ref = ref;
+                add_size(sizeof(RelationMember));
+//                Osmium::Ser::StringBuilder rolebuilder(m_buffer, this, role);
+            }
+
+            // unfortunately we can't do this in the destructor, because
+            // the destructor is not allowed to fail and this might fail
+            // if the buffer is full.
+            // XXX maybe we can do something clever here?
+            void done() {
+                add_padding();
+            }
+
+        }; // class RelationMemberBuilder
 
         class RelationBuilder : public Builder {
 

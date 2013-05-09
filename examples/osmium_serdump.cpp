@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
     }
 
     Osmium::OSMFile infile(argv[1]);
-    Osmium::Ser::BufferManager::Malloc manager(10000);
+    Osmium::Ser::BufferManager::Malloc manager(1024* 1024);
     Osmium::Ser::Handler<Osmium::Ser::BufferManager::Malloc> handler(manager);
     Osmium::Input::read(infile, handler);
 

@@ -156,7 +156,10 @@ namespace Osmium {
                             relation->tags().add(it->key(), it->value());
                         }
 
-                        // XXX members
+                        Osmium::Ser::RelationMembers members(*relation_item);
+                        for (Osmium::Ser::RelationMembersIter it = members.begin(); it != members.end(); ++it) {
+                            relation->add_member(it->type, it->ref, it->role());
+                        }
 
                         handler.relation(relation);
                     } else {
