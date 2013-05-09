@@ -98,7 +98,7 @@ namespace Osmium {
             }
 
             void feed(THandler& handler) {
-                while (m_offset < m_data.size()) {
+                while (m_offset < static_cast<int>(m_data.size())) {
 //                    hexDump("item", &m_data[m_offset], 120);
                     const length_t length = *reinterpret_cast<const length_t*>(&m_data[m_offset]);
                     const Osmium::Ser::Item* item = reinterpret_cast<const Osmium::Ser::Item*>(&m_data[m_offset+sizeof(length_t)]);
