@@ -26,14 +26,15 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <utility>
 
 #include <boost/foreach.hpp>
-#include <boost/shared_ptr.hpp>
 
+#include <osmium/smart_ptr.hpp>
 #include <osmium/osm/types.hpp>
 #include <osmium/osm/node.hpp>
 #include <osmium/osm/tag_list.hpp>
 #include <osmium/handler.hpp>
 
 #include <osmium/ser/buffer.hpp>
+#include <osmium/ser/item.hpp>
 
 // helper for debugging
 namespace {

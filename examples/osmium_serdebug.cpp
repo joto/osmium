@@ -16,6 +16,7 @@
 
 #include <osmium.hpp>
 #include <osmium/handler/debug.hpp>
+#include <osmium/ser/buffer_manager.hpp>
 #include <osmium/ser/deserializer.hpp>
 
 void full() {

@@ -4,6 +4,7 @@
 #endif
 #include <boost/test/unit_test.hpp>
 
+#include <osmium/ser/buffer_manager.hpp>
 #include <osmium/ser/deserializer.hpp>
 #include <osmium/ser/handler.hpp>
 #include <osmium/handler/debug.hpp>

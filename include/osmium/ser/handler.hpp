@@ -25,7 +25,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <boost/foreach.hpp>
 
 #include <osmium/handler.hpp>
-#include <osmium/ser/buffer.hpp>
 #include <osmium/ser/builder.hpp>
 
 namespace Osmium {

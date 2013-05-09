@@ -13,6 +13,7 @@
 #define OSMIUM_WITH_XML_INPUT
 
 #include <osmium.hpp>
+#include <osmium/ser/buffer_manager.hpp>
 #include <osmium/ser/handler.hpp>
 
 int main(int argc, char* argv[]) {
