@@ -43,9 +43,6 @@ namespace Osmium {
             Buffer(char* data, size_t size, boost::function<void()> full_callback) : m_data(data), m_size(size), m_pos(0), m_committed(0), m_full_callback(full_callback) {
             }
 
-            virtual ~Buffer() {
-            }
-
             char* ptr() const {
                 return m_data;
             }
@@ -129,7 +126,7 @@ namespace Osmium {
                     m_buffer = new Osmium::Ser::Buffer(mem, size, boost::bind(&Malloc::full, this));
                 }
 
-                virtual ~Malloc() {
+                ~Malloc() {
                     free(m_buffer->ptr());
                     delete m_buffer;
                 }
@@ -162,10 +159,7 @@ namespace Osmium {
                 }
             }
 
-            virtual ~Builder() {
-            }
-
-            virtual void add_size(length_t size) {
+            void add_size(length_t size) {
                 *m_size += size;
                 if (m_parent) {
                     m_parent->add_size(size);
