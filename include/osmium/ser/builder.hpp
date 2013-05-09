@@ -71,6 +71,19 @@ namespace Osmium {
                 }
             }
 
+            add_string(const char* str) {
+                size_t len = strlen(str) + 1;
+                *m_buffer.get_space_for<length_t>() = len;
+                m_buffer.append(str);
+                add_size(sizeof(length_t) + len);
+
+                length_t mod = len % pad_bytes;
+                if (mod != 0) {
+                    m_buffer.get_space(8-mod);
+                    add_size(8-mod);
+                }
+            }
+
         protected:
 
             Buffer& m_buffer;
@@ -78,20 +91,6 @@ namespace Osmium {
             length_t* m_size;
 
         }; // Builder
-
-        class StringBuilder : public Builder {
-
-        public:
-
-            StringBuilder(Buffer& buffer, Builder* parent=NULL, const char* str=NULL) :
-                Builder(buffer, parent) {
-                size_t old_size = m_buffer.pos();
-                m_buffer.append(str);
-                add_size(m_buffer.pos() - old_size);
-                add_padding();
-            }
-
-        }; // StringBuilder
 
         class NodeListBuilder : public Builder {
 
@@ -192,6 +191,8 @@ namespace Osmium {
                 member->type = type;
                 member->ref = ref;
                 add_size(sizeof(RelationMember));
+//                *m_buffer.get_space_for<length_t>() = 0;
+//                add_size(sizeof(length_t));
 //                Osmium::Ser::StringBuilder rolebuilder(m_buffer, this, role);
             }
 

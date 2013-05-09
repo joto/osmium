@@ -59,7 +59,7 @@ namespace Osmium {
                 sn.changeset = node->changeset();
                 sn.pos       = node->position();
 
-                Osmium::Ser::StringBuilder username(m_buffer, &builder, node->user());
+                builder.add_string(node->user());
 
                 Osmium::Ser::TagListBuilder tags(m_buffer, &builder);
                 BOOST_FOREACH(const Osmium::OSM::Tag& tag, node->tags()) {
@@ -90,7 +90,7 @@ namespace Osmium {
                 sn.uid       = way->uid();
                 sn.changeset = way->changeset();
 
-                Osmium::Ser::StringBuilder username(m_buffer, &builder, way->user());
+                builder.add_string(way->user());
 
                 Osmium::Ser::TagListBuilder tags(m_buffer, &builder);
                 BOOST_FOREACH(const Osmium::OSM::Tag& tag, way->tags()) {
@@ -127,7 +127,7 @@ namespace Osmium {
                 sn.uid       = relation->uid();
                 sn.changeset = relation->changeset();
 
-                Osmium::Ser::StringBuilder username(m_buffer, &builder, relation->user());
+                builder.add_string(relation->user());
 
                 Osmium::Ser::TagListBuilder tags(m_buffer, &builder);
                 BOOST_FOREACH(const Osmium::OSM::Tag& tag, relation->tags()) {

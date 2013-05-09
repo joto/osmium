@@ -124,9 +124,13 @@ namespace Osmium {
             RelationMember() : Item() {
             }
 
+            const char* role_position() const {
+                return self() + sizeof(RelationMember);
+            }
+
             const char* role() const {
                 return "";
-//                return reinterpret_cast<const char*>(this) + sizeof(RelationMember) + sizeof(length_t);
+//                return role_position() + sizeof(length_t);
             }
 
         }; // class RelationMember
