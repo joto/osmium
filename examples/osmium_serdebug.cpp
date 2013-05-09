@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
-    std::cerr << "opening file " << argv[1] << "\n";
+//    std::cerr << "opening file " << argv[1] << "\n";
     int fd = open(argv[1], O_RDONLY);
     if (fd < 0) {
         std::cerr << "Can't read file " << argv[1] << "\n";
@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
     }
     
     size_t bufsize = file_stat.st_size;
-    std::cerr << "Reading " << bufsize << " bytes from file " << argv[1] << "\n";
+//    std::cerr << "Reading " << bufsize << " bytes from file " << argv[1] << "\n";
     char* mem = reinterpret_cast<char*>(mmap(NULL, bufsize, PROT_READ, MAP_SHARED, fd, 0));
     if (!mem) {
         std::cerr << "Can't mmap file " << argv[1] << "\n";
