@@ -43,7 +43,7 @@ namespace Osmium {
             Buffer(char* data, size_t size, boost::function<void()> full_callback) : m_data(data), m_size(size), m_pos(0), m_committed(0), m_full_callback(full_callback) {
             }
 
-            ~Buffer() {
+            virtual ~Buffer() {
             }
 
             char* ptr() const {
@@ -129,7 +129,7 @@ namespace Osmium {
                     m_buffer = new Osmium::Ser::Buffer(mem, size, boost::bind(&Malloc::full, this));
                 }
 
-                ~Malloc() {
+                virtual ~Malloc() {
                     free(m_buffer->ptr());
                     delete m_buffer;
                 }
@@ -162,7 +162,10 @@ namespace Osmium {
                 }
             }
 
-            virtual add_size(length_t size) {
+            virtual ~Builder() {
+            }
+
+            virtual void add_size(length_t size) {
                 *m_size += size;
                 if (m_parent) {
                     m_parent->add_size(size);
@@ -275,8 +278,8 @@ namespace Osmium {
 
         protected:
 
-            const char* const self() const {
-                return reinterpret_cast<const char* const>(this);
+            const char* self() const {
+                return reinterpret_cast<const char*>(this);
             }
 
         };
@@ -295,7 +298,7 @@ namespace Osmium {
                 return self() + sizeof(Object) + (type == 'n' ? sizeof(Osmium::OSM::Position) : 0);
             }
 
-            const char* const user() const {
+            const char* user() const {
                 return user_position() + sizeof(length_t);
             }
 
@@ -341,20 +344,20 @@ namespace Osmium {
 
         public:
 
-            Tag(const char* const data) : m_data(data) {
+            Tag(const char* data) : m_data(data) {
             }
 
-            const char* const key() const {
+            const char* key() const {
                 return m_data;
             }
 
-            const char* const value() const {
+            const char* value() const {
                 return m_data + strlen(m_data) + 1;
             }
 
         private:
 
-            const char* const m_data;
+            const char* m_data;
 
         }; // class Tag
 
