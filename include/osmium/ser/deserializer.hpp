@@ -99,7 +99,7 @@ namespace Osmium {
             }
 
             void dump() {
-                while (m_offset < static_cast<int>(m_data.size())) {
+                while (m_offset < m_data.size()) {
                     const length_t length = *reinterpret_cast<const length_t*>(&m_data[m_offset]);
                     const Osmium::Ser::Object* item = reinterpret_cast<const Osmium::Ser::Object*>(&m_data[m_offset+sizeof(length_t)]);
                     std::cout << "object type=" << item->type << " id=" << item->id << "\n";
@@ -181,7 +181,7 @@ namespace Osmium {
         private:
 
             const Osmium::Ser::Buffer& m_data;
-            int m_offset;
+            size_t m_offset;
 
         }; // class Deserializer
 

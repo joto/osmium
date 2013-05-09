@@ -11,7 +11,7 @@
 
 BOOST_AUTO_TEST_SUITE(SerNode)
 
-BOOST_AUTO_TEST_CASE(instantiation_with_default_parameters) {
+BOOST_AUTO_TEST_CASE(ser_deser) {
     Osmium::Ser::BufferManager::Malloc manager(10000);
     Osmium::Ser::Handler<Osmium::Ser::BufferManager::Malloc> handler(manager);
 
@@ -36,6 +36,8 @@ BOOST_AUTO_TEST_CASE(instantiation_with_default_parameters) {
     n2->lon(11);
     n2->lat(22);
     handler.node(n2);
+
+    handler.final();
 
     Osmium::Ser::Buffer& out = manager.buffer();
     Osmium::Ser::Deserializer<Osmium::Handler::Debug> deser(out);
