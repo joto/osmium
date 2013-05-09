@@ -167,19 +167,19 @@ namespace Osmium {
 
                 if (m_count_nodes > 0) {
                     float node_diff = (m_first_way.tv_sec - m_first_node.tv_sec) * 1000000 + (m_first_way.tv_usec - m_first_node.tv_usec);
-                    int nodes_per_sec = (float)m_count_nodes / node_diff * 1000000;
+                    int nodes_per_sec = static_cast<float>(m_count_nodes) / node_diff * 1000000;
                     std::cout << nodes_per_sec << " Nodes ";
                 }
 
                 if (m_count_ways > 0) {
                     float way_diff = (m_first_relation.tv_sec - m_first_way.tv_sec) * 1000000 + (m_first_relation.tv_usec - m_first_way.tv_usec);
-                    int ways_per_sec = (float)m_count_ways / way_diff * 1000000;
+                    int ways_per_sec = static_cast<float>(m_count_ways) / way_diff * 1000000;
                     std::cout << ways_per_sec << " Ways ";
                 }
 
                 if (m_count_relations > 0) {
                     float relation_diff = (now.tv_sec - m_first_relation.tv_sec) * 1000000 + (now.tv_usec - m_first_relation.tv_usec);
-                    int relations_per_sec = (float)m_count_relations / relation_diff * 1000000;
+                    int relations_per_sec = static_cast<float>(m_count_relations) / relation_diff * 1000000;
                     std::cout << relations_per_sec << " Relations ";
                 }
 
