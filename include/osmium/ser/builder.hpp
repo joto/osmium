@@ -71,7 +71,7 @@ namespace Osmium {
                 }
             }
 
-            add_string(const char* str) {
+            void add_string(const char* str) {
                 size_t len = strlen(str) + 1;
                 *m_buffer.get_space_for<length_t>() = len;
                 m_buffer.append(str);
