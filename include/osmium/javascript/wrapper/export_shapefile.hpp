@@ -54,7 +54,7 @@ namespace Osmium {
                             throw std::runtime_error("unkown shapefile type");
                         }
 
-                        return Osmium::Javascript::Wrapper::ExportShapefile::get<Osmium::Javascript::Wrapper::ExportShapefile>().create_instance((void*)(oc));
+                        return Osmium::Javascript::Wrapper::ExportShapefile::get<Osmium::Javascript::Wrapper::ExportShapefile>().create_instance(static_cast<void*>(oc));
                     }
                 }
 
@@ -161,7 +161,7 @@ namespace Osmium {
                     }
 
                     v8::Local<v8::Object> xxx = v8::Local<v8::Object>::Cast(args[0]);
-                    Osmium::Geometry::Geometry* geometry = (Osmium::Geometry::Geometry*) v8::Local<v8::External>::Cast(xxx->GetInternalField(0))->Value();
+                    Osmium::Geometry::Geometry* geometry = static_cast<Osmium::Geometry::Geometry*>(v8::Local<v8::External>::Cast(xxx->GetInternalField(0))->Value());
 
                     try {
                         add(shapefile, geometry, v8::Local<v8::Object>::Cast(args[1]));
