@@ -1,5 +1,5 @@
-#ifndef OSMIUM_SER_ITEM_HPP
-#define OSMIUM_SER_ITEM_HPP
+#ifndef OSMIUM_SER_DESERIALIZER_HPP
+#define OSMIUM_SER_DESERIALIZER_HPP
 
 /*
 
@@ -176,4 +176,4 @@ namespace Osmium {
 
 } // namespace Osmium
 
-#endif // OSMIUM_SER_ITEM_HPP
+#endif // OSMIUM_SER_DESERIALIZER_HPP

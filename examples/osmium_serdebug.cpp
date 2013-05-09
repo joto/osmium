@@ -16,8 +16,7 @@
 
 #include <osmium.hpp>
 #include <osmium/handler/debug.hpp>
-#include <osmium/ser/buffer.hpp>
-#include <osmium/ser/item.hpp>
+#include <osmium/ser/deserializer.hpp>
 
 void full() {
     std::cerr << "full\n";

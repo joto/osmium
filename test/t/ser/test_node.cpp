@@ -4,7 +4,7 @@
 #endif
 #include <boost/test/unit_test.hpp>
 
-#include <osmium/ser/item.hpp>
+#include <osmium/ser/deserializer.hpp>
 #include <osmium/ser/handler.hpp>
 #include <osmium/handler/debug.hpp>
 #include <osmium/smart_ptr.hpp>
