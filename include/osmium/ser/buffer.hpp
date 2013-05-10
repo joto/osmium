@@ -84,6 +84,11 @@ namespace Osmium {
                 return reinterpret_cast<T*>(get_space(sizeof(T)));
             }
 
+            template <class T>
+            T& get(const size_t offset) const {
+                return *reinterpret_cast<T*>(&m_data[offset]);
+            }
+
             /**
              * Append \0-terminated string to buffer.
              */
@@ -95,10 +100,6 @@ namespace Osmium {
                 memcpy(&m_data[m_pos], str, l);
                 m_pos += l;
                 return *this;
-            }
-
-            const char& operator[](size_t offset) const {
-                return m_data[offset];
             }
 
             void commit() {

@@ -100,9 +100,9 @@ namespace Osmium {
 
             void dump() {
                 while (m_offset < m_data.size()) {
-                    const length_t length = *reinterpret_cast<const length_t*>(&m_data[m_offset]);
-                    const Osmium::Ser::Object* item = reinterpret_cast<const Osmium::Ser::Object*>(&m_data[m_offset+sizeof(length_t)]);
-                    std::cout << "object type=" << item->type << " id=" << item->id << "\n";
+                    const length_t length = m_data.get<length_t>(m_offset);
+                    const Osmium::Ser::Object& item = m_data.get<Osmium::Ser::Object>(m_offset+sizeof(length_t));
+                    std::cout << "object type=" << item.type << " id=" << item.id << "\n";
                     m_offset += sizeof(length_t) + length;
                 }
             }
@@ -110,62 +110,62 @@ namespace Osmium {
             void feed(THandler& handler) {
                 while (m_offset < m_data.size()) {
 //                    hexDump("item", &m_data[m_offset], 120);
-                    const length_t length = *reinterpret_cast<const length_t*>(&m_data[m_offset]);
-                    const Osmium::Ser::Item* item = reinterpret_cast<const Osmium::Ser::Item*>(&m_data[m_offset+sizeof(length_t)]);
-                    if (item->type == 'n') {
-                        const Osmium::Ser::Node* node_item = static_cast<const Osmium::Ser::Node*>(item);
+                    const length_t length = m_data.get<length_t>(m_offset);
+                    const Osmium::Ser::Item& item = m_data.get<Osmium::Ser::Item>(m_offset+sizeof(length_t));
+                    if (item.type == 'n') {
+                        const Osmium::Ser::Node& node_item = static_cast<const Osmium::Ser::Node&>(item);
                         shared_ptr<Osmium::OSM::Node> node = make_shared<Osmium::OSM::Node>();
-                        node->id(node_item->id);
-                        node->version(node_item->version);
-                        node->uid(node_item->uid);
-                        node->changeset(node_item->changeset);
-                        node->timestamp(node_item->timestamp);
-                        node->position(node_item->pos);
-                        node->user(node_item->user());
+                        node->id(node_item.id);
+                        node->version(node_item.version);
+                        node->uid(node_item.uid);
+                        node->changeset(node_item.changeset);
+                        node->timestamp(node_item.timestamp);
+                        node->position(node_item.pos);
+                        node->user(node_item.user());
 
-                        Osmium::Ser::Tags tags(*node_item);
+                        Osmium::Ser::Tags tags(node_item);
                         for (Osmium::Ser::TagsIter it = tags.begin(); it != tags.end(); ++it) {
                             node->tags().add(it->key(), it->value());
                         }
 
                         handler.node(node);
-                    } else if (item->type == 'w') {
-                        const Osmium::Ser::Way* way_item = static_cast<const Osmium::Ser::Way*>(item);
+                    } else if (item.type == 'w') {
+                        const Osmium::Ser::Way& way_item = static_cast<const Osmium::Ser::Way&>(item);
                         shared_ptr<Osmium::OSM::Way> way = make_shared<Osmium::OSM::Way>();
-                        way->id(way_item->id);
-                        way->version(way_item->version);
-                        way->uid(way_item->uid);
-                        way->changeset(way_item->changeset);
-                        way->timestamp(way_item->timestamp);
-                        way->user(way_item->user());
+                        way->id(way_item.id);
+                        way->version(way_item.version);
+                        way->uid(way_item.uid);
+                        way->changeset(way_item.changeset);
+                        way->timestamp(way_item.timestamp);
+                        way->user(way_item.user());
 
-                        Osmium::Ser::Tags tags(*way_item);
+                        Osmium::Ser::Tags tags(way_item);
                         for (Osmium::Ser::TagsIter it = tags.begin(); it != tags.end(); ++it) {
                             way->tags().add(it->key(), it->value());
                         }
 
-                        Osmium::Ser::Nodes nodes(*way_item);
+                        Osmium::Ser::Nodes nodes(way_item);
                         for (Osmium::Ser::NodesIter it = nodes.begin(); it != nodes.end(); ++it) {
                             way->nodes().add(*it);
                         }
 
                         handler.way(way);
-                    } else if (item->type == 'r') {
-                        const Osmium::Ser::Relation* relation_item = static_cast<const Osmium::Ser::Relation*>(item);
+                    } else if (item.type == 'r') {
+                        const Osmium::Ser::Relation& relation_item = static_cast<const Osmium::Ser::Relation&>(item);
                         shared_ptr<Osmium::OSM::Relation> relation = make_shared<Osmium::OSM::Relation>();
-                        relation->id(relation_item->id);
-                        relation->version(relation_item->version);
-                        relation->uid(relation_item->uid);
-                        relation->changeset(relation_item->changeset);
-                        relation->timestamp(relation_item->timestamp);
-                        relation->user(relation_item->user());
+                        relation->id(relation_item.id);
+                        relation->version(relation_item.version);
+                        relation->uid(relation_item.uid);
+                        relation->changeset(relation_item.changeset);
+                        relation->timestamp(relation_item.timestamp);
+                        relation->user(relation_item.user());
 
-                        Osmium::Ser::Tags tags(*relation_item);
+                        Osmium::Ser::Tags tags(relation_item);
                         for (Osmium::Ser::TagsIter it = tags.begin(); it != tags.end(); ++it) {
                             relation->tags().add(it->key(), it->value());
                         }
 
-                        Osmium::Ser::RelationMembers members(*relation_item);
+                        Osmium::Ser::RelationMembers members(relation_item);
                         for (Osmium::Ser::RelationMembersIter it = members.begin(); it != members.end(); ++it) {
                             relation->add_member(it->type, it->ref, it->role());
                         }
