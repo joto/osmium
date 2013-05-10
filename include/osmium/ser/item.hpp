@@ -102,14 +102,32 @@ namespace Osmium {
 
         public:
 
+            static char object_type() {
+                return 'n';
+            }
+
             Osmium::OSM::Position pos;
 
         }; // class Node
 
         class Way : public Object {
+
+        public:
+
+            static char object_type() {
+                return 'w';
+            }
+
         }; // class Way
 
         class Relation : public Object {
+
+        public:
+
+            static char object_type() {
+                return 'r';
+            }
+
         }; // class Relation
 
 

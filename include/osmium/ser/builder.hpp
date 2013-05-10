@@ -119,7 +119,8 @@ namespace Osmium {
 
         public:
 
-            TagListBuilder(Buffer& buffer, Builder* parent=NULL) : Builder(buffer, parent) {
+            TagListBuilder(Buffer& buffer, Builder* parent=NULL) :
+                Builder(buffer, parent) {
             }
 
             void add_tag(const char* key, const char* value) {
@@ -138,44 +139,6 @@ namespace Osmium {
             }
 
         }; // class TagListBuilder
-
-        class NodeBuilder : public Builder {
-
-        public:
-
-            NodeBuilder(Buffer& buffer, Builder* parent=NULL) :
-                Builder(buffer, parent),
-                m_node(buffer.get_space_for<Node>()) {
-                add_size(sizeof(Node));
-                m_node->type = 'n';
-            }
-
-            Node& node() {
-                return *m_node;
-            }
-
-            Node* m_node;
-
-        }; // class NodeBuilder
-
-        class WayBuilder : public Builder {
-
-        public:
-
-            WayBuilder(Buffer& buffer, Builder* parent=NULL) :
-                Builder(buffer, parent),
-                m_way(buffer.get_space_for<Way>()) {
-                add_size(sizeof(Way));
-                m_way->type = 'w';
-            }
-
-            Way& way() {
-                return *m_way;
-            }
-
-            Way* m_way;
-
-        }; // class WayBuilder
 
         class RelationMemberBuilder : public Builder {
 
@@ -203,24 +166,27 @@ namespace Osmium {
 
         }; // class RelationMemberBuilder
 
-        class RelationBuilder : public Builder {
+        template <class T>
+        class ObjectBuilder : public Builder {
 
         public:
 
-            RelationBuilder(Buffer& buffer, Builder* parent=NULL) :
+            ObjectBuilder(Buffer& buffer, Builder* parent=NULL) :
                 Builder(buffer, parent),
-                m_relation(buffer.get_space_for<Relation>()) {
-                add_size(sizeof(Relation));
-                m_relation->type = 'r';
+                m_object(buffer.get_space_for<T>()) {
+                add_size(sizeof(T));
+                m_object->type = T::object_type();
             }
 
-            Relation& relation() {
-                return *m_relation;
+            T& object() {
+                return *m_object;
             }
 
-            Relation* m_relation;
+        private:
 
-        }; // class RelationBuilder
+            T* m_object;
+
+        }; // class ObjectBuilder
 
     } // namespace Ser
 

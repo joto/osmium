@@ -48,9 +48,9 @@ namespace Osmium {
             }
 
             void write_node(const shared_ptr<Osmium::OSM::Node const>& node) const {
-                Osmium::Ser::NodeBuilder builder(m_buffer);
+                Osmium::Ser::ObjectBuilder<Osmium::Ser::Node> builder(m_buffer);
 
-                Osmium::Ser::Node& sn = builder.node();
+                Osmium::Ser::Node& sn = builder.object();
                 sn.offset    = 0;
                 sn.id        = node->id();
                 sn.version   = node->version();
@@ -80,9 +80,9 @@ namespace Osmium {
             }
 
             void write_way(const shared_ptr<Osmium::OSM::Way const>& way) const {
-                Osmium::Ser::WayBuilder builder(m_buffer);
+                Osmium::Ser::ObjectBuilder<Osmium::Ser::Way> builder(m_buffer);
 
-                Osmium::Ser::Way& sn = builder.way();
+                Osmium::Ser::Way& sn = builder.object();
                 sn.offset    = 0;
                 sn.id        = way->id();
                 sn.version   = way->version();
@@ -117,9 +117,9 @@ namespace Osmium {
             }
 
             void write_relation(const shared_ptr<Osmium::OSM::Relation const>& relation) const {
-                Osmium::Ser::RelationBuilder builder(m_buffer);
+                Osmium::Ser::ObjectBuilder<Osmium::Ser::Relation> builder(m_buffer);
 
-                Osmium::Ser::Relation& sn = builder.relation();
+                Osmium::Ser::Relation& sn = builder.object();
                 sn.offset    = 0;
                 sn.id        = relation->id();
                 sn.version   = relation->version();

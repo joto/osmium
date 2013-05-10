@@ -38,12 +38,17 @@ namespace Osmium {
 
         public:
 
+            static const int align_to = 8;
+
             Buffer(char* data, size_t size, boost::function<void()> full_callback) :
                 m_data(data),
                 m_size(size),
                 m_pos(0),
                 m_committed(0),
                 m_full_callback(full_callback) {
+                if (size % align_to != 0) {
+                    throw std::invalid_argument("buffer size needs to be multiple of alignment");
+                }
             }
 
             char* ptr() const {
