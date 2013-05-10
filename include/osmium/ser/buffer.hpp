@@ -86,6 +86,7 @@ namespace Osmium {
 
             template <class T>
             T* get_space_for() {
+                assert((m_pos % 8 == 0) && "alignment problem");
                 return reinterpret_cast<T*>(get_space(sizeof(T)));
             }
 
