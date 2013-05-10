@@ -101,9 +101,8 @@ namespace Osmium {
             }
 
             void add_node(uint64_t ref) {
-                uint64_t* nodeidptr = m_buffer.get_space_for<uint64_t>();
-                *nodeidptr = ref;
-                add_size(sizeof(uint64_t));
+                *m_buffer.get_space_for<osm_object_id_t>() = ref;
+                add_size(sizeof(osm_object_id_t));
             }
 
             // unfortunately we can't do this in the destructor, because
