@@ -10,9 +10,19 @@
 
 set -e
 
-CXX="g++"
-CXXFLAGS="-g -Wall -Wextra -Wredundant-decls -Wdisabled-optimization -pedantic -Wctor-dtor-privacy -Wnon-virtual-dtor -Woverloaded-virtual -Wsign-promo -Wno-long-long"
-COMPILE="$CXX -I../include -I. $CXXFLAGS -o tests"
+if [ -z "$CXX" ]; then
+    CXX="c++"
+fi
+
+if [ -z "$CXXFLAGS_WARNINGS" ]; then
+    CXXFLAGS_WARNINGS="-Wall -Wextra -Wredundant-decls -Wdisabled-optimization -pedantic -Wctor-dtor-privacy -Wnon-virtual-dtor -Woverloaded-virtual -Wsign-promo -Wno-long-long"
+fi
+
+if [ -z "$CXXFLAGS" ]; then
+    CXXFLAGS="-g"
+fi
+
+COMPILE="$CXX -I../include -I. $CXXFLAGS $CXXFLAGS_WARNINGS -o tests"
 
 if [ "x$1" = "x-v" ]; then
     VALGRIND="valgrind --leak-check=full --show-reachable=yes"
@@ -26,11 +36,14 @@ NORM="[0m"
 
 test_file () {
     FILES="test_main.cpp test_utils.cpp $1"
-    eval CFLAGS=`../get_options.sh --cflags $FILES`
-    eval LIBS=`../get_options.sh --libs $FILES`
+
+    eval OPTS_CFLAGS=`../get_options.sh --cflags $FILES`
+    eval OPTS_LIBS=`../get_options.sh --libs $FILES`
+    PARAMS="$OPTS_CFLAGS $OPTS_LIBS -DBOOST_TEST_DYN_LINK -lboost_unit_test_framework"
+
     echo "Checking $BOLD$1$NORM..."
-    echo $COMPILE $FILES $CFLAGS $LIBS -DBOOST_TEST_DYN_LINK -lboost_unit_test_framework
-    $COMPILE $FILES $CFLAGS $LIBS -DBOOST_TEST_DYN_LINK -lboost_unit_test_framework
+    echo $COMPILE $FILES $PARAMS
+    $COMPILE $FILES $PARAMS
     $VALGRIND ./tests
 }
 

@@ -1,19 +1,23 @@
 #------------------------------------------------------------------------------
 #
-#  Osmium osmjs makefile
+#  Osmium osmjs Makefile
 #
 #------------------------------------------------------------------------------
+#
+#  You can set several environment variables before running make if you don't
+#  like the defaults:
+#
+#  CXX                - Your C++ compiler.
+#  CPLUS_INCLUDE_PATH - Include file search path.
+#  CXXFLAGS           - Extra compiler flags.
+#  LDFLAGS            - Extra linker flags.
+#  
+#------------------------------------------------------------------------------
 
-CXX = g++
-#CXX = clang++
-
-CXXFLAGS = -g
-#CXXFLAGS = -O3 -g
-
-CXXFLAGS += -Wall -Wextra -Wdisabled-optimization -pedantic -Wctor-dtor-privacy -Wnon-virtual-dtor -Woverloaded-virtual -Wsign-promo -Wno-long-long
-
+CXXFLAGS += -O3
+#CXXFLAGS += -g
 CXXFLAGS += -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
-CXXFLAGS += $(shell geos-config --cflags)
+CXXFLAGS += -I../include
 
 # remove this if you do not want debugging to be compiled in
 CXXFLAGS += -DOSMIUM_WITH_DEBUG
@@ -22,21 +26,21 @@ CXXFLAGS += -DOSMIUM_WITH_DEBUG
 # Use only to find memory leaks. It will make osmjs really slow.
 #CXXFLAGS += -DOSMIUM_V8_FORCE_GC
 
-CXXFLAGS += -I../include
+CXXFLAGS_GEOS     := $(shell geos-config --cflags)
+CXXFLAGS_WARNINGS := -Wall -Wextra -Wdisabled-optimization -pedantic -Wctor-dtor-privacy -Wnon-virtual-dtor -Woverloaded-virtual -Wsign-promo -Wno-long-long
 
-LDFLAGS = -L/usr/local/lib -lexpat
-LDFLAGS += $(shell geos-config --libs)
+LIB_EXPAT := -lexpat
+LIB_PBF   := -lz -lpthread -lprotobuf-lite -losmpbf
+LIB_V8    := -lv8 -licuuc
+LIB_SHAPE := -lshp
+LIB_GEOS  := $(shell geos-config --libs)
 
-LIB_V8    = -lv8 -licuuc
-LIB_SHAPE = -lshp
-LIB_PBF   = -lz -lpthread -lprotobuf-lite -losmpbf
-
-.PHONY: all clean install
+.PHONY: all install clean deb deb-clean
 
 all: osmjs
 
 osmjs: osmjs.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LIB_PBF) $(LIB_V8) $(LIB_SHAPE)
+	$(CXX) $(CXXFLAGS) $(CXXFLAGS_GEOS) $(CXXFLAGS_WARNINGS) -o $@ $< $(LDFLAGS) $(LIB_EXPAT) $(LIB_PBF) $(LIB_V8) $(LIB_SHAPE) $(LIB_GEOS)
 
 install:
 	install -m 755 -g root -o root -d $(DESTDIR)/usr/bin
