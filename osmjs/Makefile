@@ -17,7 +17,7 @@
 CXXFLAGS += -O3
 #CXXFLAGS += -g
 CXXFLAGS += -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
-CXXFLAGS += -I../include
+CXXFLAGS += -I../include -I/usr/include/libshp
 
 # remove this if you do not want debugging to be compiled in
 CXXFLAGS += -DOSMIUM_WITH_DEBUG
