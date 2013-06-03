@@ -5,6 +5,7 @@
 
 #include <osmium/ser/buffer_manager.hpp>
 #include <osmium/ser/deserializer.hpp>
+#include <osmium/ser/index.hpp>
 #include <osmium/ser/handler.hpp>
 #include <osmium/handler/debug.hpp>
 #include <osmium/smart_ptr.hpp>
@@ -13,7 +14,8 @@ BOOST_AUTO_TEST_SUITE(SerNode)
 
 BOOST_AUTO_TEST_CASE(ser_deser) {
     Osmium::Ser::BufferManager::Malloc manager(10000);
-    Osmium::Ser::Handler<Osmium::Ser::BufferManager::Malloc> handler(manager);
+    Osmium::Ser::Index::Null fake_index;
+    Osmium::Ser::Handler<Osmium::Ser::BufferManager::Malloc, Osmium::Ser::Index::Null, Osmium::Ser::Index::Null, Osmium::Ser::Index::Null> handler(manager, fake_index, fake_index, fake_index);
 
     shared_ptr<Osmium::OSM::Node> n1 = make_shared<Osmium::OSM::Node>();
     n1->id(10);

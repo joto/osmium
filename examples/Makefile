@@ -47,6 +47,7 @@ PROGRAMS := \
     osmium_sizeof \
     osmium_serdebug \
     osmium_serdump \
+    osmium_serget \
     osmium_store_and_debug \
     osmium_time \
     osmium_toogr \
@@ -85,10 +86,13 @@ osmium_sizeof: osmium_sizeof.cpp
 	$(CXX) $(CXXFLAGS) $(CXXFLAGS_WARNINGS) -o $@ $< $(LDFLAGS) $(LIB_EXPAT) $(LIB_PBF)
 
 osmium_serdebug: osmium_serdebug.cpp
-	$(CXX) $(CXXFLAGS) $(CXXFLAGS_WARNINGS) -o $@ $< $(LDFLAGS) $(LIB_EXPAT) $(LIB_PBF)
+	$(CXX) $(CXXFLAGS) $(CXXFLAGS_WARNINGS) -o $@ $< $(LDFLAGS)
 
 osmium_serdump: osmium_serdump.cpp
 	$(CXX) $(CXXFLAGS) $(CXXFLAGS_WARNINGS) -o $@ $< $(LDFLAGS) $(LIB_EXPAT) $(LIB_PBF)
+
+osmium_serget: osmium_serget.cpp
+	$(CXX) $(CXXFLAGS) $(CXXFLAGS_WARNINGS) -o $@ $< $(LDFLAGS)
 
 osmium_store_and_debug: osmium_store_and_debug.cpp
 	$(CXX) $(CXXFLAGS) $(CXXFLAGS_WARNINGS) -o $@ $< $(LDFLAGS) $(LIB_EXPAT) $(LIB_PBF)

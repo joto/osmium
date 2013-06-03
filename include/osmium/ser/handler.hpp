@@ -31,23 +31,30 @@ namespace Osmium {
 
     namespace Ser {
 
-        template<class TBufferManager>
+        template<class TBufferManager, class TIndexNode, class TIndexWay, class TIndexRelation>
         class Handler : public Osmium::Handler::Base {
 
         public:
 
-            Handler(TBufferManager& buffer_manager) : Osmium::Handler::Base(), m_buffer_manager(buffer_manager), m_buffer(buffer_manager.buffer()) {
+            Handler(TBufferManager& buffer_manager, TIndexNode& node_index, TIndexWay& way_index, TIndexRelation& relation_index) :
+                Osmium::Handler::Base(),
+                m_buffer_manager(buffer_manager),
+                m_buffer(buffer_manager.buffer()),
+                m_offset(0),
+                m_node_index(node_index),
+                m_way_index(way_index),
+                m_relation_index(relation_index) {
             }
 
             void init(Osmium::OSM::Meta&) const {
             }
 
-            void flush_buffer() const {
+            void flush_buffer() {
                 std::cout.write(m_buffer.ptr(), m_buffer.committed());
-                m_buffer.clear();
+                m_offset += m_buffer.clear();
             }
 
-            void write_node(const shared_ptr<Osmium::OSM::Node const>& node) const {
+            void write_node(const shared_ptr<Osmium::OSM::Node const>& node) {
                 Osmium::Ser::ObjectBuilder<Osmium::Ser::Node> builder(m_buffer);
 
                 Osmium::Ser::Node& sn = builder.object();
@@ -67,10 +74,10 @@ namespace Osmium {
                 }
                 tags.done();
 
-                m_buffer.commit();
+                m_node_index.set(node->id(), m_offset + m_buffer.commit());
             }
 
-            void node(const shared_ptr<Osmium::OSM::Node const>& node) const {
+            void node(const shared_ptr<Osmium::OSM::Node const>& node) {
                 try {
                     write_node(node);
                 } catch (std::range_error& e) {
@@ -79,7 +86,7 @@ namespace Osmium {
                 }
             }
 
-            void write_way(const shared_ptr<Osmium::OSM::Way const>& way) const {
+            void write_way(const shared_ptr<Osmium::OSM::Way const>& way) {
                 Osmium::Ser::ObjectBuilder<Osmium::Ser::Way> builder(m_buffer);
 
                 Osmium::Ser::Way& sn = builder.object();
@@ -104,10 +111,10 @@ namespace Osmium {
                 }
                 nodes.done();
 
-                m_buffer.commit();
+                m_way_index.set(way->id(), m_offset + m_buffer.commit());
             }
 
-            void way(const shared_ptr<Osmium::OSM::Way const>& way) const {
+            void way(const shared_ptr<Osmium::OSM::Way const>& way) {
                 try {
                     write_way(way);
                 } catch (std::range_error& e) {
@@ -116,7 +123,7 @@ namespace Osmium {
                 }
             }
 
-            void write_relation(const shared_ptr<Osmium::OSM::Relation const>& relation) const {
+            void write_relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
                 Osmium::Ser::ObjectBuilder<Osmium::Ser::Relation> builder(m_buffer);
 
                 Osmium::Ser::Relation& sn = builder.object();
@@ -141,10 +148,10 @@ namespace Osmium {
                 }
                 members.done();
 
-                m_buffer.commit();
+                m_relation_index.set(relation->id(), m_offset + m_buffer.commit());
             }
 
-            void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) const {
+            void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
                 try {
                     write_relation(relation);
                 } catch (std::range_error& e) {
@@ -161,6 +168,10 @@ namespace Osmium {
 
             TBufferManager& m_buffer_manager;
             Osmium::Ser::Buffer& m_buffer;
+            size_t m_offset;
+            TIndexNode& m_node_index;
+            TIndexWay& m_way_index;
+            TIndexRelation& m_relation_index;
 
         }; // class Handler
 

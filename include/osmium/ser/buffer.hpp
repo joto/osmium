@@ -67,9 +67,11 @@ namespace Osmium {
                 return m_size;
             }
 
-            void clear() {
+            size_t clear() {
+                size_t committed = m_committed;
                 m_pos = 0;
                 m_committed = 0;
+                return committed;
             }
 
             /**
@@ -108,8 +110,10 @@ namespace Osmium {
                 return *this;
             }
 
-            void commit() {
+            size_t commit() {
+                size_t offset = m_committed;
                 m_committed = m_pos;
+                return offset;
             }
 
         private:
