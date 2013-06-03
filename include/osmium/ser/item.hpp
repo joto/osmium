@@ -30,10 +30,7 @@ namespace Osmium {
 
     namespace Ser {
 
-        // sizes and offsets inside buffer
-        typedef uint64_t length_t;
-
-        inline length_t padded_length(length_t length) {
+        inline size_t padded_length(size_t length) {
             return (length % 8 == 0) ? length : ((length | 7 ) + 1);
         }
 
@@ -72,27 +69,27 @@ namespace Osmium {
             }
 
             const char* user() const {
-                return user_position() + sizeof(length_t);
+                return user_position() + sizeof(size_t);
             }
 
-            length_t user_length() const {
-                return *reinterpret_cast<const length_t*>(user_position());
+            size_t user_length() const {
+                return *reinterpret_cast<const size_t*>(user_position());
             }
 
             const char* tags_position() const {
-                return user_position() + sizeof(length_t) + padded_length(user_length());
+                return user_position() + sizeof(size_t) + padded_length(user_length());
             }
 
-            length_t tags_length() const {
-                return *reinterpret_cast<const length_t*>(tags_position());
+            size_t tags_length() const {
+                return *reinterpret_cast<const size_t*>(tags_position());
             }
 
             const char* members_position() const {
-                return tags_position() + sizeof(length_t) + padded_length(tags_length());
+                return tags_position() + sizeof(size_t) + padded_length(tags_length());
             }
 
-            length_t members_length() const {
-                return *reinterpret_cast<const length_t*>(members_position());
+            size_t members_length() const {
+                return *reinterpret_cast<const size_t*>(members_position());
             }
 
         };
@@ -148,7 +145,7 @@ namespace Osmium {
             }
 
             const char* role() const {
-                return role_position() + sizeof(length_t);
+                return role_position() + sizeof(size_t);
             }
 
             const char* self() const {
@@ -169,7 +166,7 @@ namespace Osmium {
 
             RelationMembersIter& operator++() {
                 m_start += sizeof(RelationMember);
-                m_start += padded_length(*reinterpret_cast<const length_t*>(m_start)) + sizeof(length_t);
+                m_start += padded_length(*reinterpret_cast<const size_t*>(m_start)) + sizeof(size_t);
                 return *this;
             }
 
@@ -204,7 +201,7 @@ namespace Osmium {
             RelationMembers(const char* data, size_t size) : m_data(data), m_size(size) {
             }
 
-            RelationMembers(const Object& object) : m_data(object.members_position() + sizeof(length_t)), m_size(object.members_length()) {
+            RelationMembers(const Object& object) : m_data(object.members_position() + sizeof(size_t)), m_size(object.members_length()) {
             }
 
             RelationMembersIter begin() {
@@ -290,7 +287,7 @@ namespace Osmium {
             Tags(const char* data, size_t size) : m_data(data), m_size(size) {
             }
 
-            Tags(const Object& object) : m_data(object.tags_position() + sizeof(length_t)), m_size(object.tags_length()) {
+            Tags(const Object& object) : m_data(object.tags_position() + sizeof(size_t)), m_size(object.tags_length()) {
             }
 
             TagsIter begin() {
@@ -350,10 +347,10 @@ namespace Osmium {
 
         public:
 
-            Nodes(const char* data) : m_data(data+sizeof(length_t)), m_size(*reinterpret_cast<const length_t*>(data)) {
+            Nodes(const char* data) : m_data(data+sizeof(size_t)), m_size(*reinterpret_cast<const size_t*>(data)) {
             }
 
-            Nodes(const Osmium::Ser::Way& way) : m_data(way.members_position() + sizeof(length_t)), m_size(way.members_length()) {
+            Nodes(const Osmium::Ser::Way& way) : m_data(way.members_position() + sizeof(size_t)), m_size(way.members_length()) {
             }
 
             NodesIter begin() {

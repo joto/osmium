@@ -101,18 +101,18 @@ namespace Osmium {
 
             void dump() {
                 while (m_offset < m_data.size()) {
-                    const length_t length = m_data.get<length_t>(m_offset);
-                    const Osmium::Ser::Object& item = m_data.get<Osmium::Ser::Object>(m_offset+sizeof(length_t));
+                    const size_t length = m_data.get<size_t>(m_offset);
+                    const Osmium::Ser::Object& item = m_data.get<Osmium::Ser::Object>(m_offset+sizeof(size_t));
                     std::cout << "object type=" << item.type << " id=" << item.id << "\n";
-                    m_offset += sizeof(length_t) + length;
+                    m_offset += sizeof(size_t) + length;
                 }
             }
 
             void feed(THandler& handler) {
                 while (m_offset < m_data.size()) {
 //                    hexDump("item", &m_data[m_offset], 120);
-                    const length_t length = m_data.get<length_t>(m_offset);
-                    const Osmium::Ser::Item& item = m_data.get<Osmium::Ser::Item>(m_offset+sizeof(length_t));
+                    const size_t length = m_data.get<size_t>(m_offset);
+                    const Osmium::Ser::Item& item = m_data.get<Osmium::Ser::Item>(m_offset+sizeof(size_t));
                     if (item.type == 'n') {
                         const Osmium::Ser::Node& node_item = static_cast<const Osmium::Ser::Node&>(item);
                         shared_ptr<Osmium::OSM::Node> node = make_shared<Osmium::OSM::Node>();
@@ -175,7 +175,7 @@ namespace Osmium {
                     } else {
                         std::cout << "found something else (length=" << length << ")\n";
                     }
-                    m_offset += sizeof(length_t) + length;
+                    m_offset += sizeof(size_t) + length;
                 }
             }
 

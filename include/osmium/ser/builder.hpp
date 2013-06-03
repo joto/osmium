@@ -36,25 +36,25 @@ namespace Osmium {
             Builder(Buffer& buffer, Builder* parent) :
                 m_buffer(buffer),
                 m_parent(parent),
-                m_size(buffer.get_space_for<length_t>()) {
+                m_size(buffer.get_space_for<size_t>()) {
                 *m_size = 0;
                 if (m_parent) {
-                    m_parent->add_size(sizeof(length_t));
+                    m_parent->add_size(sizeof(size_t));
                 }
             }
 
-            void add_size(length_t size) {
+            void add_size(size_t size) {
                 *m_size += size;
                 if (m_parent) {
                     m_parent->add_size(size);
                 }
             }
 
-            length_t size() const {
+            size_t size() const {
                 return *m_size;
             }
 
-            static const int pad_bytes = 8;
+            static const size_t pad_bytes = 8;
 
             /**
              * Add padding if needed.
@@ -62,7 +62,7 @@ namespace Osmium {
              * Adds size to parent, but not to self!
              */
             void add_padding() {
-                length_t mod = size() % pad_bytes;
+                size_t mod = size() % pad_bytes;
                 if (mod != 0) {
                     m_buffer.get_space(8-mod);
                     if (m_parent) {
@@ -73,11 +73,11 @@ namespace Osmium {
 
             void add_string(const char* str) {
                 size_t len = strlen(str) + 1;
-                *m_buffer.get_space_for<length_t>() = len;
+                *m_buffer.get_space_for<size_t>() = len;
                 m_buffer.append(str);
-                add_size(sizeof(length_t) + len);
+                add_size(sizeof(size_t) + len);
 
-                length_t mod = len % pad_bytes;
+                size_t mod = len % pad_bytes;
                 if (mod != 0) {
                     m_buffer.get_space(8-mod);
                     add_size(8-mod);
@@ -88,7 +88,7 @@ namespace Osmium {
 
             Buffer& m_buffer;
             Builder* m_parent;
-            length_t* m_size;
+            size_t* m_size;
 
         }; // Builder
 
@@ -104,7 +104,7 @@ namespace Osmium {
                 add_padding();
             }
 
-            void add_node(uint64_t ref) {
+            void add_node(osm_object_id_t ref) {
                 *m_buffer.get_space_for<osm_object_id_t>() = ref;
                 add_size(sizeof(osm_object_id_t));
             }
