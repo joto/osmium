@@ -33,6 +33,8 @@ namespace Osmium {
 
         public:
 
+            static const size_t pad_bytes = 8;
+
             Builder(Buffer& buffer, Builder* parent) :
                 m_buffer(buffer),
                 m_parent(parent),
@@ -53,8 +55,6 @@ namespace Osmium {
             size_t size() const {
                 return *m_size;
             }
-
-            static const size_t pad_bytes = 8;
 
             /**
              * Add padding if needed.
@@ -92,25 +92,6 @@ namespace Osmium {
 
         }; // Builder
 
-        class NodeListBuilder : public Builder {
-
-        public:
-
-            NodeListBuilder(Buffer& buffer, Builder* parent=NULL) :
-                Builder(buffer, parent) {
-            }
-
-            ~NodeListBuilder() {
-                add_padding();
-            }
-
-            void add_node(osm_object_id_t ref) {
-                *m_buffer.get_space_for<osm_object_id_t>() = ref;
-                add_size(sizeof(osm_object_id_t));
-            }
-
-        }; // class NodeListBuilder
-
         class TagListBuilder : public Builder {
 
         public:
@@ -131,6 +112,25 @@ namespace Osmium {
             }
 
         }; // class TagListBuilder
+
+        class NodeListBuilder : public Builder {
+
+        public:
+
+            NodeListBuilder(Buffer& buffer, Builder* parent=NULL) :
+                Builder(buffer, parent) {
+            }
+
+            ~NodeListBuilder() {
+                add_padding();
+            }
+
+            void add_node(osm_object_id_t ref) {
+                *m_buffer.get_space_for<osm_object_id_t>() = ref;
+                add_size(sizeof(osm_object_id_t));
+            }
+
+        }; // class NodeListBuilder
 
         class RelationMemberBuilder : public Builder {
 
@@ -168,6 +168,27 @@ namespace Osmium {
 
             T& object() {
                 return *m_object;
+            }
+
+            void add_tags(const Osmium::OSM::TagList& tags) {
+                Osmium::Ser::TagListBuilder tag_list_builder(m_buffer, this);
+                BOOST_FOREACH(const Osmium::OSM::Tag& tag, tags) {
+                    tag_list_builder.add_tag(tag.key(), tag.value());
+                }
+            }
+
+            void add_nodes(const Osmium::OSM::WayNodeList& nodes) {
+                Osmium::Ser::NodeListBuilder node_list_builder(m_buffer, this);
+                BOOST_FOREACH(const Osmium::OSM::WayNode& way_node, nodes) {
+                    node_list_builder.add_node(way_node.ref());
+                }
+            }
+
+            void add_members(const Osmium::OSM::RelationMemberList& members) {
+                Osmium::Ser::RelationMemberBuilder relation_member_builder(m_buffer, this);
+                BOOST_FOREACH(const Osmium::OSM::RelationMember& member, members) {
+                    relation_member_builder.add_member(member.type(), member.ref(), member.role());
+                }
             }
 
         private:

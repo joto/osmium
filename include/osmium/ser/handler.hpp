@@ -67,13 +67,7 @@ namespace Osmium {
                 sn.pos       = node->position();
 
                 builder.add_string(node->user());
-
-                {
-                    Osmium::Ser::TagListBuilder tags(m_buffer, &builder);
-                    BOOST_FOREACH(const Osmium::OSM::Tag& tag, node->tags()) {
-                        tags.add_tag(tag.key(), tag.value());
-                    }
-                }
+                builder.add_tags(node->tags());
 
                 m_node_index.set(node->id(), m_offset + m_buffer.commit());
             }
@@ -99,20 +93,8 @@ namespace Osmium {
                 sn.changeset = way->changeset();
 
                 builder.add_string(way->user());
-
-                {
-                    Osmium::Ser::TagListBuilder tags(m_buffer, &builder);
-                    BOOST_FOREACH(const Osmium::OSM::Tag& tag, way->tags()) {
-                        tags.add_tag(tag.key(), tag.value());
-                    }
-                }
-
-                {
-                    Osmium::Ser::NodeListBuilder nodes(m_buffer, &builder);
-                    BOOST_FOREACH(const Osmium::OSM::WayNode& way_node, way->nodes()) {
-                        nodes.add_node(way_node.ref());
-                    }
-                }
+                builder.add_tags(way->tags());
+                builder.add_nodes(way->nodes());
 
                 m_way_index.set(way->id(), m_offset + m_buffer.commit());
             }
@@ -138,20 +120,8 @@ namespace Osmium {
                 sn.changeset = relation->changeset();
 
                 builder.add_string(relation->user());
-
-                {
-                    Osmium::Ser::TagListBuilder tags(m_buffer, &builder);
-                    BOOST_FOREACH(const Osmium::OSM::Tag& tag, relation->tags()) {
-                        tags.add_tag(tag.key(), tag.value());
-                    }
-                }
-
-                {
-                    Osmium::Ser::RelationMemberBuilder members(m_buffer, &builder);
-                    BOOST_FOREACH(const Osmium::OSM::RelationMember& member, relation->members()) {
-                        members.add_member(member.type(), member.ref(), member.role());
-                    }
-                }
+                builder.add_tags(relation->tags());
+                builder.add_members(relation->members());
 
                 m_relation_index.set(relation->id(), m_offset + m_buffer.commit());
             }
