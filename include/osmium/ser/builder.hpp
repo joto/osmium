@@ -100,17 +100,13 @@ namespace Osmium {
                 Builder(buffer, parent) {
             }
 
+            ~NodeListBuilder() {
+                add_padding();
+            }
+
             void add_node(uint64_t ref) {
                 *m_buffer.get_space_for<osm_object_id_t>() = ref;
                 add_size(sizeof(osm_object_id_t));
-            }
-
-            // unfortunately we can't do this in the destructor, because
-            // the destructor is not allowed to fail and this might fail
-            // if the buffer is full.
-            // XXX maybe we can do something clever here?
-            void done() {
-                add_padding();
             }
 
         }; // class NodeListBuilder
@@ -123,19 +119,15 @@ namespace Osmium {
                 Builder(buffer, parent) {
             }
 
+            ~TagListBuilder() {
+                add_padding();
+            }
+
             void add_tag(const char* key, const char* value) {
                 size_t old_size = m_buffer.pos();
                 m_buffer.append(key);
                 m_buffer.append(value);
                 add_size(m_buffer.pos() - old_size);
-            }
-
-            // unfortunately we can't do this in the destructor, because
-            // the destructor is not allowed to fail and this might fail
-            // if the buffer is full.
-            // XXX maybe we can do something clever here?
-            void done() {
-                add_padding();
             }
 
         }; // class TagListBuilder
@@ -148,20 +140,16 @@ namespace Osmium {
                 Builder(buffer, parent) {
             }
 
+            ~RelationMemberBuilder() {
+                add_padding();
+            }
+
             void add_member(char type, osm_object_id_t ref, const char* role) {
                 RelationMember* member = m_buffer.get_space_for<RelationMember>();
                 member->type = type;
                 member->ref = ref;
                 add_size(sizeof(RelationMember));
                 add_string(role);
-            }
-
-            // unfortunately we can't do this in the destructor, because
-            // the destructor is not allowed to fail and this might fail
-            // if the buffer is full.
-            // XXX maybe we can do something clever here?
-            void done() {
-                add_padding();
             }
 
         }; // class RelationMemberBuilder

@@ -68,11 +68,12 @@ namespace Osmium {
 
                 builder.add_string(node->user());
 
-                Osmium::Ser::TagListBuilder tags(m_buffer, &builder);
-                BOOST_FOREACH(const Osmium::OSM::Tag& tag, node->tags()) {
-                    tags.add_tag(tag.key(), tag.value());
+                {
+                    Osmium::Ser::TagListBuilder tags(m_buffer, &builder);
+                    BOOST_FOREACH(const Osmium::OSM::Tag& tag, node->tags()) {
+                        tags.add_tag(tag.key(), tag.value());
+                    }
                 }
-                tags.done();
 
                 m_node_index.set(node->id(), m_offset + m_buffer.commit());
             }
@@ -99,17 +100,19 @@ namespace Osmium {
 
                 builder.add_string(way->user());
 
-                Osmium::Ser::TagListBuilder tags(m_buffer, &builder);
-                BOOST_FOREACH(const Osmium::OSM::Tag& tag, way->tags()) {
-                    tags.add_tag(tag.key(), tag.value());
+                {
+                    Osmium::Ser::TagListBuilder tags(m_buffer, &builder);
+                    BOOST_FOREACH(const Osmium::OSM::Tag& tag, way->tags()) {
+                        tags.add_tag(tag.key(), tag.value());
+                    }
                 }
-                tags.done();
 
-                Osmium::Ser::NodeListBuilder nodes(m_buffer, &builder);
-                BOOST_FOREACH(const Osmium::OSM::WayNode& way_node, way->nodes()) {
-                    nodes.add_node(way_node.ref());
+                {
+                    Osmium::Ser::NodeListBuilder nodes(m_buffer, &builder);
+                    BOOST_FOREACH(const Osmium::OSM::WayNode& way_node, way->nodes()) {
+                        nodes.add_node(way_node.ref());
+                    }
                 }
-                nodes.done();
 
                 m_way_index.set(way->id(), m_offset + m_buffer.commit());
             }
@@ -136,17 +139,19 @@ namespace Osmium {
 
                 builder.add_string(relation->user());
 
-                Osmium::Ser::TagListBuilder tags(m_buffer, &builder);
-                BOOST_FOREACH(const Osmium::OSM::Tag& tag, relation->tags()) {
-                    tags.add_tag(tag.key(), tag.value());
+                {
+                    Osmium::Ser::TagListBuilder tags(m_buffer, &builder);
+                    BOOST_FOREACH(const Osmium::OSM::Tag& tag, relation->tags()) {
+                        tags.add_tag(tag.key(), tag.value());
+                    }
                 }
-                tags.done();
 
-                Osmium::Ser::RelationMemberBuilder members(m_buffer, &builder);
-                BOOST_FOREACH(const Osmium::OSM::RelationMember& member, relation->members()) {
-                    members.add_member(member.type(), member.ref(), member.role());
+                {
+                    Osmium::Ser::RelationMemberBuilder members(m_buffer, &builder);
+                    BOOST_FOREACH(const Osmium::OSM::RelationMember& member, relation->members()) {
+                        members.add_member(member.type(), member.ref(), member.role());
+                    }
                 }
-                members.done();
 
                 m_relation_index.set(relation->id(), m_offset + m_buffer.commit());
             }
