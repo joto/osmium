@@ -146,7 +146,7 @@ namespace Osmium {
 
             void add_member(char type, osm_object_id_t ref, const char* role) {
                 RelationMember* member = m_buffer.get_space_for<RelationMember>();
-                member->type = type;
+                member->type = ItemType(type);
                 member->ref = ref;
                 add_size(sizeof(RelationMember));
                 add_string(role);
@@ -163,7 +163,7 @@ namespace Osmium {
                 Builder(buffer, parent),
                 m_object(buffer.get_space_for<T>()) {
                 add_size(sizeof(T));
-                m_object->type = T::object_type();
+                m_object->type = itemtype_of<T>();
             }
 
             T& object() {

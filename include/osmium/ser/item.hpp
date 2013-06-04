@@ -34,16 +34,75 @@ namespace Osmium {
             return (length % 8 == 0) ? length : ((length | 7 ) + 1);
         }
 
+        class ItemType {
+
+        public:
+
+            static const uint32_t itemtype_unknown  = 0;
+            static const uint32_t itemtype_node     = 1;
+            static const uint32_t itemtype_way      = 2;
+            static const uint32_t itemtype_relation = 3;
+
+            ItemType(uint32_t type = itemtype_unknown) : m_type(type) {
+            }
+
+            ItemType(char c) : m_type(itemtype_unknown) {
+                switch (c) {
+                    case 'n': m_type = itemtype_node; break;
+                    case 'w': m_type = itemtype_way; break;
+                    case 'r': m_type = itemtype_relation; break;
+                    default:  m_type = itemtype_unknown;
+                }
+            }
+
+            bool is_node() const {
+                return m_type == itemtype_node;
+            }
+
+            bool is_way() const {
+                return m_type == itemtype_way;
+            }
+
+            bool is_relation() const {
+                return m_type == itemtype_relation;
+            }
+
+            char as_char() const {
+                switch (m_type) {
+                    case itemtype_node: return 'n';
+                    case itemtype_way: return 'w';
+                    case itemtype_relation: return 'r';
+                }
+                return '-';
+            }
+
+        private:
+
+            uint32_t m_type;
+
+        };
+
+        std::ostream& operator<<(std::ostream& out, const ItemType type) {
+            out << type.as_char();
+            return out;
+        }
+
+        template <class T>
+        inline const ItemType itemtype_of() {
+            return ItemType(ItemType::itemtype_unknown);
+        }
+
         // any kind of item in a buffer
         class Item {
 
         public:
         
             uint64_t offset;
-            char type;
-            char padding[7];
+            ItemType type;
+            char padding[4];
 
-            Item() : offset(0), type('-') {
+            Item() : offset(0), type() {
+                memset(padding, 0, 4);
             }
 
         protected:
@@ -65,7 +124,7 @@ namespace Osmium {
             uint64_t changeset;
 
             const char* user_position() const {
-                return self() + sizeof(Object) + (type == 'n' ? sizeof(Osmium::OSM::Position) : 0);
+                return self() + sizeof(Object) + (type.is_node() ? sizeof(Osmium::OSM::Position) : 0);
             }
 
             const char* user() const {
@@ -99,45 +158,41 @@ namespace Osmium {
 
         public:
 
-            static char object_type() {
-                return 'n';
-            }
-
             Osmium::OSM::Position pos;
 
         }; // class Node
 
+        template <>
+        inline const ItemType itemtype_of<Node>() {
+            return ItemType(ItemType::itemtype_node);
+        }
+
         class Way : public Object {
-
-        public:
-
-            static char object_type() {
-                return 'w';
-            }
-
         }; // class Way
 
+        template <>
+        inline const ItemType itemtype_of<Way>() {
+            return ItemType(ItemType::itemtype_way);
+        }
+
         class Relation : public Object {
-
-        public:
-
-            static char object_type() {
-                return 'r';
-            }
-
         }; // class Relation
 
+        template <>
+        inline const ItemType itemtype_of<Relation>() {
+            return ItemType(ItemType::itemtype_relation);
+        }
 
         class RelationMember {
 
         public:
 
             osm_object_id_t ref;
-            char type;
-            char tpadding[7];
+            ItemType type;
+            char tpadding[4];
 
-            RelationMember() : ref(0), type('-') {
-                memset(tpadding, 0, 7);
+            RelationMember() : ref(0), type() {
+                memset(tpadding, 0, 4);
             }
 
             const char* role_position() const {

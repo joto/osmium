@@ -113,7 +113,7 @@ namespace Osmium {
 //                    hexDump("item", &m_data[m_offset], 120);
                     const size_t length = m_data.get<size_t>(m_offset);
                     const Osmium::Ser::Item& item = m_data.get<Osmium::Ser::Item>(m_offset+sizeof(size_t));
-                    if (item.type == 'n') {
+                    if (item.type.is_node()) {
                         const Osmium::Ser::Node& node_item = static_cast<const Osmium::Ser::Node&>(item);
                         shared_ptr<Osmium::OSM::Node> node = make_shared<Osmium::OSM::Node>();
                         node->id(node_item.id);
@@ -130,7 +130,7 @@ namespace Osmium {
                         }
 
                         handler.node(node);
-                    } else if (item.type == 'w') {
+                    } else if (item.type.is_way()) {
                         const Osmium::Ser::Way& way_item = static_cast<const Osmium::Ser::Way&>(item);
                         shared_ptr<Osmium::OSM::Way> way = make_shared<Osmium::OSM::Way>();
                         way->id(way_item.id);
@@ -151,7 +151,7 @@ namespace Osmium {
                         }
 
                         handler.way(way);
-                    } else if (item.type == 'r') {
+                    } else if (item.type.is_relation()) {
                         const Osmium::Ser::Relation& relation_item = static_cast<const Osmium::Ser::Relation&>(item);
                         shared_ptr<Osmium::OSM::Relation> relation = make_shared<Osmium::OSM::Relation>();
                         relation->id(relation_item.id);
@@ -168,7 +168,7 @@ namespace Osmium {
 
                         Osmium::Ser::RelationMembers members(relation_item);
                         for (Osmium::Ser::RelationMembersIter it = members.begin(); it != members.end(); ++it) {
-                            relation->add_member(it->type, it->ref, it->role());
+                            relation->add_member(it->type.as_char(), it->ref, it->role());
                         }
 
                         handler.relation(relation);
