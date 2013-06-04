@@ -22,6 +22,12 @@ typedef Osmium::Ser::Index::VectorWithId index_t;
 int main(int argc, char* argv[]) {
     std::ios_base::sync_with_stdio(false);
 
+    assert(sizeof(Osmium::Ser::Item)     % 8 == 0);
+    assert(sizeof(Osmium::Ser::Object)   % 8 == 0);
+    assert(sizeof(Osmium::Ser::Node)     % 8 == 0);
+    assert(sizeof(Osmium::Ser::Way)      % 8 == 0);
+    assert(sizeof(Osmium::Ser::Relation) % 8 == 0);
+
     if (argc != 2) {
         std::cerr << "Usage: " << argv[0] << " OSMFILE\n";
         exit(1);

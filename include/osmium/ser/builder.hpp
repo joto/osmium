@@ -39,6 +39,7 @@ namespace Osmium {
                 m_buffer(buffer),
                 m_parent(parent),
                 m_size(buffer.get_space_for<size_t>()) {
+                assert(buffer.committed() % pad_bytes == 0);
                 *m_size = 0;
                 if (m_parent) {
                     m_parent->add_size(sizeof(size_t));
@@ -64,11 +65,12 @@ namespace Osmium {
             void add_padding() {
                 size_t mod = size() % pad_bytes;
                 if (mod != 0) {
-                    m_buffer.get_space(8-mod);
+                    m_buffer.get_space(pad_bytes - mod);
                     if (m_parent) {
-                        m_parent->add_size(8-mod);
+                        m_parent->add_size(pad_bytes - mod);
                     }
                 }
+                assert(m_parent->size() % pad_bytes == 0);
             }
 
             void add_string(const char* str) {
@@ -79,12 +81,16 @@ namespace Osmium {
 
                 size_t mod = len % pad_bytes;
                 if (mod != 0) {
-                    m_buffer.get_space(8-mod);
-                    add_size(8-mod);
+                    m_buffer.get_space(pad_bytes - mod);
+                    add_size(pad_bytes - mod);
                 }
+                assert(m_buffer.pos() % pad_bytes == 0);
             }
 
         protected:
+
+            ~Builder() {
+            }
 
             Buffer& m_buffer;
             Builder* m_parent;
@@ -101,7 +107,7 @@ namespace Osmium {
             }
 
             ~TagListBuilder() {
-                add_padding();
+//                add_padding();
             }
 
             void add_tag(const char* key, const char* value) {
@@ -122,7 +128,7 @@ namespace Osmium {
             }
 
             ~NodeListBuilder() {
-                add_padding();
+//                add_padding();
             }
 
             void add_node(osm_object_id_t ref) {
@@ -141,7 +147,7 @@ namespace Osmium {
             }
 
             ~RelationMemberBuilder() {
-                add_padding();
+//                add_padding();
             }
 
             void add_member(char type, osm_object_id_t ref, const char* role) {
@@ -175,6 +181,7 @@ namespace Osmium {
                 BOOST_FOREACH(const Osmium::OSM::Tag& tag, tags) {
                     tag_list_builder.add_tag(tag.key(), tag.value());
                 }
+                tag_list_builder.add_padding();
             }
 
             void add_nodes(const Osmium::OSM::WayNodeList& nodes) {
@@ -182,6 +189,7 @@ namespace Osmium {
                 BOOST_FOREACH(const Osmium::OSM::WayNode& way_node, nodes) {
                     node_list_builder.add_node(way_node.ref());
                 }
+                node_list_builder.add_padding();
             }
 
             void add_members(const Osmium::OSM::RelationMemberList& members) {
@@ -189,6 +197,7 @@ namespace Osmium {
                 BOOST_FOREACH(const Osmium::OSM::RelationMember& member, members) {
                     relation_member_builder.add_member(member.type(), member.ref(), member.role());
                 }
+                relation_member_builder.add_padding();
             }
 
         private:

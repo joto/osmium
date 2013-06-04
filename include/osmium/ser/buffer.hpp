@@ -75,7 +75,7 @@ namespace Osmium {
             }
 
             /**
-             * Reserve space of size size in buffer and return pointer to it.
+             * Reserve space of given size in buffer and return pointer to it.
              */
             char* get_space(size_t size) {
                 if (m_pos + size > m_size) {
@@ -89,6 +89,7 @@ namespace Osmium {
             template <class T>
             T* get_space_for() {
                 assert((m_pos % 8 == 0) && "alignment problem");
+                assert(sizeof(T) % 8 == 0 && "alignment problem");
                 return reinterpret_cast<T*>(get_space(sizeof(T)));
             }
 
@@ -111,6 +112,7 @@ namespace Osmium {
             }
 
             size_t commit() {
+                assert(m_pos % 8 == 0 && "alignment problem");
                 size_t offset = m_committed;
                 m_committed = m_pos;
                 return offset;
