@@ -22,6 +22,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#include <osmium/ser/buffer.hpp>
 #include <osmium/osm/node.hpp>
 #include <osmium/osm/way.hpp>
 #include <osmium/osm/relation.hpp>
@@ -31,7 +32,7 @@ namespace Osmium {
     namespace Ser {
 
         inline size_t padded_length(size_t length) {
-            return (length % 8 == 0) ? length : ((length | 7 ) + 1);
+            return (length + align_bytes - 1) & ~(align_bytes - 1);
         }
 
         class ItemType {

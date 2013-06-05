@@ -33,13 +33,11 @@ namespace Osmium {
 
         public:
 
-            static const size_t pad_bytes = 8;
-
             Builder(Buffer& buffer, Builder* parent, size_t size, ItemType itemtype) :
                 m_buffer(buffer),
                 m_parent(parent),
                 m_item(reinterpret_cast<Osmium::Ser::Item*>(m_buffer.get_space(size))) {
-                assert(buffer.committed() % pad_bytes == 0);
+                assert(buffer.is_aligned());
                 m_item->size(size);
                 m_item->type(itemtype);
                 if (m_parent) {
@@ -64,14 +62,14 @@ namespace Osmium {
              * Adds size to parent, but not to self!
              */
             void add_padding() {
-                size_t mod = size() % pad_bytes;
-                if (mod != 0) {
-                    m_buffer.get_space(pad_bytes - mod);
+                size_t padding = align_bytes - (size() % align_bytes);
+                if (padding != align_bytes) {
+                    m_buffer.get_space(padding);
                     if (m_parent) {
-                        m_parent->add_size(pad_bytes - mod);
+                        m_parent->add_size(padding);
                     }
                 }
-                assert(m_parent->size() % pad_bytes == 0);
+                assert(m_parent->size() % align_bytes == 0);
             }
 
             void add_string(const char* str) {
@@ -80,12 +78,12 @@ namespace Osmium {
                 m_buffer.append(str);
                 add_size(sizeof(size_t) + len);
 
-                size_t mod = len % pad_bytes;
-                if (mod != 0) {
-                    m_buffer.get_space(pad_bytes - mod);
-                    add_size(pad_bytes - mod);
+                size_t padding = align_bytes - (len % align_bytes);
+                if (padding != align_bytes) {
+                    m_buffer.get_space(padding);
+                    add_size(padding);
                 }
-                assert(m_buffer.pos() % pad_bytes == 0);
+                assert(m_buffer.is_aligned());
             }
 
         protected:

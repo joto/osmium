@@ -29,6 +29,9 @@ namespace Osmium {
 
     namespace Ser {
 
+        // align datastructures to this many bytes
+        const size_t align_bytes = 8;
+
         /**
          * Buffer for serialized OSM objects. Is initialized with memory pointer, size
          * and a callback function that is called when the buffer is full. Buffers are
@@ -38,15 +41,13 @@ namespace Osmium {
 
         public:
 
-            static const int align_to = 8;
-
             Buffer(char* data, size_t size, boost::function<void()> full_callback) :
                 m_data(data),
                 m_size(size),
                 m_pos(0),
                 m_committed(0),
                 m_full_callback(full_callback) {
-                if (size % align_to != 0) {
+                if (size % align_bytes != 0) {
                     throw std::invalid_argument("buffer size needs to be multiple of alignment");
                 }
             }
@@ -61,6 +62,14 @@ namespace Osmium {
 
             size_t committed() const {
                 return m_committed;
+            }
+
+            /**
+             * This tests if the current state of the buffer is aligned
+             * properly. Only used for asserts.
+             */
+            bool is_aligned() const {
+                return (m_pos % align_bytes == 0) && (m_committed % align_bytes == 0);
             }
 
             size_t size() const {
@@ -88,8 +97,8 @@ namespace Osmium {
 
             template <class T>
             T* get_space_for() {
-                assert((m_pos % 8 == 0) && "alignment problem");
-                assert(sizeof(T) % 8 == 0 && "alignment problem");
+                assert(is_aligned());
+                assert(sizeof(T) % align_bytes == 0);
                 return reinterpret_cast<T*>(get_space(sizeof(T)));
             }
 
@@ -112,7 +121,7 @@ namespace Osmium {
             }
 
             size_t commit() {
-                assert(m_pos % 8 == 0 && "alignment problem");
+                assert(is_aligned());
                 size_t offset = m_committed;
                 m_committed = m_pos;
                 return offset;

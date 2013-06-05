@@ -66,9 +66,8 @@ namespace Osmium {
                 sn.pos       = node->position();
 
                 builder.add_string(node->user());
-                assert(m_buffer.pos() % 8 == 0);
                 builder.add_tags(node->tags());
-                assert(m_buffer.pos() % 8 == 0);
+                assert(m_buffer.is_aligned());
 
                 m_node_index.set(node->id(), m_offset + m_buffer.commit());
             }
