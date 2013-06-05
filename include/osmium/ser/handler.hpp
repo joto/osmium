@@ -58,7 +58,6 @@ namespace Osmium {
                 Osmium::Ser::ObjectBuilder<Osmium::Ser::Node> builder(m_buffer);
 
                 Osmium::Ser::Node& sn = builder.object();
-                sn.offset    = 0;
                 sn.id        = node->id();
                 sn.version   = node->version();
                 sn.timestamp = node->timestamp();
@@ -87,7 +86,6 @@ namespace Osmium {
                 Osmium::Ser::ObjectBuilder<Osmium::Ser::Way> builder(m_buffer);
 
                 Osmium::Ser::Way& sn = builder.object();
-                sn.offset    = 0;
                 sn.id        = way->id();
                 sn.version   = way->version();
                 sn.timestamp = way->timestamp();
@@ -114,7 +112,6 @@ namespace Osmium {
                 Osmium::Ser::ObjectBuilder<Osmium::Ser::Relation> builder(m_buffer);
 
                 Osmium::Ser::Relation& sn = builder.object();
-                sn.offset    = 0;
                 sn.id        = relation->id();
                 sn.version   = relation->version();
                 sn.timestamp = relation->timestamp();

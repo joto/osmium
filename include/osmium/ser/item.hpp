@@ -97,12 +97,27 @@ namespace Osmium {
 
         public:
         
-            uint64_t offset;
-            ItemType type;
-            char padding[4];
+            Item() : m_size(0), m_type() {
+            }
 
-            Item() : offset(0), type() {
-                memset(padding, 0, 4);
+            void size(uint32_t size) {
+                m_size = size;
+            }
+
+            void add_size(uint32_t size) {
+                m_size += size;
+            }
+
+            uint32_t size() const {
+                return m_size;
+            }
+
+            void type(const ItemType& item_type) {
+                m_type = item_type;
+            }
+
+            ItemType type() const {
+                return m_type;
             }
 
         protected:
@@ -111,10 +126,16 @@ namespace Osmium {
                 return reinterpret_cast<const char*>(this);
             }
 
+        private:
+
+            uint32_t m_size;
+            ItemType m_type;
+
         };
 
         // serialized form of OSM object
         class Object : public Item {
+
         public:
 
             uint64_t id;
@@ -124,7 +145,7 @@ namespace Osmium {
             uint64_t changeset;
 
             const char* user_position() const {
-                return self() + sizeof(Object) + (type.is_node() ? sizeof(Osmium::OSM::Position) : 0);
+                return self() + sizeof(Object) + (type().is_node() ? sizeof(Osmium::OSM::Position) : 0);
             }
 
             const char* user() const {
@@ -139,16 +160,16 @@ namespace Osmium {
                 return user_position() + sizeof(size_t) + padded_length(user_length());
             }
 
-            size_t tags_length() const {
-                return *reinterpret_cast<const size_t*>(tags_position());
+            uint32_t tags_length() const {
+                return reinterpret_cast<const Osmium::Ser::Item*>(tags_position())->size();
             }
 
             const char* members_position() const {
-                return tags_position() + sizeof(size_t) + padded_length(tags_length());
+                return tags_position() + padded_length(tags_length());
             }
 
-            size_t members_length() const {
-                return *reinterpret_cast<const size_t*>(members_position());
+            uint32_t members_length() const {
+                return reinterpret_cast<const Osmium::Ser::Item*>(members_position())->size();
             }
 
         };
@@ -182,6 +203,138 @@ namespace Osmium {
         inline const ItemType itemtype_of<Relation>() {
             return ItemType(ItemType::itemtype_relation);
         }
+
+        class Tag {
+
+        public:
+
+            Tag(const char* data) : m_data(data) {
+            }
+
+            const char* key() const {
+                return m_data;
+            }
+
+            const char* value() const {
+                return m_data + strlen(m_data) + 1;
+            }
+
+        private:
+
+            const char* m_data;
+
+        }; // class Tag
+
+        /**
+         * Iterator to iterate over tags in a Tags
+         */
+        class TagsIter {
+
+        public:
+
+            TagsIter(const char* start, const char* end) : m_start(start), m_end(end) {
+            }
+
+            TagsIter& operator++() {
+                m_start += strlen(m_start) + 1;
+                m_start += strlen(m_start) + 1;
+                return *this;
+            }
+
+            TagsIter operator++(int) {
+                TagsIter tmp(*this);
+                operator++();
+                return tmp;
+            }
+
+            bool operator==(const TagsIter& rhs) const {
+                return m_start == rhs.m_start;
+            }
+
+            bool operator!=(const TagsIter& rhs) const {
+                return m_start != rhs.m_start;
+            }
+
+            const Tag operator*() {
+                return Tag(m_start);
+            }
+            
+            const Tag* operator->() {
+                return reinterpret_cast<const Tag*>(&m_start);
+            }
+
+        private:
+
+            const char* m_start;
+            const char* m_end;
+
+        }; // class TagsIter
+
+        class TagList : public Item {
+
+        public:
+
+            TagsIter begin() const {
+                return TagsIter(self() + sizeof(TagList), self() + size());
+            }
+
+            TagsIter end() const {
+                return TagsIter(self() + size(), self() + size());
+            }
+
+        }; // class TagList
+
+        /**
+         * Iterator to iterate over nodes in Nodes
+         */
+        class NodesIter {
+
+        public:
+
+            NodesIter(const char* start, const char* end) : m_start(start), m_end(end) {
+            }
+
+            NodesIter& operator++() {
+                m_start += sizeof(uint64_t);
+                return *this;
+            }
+
+            NodesIter operator++(int) {
+                NodesIter tmp(*this);
+                operator++();
+                return tmp;
+            }
+
+            bool operator==(const NodesIter& rhs) {return m_start==rhs.m_start;}
+            bool operator!=(const NodesIter& rhs) {return m_start!=rhs.m_start;}
+
+            uint64_t operator*() {
+                return *reinterpret_cast<const uint64_t*>(m_start);
+            }
+            
+        private:
+
+            const char* m_start;
+            const char* m_end;
+
+        }; // class NodesIter
+
+        /**
+         * List of nodes in a buffer.
+         */
+        class NodeList : public Item {
+
+        public:
+
+            NodesIter begin() const {
+                return NodesIter(self() + sizeof(NodeList), self() + size());
+            }
+
+            NodesIter end() const {
+                return NodesIter(self() + size(), self() + size());
+            }
+
+        }; // class NodeList
 
         class RelationMember {
 
@@ -249,179 +402,19 @@ namespace Osmium {
 
         }; // class RelationMembersIter
 
-        class RelationMembers {
+        class RelationMemberList : public Item {
 
         public:
 
-            RelationMembers(const char* data, size_t size) : m_data(data), m_size(size) {
+            RelationMembersIter begin() const {
+                return RelationMembersIter(self() + sizeof(RelationMemberList), self() + size());
             }
 
-            RelationMembers(const Object& object) : m_data(object.members_position() + sizeof(size_t)), m_size(object.members_length()) {
+            RelationMembersIter end() const {
+                return RelationMembersIter(self() + size(), self() + size());
             }
 
-            RelationMembersIter begin() {
-                return RelationMembersIter(m_data, m_data + m_size);
-            }
-
-            RelationMembersIter end() {
-                return RelationMembersIter(m_data + m_size, m_data + m_size);
-            }
-
-        private:
-
-            const char* m_data;
-            size_t m_size;
-
-        }; // class RelationMembers
-
-        class Tag {
-
-        public:
-
-            Tag(const char* data) : m_data(data) {
-            }
-
-            const char* key() const {
-                return m_data;
-            }
-
-            const char* value() const {
-                return m_data + strlen(m_data) + 1;
-            }
-
-        private:
-
-            const char* m_data;
-
-        }; // class Tag
-
-        /**
-         * Iterator to iterate over tags in a Tags
-         */
-        class TagsIter {
-
-        public:
-
-            TagsIter(const char* start, const char* end) : m_start(start), m_end(end) {
-            }
-
-            TagsIter& operator++() {
-                m_start += strlen(m_start) + 1;
-                m_start += strlen(m_start) + 1;
-                return *this;
-            }
-
-            TagsIter operator++(int) {
-                TagsIter tmp(*this);
-                operator++();
-                return tmp;
-            }
-
-            bool operator==(const TagsIter& rhs) {return m_start==rhs.m_start;}
-            bool operator!=(const TagsIter& rhs) {return m_start!=rhs.m_start;}
-
-            const Tag operator*() {
-                return Tag(m_start);
-            }
-            
-            const Tag* operator->() {
-                return reinterpret_cast<const Tag*>(&m_start);
-            }
-
-        private:
-
-            const char* m_start;
-            const char* m_end;
-
-        }; // class TagsIter
-
-        class Tags {
-
-        public:
-
-            Tags(const char* data, size_t size) : m_data(data), m_size(size) {
-            }
-
-            Tags(const Object& object) : m_data(object.tags_position() + sizeof(size_t)), m_size(object.tags_length()) {
-            }
-
-            TagsIter begin() {
-                return TagsIter(m_data, m_data + m_size);
-            }
-
-            TagsIter end() {
-                return TagsIter(m_data + m_size, m_data + m_size);
-            }
-
-        private:
-
-            const char* m_data;
-            size_t m_size;
-
-        }; // class Tags
-
-        /**
-         * Iterator to iterate over nodes in Nodes
-         */
-        class NodesIter {
-
-        public:
-
-            NodesIter(const char* start, const char* end) : m_start(start), m_end(end) {
-            }
-
-            NodesIter& operator++() {
-                m_start += sizeof(uint64_t);
-                return *this;
-            }
-
-            NodesIter operator++(int) {
-                NodesIter tmp(*this);
-                operator++();
-                return tmp;
-            }
-
-            bool operator==(const NodesIter& rhs) {return m_start==rhs.m_start;}
-            bool operator!=(const NodesIter& rhs) {return m_start!=rhs.m_start;}
-
-            uint64_t operator*() {
-                return *reinterpret_cast<const uint64_t*>(m_start);
-            }
-            
-        private:
-
-            const char* m_start;
-            const char* m_end;
-
-        }; // class NodesIter
-
-        /**
-         * List of nodes in a buffer.
-         */
-        class Nodes {
-
-        public:
-
-            Nodes(const char* data) : m_data(data+sizeof(size_t)), m_size(*reinterpret_cast<const size_t*>(data)) {
-            }
-
-            Nodes(const Osmium::Ser::Way& way) : m_data(way.members_position() + sizeof(size_t)), m_size(way.members_length()) {
-            }
-
-            NodesIter begin() {
-                return NodesIter(m_data, m_data + m_size);
-            }
-
-            NodesIter end() {
-                return NodesIter(m_data + m_size, m_data + m_size);
-            }
-
-        private:
-
-            const char* m_data;
-            int32_t m_size;
-
-        }; // class Nodes
+        }; // class RelationMemberList
 
     } // namespace Ser
 
