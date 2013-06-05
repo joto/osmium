@@ -38,8 +38,7 @@ namespace Osmium {
                 m_parent(parent),
                 m_item(reinterpret_cast<Osmium::Ser::Item*>(m_buffer.get_space(size))) {
                 assert(buffer.is_aligned());
-                m_item->size(size);
-                m_item->type(itemtype);
+                new (m_item) Item(size, itemtype);
                 if (m_parent) {
                     m_parent->add_size(size);
                 }

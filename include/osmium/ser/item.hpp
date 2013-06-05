@@ -98,11 +98,9 @@ namespace Osmium {
 
         public:
         
-            Item() : m_size(0), m_type() {
-            }
-
-            void size(uint32_t size) {
-                m_size = size;
+            Item(size_t size=0, ItemType type=ItemType()) :
+                m_size(size),
+                m_type(type) {
             }
 
             void add_size(uint32_t size) {
