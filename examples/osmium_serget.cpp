@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
 
     Osmium::Ser::Index::MemWithId index(index_fd);
     size_t pos = index.get(id);
-    size_t length = reinterpret_cast<Osmium::Ser::Item*>(&mem[pos])->size();
+    size_t length = reinterpret_cast<Osmium::Ser::TypedItem*>(&mem[pos])->size();
     std::cout << "length: " << length << "\n";
     Osmium::Ser::Buffer buffer(mem + pos, length, boost::bind(&full));
 
