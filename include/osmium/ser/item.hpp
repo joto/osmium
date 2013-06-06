@@ -273,19 +273,22 @@ namespace Osmium {
 
         }; // class TagsIter
 
-        class TagList : public Item {
+        template <class TIter>
+        class Collection : public Item {
 
         public:
 
-            TagsIter begin() const {
-                return TagsIter(self() + sizeof(TagList), self() + size());
+            TIter begin() const {
+                return TIter(self() + sizeof(Item), self() + size());
             }
 
-            TagsIter end() const {
-                return TagsIter(self() + size(), self() + size());
+            TIter end() const {
+                return TIter(self() + size(), self() + size());
             }
 
-        }; // class TagList
+        }; // class Collection
+
+        typedef Collection<TagsIter> TagList;
 
         template <>
         struct item_traits<TagList> {
@@ -330,19 +333,7 @@ namespace Osmium {
         /**
          * List of nodes in a buffer.
          */
-        class NodeList : public Item {
-
-        public:
-
-            NodesIter begin() const {
-                return NodesIter(self() + sizeof(NodeList), self() + size());
-            }
-
-            NodesIter end() const {
-                return NodesIter(self() + size(), self() + size());
-            }
-
-        }; // class NodeList
+        typedef Collection<NodesIter> NodeList;
 
         class RelationMember {
 
@@ -410,19 +401,7 @@ namespace Osmium {
 
         }; // class RelationMembersIter
 
-        class RelationMemberList : public Item {
-
-        public:
-
-            RelationMembersIter begin() const {
-                return RelationMembersIter(self() + sizeof(RelationMemberList), self() + size());
-            }
-
-            RelationMembersIter end() const {
-                return RelationMembersIter(self() + size(), self() + size());
-            }
-
-        }; // class RelationMemberList
+        typedef Collection<RelationMembersIter> RelationMemberList;
 
     } // namespace Ser
 
