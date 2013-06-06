@@ -263,19 +263,19 @@ namespace Osmium {
 
         }; // class CollectionIterator
 
-        template <class TIter>
+        template <class TMember>
         class Collection : public TypedItem {
 
         public:
 
-            typedef TIter iterator;
+            typedef CollectionIterator<TMember> iterator;
 
-            TIter begin() const {
-                return TIter(self() + sizeof(Collection<TIter>), self() + size());
+            iterator begin() const {
+                return iterator(self() + sizeof(Collection<TMember>), self() + size());
             }
 
-            TIter end() const {
-                return TIter(self() + size(), self() + size());
+            iterator end() const {
+                return iterator(self() + size(), self() + size());
             }
 
         }; // class Collection
@@ -299,8 +299,7 @@ namespace Osmium {
 
         }; // class Tag
 
-        typedef CollectionIterator<Tag> TagsIter;
-        typedef Collection<TagsIter> TagList;
+        typedef Collection<Tag> TagList;
 
         template <>
         struct item_traits<TagList> {
@@ -325,8 +324,7 @@ namespace Osmium {
 
         }; // class WayNode
 
-        typedef CollectionIterator<WayNode> WayNodeIter;
-        typedef Collection<WayNodeIter> WayNodeList;
+        typedef Collection<WayNode> WayNodeList;
 
         template <>
         struct item_traits<WayNodeList> {
@@ -370,8 +368,7 @@ namespace Osmium {
 
         }; // class RelationMember
 
-        typedef CollectionIterator<RelationMember> RelationMemberIter;
-        typedef Collection<RelationMemberIter> RelationMemberList;
+        typedef Collection<RelationMember> RelationMemberList;
 
         template <>
         struct item_traits<RelationMemberList> {

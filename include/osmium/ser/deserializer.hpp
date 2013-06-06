@@ -123,7 +123,7 @@ namespace Osmium {
                         node->user(node_item.user());
 
                         const Osmium::Ser::TagList& tags = *reinterpret_cast<const Osmium::Ser::TagList*>(node_item.tags_position());
-                        for (Osmium::Ser::TagsIter it = tags.begin(); it != tags.end(); ++it) {
+                        for (Osmium::Ser::TagList::iterator it = tags.begin(); it != tags.end(); ++it) {
                             node->tags().add(it->key(), it->value());
                         }
 
@@ -139,12 +139,12 @@ namespace Osmium {
                         way->user(way_item.user());
 
                         const Osmium::Ser::TagList& tags = *reinterpret_cast<const Osmium::Ser::TagList*>(way_item.tags_position());
-                        for (Osmium::Ser::TagsIter it = tags.begin(); it != tags.end(); ++it) {
+                        for (Osmium::Ser::TagList::iterator it = tags.begin(); it != tags.end(); ++it) {
                             way->tags().add(it->key(), it->value());
                         }
 
                         const Osmium::Ser::WayNodeList& nodes = *reinterpret_cast<const Osmium::Ser::WayNodeList*>(way_item.members_position());
-                        for (Osmium::Ser::WayNodeIter it = nodes.begin(); it != nodes.end(); ++it) {
+                        for (Osmium::Ser::WayNodeList::iterator it = nodes.begin(); it != nodes.end(); ++it) {
                             way->nodes().add(it->id());
                         }
 
@@ -160,12 +160,12 @@ namespace Osmium {
                         relation->user(relation_item.user());
 
                         const Osmium::Ser::TagList& tags = *reinterpret_cast<const Osmium::Ser::TagList*>(relation_item.tags_position());
-                        for (Osmium::Ser::TagsIter it = tags.begin(); it != tags.end(); ++it) {
+                        for (Osmium::Ser::TagList::iterator it = tags.begin(); it != tags.end(); ++it) {
                             relation->tags().add(it->key(), it->value());
                         }
 
                         const Osmium::Ser::RelationMemberList& members = *reinterpret_cast<const Osmium::Ser::RelationMemberList*>(relation_item.members_position());
-                        for (Osmium::Ser::RelationMemberIter it = members.begin(); it != members.end(); ++it) {
+                        for (Osmium::Ser::RelationMemberList::iterator it = members.begin(); it != members.end(); ++it) {
                             relation->add_member(it->type().as_char(), it->ref(), it->role());
                         }
 
