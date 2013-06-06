@@ -228,34 +228,51 @@ namespace Osmium {
 
         }; // class Tag
 
-        /**
-         * Iterator to iterate over tags in a Tags
-         */
-        class TagsIter {
+        template <class TMember, class TIter>
+        class CollectionIterator {
 
         public:
 
-            TagsIter(const char* start, const char* end) : m_start(start), m_end(end) {
+            CollectionIterator(const char* start, const char* end) :
+                m_start(start),
+                m_end(end) {
+            }
+
+            TIter operator++(int) {
+                TIter tmp(*this);
+                operator++();
+                return tmp;
+            }
+
+            bool operator==(const TIter& rhs) const {
+                return m_start == rhs.m_start;
+            }
+
+            bool operator!=(const TIter& rhs) const {
+                return m_start != rhs.m_start;
+            }
+
+        protected:
+
+            const char*       m_start;
+            const char* const m_end;
+
+        }; // class CollectionIterator
+
+        /**
+         * Iterator to iterate over tags in a Tags
+         */
+        class TagsIter : public CollectionIterator<Tag, TagsIter> {
+
+        public:
+
+            TagsIter(const char* start, const char* end) : CollectionIterator<Tag, TagsIter>(start, end) {
             }
 
             TagsIter& operator++() {
                 m_start += strlen(m_start) + 1;
                 m_start += strlen(m_start) + 1;
                 return *this;
-            }
-
-            TagsIter operator++(int) {
-                TagsIter tmp(*this);
-                operator++();
-                return tmp;
-            }
-
-            bool operator==(const TagsIter& rhs) const {
-                return m_start == rhs.m_start;
-            }
-
-            bool operator!=(const TagsIter& rhs) const {
-                return m_start != rhs.m_start;
             }
 
             const Tag operator*() {
@@ -265,11 +282,6 @@ namespace Osmium {
             const Tag* operator->() {
                 return reinterpret_cast<const Tag*>(&m_start);
             }
-
-        private:
-
-            const char* m_start;
-            const char* m_end;
 
         }; // class TagsIter
 
@@ -298,11 +310,11 @@ namespace Osmium {
         /**
          * Iterator to iterate over nodes in Nodes
          */
-        class NodesIter {
+        class NodesIter : public CollectionIterator<uint64_t, NodesIter> {
 
         public:
 
-            NodesIter(const char* start, const char* end) : m_start(start), m_end(end) {
+            NodesIter(const char* start, const char* end) : CollectionIterator<uint64_t, NodesIter>(start, end) {
             }
 
             NodesIter& operator++() {
@@ -310,24 +322,10 @@ namespace Osmium {
                 return *this;
             }
 
-            NodesIter operator++(int) {
-                NodesIter tmp(*this);
-                operator++();
-                return tmp;
-            }
-
-            bool operator==(const NodesIter& rhs) {return m_start==rhs.m_start;}
-            bool operator!=(const NodesIter& rhs) {return m_start!=rhs.m_start;}
-
             uint64_t operator*() {
                 return *reinterpret_cast<const uint64_t*>(m_start);
             }
             
-        private:
-
-            const char* m_start;
-            const char* m_end;
-
         }; // class NodesIter
 
         /**
@@ -364,11 +362,11 @@ namespace Osmium {
         /**
          * Iterator to iterate over tags in a RelationMembers
          */
-        class RelationMembersIter {
+        class RelationMembersIter : public CollectionIterator<RelationMember, RelationMembersIter> {
 
         public:
 
-            RelationMembersIter(const char* start, const char* end) : m_start(start), m_end(end) {
+            RelationMembersIter(const char* start, const char* end) : CollectionIterator<RelationMember, RelationMembersIter>(start, end) {
             }
 
             RelationMembersIter& operator++() {
@@ -377,15 +375,6 @@ namespace Osmium {
                 return *this;
             }
 
-            RelationMembersIter operator++(int) {
-                RelationMembersIter tmp(*this);
-                operator++();
-                return tmp;
-            }
-
-            bool operator==(const RelationMembersIter& rhs) {return m_start==rhs.m_start;}
-            bool operator!=(const RelationMembersIter& rhs) {return m_start!=rhs.m_start;}
-
             const RelationMember operator*() {
                 return *reinterpret_cast<const RelationMember*>(m_start);
             }
@@ -393,11 +382,6 @@ namespace Osmium {
             const RelationMember* operator->() {
                 return reinterpret_cast<const RelationMember*>(m_start);
             }
-
-        private:
-
-            const char* m_start;
-            const char* m_end;
 
         }; // class RelationMembersIter
 
