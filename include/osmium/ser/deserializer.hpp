@@ -110,7 +110,7 @@ namespace Osmium {
 
             void feed(THandler& handler) {
                 while (m_offset < m_data.size()) {
-                    const Osmium::Ser::Item& item = m_data.get<Osmium::Ser::Item>(m_offset);
+                    const Osmium::Ser::TypedItem& item = m_data.get<Osmium::Ser::TypedItem>(m_offset);
                     if (item.type().is_node()) {
                         const Osmium::Ser::Node& node_item = static_cast<const Osmium::Ser::Node&>(item);
                         shared_ptr<Osmium::OSM::Node> node = make_shared<Osmium::OSM::Node>();
@@ -143,8 +143,8 @@ namespace Osmium {
                             way->tags().add(it->key(), it->value());
                         }
 
-                        const Osmium::Ser::NodeList& nodes = *reinterpret_cast<const Osmium::Ser::NodeList*>(way_item.members_position());
-                        for (Osmium::Ser::NodesIter it = nodes.begin(); it != nodes.end(); ++it) {
+                        const Osmium::Ser::WayNodeList& nodes = *reinterpret_cast<const Osmium::Ser::WayNodeList*>(way_item.members_position());
+                        for (Osmium::Ser::WayNodeIter it = nodes.begin(); it != nodes.end(); ++it) {
                             way->nodes().add(it->id());
                         }
 
@@ -165,8 +165,8 @@ namespace Osmium {
                         }
 
                         const Osmium::Ser::RelationMemberList& members = *reinterpret_cast<const Osmium::Ser::RelationMemberList*>(relation_item.members_position());
-                        for (Osmium::Ser::RelationMembersIter it = members.begin(); it != members.end(); ++it) {
-                            relation->add_member(it->type.as_char(), it->ref, it->role());
+                        for (Osmium::Ser::RelationMemberIter it = members.begin(); it != members.end(); ++it) {
+                            relation->add_member(it->type().as_char(), it->ref(), it->role());
                         }
 
                         handler.relation(relation);

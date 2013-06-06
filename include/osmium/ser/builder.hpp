@@ -36,9 +36,9 @@ namespace Osmium {
             Builder(Buffer& buffer, Builder* parent, size_t size, ItemType itemtype) :
                 m_buffer(buffer),
                 m_parent(parent),
-                m_item(reinterpret_cast<Osmium::Ser::Item*>(m_buffer.get_space(size))) {
+                m_item(reinterpret_cast<Osmium::Ser::TypedItem*>(m_buffer.get_space(size))) {
                 assert(buffer.is_aligned());
-                new (m_item) Item(size, itemtype);
+                new (m_item) TypedItem(size, itemtype);
                 if (m_parent) {
                     m_parent->add_size(size);
                 }
@@ -92,7 +92,7 @@ namespace Osmium {
 
             Buffer& m_buffer;
             Builder* m_parent;
-            Osmium::Ser::Item* m_item;
+            Osmium::Ser::TypedItem* m_item;
 
         }; // Builder
 
@@ -132,7 +132,7 @@ namespace Osmium {
             }
 
             void add_nodes(const Osmium::OSM::WayNodeList& nodes) {
-                Osmium::Ser::ObjectBuilder<Osmium::Ser::NodeList> builder(m_buffer, this);
+                Osmium::Ser::ObjectBuilder<Osmium::Ser::WayNodeList> builder(m_buffer, this);
 
                 BOOST_FOREACH(const Osmium::OSM::WayNode& way_node, nodes) {
                     builder.add_node(way_node.ref());
@@ -142,9 +142,8 @@ namespace Osmium {
             }
 
             void add_member(char type, osm_object_id_t ref, const char* role) {
-                RelationMember* member = m_buffer.get_space_for<RelationMember>();
-                member->type = ItemType(type);
-                member->ref = ref;
+                Osmium::Ser::RelationMember* member = m_buffer.get_space_for<Osmium::Ser::RelationMember>();
+                new (member) Osmium::Ser::RelationMember(ref, type);
                 add_size(sizeof(RelationMember));
                 add_string(role);
             }

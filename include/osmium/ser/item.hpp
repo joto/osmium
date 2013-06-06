@@ -43,7 +43,10 @@ namespace Osmium {
             static const uint32_t itemtype_node     = 0x01;
             static const uint32_t itemtype_way      = 0x02;
             static const uint32_t itemtype_relation = 0x03;
-            static const uint32_t itemtype_taglist  = 0x10;
+            static const uint32_t itemtype_collection            = 0x10;
+            static const uint32_t itemtype_tag_list              = 0x11;
+            static const uint32_t itemtype_way_node_list         = 0x12;
+            static const uint32_t itemtype_relation_member_list  = 0x13;
 
             ItemType(uint32_t type = itemtype_unknown) : m_type(type) {
             }
@@ -97,9 +100,24 @@ namespace Osmium {
         // any kind of item in a buffer
         class Item {
 
+        protected:
+
+            Item() {}
+
+            ~Item() {}
+
+            const char* self() const {
+                return reinterpret_cast<const char*>(this);
+            }
+
+        }; // class Item
+
+        class TypedItem : public Item {
+
         public:
         
-            Item(size_t size=0, ItemType type=ItemType()) :
+            TypedItem(size_t size=0, ItemType type=ItemType()) :
+                Item(),
                 m_size(size),
                 m_type(type) {
             }
@@ -120,21 +138,15 @@ namespace Osmium {
                 return m_type;
             }
 
-        protected:
-
-            const char* self() const {
-                return reinterpret_cast<const char*>(this);
-            }
-
         private:
 
             uint32_t m_size;
             ItemType m_type;
 
-        };
+        }; // class TypedItem
 
         // serialized form of OSM object
-        class Object : public Item {
+        class Object : public TypedItem {
 
         public:
 
@@ -161,7 +173,7 @@ namespace Osmium {
             }
 
             uint32_t tags_length() const {
-                return reinterpret_cast<const Osmium::Ser::Item*>(tags_position())->size();
+                return reinterpret_cast<const Osmium::Ser::TypedItem*>(tags_position())->size();
             }
 
             const char* members_position() const {
@@ -169,7 +181,7 @@ namespace Osmium {
             }
 
             uint32_t members_length() const {
-                return reinterpret_cast<const Osmium::Ser::Item*>(members_position())->size();
+                return reinterpret_cast<const Osmium::Ser::TypedItem*>(members_position())->size();
             }
 
         };
@@ -252,12 +264,14 @@ namespace Osmium {
         }; // class CollectionIterator
 
         template <class TIter>
-        class Collection : public Item {
+        class Collection : public TypedItem {
 
         public:
 
+            typedef TIter iterator;
+
             TIter begin() const {
-                return TIter(self() + sizeof(Item), self() + size());
+                return TIter(self() + sizeof(Collection<TIter>), self() + size());
             }
 
             TIter end() const {
@@ -266,23 +280,21 @@ namespace Osmium {
 
         }; // class Collection
 
-        class Tag {
+        class Tag : public Item {
 
         public:
 
             const char* key() const {
-                return reinterpret_cast<const char*>(this);
+                return self();
             }
 
             const char* value() const {
-                const char* data = reinterpret_cast<const char*>(this);
-                return data + strlen(data) + 1;
+                return self() + strlen(self()) + 1;
             }
 
             const char* next() const {
-                const char* current = reinterpret_cast<const char*>(this);
-                current += strlen(current) + 1;
-                return current + strlen(current) + 1;
+                const char* data = value();
+                return data + strlen(data) + 1;
             }
 
         }; // class Tag
@@ -292,10 +304,10 @@ namespace Osmium {
 
         template <>
         struct item_traits<TagList> {
-            static const uint32_t itemtype = Osmium::Ser::ItemType::itemtype_taglist;
+            static const uint32_t itemtype = Osmium::Ser::ItemType::itemtype_tag_list;
         };
 
-        class WayNode {
+        class WayNode : public Item {
 
         public:
 
@@ -307,23 +319,34 @@ namespace Osmium {
                 return reinterpret_cast<const char*>(this + 1);
             }
 
+        private:
+
             osm_object_id_t m_id;
 
         }; // class WayNode
 
-        typedef CollectionIterator<WayNode> NodesIter;
-        typedef Collection<NodesIter> NodeList;
+        typedef CollectionIterator<WayNode> WayNodeIter;
+        typedef Collection<WayNodeIter> WayNodeList;
 
-        class RelationMember {
+        template <>
+        struct item_traits<WayNodeList> {
+            static const uint32_t itemtype = Osmium::Ser::ItemType::itemtype_way_node_list;
+        };
+
+        class RelationMember : public Item {
 
         public:
 
-            osm_object_id_t ref;
-            ItemType type;
-            char tpadding[4];
+            RelationMember(osm_object_id_t ref=0, ItemType type=ItemType()) : m_ref(ref), m_type(type) {
+                memset(m_padding, 0, sizeof(m_padding));
+            }
 
-            RelationMember() : ref(0), type() {
-                memset(tpadding, 0, 4);
+            osm_object_id_t ref() const {
+                return m_ref;
+            }
+
+            ItemType type() const {
+                return m_type;
             }
 
             const char* role_position() const {
@@ -334,19 +357,26 @@ namespace Osmium {
                 return role_position() + sizeof(size_t);
             }
 
-            const char* self() const {
-                return reinterpret_cast<const char*>(this);
-            }
-
             const char* next() const {
                 const char* current = reinterpret_cast<const char*>(this + 1);
                 return current + sizeof(size_t) + padded_length(*reinterpret_cast<const size_t*>(current));
             }
 
+        private:
+
+            osm_object_id_t m_ref;
+            ItemType m_type;
+            char m_padding[4];
+
         }; // class RelationMember
 
-        typedef CollectionIterator<RelationMember> RelationMembersIter;
-        typedef Collection<RelationMembersIter> RelationMemberList;
+        typedef CollectionIterator<RelationMember> RelationMemberIter;
+        typedef Collection<RelationMemberIter> RelationMemberList;
+
+        template <>
+        struct item_traits<RelationMemberList> {
+            static const uint32_t itemtype = Osmium::Ser::ItemType::itemtype_relation_member_list;
+        };
 
     } // namespace Ser
 
