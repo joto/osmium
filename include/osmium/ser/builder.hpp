@@ -102,7 +102,7 @@ namespace Osmium {
         public:
 
             ObjectBuilder(Buffer& buffer, Builder* parent=NULL) :
-                Builder(buffer, parent, sizeof(T), itemtype_of<T>()) {
+                Builder(buffer, parent, sizeof(T), item_traits<T>::itemtype) {
             }
 
             T& object() {

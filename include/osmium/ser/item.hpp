@@ -39,10 +39,11 @@ namespace Osmium {
 
         public:
 
-            static const uint32_t itemtype_unknown  = 0;
-            static const uint32_t itemtype_node     = 1;
-            static const uint32_t itemtype_way      = 2;
-            static const uint32_t itemtype_relation = 3;
+            static const uint32_t itemtype_unknown  = 0x00;
+            static const uint32_t itemtype_node     = 0x01;
+            static const uint32_t itemtype_way      = 0x02;
+            static const uint32_t itemtype_relation = 0x03;
+            static const uint32_t itemtype_taglist  = 0x10;
 
             ItemType(uint32_t type = itemtype_unknown) : m_type(type) {
             }
@@ -89,9 +90,9 @@ namespace Osmium {
         }
 
         template <class T>
-        inline const ItemType itemtype_of() {
-            return ItemType(ItemType::itemtype_unknown);
-        }
+        struct item_traits {
+            static const uint32_t itemtype = Osmium::Ser::ItemType::itemtype_unknown;
+        };
 
         // any kind of item in a buffer
         class Item {
@@ -183,25 +184,28 @@ namespace Osmium {
         }; // class Node
 
         template <>
-        inline const ItemType itemtype_of<Node>() {
-            return ItemType(ItemType::itemtype_node);
-        }
+        struct item_traits<Node> {
+            static const uint32_t itemtype = Osmium::Ser::ItemType::itemtype_node;
+        };
+
 
         class Way : public Object {
         }; // class Way
 
         template <>
-        inline const ItemType itemtype_of<Way>() {
-            return ItemType(ItemType::itemtype_way);
-        }
+        struct item_traits<Way> {
+            static const uint32_t itemtype = Osmium::Ser::ItemType::itemtype_way;
+        };
+
 
         class Relation : public Object {
         }; // class Relation
 
         template <>
-        inline const ItemType itemtype_of<Relation>() {
-            return ItemType(ItemType::itemtype_relation);
-        }
+        struct item_traits<Relation> {
+            static const uint32_t itemtype = Osmium::Ser::ItemType::itemtype_relation;
+        };
+
 
         class Tag {
 
@@ -282,6 +286,11 @@ namespace Osmium {
             }
 
         }; // class TagList
+
+        template <>
+        struct item_traits<TagList> {
+            static const uint32_t itemtype = Osmium::Ser::ItemType::itemtype_taglist;
+        };
 
         /**
          * Iterator to iterate over nodes in Nodes
