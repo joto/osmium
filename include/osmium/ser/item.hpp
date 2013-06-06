@@ -211,15 +211,13 @@ namespace Osmium {
 
         public:
 
-            Tag(const char* data) : m_data(data) {
-            }
-
             const char* key() const {
-                return m_data;
+                return reinterpret_cast<const char*>(this);
             }
 
             const char* value() const {
-                return m_data + strlen(m_data) + 1;
+                const char* data = reinterpret_cast<const char*>(this);
+                return data + strlen(data) + 1;
             }
 
             const char* next() const {
@@ -227,10 +225,6 @@ namespace Osmium {
                 current += strlen(current) + 1;
                 return current + strlen(current) + 1;
             }
-
-        private:
-
-            const char* m_data;
 
         }; // class Tag
 
@@ -281,11 +275,11 @@ namespace Osmium {
             }
 
             const Tag operator*() {
-                return Tag(m_start);
+                return *reinterpret_cast<const Tag*>(m_start);
             }
             
             const Tag* operator->() {
-                return reinterpret_cast<const Tag*>(&m_start);
+                return reinterpret_cast<const Tag*>(m_start);
             }
 
         }; // class TagsIter
