@@ -207,6 +207,65 @@ namespace Osmium {
         };
 
 
+        template <class TMember>
+        class CollectionIterator {
+
+        public:
+
+            CollectionIterator(const char* start, const char* end) :
+                m_start(start),
+                m_end(end) {
+            }
+
+            CollectionIterator<TMember>& operator++() {
+                m_start = reinterpret_cast<const TMember*>(m_start)->next();
+                return *static_cast<CollectionIterator<TMember>*>(this);
+            }
+
+            CollectionIterator<TMember> operator++(int) {
+                CollectionIterator<TMember> tmp(*this);
+                operator++();
+                return tmp;
+            }
+
+            bool operator==(const CollectionIterator<TMember>& rhs) const {
+                return m_start == rhs.m_start;
+            }
+
+            bool operator!=(const CollectionIterator<TMember>& rhs) const {
+                return m_start != rhs.m_start;
+            }
+
+            const TMember operator*() {
+                return *reinterpret_cast<const TMember*>(m_start);
+            }
+            
+            const TMember* operator->() {
+                return reinterpret_cast<const TMember*>(m_start);
+            }
+
+        protected:
+
+            const char*       m_start;
+            const char* const m_end;
+
+        }; // class CollectionIterator
+
+        template <class TIter>
+        class Collection : public Item {
+
+        public:
+
+            TIter begin() const {
+                return TIter(self() + sizeof(Item), self() + size());
+            }
+
+            TIter end() const {
+                return TIter(self() + size(), self() + size());
+            }
+
+        }; // class Collection
+
         class Tag {
 
         public:
@@ -228,77 +287,7 @@ namespace Osmium {
 
         }; // class Tag
 
-        template <class TMember, class TIter>
-        class CollectionIterator {
-
-        public:
-
-            CollectionIterator(const char* start, const char* end) :
-                m_start(start),
-                m_end(end) {
-            }
-
-            TIter& operator++() {
-                m_start = reinterpret_cast<const TMember*>(m_start)->next();
-                return *static_cast<TIter*>(this);
-            }
-
-            TIter operator++(int) {
-                TIter tmp(*this);
-                operator++();
-                return tmp;
-            }
-
-            bool operator==(const TIter& rhs) const {
-                return m_start == rhs.m_start;
-            }
-
-            bool operator!=(const TIter& rhs) const {
-                return m_start != rhs.m_start;
-            }
-
-        protected:
-
-            const char*       m_start;
-            const char* const m_end;
-
-        }; // class CollectionIterator
-
-        /**
-         * Iterator to iterate over tags in a Tags
-         */
-        class TagsIter : public CollectionIterator<Tag, TagsIter> {
-
-        public:
-
-            TagsIter(const char* start, const char* end) : CollectionIterator<Tag, TagsIter>(start, end) {
-            }
-
-            const Tag operator*() {
-                return *reinterpret_cast<const Tag*>(m_start);
-            }
-            
-            const Tag* operator->() {
-                return reinterpret_cast<const Tag*>(m_start);
-            }
-
-        }; // class TagsIter
-
-        template <class TIter>
-        class Collection : public Item {
-
-        public:
-
-            TIter begin() const {
-                return TIter(self() + sizeof(Item), self() + size());
-            }
-
-            TIter end() const {
-                return TIter(self() + size(), self() + size());
-            }
-
-        }; // class Collection
-
+        typedef CollectionIterator<Tag> TagsIter;
         typedef Collection<TagsIter> TagList;
 
         template <>
@@ -322,29 +311,7 @@ namespace Osmium {
 
         }; // class WayNode
 
-        /**
-         * Iterator to iterate over nodes in Nodes
-         */
-        class NodesIter : public CollectionIterator<WayNode, NodesIter> {
-
-        public:
-
-            NodesIter(const char* start, const char* end) : CollectionIterator<WayNode, NodesIter>(start, end) {
-            }
-
-            const WayNode operator*() {
-                return *reinterpret_cast<const WayNode*>(m_start);
-            }
-            
-            const WayNode* operator->() {
-                return reinterpret_cast<const WayNode*>(m_start);
-            }
-            
-        }; // class NodesIter
-
-        /**
-         * List of nodes in a buffer.
-         */
+        typedef CollectionIterator<WayNode> NodesIter;
         typedef Collection<NodesIter> NodeList;
 
         class RelationMember {
@@ -378,26 +345,7 @@ namespace Osmium {
 
         }; // class RelationMember
 
-        /**
-         * Iterator to iterate over tags in a RelationMembers
-         */
-        class RelationMembersIter : public CollectionIterator<RelationMember, RelationMembersIter> {
-
-        public:
-
-            RelationMembersIter(const char* start, const char* end) : CollectionIterator<RelationMember, RelationMembersIter>(start, end) {
-            }
-
-            const RelationMember operator*() {
-                return *reinterpret_cast<const RelationMember*>(m_start);
-            }
-           
-            const RelationMember* operator->() {
-                return reinterpret_cast<const RelationMember*>(m_start);
-            }
-
-        }; // class RelationMembersIter
-
+        typedef CollectionIterator<RelationMember> RelationMembersIter;
         typedef Collection<RelationMembersIter> RelationMemberList;
 
     } // namespace Ser
