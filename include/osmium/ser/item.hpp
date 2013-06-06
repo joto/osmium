@@ -316,11 +316,15 @@ namespace Osmium {
 
         public:
 
+            osm_object_id_t id() const {
+                return m_id;
+            }
+
             const char* next() const {
                 return reinterpret_cast<const char*>(this + 1);
             }
 
-            osm_object_id_t id;
+            osm_object_id_t m_id;
 
         }; // class WayNode
 
@@ -334,8 +338,12 @@ namespace Osmium {
             NodesIter(const char* start, const char* end) : CollectionIterator<WayNode, NodesIter>(start, end) {
             }
 
-            uint64_t operator*() {
-                return *reinterpret_cast<const uint64_t*>(m_start);
+            const WayNode operator*() {
+                return *reinterpret_cast<const WayNode*>(m_start);
+            }
+            
+            const WayNode* operator->() {
+                return reinterpret_cast<const WayNode*>(m_start);
             }
             
         }; // class NodesIter

@@ -145,7 +145,7 @@ namespace Osmium {
 
                         const Osmium::Ser::NodeList& nodes = *reinterpret_cast<const Osmium::Ser::NodeList*>(way_item.members_position());
                         for (Osmium::Ser::NodesIter it = nodes.begin(); it != nodes.end(); ++it) {
-                            way->nodes().add(*it);
+                            way->nodes().add(it->id());
                         }
 
                         handler.way(way);
