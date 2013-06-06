@@ -222,6 +222,12 @@ namespace Osmium {
                 return m_data + strlen(m_data) + 1;
             }
 
+            const char* next() const {
+                const char* current = reinterpret_cast<const char*>(this);
+                current += strlen(current) + 1;
+                return current + strlen(current) + 1;
+            }
+
         private:
 
             const char* m_data;
@@ -236,6 +242,11 @@ namespace Osmium {
             CollectionIterator(const char* start, const char* end) :
                 m_start(start),
                 m_end(end) {
+            }
+
+            TIter& operator++() {
+                m_start = reinterpret_cast<const TMember*>(m_start)->next();
+                return *static_cast<TIter*>(this);
             }
 
             TIter operator++(int) {
@@ -267,12 +278,6 @@ namespace Osmium {
         public:
 
             TagsIter(const char* start, const char* end) : CollectionIterator<Tag, TagsIter>(start, end) {
-            }
-
-            TagsIter& operator++() {
-                m_start += strlen(m_start) + 1;
-                m_start += strlen(m_start) + 1;
-                return *this;
             }
 
             const Tag operator*() {
@@ -307,19 +312,26 @@ namespace Osmium {
             static const uint32_t itemtype = Osmium::Ser::ItemType::itemtype_taglist;
         };
 
-        /**
-         * Iterator to iterate over nodes in Nodes
-         */
-        class NodesIter : public CollectionIterator<uint64_t, NodesIter> {
+        class WayNode {
 
         public:
 
-            NodesIter(const char* start, const char* end) : CollectionIterator<uint64_t, NodesIter>(start, end) {
+            const char* next() const {
+                return reinterpret_cast<const char*>(this + 1);
             }
 
-            NodesIter& operator++() {
-                m_start += sizeof(uint64_t);
-                return *this;
+            osm_object_id_t id;
+
+        }; // class WayNode
+
+        /**
+         * Iterator to iterate over nodes in Nodes
+         */
+        class NodesIter : public CollectionIterator<WayNode, NodesIter> {
+
+        public:
+
+            NodesIter(const char* start, const char* end) : CollectionIterator<WayNode, NodesIter>(start, end) {
             }
 
             uint64_t operator*() {
@@ -357,6 +369,11 @@ namespace Osmium {
                 return reinterpret_cast<const char*>(this);
             }
 
+            const char* next() const {
+                const char* current = reinterpret_cast<const char*>(this + 1);
+                return current + sizeof(size_t) + padded_length(*reinterpret_cast<const size_t*>(current));
+            }
+
         }; // class RelationMember
 
         /**
@@ -367,12 +384,6 @@ namespace Osmium {
         public:
 
             RelationMembersIter(const char* start, const char* end) : CollectionIterator<RelationMember, RelationMembersIter>(start, end) {
-            }
-
-            RelationMembersIter& operator++() {
-                m_start += sizeof(RelationMember);
-                m_start += padded_length(*reinterpret_cast<const size_t*>(m_start)) + sizeof(size_t);
-                return *this;
             }
 
             const RelationMember operator*() {
