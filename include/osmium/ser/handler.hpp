@@ -36,11 +36,12 @@ namespace Osmium {
 
         public:
 
-            Handler(TBufferManager& buffer_manager, TIndexNode& node_index, TIndexWay& way_index, TIndexRelation& relation_index) :
+            Handler(TBufferManager& buffer_manager, TIndexNode& node_index, TIndexWay& way_index, TIndexRelation& relation_index, int data_fd = 1) :
                 Osmium::Handler::Base(),
                 m_buffer_manager(buffer_manager),
                 m_buffer(buffer_manager.buffer()),
                 m_offset(0),
+                m_data_fd(data_fd),
                 m_node_index(node_index),
                 m_way_index(way_index),
                 m_relation_index(relation_index) {
@@ -50,7 +51,7 @@ namespace Osmium {
             }
 
             void flush_buffer() {
-                std::cout.write(m_buffer.ptr(), m_buffer.committed());
+                ::write(m_data_fd, m_buffer.ptr(), m_buffer.committed());
                 m_offset += m_buffer.clear();
             }
 
@@ -93,7 +94,12 @@ namespace Osmium {
 
                 builder.add_string(way->user());
                 builder.add_tags(way->tags());
-                builder.add_nodes(way->nodes());
+
+                if (way->nodes()[0].position().defined()) {
+                    builder.add_way_nodes_with_position(way->nodes());
+                } else {
+                    builder.add_way_nodes(way->nodes());
+                }
 
                 m_way_index.set(way->id(), m_offset + m_buffer.commit());
             }
@@ -142,6 +148,7 @@ namespace Osmium {
             TBufferManager& m_buffer_manager;
             Osmium::Ser::Buffer& m_buffer;
             size_t m_offset;
+            int m_data_fd;
             TIndexNode& m_node_index;
             TIndexWay& m_way_index;
             TIndexRelation& m_relation_index;

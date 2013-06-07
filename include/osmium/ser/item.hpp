@@ -43,10 +43,11 @@ namespace Osmium {
             static const uint32_t itemtype_node     = 0x01;
             static const uint32_t itemtype_way      = 0x02;
             static const uint32_t itemtype_relation = 0x03;
-            static const uint32_t itemtype_collection            = 0x10;
-            static const uint32_t itemtype_tag_list              = 0x11;
-            static const uint32_t itemtype_way_node_list         = 0x12;
-            static const uint32_t itemtype_relation_member_list  = 0x13;
+            static const uint32_t itemtype_collection                  = 0x10;
+            static const uint32_t itemtype_tag_list                    = 0x11;
+            static const uint32_t itemtype_way_node_list               = 0x12;
+            static const uint32_t itemtype_way_node_with_position_list = 0x32;
+            static const uint32_t itemtype_relation_member_list        = 0x13;
 
             ItemType(uint32_t type = itemtype_unknown) : m_type(type) {
             }
@@ -314,6 +315,10 @@ namespace Osmium {
 
         public:
 
+            WayNode(osm_object_id_t id) :
+                m_id(id) {
+            }
+
             osm_object_id_t id() const {
                 return m_id;
             }
@@ -328,11 +333,40 @@ namespace Osmium {
 
         }; // class WayNode
 
+        class WayNodeWithPosition : public WayNode {
+
+        public:
+
+            WayNodeWithPosition(osm_object_id_t id, const Osmium::OSM::Position& position) :
+                WayNode(id),
+                m_position(position) {
+            }
+
+            Osmium::OSM::Position position() const {
+                return m_position;
+            }
+
+            const char* next() const {
+                return reinterpret_cast<const char*>(this + 1);
+            }
+
+        private:
+
+            Osmium::OSM::Position m_position;
+
+        }; // class WayNodeWithPosition
+
         typedef Collection<WayNode> WayNodeList;
+        typedef Collection<WayNodeWithPosition> WayNodeWithPositionList;
 
         template <>
         struct item_traits<WayNodeList> {
             static const uint32_t itemtype = Osmium::Ser::ItemType::itemtype_way_node_list;
+        };
+
+        template <>
+        struct item_traits<WayNodeWithPositionList> {
+            static const uint32_t itemtype = Osmium::Ser::ItemType::itemtype_way_node_with_position_list;
         };
 
         class RelationMember : public Item {

@@ -126,16 +126,31 @@ namespace Osmium {
                 builder.add_padding();
             }
 
-            void add_node(osm_object_id_t ref) {
-                *m_buffer.get_space_for<osm_object_id_t>() = ref;
-                add_size(sizeof(osm_object_id_t));
+            void add_way_node(const Osmium::OSM::WayNode& way_node) {
+                new (m_buffer.get_space_for<Osmium::Ser::WayNode>()) Osmium::Ser::WayNode(way_node.ref());
+                add_size(sizeof(Osmium::Ser::WayNode));
             }
 
-            void add_nodes(const Osmium::OSM::WayNodeList& nodes) {
+            void add_way_node_with_position(const Osmium::OSM::WayNode& way_node) {
+                new (m_buffer.get_space_for<Osmium::Ser::WayNodeWithPosition>()) Osmium::Ser::WayNodeWithPosition(way_node.ref(), way_node.position());
+                add_size(sizeof(Osmium::Ser::WayNodeWithPosition));
+            }
+
+            void add_way_nodes(const Osmium::OSM::WayNodeList& nodes) {
                 Osmium::Ser::ObjectBuilder<Osmium::Ser::WayNodeList> builder(m_buffer, this);
 
                 BOOST_FOREACH(const Osmium::OSM::WayNode& way_node, nodes) {
-                    builder.add_node(way_node.ref());
+                    builder.add_way_node(way_node);
+                }
+
+                builder.add_padding();
+            }
+
+            void add_way_nodes_with_position(const Osmium::OSM::WayNodeList& nodes) {
+                Osmium::Ser::ObjectBuilder<Osmium::Ser::WayNodeWithPositionList> builder(m_buffer, this);
+
+                BOOST_FOREACH(const Osmium::OSM::WayNode& way_node, nodes) {
+                    builder.add_way_node_with_position(way_node);
                 }
 
                 builder.add_padding();
