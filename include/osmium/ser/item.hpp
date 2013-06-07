@@ -87,7 +87,7 @@ namespace Osmium {
 
         };
 
-        std::ostream& operator<<(std::ostream& out, const ItemType type) {
+        std::ostream& operator<<(std::ostream& out, const ItemType& type) {
             out << type.as_char();
             return out;
         }
@@ -128,6 +128,10 @@ namespace Osmium {
 
             uint32_t size() const {
                 return m_size;
+            }
+
+            uint32_t padded_size() const {
+                return (m_size + align_bytes - 1) & ~(align_bytes - 1);
             }
 
             void type(const ItemType& item_type) {
