@@ -58,7 +58,8 @@ namespace Osmium {
                 Null() {
                 }
 
-                void set(const osm_object_id_t id, const size_t offset) const {
+                void set(const osm_object_id_t, const size_t) const {
+                    // intentionally left blank
                 }
 
             }; // class Null
@@ -96,7 +97,7 @@ namespace Osmium {
                 }
 
                 size_t get(const osm_object_id_t id) {
-                    return 0;
+                    return 0; // XXX
                 }
 
                 void dump(int fd) const {
