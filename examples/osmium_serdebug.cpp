@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
-    Osmium::Ser::Buffer buffer(mem, bufsize, boost::bind(&full));
+    Osmium::Ser::Buffer buffer(mem, bufsize, bufsize, boost::bind(&full));
 
     Osmium::Ser::Deserializer<Osmium::Handler::Debug> deser(buffer);
     Osmium::Handler::Debug debug;

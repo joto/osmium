@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
     size_t pos = index.get(id);
     size_t length = reinterpret_cast<Osmium::Ser::TypedItem*>(&mem[pos])->size();
     std::cout << "length: " << length << "\n";
-    Osmium::Ser::Buffer buffer(mem + pos, length, boost::bind(&full));
+    Osmium::Ser::Buffer buffer(mem + pos, length, length, boost::bind(&full));
 
     Osmium::Ser::Deserializer<Osmium::Handler::Debug> deser(buffer);
     Osmium::Handler::Debug debug;

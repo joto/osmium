@@ -43,7 +43,7 @@ namespace Osmium {
                     if (!mem) {
                         throw std::bad_alloc();
                     }
-                    m_buffer = new Osmium::Ser::Buffer(mem, size, boost::bind(&Malloc::full, this));
+                    m_buffer = new Osmium::Ser::Buffer(mem, size, 0, boost::bind(&Malloc::full, this));
                 }
 
                 ~Malloc() {

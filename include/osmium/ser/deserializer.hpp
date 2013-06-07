@@ -109,7 +109,7 @@ namespace Osmium {
             }
 
             void feed(THandler& handler) {
-                while (m_offset < m_data.size()) {
+                while (m_offset < m_data.committed()) {
                     const Osmium::Ser::TypedItem& item = m_data.get<Osmium::Ser::TypedItem>(m_offset);
                     if (item.type().is_node()) {
                         const Osmium::Ser::Node& node_item = static_cast<const Osmium::Ser::Node&>(item);

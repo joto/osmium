@@ -41,11 +41,11 @@ namespace Osmium {
 
         public:
 
-            Buffer(char* data, size_t size, boost::function<void()> full_callback) :
+            Buffer(char* data, size_t size, size_t pos, boost::function<void()> full_callback) :
                 m_data(data),
                 m_size(size),
-                m_pos(0),
-                m_committed(0),
+                m_pos(pos),
+                m_committed(pos),
                 m_full_callback(full_callback) {
                 if (size % align_bytes != 0) {
                     throw std::invalid_argument("buffer size needs to be multiple of alignment");
