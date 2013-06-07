@@ -66,9 +66,9 @@ int main(int argc, char* argv[]) {
     std::cout << "length: " << length << "\n";
     Osmium::Ser::Buffer buffer(mem + pos, length, length, boost::bind(&full));
 
-    Osmium::Ser::Deserializer<Osmium::Handler::Debug> deser(buffer);
     Osmium::Handler::Debug debug;
-    deser.feed(debug);
+    Osmium::Ser::Deserializer<Osmium::Handler::Debug> deser(buffer, debug);
+    deser.feed();
 //    deser.dump();
 }
 
