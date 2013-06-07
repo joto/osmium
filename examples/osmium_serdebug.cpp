@@ -88,13 +88,13 @@ int main(int argc, char* argv[]) {
 
     Osmium::Ser::Buffer buffer(mem, bufsize, bufsize, boost::bind(&full));
 
-    Osmium::Ser::Deserializer<Osmium::Handler::Debug> deser(buffer);
+    Osmium::Handler::Debug debug;
+    Osmium::Ser::Deserializer<Osmium::Handler::Debug> deser(buffer, debug);
 
     if (dump) {
         deser.dump();
     } else {
-        Osmium::Handler::Debug debug;
-        deser.feed(debug);
+        deser.feed();
     }
 }
 
