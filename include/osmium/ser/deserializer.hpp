@@ -42,6 +42,50 @@ namespace Osmium {
     /* namespace for code related to serializing osm objects */
     namespace Ser {
 
+        namespace {
+
+            template <class TObject>
+            void parse_tag_list(const Osmium::Ser::TagList& tags, shared_ptr<TObject>& object) {
+                for (Osmium::Ser::TagList::iterator it = tags.begin(); it != tags.end(); ++it) {
+                    object->tags().add(it->key(), it->value());
+                }
+            }
+
+            template <class TObject>
+            void parse_way_node_list(const Osmium::Ser::WayNodeList&, shared_ptr<TObject>&) {
+            }
+
+            template <>
+            void parse_way_node_list<Osmium::OSM::Way>(const Osmium::Ser::WayNodeList& nodes, shared_ptr<Osmium::OSM::Way>& way) {
+                for (Osmium::Ser::WayNodeList::iterator it = nodes.begin(); it != nodes.end(); ++it) {
+                    way->nodes().add(it->id());
+                }
+            }
+
+            template <class TObject>
+            void parse_way_node_list_with_position(const Osmium::Ser::WayNodeWithPositionList&, shared_ptr<TObject>&) {
+            }
+
+            template <>
+            void parse_way_node_list_with_position<Osmium::OSM::Way>(const Osmium::Ser::WayNodeWithPositionList& nodes, shared_ptr<Osmium::OSM::Way>& way) {
+                for (Osmium::Ser::WayNodeWithPositionList::iterator it = nodes.begin(); it != nodes.end(); ++it) {
+                    way->nodes().add(Osmium::OSM::WayNode(it->id(), it->position()));
+                }
+            }
+
+            template <class TObject>
+            void parse_relation_member_list(const Osmium::Ser::RelationMemberList&, shared_ptr<TObject>&) {
+            }
+
+            template <>
+            void parse_relation_member_list<Osmium::OSM::Relation>(const Osmium::Ser::RelationMemberList& members, shared_ptr<Osmium::OSM::Relation>& relation) {
+                for (Osmium::Ser::RelationMemberList::iterator it = members.begin(); it != members.end(); ++it) {
+                    relation->add_member(it->type().as_char(), it->ref(), it->role());
+                }
+            }
+
+        } // anon namespace
+
         template <class THandler>
         class Deserializer {
 
@@ -61,6 +105,28 @@ namespace Osmium {
                 }
             }
 
+            template <class TItem, class TObject>
+            void parse_subitems(const TItem& item, shared_ptr<TObject>& object) {
+                for (Osmium::Ser::Object::iterator it = item.begin(); it != item.end(); ++it) {
+                    switch (it->type().t()) {
+                        case Osmium::Ser::ItemType::itemtype_tag_list:
+                            parse_tag_list(reinterpret_cast<const Osmium::Ser::TagList&>(*it), object);
+                            break;
+                        case Osmium::Ser::ItemType::itemtype_way_node_list:
+                            parse_way_node_list(reinterpret_cast<const Osmium::Ser::WayNodeList&>(*it), object);
+                            break;
+                        case Osmium::Ser::ItemType::itemtype_way_node_with_position_list:
+                            parse_way_node_list_with_position(reinterpret_cast<const Osmium::Ser::WayNodeWithPositionList&>(*it), object);
+                            break;
+                        case Osmium::Ser::ItemType::itemtype_relation_member_list:
+                            parse_relation_member_list(reinterpret_cast<const Osmium::Ser::RelationMemberList&>(*it), object);
+                            break;
+                        default:
+                            throw std::runtime_error("parse error");
+                    }
+                }
+            }
+
             void parse_node(const Osmium::Ser::Node& node_item) {
                 shared_ptr<Osmium::OSM::Node> node = make_shared<Osmium::OSM::Node>();
                 node->id(node_item.id);
@@ -71,10 +137,7 @@ namespace Osmium {
                 node->position(node_item.pos);
                 node->user(node_item.user());
 
-                const Osmium::Ser::TagList& tags = *reinterpret_cast<const Osmium::Ser::TagList*>(node_item.tags_position());
-                for (Osmium::Ser::TagList::iterator it = tags.begin(); it != tags.end(); ++it) {
-                    node->tags().add(it->key(), it->value());
-                }
+                parse_subitems(node_item, node);
 
                 m_handler.node(node);
             }
@@ -88,15 +151,7 @@ namespace Osmium {
                 way->timestamp(way_item.timestamp);
                 way->user(way_item.user());
 
-                const Osmium::Ser::TagList& tags = *reinterpret_cast<const Osmium::Ser::TagList*>(way_item.tags_position());
-                for (Osmium::Ser::TagList::iterator it = tags.begin(); it != tags.end(); ++it) {
-                    way->tags().add(it->key(), it->value());
-                }
-
-                const Osmium::Ser::WayNodeList& nodes = *reinterpret_cast<const Osmium::Ser::WayNodeList*>(way_item.members_position());
-                for (Osmium::Ser::WayNodeList::iterator it = nodes.begin(); it != nodes.end(); ++it) {
-                    way->nodes().add(it->id());
-                }
+                parse_subitems(way_item, way);
 
                 m_handler.way(way);
             }
@@ -110,15 +165,7 @@ namespace Osmium {
                 relation->timestamp(relation_item.timestamp);
                 relation->user(relation_item.user());
 
-                const Osmium::Ser::TagList& tags = *reinterpret_cast<const Osmium::Ser::TagList*>(relation_item.tags_position());
-                for (Osmium::Ser::TagList::iterator it = tags.begin(); it != tags.end(); ++it) {
-                    relation->tags().add(it->key(), it->value());
-                }
-
-                const Osmium::Ser::RelationMemberList& members = *reinterpret_cast<const Osmium::Ser::RelationMemberList*>(relation_item.members_position());
-                for (Osmium::Ser::RelationMemberList::iterator it = members.begin(); it != members.end(); ++it) {
-                    relation->add_member(it->type().as_char(), it->ref(), it->role());
-                }
+                parse_subitems(relation_item, relation);
 
                 m_handler.relation(relation);
             }

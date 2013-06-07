@@ -82,6 +82,11 @@ namespace Osmium {
                 return '-';
             }
 
+            // XXX ugh
+            uint32_t t() const {
+                return m_type;
+            }
+
         private:
 
             uint32_t m_type;
@@ -150,6 +155,49 @@ namespace Osmium {
 
         }; // class TypedItem
 
+        class SubItemIterator {
+
+        public:
+
+            SubItemIterator(const char* start, const char* end) :
+                m_start(start),
+                m_end(end) {
+            }
+
+            SubItemIterator& operator++() {
+                m_start += reinterpret_cast<const TypedItem*>(m_start)->padded_size();
+                return *this;
+            }
+
+            SubItemIterator operator++(int) {
+                SubItemIterator tmp(*this);
+                operator++();
+                return tmp;
+            }
+
+            bool operator==(const SubItemIterator& rhs) const {
+                return m_start == rhs.m_start;
+            }
+
+            bool operator!=(const SubItemIterator& rhs) const {
+                return m_start != rhs.m_start;
+            }
+
+            const TypedItem& operator*() {
+                return *reinterpret_cast<const TypedItem*>(m_start);
+            }
+            
+            const TypedItem* operator->() {
+                return reinterpret_cast<const TypedItem*>(m_start);
+            }
+
+        protected:
+
+            const char*       m_start;
+            const char* const m_end;
+
+        }; // class SubItemIterator
+
         // serialized form of OSM object
         class Object : public TypedItem {
 
@@ -173,20 +221,18 @@ namespace Osmium {
                 return *reinterpret_cast<const size_t*>(user_position());
             }
 
-            const char* tags_position() const {
+            typedef SubItemIterator iterator;
+
+            const char* subitems_position() const {
                 return user_position() + sizeof(size_t) + padded_length(user_length());
             }
 
-            uint32_t tags_length() const {
-                return reinterpret_cast<const Osmium::Ser::TypedItem*>(tags_position())->size();
+            iterator begin() const {
+                return iterator(subitems_position(), self() + padded_size());
             }
 
-            const char* members_position() const {
-                return tags_position() + padded_length(tags_length());
-            }
-
-            uint32_t members_length() const {
-                return reinterpret_cast<const Osmium::Ser::TypedItem*>(members_position())->size();
+            iterator end() const {
+                return iterator(self() + padded_size(), self() + padded_size());
             }
 
         };
@@ -222,7 +268,6 @@ namespace Osmium {
         struct item_traits<Relation> {
             static const uint32_t itemtype = Osmium::Ser::ItemType::itemtype_relation;
         };
-
 
         template <class TMember>
         class CollectionIterator {
