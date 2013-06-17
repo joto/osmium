@@ -31,12 +31,16 @@ namespace Osmium {
 
     namespace Ser {
 
-        template<class TBufferManager, class TIndexNode, class TIndexWay, class TIndexRelation, class TMapWayMember>
+        template<class TBufferManager, class TIndexNode, class TIndexWay, class TIndexRelation, class TMapNodeToWay, class TMapNodeToRelation, class TMapWayToRelation, class TMapRelationToRelation>
         class Handler : public Osmium::Handler::Base {
 
         public:
 
-            Handler(TBufferManager& buffer_manager, TIndexNode& node_index, TIndexWay& way_index, TIndexRelation& relation_index, TMapWayMember& map_way_member, int data_fd = 1) :
+            Handler(TBufferManager& buffer_manager,
+                    TIndexNode& node_index, TIndexWay& way_index, TIndexRelation& relation_index,
+                    TMapNodeToWay& map_node2way,
+                    TMapNodeToRelation& map_node2relation, TMapWayToRelation& map_way2relation, TMapRelationToRelation& map_relation2relation,
+                    int data_fd = 1) :
                 Osmium::Handler::Base(),
                 m_buffer_manager(buffer_manager),
                 m_buffer(buffer_manager.buffer()),
@@ -45,7 +49,10 @@ namespace Osmium {
                 m_node_index(node_index),
                 m_way_index(way_index),
                 m_relation_index(relation_index),
-                m_map_way_member(map_way_member) {
+                m_map_node2way(map_node2way),
+                m_map_node2relation(map_node2relation),
+                m_map_way2relation(map_way2relation),
+                m_map_relation2relation(map_relation2relation) {
             }
 
             void init(Osmium::OSM::Meta&) const {
@@ -108,7 +115,7 @@ namespace Osmium {
 
                 m_way_index.set(way->id(), m_offset + m_buffer.commit());
                 BOOST_FOREACH(const Osmium::OSM::WayNode& wn, way->nodes()) {
-                    m_map_way_member.set(wn.ref(), way->id());
+                    m_map_node2way.set(wn.ref(), way->id());
                 }
             }
 
@@ -136,6 +143,19 @@ namespace Osmium {
                 builder.add_members(relation->members());
 
                 m_relation_index.set(relation->id(), m_offset + m_buffer.commit());
+                BOOST_FOREACH(const Osmium::OSM::RelationMember& member, relation->members()) {
+                    switch (member.type()) {
+                        case 'n':
+                            m_map_node2relation.set(member.ref(), relation->id());
+                            break;
+                        case 'w':
+                            m_map_way2relation.set(member.ref(), relation->id());
+                            break;
+                        case 'r':
+                            m_map_relation2relation.set(member.ref(), relation->id());
+                            break;
+                    }
+                }
             }
 
             void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
@@ -157,10 +177,15 @@ namespace Osmium {
             Osmium::Ser::Buffer& m_buffer;
             size_t m_offset;
             int m_data_fd;
-            TIndexNode& m_node_index;
-            TIndexWay& m_way_index;
+
+            TIndexNode&     m_node_index;
+            TIndexWay&      m_way_index;
             TIndexRelation& m_relation_index;
-            TMapWayMember& m_map_way_member;
+
+            TMapNodeToWay&          m_map_node2way;
+            TMapNodeToRelation&     m_map_node2relation;
+            TMapWayToRelation&      m_map_way2relation;
+            TMapRelationToRelation& m_map_relation2relation;
 
         }; // class Handler
 

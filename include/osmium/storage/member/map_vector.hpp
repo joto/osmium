@@ -56,9 +56,9 @@ namespace Osmium {
                     return m_map[id];
                 }
 
-                void dump() const {
+                void dump(const char* prefix) const {
                     for (id_to_vector_of_ids_map_t::const_iterator it = m_map.begin(); it != m_map.end(); ++it) {
-                        std::cout << it->first << ":"; 
+                        std::cout << prefix << it->first << ":"; 
                         BOOST_FOREACH(const osm_object_id_t id, it->second) {
                             std::cout << " " << id;
                         }

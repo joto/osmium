@@ -44,11 +44,18 @@ int main(int argc, char* argv[]) {
     }
 
     Osmium::Ser::BufferManager::Malloc manager(1024 * 1024);
+
     index_t node_index;
     index_t way_index;
     index_t relation_index;
-    map_t way_node_map;
-    Osmium::Ser::Handler<Osmium::Ser::BufferManager::Malloc, index_t, index_t, index_t, map_t> handler(manager, node_index, way_index, relation_index, way_node_map, dump_fd);
+
+    map_t map_way2node;
+    map_t map_node2relation;
+    map_t map_way2relation;
+    map_t map_relation2relation;
+
+    Osmium::Ser::Handler<Osmium::Ser::BufferManager::Malloc, index_t, index_t, index_t, map_t, map_t, map_t, map_t>
+        handler(manager, node_index, way_index, relation_index, map_way2node, map_node2relation, map_way2relation, map_relation2relation, dump_fd);
     Osmium::Input::read(infile, handler);
 
     int fd = ::open("nodes.idx", O_WRONLY | O_CREAT, 0666);
@@ -72,7 +79,10 @@ int main(int argc, char* argv[]) {
     relation_index.dump(fd);
     close(fd);
 
-    way_node_map.dump();
+    map_way2node.dump("n-w ");
+    map_node2relation.dump("n-r ");
+    map_way2relation.dump("w-r ");
+    map_relation2relation.dump("r-r ");
 
     google::protobuf::ShutdownProtobufLibrary();
 }
