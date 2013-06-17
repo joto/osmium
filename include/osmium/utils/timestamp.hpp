@@ -55,7 +55,7 @@ namespace Osmium {
             if (timestamp == 0) {
                 return std::string("");
             }
-            struct tm* tm = gmtime(&timestamp);
+            struct tm* tm = std::gmtime(&timestamp);
             std::string s(timestamp_length, '\0');
             /* This const_cast is ok, because we know we have enough space
                in the string for the format we are using (well at least until
@@ -71,11 +71,25 @@ namespace Osmium {
          * Throws std::invalid_argument, if the timestamp can not be parsed.
          */
         inline time_t parse_iso(const char* timestamp) {
+#ifndef WIN32
             struct tm tm = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
             if (strptime(timestamp, timestamp_format(), &tm) == NULL) {
                 throw std::invalid_argument("can't parse timestamp");
             }
             return timegm(&tm);
+#else
+            struct tm tm;
+            int n = sscanf(timestamp, "%4d-%2d-%2dT%2d:%2d:%2dZ", &tm.tm_year, &tm.tm_mon, &tm.tm_mday, &tm.tm_hour, &tm.tm_min, &tm.tm_sec);
+            if (n != 6) {
+                throw std::invalid_argument("can't parse timestamp");
+            }
+            tm.tm_year -= 1900;
+            tm.tm_mon--;
+            tm.tm_wday = 0;
+            tm.tm_yday = 0;
+            tm.tm_isdst = 0;
+            return _mkgmtime(&tm);
+#endif
         }
 
     } // namespace Timestamp

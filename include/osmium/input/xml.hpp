@@ -31,7 +31,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include <unistd.h>
 #include <expat.h>
 
 #include <osmium/input.hpp>
@@ -86,7 +85,7 @@ namespace Osmium {
                             throw std::runtime_error("out of memory");
                         }
 
-                        int result = read(this->fd(), buffer, c_buffer_size);
+                        int result = ::read(this->fd(), buffer, c_buffer_size);
                         if (result < 0) {
                             throw std::runtime_error("read error");
                         }

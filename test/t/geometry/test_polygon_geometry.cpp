@@ -10,7 +10,7 @@
 #include <osmium/osm.hpp>
 #include <osmium/geometry/polygon.hpp>
 
-#include <test_utils.hpp>
+#include "test_utils.hpp"
 
 BOOST_AUTO_TEST_SUITE(PolygonGeometry)
 
