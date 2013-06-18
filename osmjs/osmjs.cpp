@@ -79,7 +79,7 @@ std::string find_include_file(std::string filename) {
     }
 
     // go through search path and find where the file is
-    for (std::vector<std::string>::iterator vi = search_path.begin(); vi != search_path.end(); vi++) {
+    for (std::vector<std::string>::iterator vi = search_path.begin(); vi != search_path.end(); ++vi) {
         std::string f = *vi + "/" + filename;
         if (!access(f.c_str(), R_OK)) {
             return f;
@@ -87,7 +87,7 @@ std::string find_include_file(std::string filename) {
     }
 
     std::cerr << "Could not find include file " << filename << " in search path (";
-    for (std::vector<std::string>::iterator vi = search_path.begin(); vi != search_path.end(); vi++) {
+    for (std::vector<std::string>::iterator vi = search_path.begin(); vi != search_path.end(); ++vi) {
         if (vi != search_path.begin()) std::cerr << ":";
         std::cerr << *vi;
     }
