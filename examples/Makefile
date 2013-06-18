@@ -33,7 +33,6 @@ LIB_GD     := -lgd -lz -lm
 LIB_GEOS   := $(shell geos-config --libs)
 LIB_OGR    := $(shell gdal-config --libs)
 LIB_SHAPE  := -lshp $(LIB_GEOS)
-LIB_SQLITE := -lsqlite3
 LIB_XML2   := $(shell xml2-config --libs)
 
 PROGRAMS := \

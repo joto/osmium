@@ -9,6 +9,6 @@ Homepage: http://wiki.openstreetmap.org/wiki/Osmium
 Package: libosmium-dev
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libosmpbf-dev
-Recommends: libgeos-dev, libv8-dev, libshp-dev, libsparsehash-dev, libgd2-xpm-dev, libsqlite3-dev, libicu-dev
+Recommends: libgeos-dev, libv8-dev, libshp-dev, libsparsehash-dev, libgd2-xpm-dev, libicu-dev
 Description: A universal OpenStreetMap data processor framework.
  C++ framework for working with OpenStreetMap data.
