@@ -22,6 +22,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#include <algorithm>
+#include <iostream>
 #include <map>
 #include <vector>
 
@@ -42,7 +44,7 @@ namespace Osmium {
 
             public:
 
-                MapVector() {
+                MapVector() : m_map() {
                 }
 
                 void set(const osm_object_id_t member_id, const osm_object_id_t object_id) {

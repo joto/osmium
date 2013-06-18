@@ -25,11 +25,14 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <algorithm>
 #include <map>
 #include <vector>
+#include <stdexcept>
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <sys/mman.h>
+
+#include <osmium/osm/types.hpp>
 
 namespace Osmium {
 
