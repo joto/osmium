@@ -23,6 +23,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 */
 
 #include <stdint.h>
+#include <stdlib.h>
 
 // These type definitions should have been in the Osmium namespace, but it is a
 // bit late to change this now...
