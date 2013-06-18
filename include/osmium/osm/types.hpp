@@ -24,6 +24,9 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <stdint.h>
 
+// These type definitions should have been in the Osmium namespace, but it is a
+// bit late to change this now...
+
 enum osm_object_type_t {
     UNKNOWN            = -1,
     NODE               = 0,
@@ -42,5 +45,29 @@ typedef uint32_t osm_version_t;      ///< type for %OSM object version number
 typedef int32_t  osm_changeset_id_t; ///< type for %OSM changeset IDs
 typedef int32_t  osm_user_id_t;      ///< type for %OSM user IDs
 typedef uint32_t osm_sequence_id_t;  ///< type for %OSM nodes and members sequence IDs
+
+#ifdef _MSC_VER
+# define atoll(x) (_atoi64(x))
+#endif
+
+namespace Osmium {
+
+    inline osm_object_id_t string_to_osm_object_id_t(const char* string) {
+        return atoll(string);
+    }
+
+    inline osm_version_t string_to_osm_version_t(const char* string) {
+        return atol(string);
+    }
+
+    inline osm_changeset_id_t string_to_osm_changeset_id_t(const char* string) {
+        return atol(string);
+    }
+
+    inline osm_user_id_t string_to_osm_user_id_t(const char* string) {
+        return atol(string);
+    }
+
+} // namespace Osmium
 
 #endif // OSMIUM_OSM_TYPES_HPP

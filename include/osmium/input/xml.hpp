@@ -238,7 +238,7 @@ namespace Osmium {
                         if (!strcmp(element, "nd")) {
                             for (int count = 0; attrs[count]; count += 2) {
                                 if (!strcmp(attrs[count], "ref")) {
-                                    this->m_way->add_node(atoll(attrs[count+1]));
+                                    this->m_way->add_node(Osmium::string_to_osm_object_id_t(attrs[count+1]));
                                 }
                             }
                         } else {
@@ -256,7 +256,7 @@ namespace Osmium {
                                 if (!strcmp(attrs[count], "type")) {
                                     type = static_cast<char>(attrs[count+1][0]);
                                 } else if (!strcmp(attrs[count], "ref")) {
-                                    ref = atoll(attrs[count+1]);
+                                    ref = Osmium::string_to_osm_object_id_t(attrs[count+1]);
                                 } else if (!strcmp(attrs[count], "role")) {
                                     role = static_cast<const char*>(attrs[count+1]);
                                 }

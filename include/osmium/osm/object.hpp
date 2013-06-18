@@ -63,7 +63,7 @@ namespace Osmium {
             }
 
             Object& id(const char* id) {
-                m_id = atol(id);
+                m_id = Osmium::string_to_osm_object_id_t(id);
                 return *this;
             }
 
@@ -77,7 +77,7 @@ namespace Osmium {
             }
 
             Object& version(const char* version) {
-                m_version = atoi(version);
+                m_version = Osmium::string_to_osm_version_t(version);
                 return *this;
             }
 
@@ -91,7 +91,7 @@ namespace Osmium {
             }
 
             Object& changeset(const char* changeset) {
-                m_changeset = atol(changeset);
+                m_changeset = Osmium::string_to_osm_changeset_id_t(changeset);
                 return *this;
             }
 
@@ -105,7 +105,7 @@ namespace Osmium {
             }
 
             Object& uid(const char* uid) {
-                m_uid = atol(uid);
+                m_uid = Osmium::string_to_osm_user_id_t(uid);
                 return *this;
             }
 

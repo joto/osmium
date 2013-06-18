@@ -6,9 +6,16 @@
 
 */
 
+// Set this if you want to report user and system time, too.
+// This will not work on Windows systems.
+//#define REPORT_USER_AND_SYSTEM_TIME
+
 #include <cstdlib>
 #include <time.h>
-#include <sys/times.h>
+
+#ifdef REPORT_USER_AND_SYSTEM_TIME
+# include <sys/times.h>
+#endif
 
 #define OSMIUM_WITH_PBF_INPUT
 #define OSMIUM_WITH_XML_INPUT
@@ -17,30 +24,33 @@
 
 class MyTimerHandler : public Osmium::Handler::Base {
 
-    uint64_t m_nodes;
-    uint64_t m_ways;
-    uint64_t m_relations;
-
 public:
 
     MyTimerHandler() : m_nodes(0), m_ways(0), m_relations(0) {
     }
 
-    void node(const shared_ptr<Osmium::OSM::Node const>& /*node*/) {
+    void node(const shared_ptr<Osmium::OSM::Node const>&) {
         m_nodes++;
     }
 
-    void way(const shared_ptr<Osmium::OSM::Way const>& /*way*/) {
+    void way(const shared_ptr<Osmium::OSM::Way const>&) {
         m_ways++;
     }
 
-    void relation(const shared_ptr<Osmium::OSM::Relation const>& /*relation*/) {
+    void relation(const shared_ptr<Osmium::OSM::Relation const>&) {
         m_relations++;
     }
 
     void final() {
         std::cout << "nodes: " << m_nodes << "  ways: " << m_ways << "  relations: " << m_relations << std::endl;
     }
+
+private:
+
+    uint64_t m_nodes;
+    uint64_t m_ways;
+    uint64_t m_relations;
+
 };
 
 /* ================================================== */
@@ -57,9 +67,14 @@ int main(int argc, char* argv[]) {
     MyTimerHandler handler;
     Osmium::Input::read(infile, handler);
 
+    std::cout << "wallclock time: " << time(NULL) - t0 << "s" << std::endl;
+
+#ifdef REPORT_USER_AND_SYSTEM_TIME
     struct tms tms;
     times(&tms);
-    std::cout << "user time: " << ((double)tms.tms_utime) / sysconf(_SC_CLK_TCK) << "s   system time: " << ((double)tms.tms_stime) / sysconf(_SC_CLK_TCK) << "s  wallclock time: " << time(NULL) - t0 << "s" << std::endl;
+    std::cout << "user time:      " << (static_cast<double>(tms.tms_utime) / sysconf(_SC_CLK_TCK)) << "s" << std::endl;
+    std::cout << "system time:    " << (static_cast<double>(tms.tms_stime) / sysconf(_SC_CLK_TCK)) << "s" << std::endl;
+#endif
 
     google::protobuf::ShutdownProtobufLibrary();
 }

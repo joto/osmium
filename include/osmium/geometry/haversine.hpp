@@ -47,7 +47,7 @@ namespace Osmium {
 
             inline double distance(const double x1, const double y1, const double x2, const double y2) {
                 const double lon_arc = (x1 - x2) * DEG_TO_RAD;
-                const double lat_arc  = (y1 - y1) * DEG_TO_RAD;
+                const double lat_arc = (y1 - y2) * DEG_TO_RAD;
                 double lonh = sin(lon_arc * 0.5);
                 lonh *= lonh;
                 double lath = sin(lat_arc * 0.5);

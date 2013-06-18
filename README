@@ -12,8 +12,7 @@ Available handlers include:
 * Javascript handler (calls Javascript callbacks you provide)
 * Multipolygon handler (assembles areas(multipolygons) from relations and ways)
 * NodeLocationStore handler (stores node locations and builds way geometries from them)
-* Statistics handler (does some general statistics)
-* (others...)
+* ...
 
 Of course, you can also write your own handlers.
 
@@ -31,56 +30,63 @@ option to do this.
 PREREQUISITES
 -------------
 
-Different parts of Osmium and the applications build on top of it need
+Different parts of Osmium (and the applications built on top of it) need
 different libraries:
 
 boost (several libraries)
     http://www.boost.org/
     Debian/Ubuntu: libboost-dev
+    openSUSE: boost-devel
 
 zlib (for PBF support)
     http://www.zlib.net/
     Debian/Ubuntu: zlib1g-dev
+    openSUSE: zlib-devel
 
 shapelib (for shapefile support in osmjs)
     http://shapelib.maptools.org/
     Debian/Ubuntu: libshp-dev
-
-libsqlite3 (for some applications only)
-    http://sqlite.org/
-    Debian/Ubuntu: libsqlite3-dev
+    openSUSE: libshp-devel
 
 libgd (for nodedensity example only)
     http://www.libgd.org/
     Debian/Ubuntu: libgd2-xpm-dev
+    openSUSE: gd-devel
 
 GDAL (for OGR support)
     http://gdal.org/
     Debian/Ubuntu: libgdal1-dev
+    openSUSE: libgdal-devel
 
 Expat (for parsing XML files)
     http://expat.sourceforge.net/
     Debian/Ubuntu: libexpat1-dev
+    openSUSE: libexpat-devel
 
 GEOS (for assembling multipolygons etc.)
     http://trac.osgeo.org/geos/
     Debian/Ubuntu: libgeos++-dev
+    openSUSE: libgeos-devel
 
 Google sparsehash
     http://code.google.com/p/google-sparsehash/
     Debian/Ubuntu: libsparsehash-dev
+    openSUSE: sparsehash
 
 Google V8 Javascript engine (for Javascript support)
     http://code.google.com/apis/v8/
     Debian/Ubuntu: libv8-dev
+    openSUSE: v8-devel
 
 LibICU (for UTF-8/UTF-16 conversion, only for Javascript support)
     http://site.icu-project.org/
     Debian/Ubuntu: libicu-dev
+    openSUSE: libicu-devel
 
 Google protocol buffers (for PBF support)
     http://code.google.com/p/protobuf/ (at least version 2.3.0 needed)
     Debian/Ubuntu: libprotobuf-dev protobuf-compiler
+    openSUSE: protobuf-devel
     Also see http://wiki.openstreetmap.org/wiki/PBF_Format
 
 Doxygen (to build API documentation)
@@ -95,10 +101,8 @@ OSMPBF (for PBF support)
     https://github.com/scrosby/OSM-binary
     Debian/Ubuntu: libosmpbf-dev
 
-You need to either install the Debian/Ubuntu packages (or equivalent for other
-distributions) or install those libraries from source. Most libraries should be
-available in all distributions. The Google libs (V8, protobuf, sparsehash)
-are only available in newer distributions (Ubuntu since Maverick).
+You need to either install the packages for your distribution or install those
+libraries from source. Most libraries should be available in all distributions.
 
 
 FILES
@@ -110,6 +114,8 @@ include     - C/C++ include files. All of Osmium is in those header files which
 osmjs       - Osmium application "osmjs".
 osmjs/js    - Example Javascript handlers.
 examples    - Osmium example applications.
+test        - Tests (see below).
+debian      - Needed to build Debian/Ubuntu packages.
 
 
 BUILDING
@@ -153,9 +159,19 @@ You'll find some examples in the 'example' and 'osmjs' directories.
 TESTING
 -------
 
-There are a few tests using the Boost Unit Test Framework in the 'test'
-directory. Go there and type "./run_tests.sh" to compile and run the tests.
-Many more tests are needed, any help appreciated.
+There are a few tests using the Boost Unit Test Framework in the "test"
+directory. Many more tests are needed, any help appreciated.
+
+Run "make test" from the main directory or go to the "test" directory and type
+"./run_tests.sh" to compile and run the tests. You can run a single test by
+calling "./run_test.sh TESTFILE", for instance:
+  ./run_test.sh t/osm/test_node.cpp
+
+There are some other tests that are not neatly integrated. Go to the "test"
+directory and run
+  broken_way_geometries/test.sh
+or
+  utf8_clipping/test.sh
 
 
 LICENSE
