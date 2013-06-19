@@ -81,6 +81,10 @@ namespace Osmium {
             void parse_relation_member_list<Osmium::OSM::Relation>(const Osmium::Ser::RelationMemberList& members, shared_ptr<Osmium::OSM::Relation>& relation) {
                 for (Osmium::Ser::RelationMemberList::iterator it = members.begin(); it != members.end(); ++it) {
                     relation->add_member(it->type().as_char(), it->ref(), it->role());
+                    if (it->full_member()) {
+                        const Osmium::Ser::Object& object = it->get_object();
+                        std::cout << "  id=" << object.id << "\n";
+                    }
                 }
             }
 
@@ -119,6 +123,7 @@ namespace Osmium {
                             parse_way_node_list_with_position(reinterpret_cast<const Osmium::Ser::WayNodeWithPositionList&>(*it), object);
                             break;
                         case Osmium::Ser::ItemType::itemtype_relation_member_list:
+                        case Osmium::Ser::ItemType::itemtype_relation_member_list_with_full_members:
                             parse_relation_member_list(reinterpret_cast<const Osmium::Ser::RelationMemberList&>(*it), object);
                             break;
                         default:

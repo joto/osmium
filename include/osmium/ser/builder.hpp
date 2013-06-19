@@ -57,6 +57,11 @@ namespace Osmium {
                 return m_item->size();
             }
 
+            void add_item(const Osmium::Ser::TypedItem* item) {
+                memcpy(m_buffer.get_space(item->size()), item, item->size()); 
+                add_size(item->size());
+            }
+
             /**
              * Add padding if needed.
              *
@@ -158,11 +163,14 @@ namespace Osmium {
                 builder.add_padding();
             }
 
-            void add_member(char type, osm_object_id_t ref, const char* role) {
+            void add_member(char type, osm_object_id_t ref, const char* role, const Osmium::Ser::Object* full_member = NULL) {
                 Osmium::Ser::RelationMember* member = m_buffer.get_space_for<Osmium::Ser::RelationMember>();
-                new (member) Osmium::Ser::RelationMember(ref, type);
+                new (member) Osmium::Ser::RelationMember(ref, type, full_member != NULL);
                 add_size(sizeof(RelationMember));
                 add_string(role);
+                if (full_member) {
+                    add_item(full_member);
+                }
             }
 
             void add_members(const Osmium::OSM::RelationMemberList& members) {

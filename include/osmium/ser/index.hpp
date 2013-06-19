@@ -54,6 +54,15 @@ namespace Osmium {
                 }
             };
 
+            class NotFound : public std::runtime_error {
+
+            public:
+
+                NotFound(osm_object_id_t) : std::runtime_error("object not found: ") {
+                }
+
+            }; // class NotFound
+
             class Null {
 
             public:
@@ -88,6 +97,7 @@ namespace Osmium {
 
             }; // class Map
 
+            // XXX this will currently only work if entries are entered ordered by id
             class VectorWithId {
 
             public:
@@ -100,7 +110,12 @@ namespace Osmium {
                 }
 
                 size_t get(const osm_object_id_t id) {
-                    return 0; // XXX
+                    const list_entry_t* e = std::lower_bound(&m_list[0], &m_list[m_list.size()], list_entry_t(id));
+                    if (e->id == id) {
+                        return e->offset;
+                    } else {
+                        throw NotFound(id);
+                    }
                 }
 
                 void dump(int fd) const {
@@ -128,18 +143,18 @@ namespace Osmium {
                     
                     size_t bufsize = file_stat.st_size;
                     m_mem = reinterpret_cast<list_entry_t*>(::mmap(NULL, bufsize, PROT_READ, MAP_SHARED, fd, 0));
-                    if (!m_mem) {
+                    if (m_mem == MAP_FAILED) {
                         throw std::runtime_error("Can't mmap index file");
                     }
                     m_size = bufsize / sizeof(list_entry_t);
                 }
 
                 size_t get(const osm_object_id_t id) const {
-                    const list_entry_t* e =  std::lower_bound(&m_mem[0], &m_mem[m_size], list_entry_t(id));
+                    const list_entry_t* e = std::lower_bound(&m_mem[0], &m_mem[m_size], list_entry_t(id));
                     if (e->id == id) {
                         return e->offset;
                     } else {
-                        throw std::runtime_error("not found");
+                        throw NotFound(id);
                     }
                 }
 

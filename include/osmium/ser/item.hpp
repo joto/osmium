@@ -48,6 +48,7 @@ namespace Osmium {
             static const uint32_t itemtype_way_node_list               = 0x12;
             static const uint32_t itemtype_way_node_with_position_list = 0x32;
             static const uint32_t itemtype_relation_member_list        = 0x13;
+            static const uint32_t itemtype_relation_member_list_with_full_members = 0x33;
 
             ItemType(uint32_t type = itemtype_unknown) : m_type(type) {
             }
@@ -87,11 +88,23 @@ namespace Osmium {
                 return m_type;
             }
 
+            bool equal(const ItemType& other) const {
+                return m_type == other.m_type;
+            }
+
         private:
 
             uint32_t m_type;
 
         };
+
+        inline bool operator==(const ItemType& lhs, const ItemType& rhs) {
+            return lhs.equal(rhs);
+        }
+
+        inline bool operator!=(const ItemType& lhs, const ItemType& rhs) {
+            return !lhs.equal(rhs);
+        }
 
         std::ostream& operator<<(std::ostream& out, const ItemType& type) {
             out << type.as_char();
@@ -418,8 +431,10 @@ namespace Osmium {
 
         public:
 
-            RelationMember(osm_object_id_t ref=0, ItemType type=ItemType()) : m_ref(ref), m_type(type) {
-                memset(m_padding, 0, sizeof(m_padding));
+            RelationMember(osm_object_id_t ref=0, ItemType type=ItemType(), bool full=false) :
+                m_ref(ref),
+                m_type(type),
+                m_flags(full ? 1 : 0) {
             }
 
             osm_object_id_t ref() const {
@@ -430,6 +445,10 @@ namespace Osmium {
                 return m_type;
             }
 
+            bool full_member() const {
+                return m_flags == 1;
+            }
+
             const char* role_position() const {
                 return self() + sizeof(RelationMember);
             }
@@ -438,16 +457,28 @@ namespace Osmium {
                 return role_position() + sizeof(size_t);
             }
 
-            const char* next() const {
+            const char* end() const {
                 const char* current = reinterpret_cast<const char*>(this + 1);
                 return current + sizeof(size_t) + padded_length(*reinterpret_cast<const size_t*>(current));
+            }
+
+            const char* next() const {
+                if (full_member()) {
+                    return end() + reinterpret_cast<const Osmium::Ser::TypedItem*>(end())->size();
+                } else {
+                    return end();
+                }
+            }
+
+            const Osmium::Ser::Object& get_object() const {
+                return *reinterpret_cast<const Osmium::Ser::Object*>(end());
             }
 
         private:
 
             osm_object_id_t m_ref;
             ItemType m_type;
-            char m_padding[4];
+            uint32_t m_flags;
 
         }; // class RelationMember
 

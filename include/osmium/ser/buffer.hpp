@@ -41,7 +41,7 @@ namespace Osmium {
 
         public:
 
-            Buffer(char* data, size_t size, size_t pos, boost::function<void()> full_callback) :
+            Buffer(char* data, size_t size, size_t pos, boost::function<void()> full_callback = NULL) :
                 m_data(data),
                 m_size(size),
                 m_pos(pos),
@@ -87,7 +87,7 @@ namespace Osmium {
              * Reserve space of given size in buffer and return pointer to it.
              */
             char* get_space(size_t size) {
-                if (m_pos + size > m_size) {
+                if (m_pos + size > m_size && m_full_callback) {
                     m_full_callback();
                 }
                 char* ptr = &m_data[m_pos];
@@ -112,7 +112,7 @@ namespace Osmium {
              */
             Buffer& append(const char* str) {
                 size_t l = strlen(str) + 1;
-                if (m_pos + l > m_size) {
+                if (m_pos + l > m_size && m_full_callback) {
                     m_full_callback();
                 }
                 memcpy(&m_data[m_pos], str, l);
