@@ -38,21 +38,18 @@ namespace Osmium {
 
     namespace Ser {
 
+        /**
+         * Indexes let us look up the position of an object in a buffer by the
+         * ID of that object. There are several different implementation of
+         * indexes suitable for different use cases. They differ in:
+         * - Memory use
+         * - Suitability for dense or for sparse indexes
+         * - How they can be serialized to disk / deserialized from disk.
+         *
+         * XXX Note that there is a log of overlap between these classes and
+         * the Osmium::Storage::ByID classes. This needs to be sorted out.
+         */
         namespace Index {
-
-            struct list_entry_t {
-                osm_object_id_t id;
-                size_t offset;
-
-                list_entry_t(osm_object_id_t i, size_t o = 0) :
-                    id(i),
-                    offset(o) {
-                }
-
-                int operator<(const list_entry_t& rhs) const {
-                    return this->id < rhs.id;
-                }
-            };
 
             class NotFound : public std::runtime_error {
 
@@ -63,6 +60,11 @@ namespace Osmium {
 
             }; // class NotFound
 
+            /**
+             * Pseudo index.
+             * Use this class if you don't need an index, but you
+             * need an object that behaves like one.
+             */
             class Null {
 
             public:
@@ -88,7 +90,11 @@ namespace Osmium {
                 }
 
                 size_t get(const osm_object_id_t id) {
-                    return m_map[id];
+                    try {
+                        return m_map.at(id);
+                    } catch (std::out_of_range&) {
+                        throw NotFound(id);
+                    }
                 }
 
             private:
@@ -96,6 +102,56 @@ namespace Osmium {
                 std::map<osm_object_id_t, size_t> m_map;
 
             }; // class Map
+
+            class Vector {
+
+            public:
+
+                Vector() : m_offsets() {
+                }
+
+                void set(const osm_object_id_t id, const size_t offset) {
+                    if (id >= m_offsets.size()) {
+                        m_offsets.resize(id, -1); // use -1 as marker for uninitialized offset
+                    }
+                    m_offsets[id] = offset;
+                }
+
+                size_t get(const osm_object_id_t id) {
+                    if (id < m_offsets.size()) {
+                        if (m_offsets[id] != -1) {
+                            return m_offsets[id];
+                        }
+                    }
+                    throw NotFound(id);
+                }
+
+                void dump(int fd) const {
+                    ssize_t count = ::write(fd, &m_offsets[0], sizeof(size_t) * m_offsets.size());
+                    if (count != sizeof(size_t) * m_offsets.size()) {
+                        throw std::runtime_error("Write error");
+                    }
+                }
+
+            private:
+
+                std::vector<size_t> m_offsets;
+
+            }; // class Vector
+
+            struct list_entry_t {
+                osm_object_id_t id;
+                size_t offset;
+
+                list_entry_t(osm_object_id_t i, size_t o = 0) :
+                    id(i),
+                    offset(o) {
+                }
+
+                int operator<(const list_entry_t& rhs) const {
+                    return this->id < rhs.id;
+                }
+            };
 
             // XXX this will currently only work if entries are entered ordered by id
             class VectorWithId {
@@ -110,9 +166,9 @@ namespace Osmium {
                 }
 
                 size_t get(const osm_object_id_t id) {
-                    const list_entry_t* e = std::lower_bound(&m_list[0], &m_list[m_list.size()], list_entry_t(id));
-                    if (e->id == id) {
-                        return e->offset;
+                    std::vector<list_entry_t>::iterator it = std::lower_bound(m_list.begin(), m_list.end(), list_entry_t(id));
+                    if (it != m_list.end() && it->id == id) {
+                        return it->offset;
                     } else {
                         throw NotFound(id);
                     }
@@ -120,7 +176,7 @@ namespace Osmium {
 
                 void dump(int fd) const {
                     ssize_t count = ::write(fd, &m_list[0], sizeof(list_entry_t) * m_list.size());
-                    if (count < 0) {
+                    if (count != sizeof(list_entry_t) * m_list.size()) {
                         throw std::runtime_error("Write error");
                     }
                 }
@@ -131,28 +187,39 @@ namespace Osmium {
 
             }; // class VectorWithId
 
-            class MemWithId {
+            class MemMapWithId {
 
             public:
 
-                MemWithId(int fd) : m_mem(NULL), m_size(0) {
+                MemMapWithId(int fd) :
+                    m_memory(MAP_FAILED),
+                    m_memory_size(0),
+                    m_list(NULL),
+                    m_size(0) {
                     struct stat file_stat;
                     if (::fstat(fd, &file_stat) < 0) {
                         throw std::runtime_error("Can't stat index file");
                     }
                     
-                    size_t bufsize = file_stat.st_size;
-                    m_mem = reinterpret_cast<list_entry_t*>(::mmap(NULL, bufsize, PROT_READ, MAP_SHARED, fd, 0));
-                    if (m_mem == MAP_FAILED) {
+                    m_memory_size = file_stat.st_size;
+                    m_memory = ::mmap(NULL, m_memory_size, PROT_READ, MAP_SHARED, fd, 0);
+                    if (m_memory == MAP_FAILED) {
                         throw std::runtime_error("Can't mmap index file");
                     }
-                    m_size = bufsize / sizeof(list_entry_t);
+                    m_list = reinterpret_cast<list_entry_t*>(m_memory);
+                    m_size = m_memory_size / sizeof(list_entry_t);
+                }
+
+                ~MemMapWithId() {
+                    if (m_memory != MAP_FAILED) {
+                        ::munmap(m_memory, m_memory_size);
+                    }
                 }
 
                 size_t get(const osm_object_id_t id) const {
-                    const list_entry_t* e = std::lower_bound(&m_mem[0], &m_mem[m_size], list_entry_t(id));
-                    if (e->id == id) {
-                        return e->offset;
+                    const list_entry_t* it = std::lower_bound(&m_list[0], &m_list[m_size], list_entry_t(id));
+                    if (it != &m_list[m_size] && it->id == id) {
+                        return it->offset;
                     } else {
                         throw NotFound(id);
                     }
@@ -160,7 +227,10 @@ namespace Osmium {
 
             private:
 
-                list_entry_t* m_mem;
+                void *m_memory;
+                size_t m_memory_size;
+
+                list_entry_t* m_list;
                 size_t m_size;
 
             }; // class MemWithId

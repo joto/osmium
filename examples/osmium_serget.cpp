@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
-    Osmium::Ser::Index::MemWithId index(index_fd);
+    Osmium::Ser::Index::MemMapWithId index(index_fd);
     size_t pos = index.get(id);
     size_t length = reinterpret_cast<Osmium::Ser::TypedItem*>(&mem[pos])->size();
     std::cout << "length: " << length << "\n";
