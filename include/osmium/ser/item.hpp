@@ -216,11 +216,79 @@ namespace Osmium {
 
         public:
 
-            uint64_t id;
-            uint64_t version;
-            uint32_t timestamp;
-            uint32_t uid;
-            uint64_t changeset;
+            osm_object_id_t id() const {
+                return m_id;
+            }
+
+            Object& id(osm_object_id_t id) {
+                m_id = id;
+                return *this;
+            }
+
+            Object& id(const char* id) {
+                m_id = Osmium::string_to_osm_object_id_t(id);
+                return *this;
+            }
+
+            osm_version_t version() const {
+                return m_version;
+            }
+
+            Object& version(osm_version_t version) {
+                m_version = version;
+                return *this;
+            }
+
+            Object& version(const char* version) {
+                m_version = Osmium::string_to_osm_version_t(version);
+                return *this;
+            }
+
+            osm_changeset_id_t changeset() const {
+                return m_changeset;
+            }
+
+            Object& changeset(osm_changeset_id_t changeset) {
+                m_changeset = changeset;
+                return *this;
+            }
+
+            Object& changeset(const char* changeset) {
+                m_changeset = Osmium::string_to_osm_changeset_id_t(changeset);
+                return *this;
+            }
+
+            osm_user_id_t uid() const {
+                return m_uid;
+            }
+
+            Object& uid(osm_user_id_t uid) {
+                m_uid = uid;
+                return *this;
+            }
+
+            Object& uid(const char* uid) {
+                m_uid = Osmium::string_to_osm_user_id_t(uid);
+                return *this;
+            }
+
+            bool user_is_anonymous() const {
+                return m_uid == -1;
+            }
+
+            time_t timestamp() const {
+                return m_timestamp;
+            }
+
+            /**
+             * Set the timestamp when this object last changed.
+             * @param timestamp Time in seconds since epoch.
+             * @return Reference to object to make calls chainable.
+             */
+            Object& timestamp(time_t timestamp) {
+                m_timestamp = timestamp;
+                return *this;
+            }
 
             const char* user_position() const {
                 return self() + sizeof(Object) + (type().is_node() ? sizeof(Osmium::OSM::Position) : 0);
@@ -248,6 +316,14 @@ namespace Osmium {
                 return iterator(self() + padded_size(), self() + padded_size());
             }
 
+        private:
+
+            uint64_t m_id;
+            uint64_t m_version;
+            uint32_t m_timestamp;
+            uint32_t m_uid;
+            uint64_t m_changeset;
+
         };
 
         // serialized form of OSM node
@@ -255,7 +331,18 @@ namespace Osmium {
 
         public:
 
-            Osmium::OSM::Position pos;
+            const Osmium::OSM::Position position() const {
+                return m_position;
+            }
+
+            Node& position(const Osmium::OSM::Position& position) {
+                m_position = position;
+                return *this;
+            }
+
+        private:
+
+            Osmium::OSM::Position m_position;
 
         }; // class Node
 

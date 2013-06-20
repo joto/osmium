@@ -83,7 +83,7 @@ namespace Osmium {
                     relation->add_member(it->type().as_char(), it->ref(), it->role());
                     if (it->full_member()) {
                         const Osmium::Ser::Object& object = it->get_object();
-                        std::cout << "  id=" << object.id << "\n";
+                        std::cout << "  id=" << object.id() << "\n";
                     }
                 }
             }
@@ -134,12 +134,12 @@ namespace Osmium {
 
             void parse_node(const Osmium::Ser::Node& node_item) {
                 shared_ptr<Osmium::OSM::Node> node = make_shared<Osmium::OSM::Node>();
-                node->id(node_item.id);
-                node->version(node_item.version);
-                node->uid(node_item.uid);
-                node->changeset(node_item.changeset);
-                node->timestamp(node_item.timestamp);
-                node->position(node_item.pos);
+                node->id(node_item.id());
+                node->version(node_item.version());
+                node->uid(node_item.uid());
+                node->changeset(node_item.changeset());
+                node->timestamp(node_item.timestamp());
+                node->position(node_item.position());
                 node->user(node_item.user());
 
                 parse_subitems(node_item, node);
@@ -149,11 +149,11 @@ namespace Osmium {
 
             void parse_way(const Osmium::Ser::Way& way_item) {
                 shared_ptr<Osmium::OSM::Way> way = make_shared<Osmium::OSM::Way>();
-                way->id(way_item.id);
-                way->version(way_item.version);
-                way->uid(way_item.uid);
-                way->changeset(way_item.changeset);
-                way->timestamp(way_item.timestamp);
+                way->id(way_item.id());
+                way->version(way_item.version());
+                way->uid(way_item.uid());
+                way->changeset(way_item.changeset());
+                way->timestamp(way_item.timestamp());
                 way->user(way_item.user());
 
                 parse_subitems(way_item, way);
@@ -163,11 +163,11 @@ namespace Osmium {
 
             void parse_relation(const Osmium::Ser::Relation& relation_item) {
                 shared_ptr<Osmium::OSM::Relation> relation = make_shared<Osmium::OSM::Relation>();
-                relation->id(relation_item.id);
-                relation->version(relation_item.version);
-                relation->uid(relation_item.uid);
-                relation->changeset(relation_item.changeset);
-                relation->timestamp(relation_item.timestamp);
+                relation->id(relation_item.id());
+                relation->version(relation_item.version());
+                relation->uid(relation_item.uid());
+                relation->changeset(relation_item.changeset());
+                relation->timestamp(relation_item.timestamp());
                 relation->user(relation_item.user());
 
                 parse_subitems(relation_item, relation);

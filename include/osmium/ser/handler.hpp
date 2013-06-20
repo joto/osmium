@@ -77,12 +77,12 @@ namespace Osmium {
                 Osmium::Ser::ObjectBuilder<Osmium::Ser::Node> builder(m_buffer);
 
                 Osmium::Ser::Node& sn = builder.object();
-                sn.id        = node->id();
-                sn.version   = node->version();
-                sn.timestamp = node->timestamp();
-                sn.uid       = node->uid();
-                sn.changeset = node->changeset();
-                sn.pos       = node->position();
+                sn.id(node->id());
+                sn.version(node->version());
+                sn.timestamp(node->timestamp());
+                sn.uid(node->uid());
+                sn.changeset(node->changeset());
+                sn.position(node->position());
 
                 builder.add_string(node->user());
 
@@ -108,11 +108,11 @@ namespace Osmium {
                 Osmium::Ser::ObjectBuilder<Osmium::Ser::Way> builder(m_buffer);
 
                 Osmium::Ser::Way& sn = builder.object();
-                sn.id        = way->id();
-                sn.version   = way->version();
-                sn.timestamp = way->timestamp();
-                sn.uid       = way->uid();
-                sn.changeset = way->changeset();
+                sn.id(way->id());
+                sn.version(way->version());
+                sn.timestamp(way->timestamp());
+                sn.uid(way->uid());
+                sn.changeset(way->changeset());
 
                 builder.add_string(way->user());
                 builder.add_tags(way->tags());
@@ -161,11 +161,11 @@ namespace Osmium {
                 Osmium::Ser::ObjectBuilder<Osmium::Ser::Relation> builder(m_buffer);
 
                 Osmium::Ser::Relation& sn = builder.object();
-                sn.id        = relation->id();
-                sn.version   = relation->version();
-                sn.timestamp = relation->timestamp();
-                sn.uid       = relation->uid();
-                sn.changeset = relation->changeset();
+                sn.id(relation->id());
+                sn.version(relation->version());
+                sn.timestamp(relation->timestamp());
+                sn.uid(relation->uid());
+                sn.changeset(relation->changeset());
 
                 builder.add_string(relation->user());
                 builder.add_tags(relation->tags());
@@ -178,7 +178,7 @@ namespace Osmium {
                             try {
                                 size_t offset = m_node_index.get(member.ref());
                                 const Osmium::Ser::Node& node = m_dump_buffer->get<Osmium::Ser::Node>(offset);
-                                assert(member.ref() == node.id);
+                                assert(member.ref() == node.id());
                                 rml_builder.add_member(member.type(), member.ref(), member.role(), &node);
                             } catch (Osmium::Ser::Index::NotFound& err) {
                                 rml_builder.add_member(member.type(), member.ref(), member.role());
@@ -187,7 +187,7 @@ namespace Osmium {
                             try {
                                 size_t offset = m_way_index.get(member.ref());
                                 const Osmium::Ser::Way& way = m_dump_buffer->get<Osmium::Ser::Way>(offset);
-                                assert(member.ref() == way.id);
+                                assert(member.ref() == way.id());
                                 rml_builder.add_member(member.type(), member.ref(), member.role(), &way);
                             } catch (Osmium::Ser::Index::NotFound& err) {
                                 rml_builder.add_member(member.type(), member.ref(), member.role());
