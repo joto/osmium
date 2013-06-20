@@ -4,6 +4,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <osmium/ser/buffer_manager.hpp>
+#include <osmium/storage/member/map_vector.hpp>
 #include <osmium/ser/deserializer.hpp>
 #include <osmium/ser/index.hpp>
 #include <osmium/ser/handler.hpp>
@@ -54,7 +55,15 @@ BOOST_AUTO_TEST_CASE(ser_deser) {
     const size_t buffer_size = 10000;
     Osmium::Ser::BufferManager::Malloc manager(buffer_size);
     Osmium::Ser::Index::Null fake_index;
-    Osmium::Ser::Handler<Osmium::Ser::BufferManager::Malloc, Osmium::Ser::Index::Null, Osmium::Ser::Index::Null, Osmium::Ser::Index::Null> handler(manager, fake_index, fake_index, fake_index);
+
+    typedef Osmium::Storage::Member::MapVector map_t;
+    map_t map_way2node;
+    map_t map_node2relation;
+    map_t map_way2relation;
+    map_t map_relation2relation;
+
+    Osmium::Ser::Handler<Osmium::Ser::BufferManager::Malloc, Osmium::Ser::Index::Null, Osmium::Ser::Index::Null, Osmium::Ser::Index::Null, map_t, map_t, map_t, map_t>
+        handler(manager, fake_index, fake_index, fake_index, map_way2node, map_node2relation, map_way2relation, map_relation2relation);
 
     shared_ptr<Osmium::OSM::Node> n1 = make_shared<Osmium::OSM::Node>();
     n1->id(10);
@@ -80,11 +89,11 @@ BOOST_AUTO_TEST_CASE(ser_deser) {
 
     Osmium::Ser::Buffer& out = manager.buffer();
     BOOST_CHECK_EQUAL(out.size(), buffer_size);
-    BOOST_CHECK_EQUAL(out.committed(), 176);
+    BOOST_CHECK_EQUAL(out.committed(), 152);
 
-    Osmium::Ser::Deserializer<TestHandler> deser(out);
     TestHandler test_handler;
-    deser.feed(test_handler);
+    Osmium::Ser::Deserializer<TestHandler> deser(out, test_handler);
+    deser.feed();
 }
 
 BOOST_AUTO_TEST_SUITE_END()
