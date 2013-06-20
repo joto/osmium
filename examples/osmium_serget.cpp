@@ -19,10 +19,6 @@
 #include <osmium/ser/index.hpp>
 #include <osmium/ser/deserializer.hpp>
 
-void full() {
-    std::cerr << "full\n";
-}
-
 int main(int argc, char* argv[]) {
     std::ios_base::sync_with_stdio(false);
 
@@ -64,7 +60,7 @@ int main(int argc, char* argv[]) {
     size_t pos = index.get(id);
     size_t length = reinterpret_cast<Osmium::Ser::TypedItem*>(&mem[pos])->size();
     std::cout << "length: " << length << "\n";
-    Osmium::Ser::Buffer buffer(mem + pos, length, length, boost::bind(&full));
+    Osmium::Ser::Buffer buffer(mem + pos, length);
 
     Osmium::Handler::Debug debug;
     Osmium::Ser::Deserializer<Osmium::Handler::Debug> deser(buffer, debug);

@@ -153,7 +153,7 @@ namespace Osmium {
                         throw std::runtime_error(std::string("Can't mmap dump file. (") + strerror(errno) + ")");
                     }
 
-                    m_dump_buffer = make_shared<Osmium::Ser::Buffer>(mem, bufsize, bufsize);
+                    m_dump_buffer = make_shared<Osmium::Ser::Buffer>(mem, bufsize);
                 }
             }
 

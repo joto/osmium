@@ -20,10 +20,6 @@
 #include <osmium/ser/buffer_manager.hpp>
 #include <osmium/ser/deserializer.hpp>
 
-void full() {
-    std::cerr << "full\n";
-}
-
 void print_help() {
     std::cout << "osmium_serdebug [OPTIONS] INFILE\n" \
               << "\nOptions:\n" \
@@ -86,7 +82,7 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
-    Osmium::Ser::Buffer buffer(mem, bufsize, bufsize, boost::bind(&full));
+    Osmium::Ser::Buffer buffer(mem, bufsize);
 
     Osmium::Handler::Debug debug;
     Osmium::Ser::Deserializer<Osmium::Handler::Debug> deser(buffer, debug);
