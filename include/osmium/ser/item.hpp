@@ -23,6 +23,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 */
 
 #include <osmium/ser/buffer.hpp>
+#include <osmium/osm/types.hpp>
 #include <osmium/osm/node.hpp>
 #include <osmium/osm/way.hpp>
 #include <osmium/osm/relation.hpp>
@@ -226,21 +227,32 @@ namespace Osmium {
             }
 
             Object& id(const char* id) {
-                m_id = Osmium::string_to_osm_object_id_t(id);
-                return *this;
+                return this->id(Osmium::string_to_osm_object_id_t(id));
             }
 
             osm_version_t version() const {
-                return m_version;
+                return m_visible_and_version & 0x7fffffff;
+            }
+
+            bool visible() const {
+                return m_visible_and_version & 0x80000000;
             }
 
             Object& version(osm_version_t version) {
-                m_version = version;
+                m_visible_and_version = (m_visible_and_version & 0x80000000) | (version & 0x7fffffff);
                 return *this;
             }
 
             Object& version(const char* version) {
-                m_version = Osmium::string_to_osm_version_t(version);
+                return this->version(Osmium::string_to_osm_version_t(version));
+            }
+
+            Object& visible(bool visible) {
+                if (visible) {
+                    m_visible_and_version |= 0x80000000;
+                } else {
+                    m_visible_and_version &= 0x7fffffff;
+                }
                 return *this;
             }
 
@@ -254,8 +266,7 @@ namespace Osmium {
             }
 
             Object& changeset(const char* changeset) {
-                m_changeset = Osmium::string_to_osm_changeset_id_t(changeset);
-                return *this;
+                return this->changeset(Osmium::string_to_osm_changeset_id_t(changeset));
             }
 
             osm_user_id_t uid() const {
@@ -268,8 +279,7 @@ namespace Osmium {
             }
 
             Object& uid(const char* uid) {
-                m_uid = Osmium::string_to_osm_user_id_t(uid);
-                return *this;
+                return this->uid(Osmium::string_to_osm_user_id_t(uid));
             }
 
             bool user_is_anonymous() const {
@@ -318,11 +328,11 @@ namespace Osmium {
 
         private:
 
-            uint64_t m_id;
-            uint64_t m_version;
+            int64_t m_id;
+            uint32_t m_visible_and_version;
             uint32_t m_timestamp;
             uint32_t m_uid;
-            uint64_t m_changeset;
+            uint32_t m_changeset;
 
         };
 
