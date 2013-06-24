@@ -48,7 +48,6 @@ namespace Osmium {
                     int data_fd = 1) :
                 Osmium::Handler::Base(),
                 m_buffer_manager(buffer_manager),
-                m_buffer(buffer_manager.buffer()),
                 m_offset(0),
                 m_data_fd(data_fd),
                 m_add_relation_member_objects(false),
@@ -69,64 +68,12 @@ namespace Osmium {
             void init(Osmium::OSM::Meta&) const {
             }
 
-            void flush_buffer() {
-                ::write(m_data_fd, m_buffer.ptr(), m_buffer.committed());
-                m_offset += m_buffer.clear();
-            }
-
-            void write_node(const shared_ptr<Osmium::OSM::Node const>& node) {
-                Osmium::Ser::ObjectBuilder<Osmium::Ser::Node> builder(m_buffer);
-
-                Osmium::Ser::Node& sn = builder.object();
-                sn.id(node->id());
-                sn.version(node->version());
-                sn.timestamp(node->timestamp());
-                sn.uid(node->uid());
-                sn.changeset(node->changeset());
-                sn.position(node->position());
-
-                builder.add_string(node->user());
-
-                if (node->tags().size() > 0) {
-                    builder.add_tags(node->tags());
-                }
-
-                assert(m_buffer.is_aligned());
-
-                m_node_index.set(node->id(), m_offset + m_buffer.commit());
-            }
-
             void node(const shared_ptr<Osmium::OSM::Node const>& node) {
                 try {
                     write_node(node);
                 } catch (std::range_error& e) {
                     flush_buffer();
                     write_node(node);
-                }
-            }
-
-            void write_way(const shared_ptr<Osmium::OSM::Way const>& way) {
-                Osmium::Ser::ObjectBuilder<Osmium::Ser::Way> builder(m_buffer);
-
-                Osmium::Ser::Way& sn = builder.object();
-                sn.id(way->id());
-                sn.version(way->version());
-                sn.timestamp(way->timestamp());
-                sn.uid(way->uid());
-                sn.changeset(way->changeset());
-
-                builder.add_string(way->user());
-                builder.add_tags(way->tags());
-
-                if (way->nodes()[0].position().defined()) {
-                    builder.add_way_nodes_with_position(way->nodes());
-                } else {
-                    builder.add_way_nodes(way->nodes());
-                }
-
-                m_way_index.set(way->id(), m_offset + m_buffer.commit());
-                BOOST_FOREACH(const Osmium::OSM::WayNode& wn, way->nodes()) {
-                    m_map_node2way.set(wn.ref(), way->id());
                 }
             }
 
@@ -158,8 +105,96 @@ namespace Osmium {
                 }
             }
 
+            void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
+                try {
+                    write_relation(relation);
+                } catch (std::range_error& e) {
+                    flush_buffer();
+                    write_relation(relation);
+                }
+            }
+
+            void final() {
+                flush_buffer();
+            }
+
+        private:
+
+            TBufferManager& m_buffer_manager;
+            size_t m_offset;
+            int m_data_fd;
+
+            bool m_add_relation_member_objects;
+
+            shared_ptr<Osmium::Ser::Buffer> m_dump_buffer;
+
+            TIndexNode&     m_node_index;
+            TIndexWay&      m_way_index;
+            TIndexRelation& m_relation_index;
+
+            TMapNodeToWay&          m_map_node2way;
+            TMapNodeToRelation&     m_map_node2relation;
+            TMapWayToRelation&      m_map_way2relation;
+            TMapRelationToRelation& m_map_relation2relation;
+
+            Osmium::Ser::Buffer& buffer() {
+                return m_buffer_manager.buffer();
+            }
+
+            void flush_buffer() {
+                ::write(m_data_fd, buffer().ptr(), buffer().committed());
+                m_offset += buffer().clear();
+            }
+
+            void write_node(const shared_ptr<Osmium::OSM::Node const>& node) {
+                Osmium::Ser::ObjectBuilder<Osmium::Ser::Node> builder(buffer());
+
+                Osmium::Ser::Node& sn = builder.object();
+                sn.id(node->id());
+                sn.version(node->version());
+                sn.timestamp(node->timestamp());
+                sn.uid(node->uid());
+                sn.changeset(node->changeset());
+                sn.position(node->position());
+
+                builder.add_string(node->user());
+
+                if (node->tags().size() > 0) {
+                    builder.add_tags(node->tags());
+                }
+
+                assert(buffer().is_aligned());
+
+                m_node_index.set(node->id(), m_offset + buffer().commit());
+            }
+
+            void write_way(const shared_ptr<Osmium::OSM::Way const>& way) {
+                Osmium::Ser::ObjectBuilder<Osmium::Ser::Way> builder(buffer());
+
+                Osmium::Ser::Way& sn = builder.object();
+                sn.id(way->id());
+                sn.version(way->version());
+                sn.timestamp(way->timestamp());
+                sn.uid(way->uid());
+                sn.changeset(way->changeset());
+
+                builder.add_string(way->user());
+                builder.add_tags(way->tags());
+
+                if (way->nodes()[0].position().defined()) {
+                    builder.add_way_nodes_with_position(way->nodes());
+                } else {
+                    builder.add_way_nodes(way->nodes());
+                }
+
+                m_way_index.set(way->id(), m_offset + buffer().commit());
+                BOOST_FOREACH(const Osmium::OSM::WayNode& wn, way->nodes()) {
+                    m_map_node2way.set(wn.ref(), way->id());
+                }
+            }
+
             void write_relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
-                Osmium::Ser::ObjectBuilder<Osmium::Ser::Relation> builder(m_buffer);
+                Osmium::Ser::ObjectBuilder<Osmium::Ser::Relation> builder(buffer());
 
                 Osmium::Ser::Relation& sn = builder.object();
                 sn.id(relation->id());
@@ -172,7 +207,7 @@ namespace Osmium {
                 builder.add_tags(relation->tags());
 
                 if (m_add_relation_member_objects) {
-                    Osmium::Ser::ObjectBuilder<Osmium::Ser::RelationMemberList> rml_builder(m_buffer, &builder);
+                    Osmium::Ser::ObjectBuilder<Osmium::Ser::RelationMemberList> rml_builder(buffer(), &builder);
 
                     BOOST_FOREACH(const Osmium::OSM::RelationMember& member, relation->members()) {
                         if (member.type() == 'n') {
@@ -202,7 +237,7 @@ namespace Osmium {
                     builder.add_members(relation->members());
                 }
 
-                m_relation_index.set(relation->id(), m_offset + m_buffer.commit());
+                m_relation_index.set(relation->id(), m_offset + buffer().commit());
                 BOOST_FOREACH(const Osmium::OSM::RelationMember& member, relation->members()) {
                     switch (member.type()) {
                         case 'n':
@@ -217,39 +252,6 @@ namespace Osmium {
                     }
                 }
             }
-
-            void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
-                try {
-                    write_relation(relation);
-                } catch (std::range_error& e) {
-                    flush_buffer();
-                    write_relation(relation);
-                }
-            }
-
-            void final() {
-                flush_buffer();
-            }
-
-        private:
-
-            TBufferManager& m_buffer_manager;
-            Osmium::Ser::Buffer& m_buffer;
-            size_t m_offset;
-            int m_data_fd;
-
-            bool m_add_relation_member_objects;
-
-            shared_ptr<Osmium::Ser::Buffer> m_dump_buffer;
-
-            TIndexNode&     m_node_index;
-            TIndexWay&      m_way_index;
-            TIndexRelation& m_relation_index;
-
-            TMapNodeToWay&          m_map_node2way;
-            TMapNodeToRelation&     m_map_node2relation;
-            TMapWayToRelation&      m_map_way2relation;
-            TMapRelationToRelation& m_map_relation2relation;
 
         }; // class Handler
 
