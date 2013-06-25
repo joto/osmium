@@ -47,25 +47,17 @@ namespace Osmium {
 
             public:
             
-                Memory(size_t size) : m_buffer(0) {
-                    char* mem = static_cast<char*>(malloc(size));
-                    if (!mem) {
-                        throw std::bad_alloc();
-                    }
-                    m_buffer = new Osmium::Ser::Buffer(mem, size, 0, boost::bind(&Memory::full, this));
-                }
-
-                ~Memory() {
-                    free(m_buffer->data());
-                    delete m_buffer;
+                Memory(size_t buffer_size) :
+                    m_data(buffer_size, '\0'),
+                    m_buffer(&m_data[0], buffer_size, 0, boost::bind(&Memory::full, this)) {
                 }
 
                 Osmium::Ser::Buffer& buffer() {
-                    return *m_buffer;
+                    return m_buffer;
                 }
 
                 Osmium::Ser::Buffer& input_buffer() {
-                    return *m_buffer;
+                    return m_buffer;
                 }
 
                 void flush_buffer() {
@@ -77,7 +69,7 @@ namespace Osmium {
                 }
 
                 size_t committed() {
-                    return m_buffer->committed();
+                    return m_buffer.committed();
                 }
 
                 void full() {
@@ -86,12 +78,13 @@ namespace Osmium {
 
                 template <class T>
                 T& get(const size_t offset) {
-                    return m_buffer->get<T>(offset);
+                    return m_buffer.get<T>(offset);
                 }
                 
             private:
             
-                Osmium::Ser::Buffer* m_buffer;
+                std::string m_data;
+                Osmium::Ser::Buffer m_buffer;
 
             }; // class Memory
 
