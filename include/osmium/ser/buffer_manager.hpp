@@ -43,19 +43,19 @@ namespace Osmium {
 
         namespace BufferManager {
 
-            class Malloc : boost::noncopyable {
+            class Memory : boost::noncopyable {
 
             public:
             
-                Malloc(size_t size) : m_buffer(0) {
+                Memory(size_t size) : m_buffer(0) {
                     char* mem = static_cast<char*>(malloc(size));
                     if (!mem) {
                         throw std::bad_alloc();
                     }
-                    m_buffer = new Osmium::Ser::Buffer(mem, size, 0, boost::bind(&Malloc::full, this));
+                    m_buffer = new Osmium::Ser::Buffer(mem, size, 0, boost::bind(&Memory::full, this));
                 }
 
-                ~Malloc() {
+                ~Memory() {
                     free(m_buffer->ptr());
                     delete m_buffer;
                 }
@@ -89,7 +89,7 @@ namespace Osmium {
             
                 Osmium::Ser::Buffer* m_buffer;
 
-            }; // class Malloc
+            }; // class Memory
 
             class FileOutput {
 

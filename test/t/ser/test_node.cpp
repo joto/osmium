@@ -53,7 +53,9 @@ BOOST_AUTO_TEST_SUITE(SerNode)
 
 BOOST_AUTO_TEST_CASE(ser_deser) {
     const size_t buffer_size = 10000;
-    Osmium::Ser::BufferManager::Malloc manager(buffer_size);
+
+    typedef Osmium::Ser::BufferManager::Memory manager_t;
+    manager_t manager(buffer_size);
     Osmium::Ser::Index::Null fake_index;
 
     typedef Osmium::Storage::Member::MapVector map_t;
@@ -61,8 +63,6 @@ BOOST_AUTO_TEST_CASE(ser_deser) {
     map_t map_node2relation;
     map_t map_way2relation;
     map_t map_relation2relation;
-
-    typedef Osmium::Ser::BufferManager::Malloc manager_t;
 
     Osmium::Ser::Handler<manager_t, Osmium::Ser::Index::Null, Osmium::Ser::Index::Null, Osmium::Ser::Index::Null, map_t, map_t, map_t, map_t>
         handler(manager, fake_index, fake_index, fake_index, map_way2node, map_node2relation, map_way2relation, map_relation2relation);
