@@ -117,10 +117,7 @@ namespace Osmium {
             }
 
             void add_tag(const char* key, const char* value) {
-                size_t old_size = m_buffer.pos();
-                m_buffer.append(key);
-                m_buffer.append(value);
-                add_size(m_buffer.pos() - old_size);
+                add_size(m_buffer.append(key) + m_buffer.append(value));
             }
 
             void add_tags(const Osmium::OSM::TagList& tags) {

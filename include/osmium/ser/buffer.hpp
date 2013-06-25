@@ -43,7 +43,7 @@ namespace Osmium {
             Buffer(char* data, size_t size) :
                 m_data(data),
                 m_size(size),
-                m_pos(size),
+                m_written(size),
                 m_committed(size),
                 m_full_callback(NULL) {
                 if (size % align_bytes != 0) {
@@ -51,23 +51,23 @@ namespace Osmium {
                 }
             }
 
-            Buffer(char* data, size_t size, size_t pos, boost::function<void()> full_callback = NULL) :
+            Buffer(char* data, size_t size, size_t committed, boost::function<void()> full_callback = NULL) :
                 m_data(data),
                 m_size(size),
-                m_pos(pos),
-                m_committed(pos),
+                m_written(committed),
+                m_committed(committed),
                 m_full_callback(full_callback) {
                 if (size % align_bytes != 0) {
                     throw std::invalid_argument("buffer size needs to be multiple of alignment");
                 }
             }
 
-            char* ptr() const {
+            char* data() const {
                 return m_data;
             }
 
-            size_t pos() const {
-                return m_pos;
+            size_t size() const {
+                return m_size;
             }
 
             size_t committed() const {
@@ -79,16 +79,19 @@ namespace Osmium {
              * properly. Only used for asserts.
              */
             bool is_aligned() const {
-                return (m_pos % align_bytes == 0) && (m_committed % align_bytes == 0);
+                return (m_written % align_bytes == 0) && (m_committed % align_bytes == 0);
             }
 
-            size_t size() const {
-                return m_size;
+            size_t commit() {
+                assert(is_aligned());
+                size_t offset = m_committed;
+                m_committed = m_written;
+                return offset;
             }
 
             size_t clear() {
                 size_t committed = m_committed;
-                m_pos = 0;
+                m_written = 0;
                 m_committed = 0;
                 return committed;
             }
@@ -97,19 +100,36 @@ namespace Osmium {
              * Reserve space of given size in buffer and return pointer to it.
              */
             char* get_space(size_t size) {
-                if (m_pos + size > m_size && m_full_callback) {
+                if (m_written + size > m_size && m_full_callback) {
                     m_full_callback();
                 }
-                char* ptr = &m_data[m_pos];
-                m_pos += size;
-                return ptr;
+                char* data = &m_data[m_written];
+                m_written += size;
+                return data;
             }
 
+            /**
+             * Reserve space for an object of class T in buffer and return
+             * pointer to it.
+             */
             template <class T>
             T* get_space_for() {
                 assert(is_aligned());
                 assert(sizeof(T) % align_bytes == 0);
                 return reinterpret_cast<T*>(get_space(sizeof(T)));
+            }
+
+            /**
+             * Append \0-terminated string to buffer.
+             */
+            size_t append(const char* str) {
+                size_t length = strlen(str) + 1;
+                if (m_written + length > m_size && m_full_callback) {
+                    m_full_callback();
+                }
+                memcpy(&m_data[m_written], str, length);
+                m_written += length;
+                return length;
             }
 
             template <class T>
@@ -127,31 +147,11 @@ namespace Osmium {
                 return iterator(m_data + m_committed);
             }
 
-            /**
-             * Append \0-terminated string to buffer.
-             */
-            Buffer& append(const char* str) {
-                size_t l = strlen(str) + 1;
-                if (m_pos + l > m_size && m_full_callback) {
-                    m_full_callback();
-                }
-                memcpy(&m_data[m_pos], str, l);
-                m_pos += l;
-                return *this;
-            }
-
-            size_t commit() {
-                assert(is_aligned());
-                size_t offset = m_committed;
-                m_committed = m_pos;
-                return offset;
-            }
-
         private:
 
             char* m_data;
-            size_t m_size;
-            size_t m_pos;
+            const size_t m_size;
+            size_t m_written;
             size_t m_committed;
             boost::function<void()> m_full_callback;
 

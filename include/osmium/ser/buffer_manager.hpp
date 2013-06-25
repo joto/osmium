@@ -56,7 +56,7 @@ namespace Osmium {
                 }
 
                 ~Memory() {
-                    free(m_buffer->ptr());
+                    free(m_buffer->data());
                     delete m_buffer;
                 }
 
@@ -119,7 +119,7 @@ namespace Osmium {
                 }
 
                 void flush_buffer() {
-                    ssize_t len = ::write(m_output_fd, m_output_buffer.ptr(), m_output_buffer.committed());
+                    ssize_t len = ::write(m_output_fd, m_output_buffer.data(), m_output_buffer.committed());
                     if (len != m_output_buffer.committed()) {
                         throw std::runtime_error(std::string("Can't write to dump file ") + m_output_filename);
                     }
@@ -184,7 +184,7 @@ namespace Osmium {
 
                 void cleanup() {
                     if (m_input_buffer) {
-                        char* data = m_input_buffer->ptr();
+                        char* data = m_input_buffer->data();
                         size_t size = m_input_buffer->size();
                         delete m_input_buffer;
                         ::munmap(data, size); 
