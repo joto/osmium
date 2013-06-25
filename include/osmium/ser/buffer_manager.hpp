@@ -64,6 +64,10 @@ namespace Osmium {
                     return *m_buffer;
                 }
 
+                Osmium::Ser::Buffer& input_buffer() {
+                    return *m_buffer;
+                }
+
                 void flush_buffer() {
                     // does nothing XXX
                 }
@@ -150,8 +154,11 @@ namespace Osmium {
                     cleanup();
                 }
 
-                Osmium::Ser::Buffer* input_buffer() {
-                    return m_input_buffer;
+                Osmium::Ser::Buffer& input_buffer() {
+                    if (!m_input_buffer) {
+                        extend_input_buffer();
+                    }
+                    return *m_input_buffer;
                 }
 
                 size_t committed() {

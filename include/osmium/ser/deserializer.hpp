@@ -104,14 +104,6 @@ namespace Osmium {
             ~Deserializer() {
             }
 
-            void dump() {
-                while (m_offset < m_buffer_manager.committed()) {
-                    const Osmium::Ser::TypedItem& item = m_buffer_manager.template get<Osmium::Ser::TypedItem>(m_offset);
-                    std::cout << "object type=" << item.type() << " size=" << item.size() << "\n";
-                    m_offset += item.padded_size();
-                }
-            }
-
             template <class TItem, class TObject>
             void parse_subitems(const TItem& item, shared_ptr<TObject>& object) {
                 for (Osmium::Ser::Object::iterator it = item.begin(); it != item.end(); ++it) {
@@ -178,8 +170,7 @@ namespace Osmium {
                 m_handler.relation(relation);
             }
 
-            size_t parse_item(size_t offset) {
-                const Osmium::Ser::TypedItem& item = m_buffer_manager.template get<Osmium::Ser::TypedItem>(offset);
+            void parse_item(const Osmium::Ser::TypedItem& item) {
                 if (item.type().is_node()) {
                     parse_node(static_cast<const Osmium::Ser::Node&>(item));
                 } else if (item.type().is_way()) {
@@ -189,12 +180,17 @@ namespace Osmium {
                 } else {
                     std::cout << "found something else (type=" << item.type() << " length=" << item.size() << ")\n";
                 }
-                return item.padded_size();
             }
 
             void feed() {
-                while (m_offset < m_buffer_manager.committed()) {
-                    m_offset += parse_item(m_offset);
+                for (Osmium::Ser::Buffer::iterator it = m_buffer_manager.input_buffer().begin(); it != m_buffer_manager.input_buffer().end(); ++it) {
+                    parse_item(*it);
+                }
+            }
+
+            void dump() {
+                for (Osmium::Ser::Buffer::iterator it = m_buffer_manager.input_buffer().begin(); it != m_buffer_manager.input_buffer().end(); ++it) {
+                    std::cout << "object type=" << it->type() << " size=" << it->size() << "\n";
                 }
             }
 

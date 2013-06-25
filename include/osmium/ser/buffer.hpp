@@ -25,12 +25,11 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <boost/function.hpp>
 #include <boost/utility.hpp>
 
+#include <osmium/ser/item.hpp>
+
 namespace Osmium {
 
     namespace Ser {
-
-        // align datastructures to this many bytes
-        const size_t align_bytes = 8;
 
         /**
          * Buffer for serialized OSM objects. Is initialized with memory pointer, size
@@ -116,6 +115,16 @@ namespace Osmium {
             template <class T>
             T& get(const size_t offset) const {
                 return *reinterpret_cast<T*>(&m_data[offset]);
+            }
+
+            typedef Osmium::Ser::SubItemIterator iterator;
+
+            iterator begin() {
+                return iterator(m_data, m_data + m_committed);
+            }
+
+            iterator end() {
+                return iterator(m_data + m_committed, m_data + m_committed);
             }
 
             /**

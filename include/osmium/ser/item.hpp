@@ -22,7 +22,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
-#include <osmium/ser/buffer.hpp>
 #include <osmium/osm/types.hpp>
 #include <osmium/osm/node.hpp>
 #include <osmium/osm/way.hpp>
@@ -31,6 +30,9 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 namespace Osmium {
 
     namespace Ser {
+
+        // align datastructures to this many bytes
+        const size_t align_bytes = 8;
 
         inline size_t padded_length(size_t length) {
             return (length + align_bytes - 1) & ~(align_bytes - 1);
