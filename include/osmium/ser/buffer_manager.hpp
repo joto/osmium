@@ -52,11 +52,7 @@ namespace Osmium {
                     m_buffer(&m_data[0], buffer_size, 0, boost::bind(&Memory::full, this)) {
                 }
 
-                Osmium::Ser::Buffer& buffer() {
-                    return m_buffer;
-                }
-
-                Osmium::Ser::Buffer& input_buffer() {
+                Osmium::Ser::Buffer& output_buffer() {
                     return m_buffer;
                 }
 
@@ -65,7 +61,7 @@ namespace Osmium {
                 }
 
                 size_t commit() {
-                    return buffer().commit();
+                    return m_buffer.commit();
                 }
 
                 size_t committed() {
@@ -81,6 +77,16 @@ namespace Osmium {
                     return m_buffer.get<T>(offset);
                 }
                 
+                typedef Osmium::Ser::CollectionIterator<TypedItem> iterator;
+
+                iterator begin() {
+                    return m_buffer.begin();
+                }
+
+                iterator end() {
+                    return m_buffer.end();
+                }
+
             private:
             
                 std::string m_data;
@@ -103,7 +109,7 @@ namespace Osmium {
                     }
                 }
 
-                Osmium::Ser::Buffer& buffer() {
+                Osmium::Ser::Buffer& output_buffer() {
                     return m_output_buffer;
                 }
 
@@ -120,7 +126,7 @@ namespace Osmium {
                 }
 
                 size_t commit() {
-                    return m_output_offset + buffer().commit();
+                    return m_output_offset + m_output_buffer.commit();
                 }
 
             protected:
@@ -147,13 +153,6 @@ namespace Osmium {
                     cleanup();
                 }
 
-                Osmium::Ser::Buffer& input_buffer() {
-                    if (!m_input_buffer) {
-                        extend_input_buffer();
-                    }
-                    return *m_input_buffer;
-                }
-
                 size_t committed() {
                     if (!m_input_buffer) {
                         extend_input_buffer();
@@ -169,6 +168,22 @@ namespace Osmium {
                     return m_input_buffer->get<T>(offset);
                 }
                 
+                typedef Osmium::Ser::CollectionIterator<TypedItem> iterator;
+
+                iterator begin() {
+                    if (!m_input_buffer) {
+                        extend_input_buffer();
+                    }
+                    return m_input_buffer->begin();
+                }
+
+                iterator end() {
+                    if (!m_input_buffer) {
+                        extend_input_buffer();
+                    }
+                    return m_input_buffer->end();
+                }
+
             private:
 
                 std::string m_input_filename;

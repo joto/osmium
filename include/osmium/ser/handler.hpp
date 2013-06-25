@@ -115,7 +115,7 @@ namespace Osmium {
             TMapRelationToRelation& m_map_relation2relation;
 
             Osmium::Ser::Buffer& buffer() {
-                return m_buffer_manager.buffer();
+                return m_buffer_manager.output_buffer();
             }
 
             void write_node(const shared_ptr<Osmium::OSM::Node const>& node) {

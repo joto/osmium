@@ -183,13 +183,13 @@ namespace Osmium {
             }
 
             void feed() {
-                for (Osmium::Ser::Buffer::iterator it = m_buffer_manager.input_buffer().begin(); it != m_buffer_manager.input_buffer().end(); ++it) {
+                for (Osmium::Ser::Buffer::iterator it = m_buffer_manager.begin(); it != m_buffer_manager.end(); ++it) {
                     parse_item(*it);
                 }
             }
 
             void dump() {
-                for (Osmium::Ser::Buffer::iterator it = m_buffer_manager.input_buffer().begin(); it != m_buffer_manager.input_buffer().end(); ++it) {
+                for (Osmium::Ser::Buffer::iterator it = m_buffer_manager.begin(); it != m_buffer_manager.end(); ++it) {
                     std::cout << "object type=" << it->type() << " size=" << it->size() << "\n";
                 }
             }

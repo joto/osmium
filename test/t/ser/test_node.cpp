@@ -89,9 +89,7 @@ BOOST_AUTO_TEST_CASE(ser_deser) {
     n2->lat(22);
     handler.node(n2);
 
-    Osmium::Ser::Buffer& out = manager.buffer();
-    BOOST_CHECK_EQUAL(out.size(), buffer_size);
-    BOOST_CHECK_EQUAL(out.committed(), 152);
+    BOOST_CHECK_EQUAL(manager.committed(), 152);
 
     TestHandler test_handler;
     Osmium::Ser::Deserializer<manager_t, TestHandler> deser(manager, test_handler);
