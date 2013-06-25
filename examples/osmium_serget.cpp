@@ -46,6 +46,6 @@ int main(int argc, char* argv[]) {
 
     Osmium::Handler::Debug debug;
     Osmium::Ser::Deserializer<manager_t, Osmium::Handler::Debug> deser(manager, debug);
-    deser.parse_item(pos);
+    deser.parse_item(manager.get<Osmium::Ser::TypedItem>(pos));
 }
 
