@@ -117,14 +117,14 @@ namespace Osmium {
                 return *reinterpret_cast<T*>(&m_data[offset]);
             }
 
-            typedef Osmium::Ser::SubItemIterator iterator;
+            typedef Osmium::Ser::CollectionIterator<TypedItem> iterator;
 
             iterator begin() {
-                return iterator(m_data, m_data + m_committed);
+                return iterator(m_data);
             }
 
             iterator end() {
-                return iterator(m_data + m_committed, m_data + m_committed);
+                return iterator(m_data + m_committed);
             }
 
             /**

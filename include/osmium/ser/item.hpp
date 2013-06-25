@@ -164,6 +164,10 @@ namespace Osmium {
                 return m_type;
             }
 
+            const char* next() const {
+                return self() + padded_size();
+            }
+
         private:
 
             uint32_t m_size;
@@ -171,48 +175,47 @@ namespace Osmium {
 
         }; // class TypedItem
 
-        class SubItemIterator {
+        template <class TMember>
+        class CollectionIterator {
 
         public:
 
-            SubItemIterator(const char* start, const char* end) :
-                m_start(start),
-                m_end(end) {
+            CollectionIterator(const char* start) :
+                m_start(start) {
             }
 
-            SubItemIterator& operator++() {
-                m_start += reinterpret_cast<const TypedItem*>(m_start)->padded_size();
-                return *this;
+            CollectionIterator<TMember>& operator++() {
+                m_start = reinterpret_cast<const TMember*>(m_start)->next();
+                return *static_cast<CollectionIterator<TMember>*>(this);
             }
 
-            SubItemIterator operator++(int) {
-                SubItemIterator tmp(*this);
+            CollectionIterator<TMember> operator++(int) {
+                CollectionIterator<TMember> tmp(*this);
                 operator++();
                 return tmp;
             }
 
-            bool operator==(const SubItemIterator& rhs) const {
+            bool operator==(const CollectionIterator<TMember>& rhs) const {
                 return m_start == rhs.m_start;
             }
 
-            bool operator!=(const SubItemIterator& rhs) const {
+            bool operator!=(const CollectionIterator<TMember>& rhs) const {
                 return m_start != rhs.m_start;
             }
 
-            const TypedItem& operator*() {
-                return *reinterpret_cast<const TypedItem*>(m_start);
+            const TMember& operator*() {
+                return *reinterpret_cast<const TMember*>(m_start);
             }
             
-            const TypedItem* operator->() {
-                return reinterpret_cast<const TypedItem*>(m_start);
+            const TMember* operator->() {
+                return reinterpret_cast<const TMember*>(m_start);
             }
 
         protected:
 
-            const char*       m_start;
-            const char* const m_end;
+            const char* m_start;
 
-        }; // class SubItemIterator
+        }; // class CollectionIterator
 
         // serialized form of OSM object
         class Object : public TypedItem {
@@ -314,18 +317,18 @@ namespace Osmium {
                 return *reinterpret_cast<const size_t*>(user_position());
             }
 
-            typedef SubItemIterator iterator;
+            typedef CollectionIterator<TypedItem> iterator;
 
             const char* subitems_position() const {
                 return user_position() + sizeof(size_t) + padded_length(user_length());
             }
 
             iterator begin() const {
-                return iterator(subitems_position(), self() + padded_size());
+                return iterator(subitems_position());
             }
 
             iterator end() const {
-                return iterator(self() + padded_size(), self() + padded_size());
+                return iterator(self() + padded_size());
             }
 
         private:
@@ -382,50 +385,6 @@ namespace Osmium {
         };
 
         template <class TMember>
-        class CollectionIterator {
-
-        public:
-
-            CollectionIterator(const char* start, const char* end) :
-                m_start(start),
-                m_end(end) {
-            }
-
-            CollectionIterator<TMember>& operator++() {
-                m_start = reinterpret_cast<const TMember*>(m_start)->next();
-                return *static_cast<CollectionIterator<TMember>*>(this);
-            }
-
-            CollectionIterator<TMember> operator++(int) {
-                CollectionIterator<TMember> tmp(*this);
-                operator++();
-                return tmp;
-            }
-
-            bool operator==(const CollectionIterator<TMember>& rhs) const {
-                return m_start == rhs.m_start;
-            }
-
-            bool operator!=(const CollectionIterator<TMember>& rhs) const {
-                return m_start != rhs.m_start;
-            }
-
-            const TMember operator*() {
-                return *reinterpret_cast<const TMember*>(m_start);
-            }
-            
-            const TMember* operator->() {
-                return reinterpret_cast<const TMember*>(m_start);
-            }
-
-        protected:
-
-            const char*       m_start;
-            const char* const m_end;
-
-        }; // class CollectionIterator
-
-        template <class TMember>
         class Collection : public TypedItem {
 
         public:
@@ -433,11 +392,11 @@ namespace Osmium {
             typedef CollectionIterator<TMember> iterator;
 
             iterator begin() const {
-                return iterator(self() + sizeof(Collection<TMember>), self() + size());
+                return iterator(self() + sizeof(Collection<TMember>));
             }
 
             iterator end() const {
-                return iterator(self() + size(), self() + size());
+                return iterator(self() + size());
             }
 
         }; // class Collection
