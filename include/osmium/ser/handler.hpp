@@ -63,7 +63,7 @@ namespace Osmium {
             void node(const shared_ptr<Osmium::OSM::Node const>& node) {
                 try {
                     write_node(node);
-                } catch (std::range_error& e) {
+                } catch (Osmium::Ser::BufferIsFull&) {
                     m_buffer_manager.flush_buffer();
                     write_node(node);
                 }
@@ -76,7 +76,7 @@ namespace Osmium {
             void way(const shared_ptr<Osmium::OSM::Way const>& way) {
                 try {
                     write_way(way);
-                } catch (std::range_error& e) {
+                } catch (Osmium::Ser::BufferIsFull&) {
                     m_buffer_manager.flush_buffer();
                     write_way(way);
                 }
@@ -89,7 +89,7 @@ namespace Osmium {
             void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
                 try {
                     write_relation(relation);
-                } catch (std::range_error& e) {
+                } catch (Osmium::Ser::BufferIsFull&) {
                     m_buffer_manager.flush_buffer();
                     write_relation(relation);
                 }

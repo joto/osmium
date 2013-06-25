@@ -47,10 +47,6 @@ namespace Osmium {
 
             public:
 
-                void full() {
-                    throw std::range_error("buffer too small");
-                }
-
                 Osmium::Ser::Buffer& output_buffer() {
                     return m_output_buffer;
                 }
@@ -59,7 +55,7 @@ namespace Osmium {
             
                 Output(const size_t buffer_size) :
                     m_output_data(buffer_size, '\0'),
-                    m_output_buffer(&m_output_data[0], buffer_size, 0, boost::bind(&Output::full, this)) {
+                    m_output_buffer(&m_output_data[0], buffer_size, 0) {
                 }
 
                 std::string m_output_data;

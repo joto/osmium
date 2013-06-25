@@ -32,6 +32,12 @@ namespace Osmium {
     namespace Ser {
 
         /**
+         * Exception thrown by the Buffer class when somebody tries to write data
+         * into the buffer and it doesn't fit.
+         */
+        class BufferIsFull {};
+
+        /**
          * Buffer for serialized OSM objects. Is initialized with memory pointer, size
          * and a callback function that is called when the buffer is full. Buffers are
          * usually created by one of the classes in the BufferManager namespace.
@@ -44,19 +50,17 @@ namespace Osmium {
                 m_data(data),
                 m_size(size),
                 m_written(size),
-                m_committed(size),
-                m_full_callback(NULL) {
+                m_committed(size) {
                 if (size % align_bytes != 0) {
                     throw std::invalid_argument("buffer size needs to be multiple of alignment");
                 }
             }
 
-            Buffer(char* data, size_t size, size_t committed, boost::function<void()> full_callback = NULL) :
+            Buffer(char* data, size_t size, size_t committed) :
                 m_data(data),
                 m_size(size),
                 m_written(committed),
-                m_committed(committed),
-                m_full_callback(full_callback) {
+                m_committed(committed) {
                 if (size % align_bytes != 0) {
                     throw std::invalid_argument("buffer size needs to be multiple of alignment");
                 }
@@ -100,8 +104,8 @@ namespace Osmium {
              * Reserve space of given size in buffer and return pointer to it.
              */
             char* get_space(size_t size) {
-                if (m_written + size > m_size && m_full_callback) {
-                    m_full_callback();
+                if (m_written + size > m_size) {
+                    throw BufferIsFull();
                 }
                 char* data = &m_data[m_written];
                 m_written += size;
@@ -124,8 +128,8 @@ namespace Osmium {
              */
             size_t append(const char* str) {
                 size_t length = strlen(str) + 1;
-                if (m_written + length > m_size && m_full_callback) {
-                    m_full_callback();
+                if (m_written + length > m_size) {
+                    throw BufferIsFull();
                 }
                 memcpy(&m_data[m_written], str, length);
                 m_written += length;
@@ -153,7 +157,6 @@ namespace Osmium {
             const size_t m_size;
             size_t m_written;
             size_t m_committed;
-            boost::function<void()> m_full_callback;
 
         }; // class Buffer
 
