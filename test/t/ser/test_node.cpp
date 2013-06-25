@@ -62,7 +62,9 @@ BOOST_AUTO_TEST_CASE(ser_deser) {
     map_t map_way2relation;
     map_t map_relation2relation;
 
-    Osmium::Ser::Handler<Osmium::Ser::BufferManager::Malloc, Osmium::Ser::Index::Null, Osmium::Ser::Index::Null, Osmium::Ser::Index::Null, map_t, map_t, map_t, map_t>
+    typedef Osmium::Ser::BufferManager::Malloc manager_t;
+
+    Osmium::Ser::Handler<manager_t, Osmium::Ser::Index::Null, Osmium::Ser::Index::Null, Osmium::Ser::Index::Null, map_t, map_t, map_t, map_t>
         handler(manager, fake_index, fake_index, fake_index, map_way2node, map_node2relation, map_way2relation, map_relation2relation);
 
     shared_ptr<Osmium::OSM::Node> n1 = make_shared<Osmium::OSM::Node>();
@@ -92,7 +94,7 @@ BOOST_AUTO_TEST_CASE(ser_deser) {
     BOOST_CHECK_EQUAL(out.committed(), 152);
 
     TestHandler test_handler;
-    Osmium::Ser::Deserializer<TestHandler> deser(out, test_handler);
+    Osmium::Ser::Deserializer<manager_t, TestHandler> deser(manager, test_handler);
     deser.feed();
 }
 

@@ -22,10 +22,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
-#include <errno.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-
 #include <boost/foreach.hpp>
 
 #include <osmium/handler.hpp>
@@ -44,14 +40,10 @@ namespace Osmium {
             Handler(TBufferManager& buffer_manager,
                     TIndexNode& node_index, TIndexWay& way_index, TIndexRelation& relation_index,
                     TMapNodeToWay& map_node2way,
-                    TMapNodeToRelation& map_node2relation, TMapWayToRelation& map_way2relation, TMapRelationToRelation& map_relation2relation,
-                    int data_fd = 1) :
+                    TMapNodeToRelation& map_node2relation, TMapWayToRelation& map_way2relation, TMapRelationToRelation& map_relation2relation) :
                 Osmium::Handler::Base(),
                 m_buffer_manager(buffer_manager),
-                m_offset(0),
-                m_data_fd(data_fd),
                 m_add_relation_member_objects(false),
-                m_dump_buffer(),
                 m_node_index(node_index),
                 m_way_index(way_index),
                 m_relation_index(relation_index),
@@ -72,61 +64,46 @@ namespace Osmium {
                 try {
                     write_node(node);
                 } catch (std::range_error& e) {
-                    flush_buffer();
+                    m_buffer_manager.flush_buffer();
                     write_node(node);
                 }
+            }
+
+            void after_nodes() {
+                m_buffer_manager.flush_buffer();
             }
 
             void way(const shared_ptr<Osmium::OSM::Way const>& way) {
                 try {
                     write_way(way);
                 } catch (std::range_error& e) {
-                    flush_buffer();
+                    m_buffer_manager.flush_buffer();
                     write_way(way);
                 }
             }
 
             void after_ways() {
-                flush_buffer();
-
-                if (m_add_relation_member_objects) {
-                    struct stat file_stat;
-                    if (fstat(m_data_fd, &file_stat) < 0) {
-                        throw std::runtime_error("Can't stat dump file");
-                    }
-                    
-                    size_t bufsize = file_stat.st_size;
-                    char* mem = reinterpret_cast<char*>(mmap(NULL, bufsize, PROT_READ, MAP_SHARED, m_data_fd, 0));
-                    if (mem == MAP_FAILED) {
-                        throw std::runtime_error(std::string("Can't mmap dump file. (") + strerror(errno) + ")");
-                    }
-
-                    m_dump_buffer = make_shared<Osmium::Ser::Buffer>(mem, bufsize);
-                }
+                m_buffer_manager.flush_buffer();
             }
 
             void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
                 try {
                     write_relation(relation);
                 } catch (std::range_error& e) {
-                    flush_buffer();
+                    m_buffer_manager.flush_buffer();
                     write_relation(relation);
                 }
             }
 
             void final() {
-                flush_buffer();
+                m_buffer_manager.flush_buffer();
             }
 
         private:
 
             TBufferManager& m_buffer_manager;
-            size_t m_offset;
-            int m_data_fd;
 
             bool m_add_relation_member_objects;
-
-            shared_ptr<Osmium::Ser::Buffer> m_dump_buffer;
 
             TIndexNode&     m_node_index;
             TIndexWay&      m_way_index;
@@ -139,11 +116,6 @@ namespace Osmium {
 
             Osmium::Ser::Buffer& buffer() {
                 return m_buffer_manager.buffer();
-            }
-
-            void flush_buffer() {
-                ::write(m_data_fd, buffer().ptr(), buffer().committed());
-                m_offset += buffer().clear();
             }
 
             void write_node(const shared_ptr<Osmium::OSM::Node const>& node) {
@@ -165,7 +137,7 @@ namespace Osmium {
 
                 assert(buffer().is_aligned());
 
-                m_node_index.set(node->id(), m_offset + buffer().commit());
+                m_node_index.set(node->id(), m_buffer_manager.commit());
             }
 
             void write_way(const shared_ptr<Osmium::OSM::Way const>& way) {
@@ -187,7 +159,7 @@ namespace Osmium {
                     builder.add_way_nodes(way->nodes());
                 }
 
-                m_way_index.set(way->id(), m_offset + buffer().commit());
+                m_way_index.set(way->id(), m_buffer_manager.commit());
                 BOOST_FOREACH(const Osmium::OSM::WayNode& wn, way->nodes()) {
                     m_map_node2way.set(wn.ref(), way->id());
                 }
@@ -213,7 +185,7 @@ namespace Osmium {
                         if (member.type() == 'n') {
                             try {
                                 size_t offset = m_node_index.get(member.ref());
-                                const Osmium::Ser::Node& node = m_dump_buffer->get<Osmium::Ser::Node>(offset);
+                                const Osmium::Ser::Node& node = m_buffer_manager.template get<Osmium::Ser::Node>(offset);
                                 assert(member.ref() == node.id());
                                 rml_builder.add_member(member.type(), member.ref(), member.role(), &node);
                             } catch (Osmium::Ser::Index::NotFound& err) {
@@ -222,7 +194,7 @@ namespace Osmium {
                         } else if (member.type() == 'w') {
                             try {
                                 size_t offset = m_way_index.get(member.ref());
-                                const Osmium::Ser::Way& way = m_dump_buffer->get<Osmium::Ser::Way>(offset);
+                                const Osmium::Ser::Way& way = m_buffer_manager.template get<Osmium::Ser::Way>(offset);
                                 assert(member.ref() == way.id());
                                 rml_builder.add_member(member.type(), member.ref(), member.role(), &way);
                             } catch (Osmium::Ser::Index::NotFound& err) {
@@ -237,7 +209,7 @@ namespace Osmium {
                     builder.add_members(relation->members());
                 }
 
-                m_relation_index.set(relation->id(), m_offset + buffer().commit());
+                m_relation_index.set(relation->id(), m_buffer_manager.commit());
                 BOOST_FOREACH(const Osmium::OSM::RelationMember& member, relation->members()) {
                     switch (member.type()) {
                         case 'n':

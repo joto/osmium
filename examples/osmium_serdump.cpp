@@ -43,7 +43,8 @@ int main(int argc, char* argv[]) {
         throw std::runtime_error(std::string("Can't open dump file ") + dumpfile);
     }
 
-    Osmium::Ser::BufferManager::Malloc manager(1024 * 1024);
+    typedef Osmium::Ser::BufferManager::File manager_t;
+    manager_t manager(dumpfile, 10 * 1024 * 1024);
 
     index_t node_index;
     index_t way_index;
@@ -54,26 +55,26 @@ int main(int argc, char* argv[]) {
     map_t map_way2relation;
     map_t map_relation2relation;
 
-    Osmium::Ser::Handler<Osmium::Ser::BufferManager::Malloc, index_t, index_t, index_t, map_t, map_t, map_t, map_t>
-        handler(manager, node_index, way_index, relation_index, map_way2node, map_node2relation, map_way2relation, map_relation2relation, dump_fd);
+    Osmium::Ser::Handler<manager_t, index_t, index_t, index_t, map_t, map_t, map_t, map_t>
+        handler(manager, node_index, way_index, relation_index, map_way2node, map_node2relation, map_way2relation, map_relation2relation);
 
     Osmium::Input::read(infile, handler);
 
-    int fd = ::open("nodes.idx", O_WRONLY | O_CREAT, 0666);
+    int fd = ::open("nodes.idx", O_WRONLY | O_CREAT | O_TRUNC, 0666);
     if (fd < 0) {
         throw std::runtime_error("Can't open nodes.idx");
     }
     node_index.dump(fd);
     close(fd);
 
-    fd = ::open("ways.idx", O_WRONLY | O_CREAT, 0666);
+    fd = ::open("ways.idx", O_WRONLY | O_CREAT | O_TRUNC, 0666);
     if (fd < 0) {
         throw std::runtime_error("Can't open ways.idx");
     }
     way_index.dump(fd);
     close(fd);
 
-    fd = ::open("relations.idx", O_WRONLY | O_CREAT, 0666);
+    fd = ::open("relations.idx", O_WRONLY | O_CREAT | O_TRUNC, 0666);
     if (fd < 0) {
         throw std::runtime_error("Can't open relations.idx");
     }

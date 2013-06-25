@@ -34,7 +34,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <osmium/osm/tag_list.hpp>
 #include <osmium/handler.hpp>
 
-#include <osmium/ser/buffer.hpp>
+#include <osmium/ser/buffer_manager.hpp>
 #include <osmium/ser/item.hpp>
 
 namespace Osmium {
@@ -90,20 +90,23 @@ namespace Osmium {
 
         } // anon namespace
 
-        template <class THandler>
+        template <class TBufferManager, class THandler>
         class Deserializer {
 
         public:
 
-            Deserializer(const Osmium::Ser::Buffer& data, THandler& handler) : m_data(data), m_offset(0), m_handler(handler) {
+            Deserializer(TBufferManager& buffer_manager, THandler& handler) :
+                m_buffer_manager(buffer_manager),
+                m_offset(0),
+                m_handler(handler) {
             }
 
             ~Deserializer() {
             }
 
             void dump() {
-                while (m_offset < m_data.committed()) {
-                    const Osmium::Ser::TypedItem& item = m_data.get<Osmium::Ser::TypedItem>(m_offset);
+                while (m_offset < m_buffer_manager.committed()) {
+                    const Osmium::Ser::TypedItem& item = m_buffer_manager.template get<Osmium::Ser::TypedItem>(m_offset);
                     std::cout << "object type=" << item.type() << " size=" << item.size() << "\n";
                     m_offset += item.padded_size();
                 }
@@ -175,25 +178,29 @@ namespace Osmium {
                 m_handler.relation(relation);
             }
 
+            size_t parse_item(size_t offset) {
+                const Osmium::Ser::TypedItem& item = m_buffer_manager.template get<Osmium::Ser::TypedItem>(offset);
+                if (item.type().is_node()) {
+                    parse_node(static_cast<const Osmium::Ser::Node&>(item));
+                } else if (item.type().is_way()) {
+                    parse_way(static_cast<const Osmium::Ser::Way&>(item));
+                } else if (item.type().is_relation()) {
+                    parse_relation(static_cast<const Osmium::Ser::Relation&>(item));
+                } else {
+                    std::cout << "found something else (type=" << item.type() << " length=" << item.size() << ")\n";
+                }
+                return item.padded_size();
+            }
+
             void feed() {
-                while (m_offset < m_data.committed()) {
-                    const Osmium::Ser::TypedItem& item = m_data.get<Osmium::Ser::TypedItem>(m_offset);
-                    if (item.type().is_node()) {
-                        parse_node(static_cast<const Osmium::Ser::Node&>(item));
-                    } else if (item.type().is_way()) {
-                        parse_way(static_cast<const Osmium::Ser::Way&>(item));
-                    } else if (item.type().is_relation()) {
-                        parse_relation(static_cast<const Osmium::Ser::Relation&>(item));
-                    } else {
-                        std::cout << "found something else (type=" << item.type() << " length=" << item.size() << ")\n";
-                    }
-                    m_offset += item.padded_size();
+                while (m_offset < m_buffer_manager.committed()) {
+                    m_offset += parse_item(m_offset);
                 }
             }
 
         private:
 
-            const Osmium::Ser::Buffer& m_data;
+            TBufferManager& m_buffer_manager;
             size_t m_offset;
             THandler& m_handler;
 

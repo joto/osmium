@@ -6,12 +6,13 @@
 
 */
 
-#include <iostream>
-#include <sys/mman.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
 #include <fcntl.h>
+#include <iostream>
+#include <string>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include <osmium.hpp>
 #include <osmium/handler/debug.hpp>
@@ -27,28 +28,9 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
-    const char* dumpfile = argv[1];
+    std::string dumpfile(argv[1]);
     const char* indexfile = argv[2];
     osm_object_id_t id = atol(argv[3]);
-
-    int fd = ::open(dumpfile, O_RDONLY);
-    if (fd < 0) {
-        std::cerr << "Can't read file " << dumpfile << "\n";
-        exit(1);
-    }
-
-    struct stat file_stat;
-    if (::fstat(fd, &file_stat) < 0) {
-        std::cerr << "Can't stat file " << dumpfile << "\n";
-        exit(1);
-    }
-    
-    size_t bufsize = file_stat.st_size;
-    char* mem = reinterpret_cast<char*>(::mmap(NULL, bufsize, PROT_READ, MAP_SHARED, fd, 0));
-    if (!mem) {
-        std::cerr << "Can't mmap file " << dumpfile << "\n";
-        exit(1);
-    }
 
     int index_fd = ::open(indexfile, O_RDONLY);
     if (index_fd < 0) {
@@ -58,13 +40,12 @@ int main(int argc, char* argv[]) {
 
     Osmium::Ser::Index::MemMapWithId index(index_fd);
     size_t pos = index.get(id);
-    size_t length = reinterpret_cast<Osmium::Ser::TypedItem*>(&mem[pos])->size();
-    std::cout << "length: " << length << "\n";
-    Osmium::Ser::Buffer buffer(mem + pos, length);
+
+    typedef Osmium::Ser::BufferManager::FileInput manager_t;
+    manager_t manager(dumpfile);
 
     Osmium::Handler::Debug debug;
-    Osmium::Ser::Deserializer<Osmium::Handler::Debug> deser(buffer, debug);
-    deser.feed();
-//    deser.dump();
+    Osmium::Ser::Deserializer<manager_t, Osmium::Handler::Debug> deser(manager, debug);
+    deser.parse_item(pos);
 }
 
