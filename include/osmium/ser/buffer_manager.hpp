@@ -43,78 +43,79 @@ namespace Osmium {
 
         namespace BufferManager {
 
-            class Memory : boost::noncopyable {
+            class Output : boost::noncopyable {
 
             public:
-            
-                Memory(size_t buffer_size) :
-                    m_data(buffer_size, '\0'),
-                    m_buffer(&m_data[0], buffer_size, 0, boost::bind(&Memory::full, this)) {
-                }
-
-                Osmium::Ser::Buffer& output_buffer() {
-                    return m_buffer;
-                }
-
-                void flush_buffer() {
-                    // does nothing XXX
-                }
-
-                size_t commit() {
-                    return m_buffer.commit();
-                }
-
-                size_t committed() {
-                    return m_buffer.committed();
-                }
 
                 void full() {
                     throw std::range_error("buffer too small");
-                }
-
-                template <class T>
-                T& get(const size_t offset) {
-                    return m_buffer.get<T>(offset);
-                }
-                
-                typedef Osmium::Ser::CollectionIterator<TypedItem> iterator;
-
-                iterator begin() {
-                    return m_buffer.begin();
-                }
-
-                iterator end() {
-                    return m_buffer.end();
-                }
-
-            private:
-            
-                std::string m_data;
-                Osmium::Ser::Buffer m_buffer;
-
-            }; // class Memory
-
-            class FileOutput {
-
-            public:
-
-                FileOutput(const std::string& output_filename, size_t buffer_size) :
-                    m_output_filename(output_filename),
-                    m_output_data(buffer_size, '\0'),
-                    m_output_buffer(&m_output_data[0], buffer_size, 0, boost::bind(&FileOutput::full, this)),
-                    m_output_offset(0),
-                    m_output_fd(::open(output_filename.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666)) {
-                    if (m_output_fd < 0) {
-                        throw std::runtime_error(std::string("Can't open dump file ") + output_filename);
-                    }
                 }
 
                 Osmium::Ser::Buffer& output_buffer() {
                     return m_output_buffer;
                 }
 
-                void full() {
-                    throw std::range_error("buffer too small");
+            protected:
+            
+                Output(const size_t buffer_size) :
+                    m_output_data(buffer_size, '\0'),
+                    m_output_buffer(&m_output_data[0], buffer_size, 0, boost::bind(&Output::full, this)) {
+                }
+
+                std::string m_output_data;
+                Osmium::Ser::Buffer m_output_buffer;
+
+            }; // class Output
+
+            class Memory : public Output {
+
+            public:
+            
+                Memory(const size_t buffer_size) :
+                    Output(buffer_size) {
+                }
+
+                void flush_buffer() {
+                    // does nothing XXX
+                }
+
+                size_t committed() {
+                    return m_output_buffer.committed();
+                }
+
+                size_t commit() {
+                    return m_output_buffer.commit();
+                }
+
+                template <class T>
+                T& get(const size_t offset) {
+                    return m_output_buffer.get<T>(offset);
+                }
+                
+                typedef Osmium::Ser::CollectionIterator<TypedItem> iterator;
+
+                iterator begin() {
+                    return m_output_buffer.begin();
+                }
+
+                iterator end() {
+                    return m_output_buffer.end();
+                }
+
+            }; // class Memory
+
+            class FileOutput : public Output {
+
+            public:
+
+                FileOutput(const std::string& output_filename, const size_t buffer_size) :
+                    Output(buffer_size),
+                    m_output_filename(output_filename),
+                    m_output_offset(0),
+                    m_output_fd(::open(output_filename.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666)) {
+                    if (m_output_fd < 0) {
+                        throw std::runtime_error(std::string("Can't open dump file ") + output_filename);
+                    }
                 }
 
                 void flush_buffer() {
@@ -132,8 +133,6 @@ namespace Osmium {
             protected:
 
                 std::string m_output_filename;
-                std::string m_output_data;
-                Osmium::Ser::Buffer m_output_buffer;
                 size_t m_output_offset;
                 int m_output_fd;
 
