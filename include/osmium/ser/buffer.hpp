@@ -136,6 +136,10 @@ namespace Osmium {
                 return length;
             }
 
+            void add_item(const Osmium::Ser::TypedItem* item) {
+                memcpy(get_space(item->size()), item, item->size()); 
+            }
+
             template <class T>
             T& get(const size_t offset) const {
                 return *reinterpret_cast<T*>(&m_data[offset]);
