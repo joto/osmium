@@ -414,16 +414,12 @@ namespace Osmium {
 
         public:
 
-            WayNode(osm_object_id_t id) :
-                m_id(id) {
-            }
-
-            osm_object_id_t id() const {
-                return m_id;
+            WayNode(osm_object_id_t ref) :
+                m_ref(ref) {
             }
 
             osm_object_id_t ref() const {
-                return m_id;
+                return m_ref;
             }
 
             const char* next() const {
@@ -432,7 +428,7 @@ namespace Osmium {
 
         private:
 
-            osm_object_id_t m_id;
+            osm_object_id_t m_ref;
 
         }; // class WayNode
 
@@ -440,8 +436,8 @@ namespace Osmium {
 
         public:
 
-            WayNodeWithPosition(osm_object_id_t id, const Osmium::OSM::Position& position) :
-                WayNode(id),
+            WayNodeWithPosition(osm_object_id_t ref, const Osmium::OSM::Position& position) :
+                WayNode(ref),
                 m_position(position) {
             }
 

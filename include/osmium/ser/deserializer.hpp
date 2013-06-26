@@ -58,7 +58,7 @@ namespace Osmium {
             template <>
             void parse_way_node_list<Osmium::OSM::Way>(const Osmium::Ser::WayNodeList& nodes, shared_ptr<Osmium::OSM::Way>& way) {
                 for (Osmium::Ser::WayNodeList::iterator it = nodes.begin(); it != nodes.end(); ++it) {
-                    way->nodes().add(it->id());
+                    way->nodes().add(it->ref());
                 }
             }
 
@@ -69,7 +69,7 @@ namespace Osmium {
             template <>
             void parse_way_node_list_with_position<Osmium::OSM::Way>(const Osmium::Ser::WayNodeWithPositionList& nodes, shared_ptr<Osmium::OSM::Way>& way) {
                 for (Osmium::Ser::WayNodeWithPositionList::iterator it = nodes.begin(); it != nodes.end(); ++it) {
-                    way->nodes().add(Osmium::OSM::WayNode(it->id(), it->position()));
+                    way->nodes().add(Osmium::OSM::WayNode(it->ref(), it->position()));
                 }
             }
 
