@@ -367,23 +367,6 @@ namespace Osmium {
         };
 
 
-        class Way : public Object {
-        }; // class Way
-
-        template <>
-        struct item_traits<Way> {
-            static const uint32_t itemtype = Osmium::Ser::ItemType::itemtype_way;
-        };
-
-
-        class Relation : public Object {
-        }; // class Relation
-
-        template <>
-        struct item_traits<Relation> {
-            static const uint32_t itemtype = Osmium::Ser::ItemType::itemtype_relation;
-        };
-
         template <class TMember>
         class Collection : public TypedItem {
 
@@ -439,6 +422,10 @@ namespace Osmium {
                 return m_id;
             }
 
+            osm_object_id_t ref() const {
+                return m_id;
+            }
+
             const char* next() const {
                 return reinterpret_cast<const char*>(this + 1);
             }
@@ -484,6 +471,28 @@ namespace Osmium {
         struct item_traits<WayNodeWithPositionList> {
             static const uint32_t itemtype = Osmium::Ser::ItemType::itemtype_way_node_with_position_list;
         };
+
+        class Way : public Object {
+
+        public:
+
+            const Osmium::Ser::WayNodeList& nodes() const {
+                for (Osmium::Ser::Object::iterator it = begin(); it != end(); ++it) {
+                    if (it->type().t() == Osmium::Ser::ItemType::itemtype_way_node_list ||
+                        it->type().t() == Osmium::Ser::ItemType::itemtype_way_node_with_position_list ) {
+                        return reinterpret_cast<const Osmium::Ser::WayNodeList&>(*it);
+                    }
+                }
+                throw std::runtime_error("no nodes in way");
+            }
+
+        }; // class Way
+
+        template <>
+        struct item_traits<Way> {
+            static const uint32_t itemtype = Osmium::Ser::ItemType::itemtype_way;
+        };
+
 
         class RelationMember : public Item {
 
@@ -545,6 +554,26 @@ namespace Osmium {
         template <>
         struct item_traits<RelationMemberList> {
             static const uint32_t itemtype = Osmium::Ser::ItemType::itemtype_relation_member_list;
+        };
+
+        class Relation : public Object {
+
+        public:
+
+            const Osmium::Ser::RelationMemberList& members() const {
+                for (Osmium::Ser::Object::iterator it = begin(); it != end(); ++it) {
+                    if (it->type().t() == Osmium::Ser::ItemType::itemtype_relation_member_list) {
+                        return reinterpret_cast<const Osmium::Ser::RelationMemberList&>(*it);
+                    }
+                }
+                throw std::runtime_error("no members in relation"); // XXX this should return an empty RelationMemberList object from somewhere...
+            }
+
+        }; // class Relation
+
+        template <>
+        struct item_traits<Relation> {
+            static const uint32_t itemtype = Osmium::Ser::ItemType::itemtype_relation;
         };
 
     } // namespace Ser
