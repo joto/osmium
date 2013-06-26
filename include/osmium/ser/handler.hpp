@@ -32,25 +32,25 @@ namespace Osmium {
 
     namespace Ser {
 
-        template<class TBufferManager, class TIndexNode, class TIndexWay, class TIndexRelation, class TMapNodeToWay, class TMapNodeToRelation, class TMapWayToRelation, class TMapRelationToRelation>
+        template<class TBufferManager, class TUpdateHandler, class TIndexNode, class TIndexWay, class TIndexRelation>
         class Handler : public Osmium::Handler::Base {
 
         public:
 
             Handler(TBufferManager& buffer_manager,
-                    TIndexNode& node_index, TIndexWay& way_index, TIndexRelation& relation_index,
-                    TMapNodeToWay& map_node2way,
-                    TMapNodeToRelation& map_node2relation, TMapWayToRelation& map_way2relation, TMapRelationToRelation& map_relation2relation) :
+                    TUpdateHandler& update_handler,
+                    bool update_mode,
+                    TIndexNode& node_index,
+                    TIndexWay& way_index,
+                    TIndexRelation& relation_index) :
                 Osmium::Handler::Base(),
                 m_buffer_manager(buffer_manager),
+                m_update_handler(update_handler),
+                m_update_mode(update_mode),
                 m_add_relation_member_objects(false),
                 m_node_index(node_index),
                 m_way_index(way_index),
-                m_relation_index(relation_index),
-                m_map_node2way(map_node2way),
-                m_map_node2relation(map_node2relation),
-                m_map_way2relation(map_way2relation),
-                m_map_relation2relation(map_relation2relation) {
+                m_relation_index(relation_index) {
             }
 
             void add_relation_member_objects() {
@@ -102,20 +102,29 @@ namespace Osmium {
         private:
 
             TBufferManager& m_buffer_manager;
+            TUpdateHandler& m_update_handler;
 
+            bool m_update_mode;
             bool m_add_relation_member_objects;
 
             TIndexNode&     m_node_index;
             TIndexWay&      m_way_index;
             TIndexRelation& m_relation_index;
 
-            TMapNodeToWay&          m_map_node2way;
-            TMapNodeToRelation&     m_map_node2relation;
-            TMapWayToRelation&      m_map_way2relation;
-            TMapRelationToRelation& m_map_relation2relation;
-
             Osmium::Ser::Buffer& buffer() {
                 return m_buffer_manager.output_buffer();
+            }
+
+            template <class T, class TIndex>
+            T* get_old_version(Osmium::Ser::Object& object, TIndex& index) {
+                if (m_update_mode && object.version() > 1) {
+                    try {
+                        size_t offset = index.get(object.id());
+                        return &m_buffer_manager.template get<T>(offset);
+                    } catch (Osmium::Ser::Index::NotFound&) {
+                    }
+                }
+                return NULL;
             }
 
             void write_node(const shared_ptr<Osmium::OSM::Node const>& node) {
@@ -137,7 +146,11 @@ namespace Osmium {
 
                 assert(buffer().is_aligned());
 
+                Osmium::Ser::Node* old_node = get_old_version<Osmium::Ser::Node>(sn, m_node_index);
+
                 m_node_index.set(node->id(), m_buffer_manager.commit());
+
+                m_update_handler.node(sn, old_node);
             }
 
             void write_way(const shared_ptr<Osmium::OSM::Way const>& way) {
@@ -159,10 +172,11 @@ namespace Osmium {
                     builder.add_way_nodes(way->nodes());
                 }
 
+                Osmium::Ser::Way* old_way = get_old_version<Osmium::Ser::Way>(sn, m_way_index);
+
                 m_way_index.set(way->id(), m_buffer_manager.commit());
-                BOOST_FOREACH(const Osmium::OSM::WayNode& wn, way->nodes()) {
-                    m_map_node2way.set(wn.ref(), way->id());
-                }
+
+                m_update_handler.way(sn, old_way);
             }
 
             void write_relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
@@ -209,20 +223,11 @@ namespace Osmium {
                     builder.add_members(relation->members());
                 }
 
+                Osmium::Ser::Relation* old_relation = get_old_version<Osmium::Ser::Relation>(sn, m_relation_index);
+
                 m_relation_index.set(relation->id(), m_buffer_manager.commit());
-                BOOST_FOREACH(const Osmium::OSM::RelationMember& member, relation->members()) {
-                    switch (member.type()) {
-                        case 'n':
-                            m_map_node2relation.set(member.ref(), relation->id());
-                            break;
-                        case 'w':
-                            m_map_way2relation.set(member.ref(), relation->id());
-                            break;
-                        case 'r':
-                            m_map_relation2relation.set(member.ref(), relation->id());
-                            break;
-                    }
-                }
+
+                m_update_handler.relation(sn, old_relation);
             }
 
         }; // class Handler

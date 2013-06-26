@@ -76,6 +76,10 @@ namespace Osmium {
                     // intentionally left blank
                 }
 
+                size_t get(const osm_object_id_t id) {
+                    throw NotFound(id);
+                }
+
             }; // class Null
 
             class Map {

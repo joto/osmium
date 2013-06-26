@@ -14,6 +14,7 @@
 
 #include <osmium.hpp>
 #include <osmium/ser/buffer_manager.hpp>
+#include <osmium/ser/update_handler.hpp>
 #include <osmium/ser/handler.hpp>
 #include <osmium/ser/index.hpp>
 #include <osmium/storage/member/map_vector.hpp>
@@ -55,8 +56,11 @@ int main(int argc, char* argv[]) {
     map_t map_way2relation;
     map_t map_relation2relation;
 
-    Osmium::Ser::Handler<manager_t, index_t, index_t, index_t, map_t, map_t, map_t, map_t>
-        handler(manager, node_index, way_index, relation_index, map_way2node, map_node2relation, map_way2relation, map_relation2relation);
+    typedef Osmium::Ser::UpdateHandler::ObjectsWithDeps<map_t, map_t, map_t, map_t> update_handler_t;
+    update_handler_t update_handler(map_way2node, map_node2relation, map_way2relation, map_relation2relation);
+
+    Osmium::Ser::Handler<manager_t, update_handler_t, index_t, index_t, index_t>
+        handler(manager, update_handler, false, node_index, way_index, relation_index);
 
     Osmium::Input::read(infile, handler);
 

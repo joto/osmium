@@ -7,6 +7,7 @@
 #include <osmium/storage/member/map_vector.hpp>
 #include <osmium/ser/deserializer.hpp>
 #include <osmium/ser/index.hpp>
+#include <osmium/ser/update_handler.hpp>
 #include <osmium/ser/handler.hpp>
 #include <osmium/handler/debug.hpp>
 #include <osmium/smart_ptr.hpp>
@@ -58,14 +59,10 @@ BOOST_AUTO_TEST_CASE(ser_deser) {
     manager_t manager(buffer_size);
     Osmium::Ser::Index::Null fake_index;
 
-    typedef Osmium::Storage::Member::MapVector map_t;
-    map_t map_way2node;
-    map_t map_node2relation;
-    map_t map_way2relation;
-    map_t map_relation2relation;
+    Osmium::Ser::UpdateHandler::Base update_handler;
 
-    Osmium::Ser::Handler<manager_t, Osmium::Ser::Index::Null, Osmium::Ser::Index::Null, Osmium::Ser::Index::Null, map_t, map_t, map_t, map_t>
-        handler(manager, fake_index, fake_index, fake_index, map_way2node, map_node2relation, map_way2relation, map_relation2relation);
+    Osmium::Ser::Handler<manager_t, Osmium::Ser::UpdateHandler::Base, Osmium::Ser::Index::Null, Osmium::Ser::Index::Null, Osmium::Ser::Index::Null>
+        handler(manager, update_handler, false, fake_index, fake_index, fake_index);
 
     shared_ptr<Osmium::OSM::Node> n1 = make_shared<Osmium::OSM::Node>();
     n1->id(10);
