@@ -388,7 +388,7 @@ namespace Osmium {
             int64_t m_id;
             uint32_t m_visible_and_version;
             uint32_t m_timestamp;
-            uint32_t m_uid;
+            int32_t m_uid;
             uint32_t m_changeset;
 
         }; // class Object
