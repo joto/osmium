@@ -217,6 +217,49 @@ namespace Osmium {
 
         }; // class CollectionIterator
 
+        template <class TMember>
+        class Collection : public TypedItem {
+
+        public:
+
+            typedef CollectionIterator<TMember> iterator;
+
+            iterator begin() const {
+                return iterator(self() + sizeof(Collection<TMember>));
+            }
+
+            iterator end() const {
+                return iterator(self() + size());
+            }
+
+        }; // class Collection
+
+        class Tag : public Item {
+
+        public:
+
+            const char* key() const {
+                return self();
+            }
+
+            const char* value() const {
+                return self() + strlen(self()) + 1;
+            }
+
+            const char* next() const {
+                const char* data = value();
+                return data + strlen(data) + 1;
+            }
+
+        }; // class Tag
+
+        typedef Collection<Tag> TagList;
+
+        template <>
+        struct item_traits<TagList> {
+            static const uint32_t itemtype = Osmium::Ser::ItemType::itemtype_tag_list;
+        };
+
         // serialized form of OSM object
         class Object : public TypedItem {
 
@@ -331,6 +374,15 @@ namespace Osmium {
                 return iterator(self() + padded_size());
             }
 
+            const Osmium::Ser::TagList& tags() const {
+                for (iterator it = begin(); it != end(); ++it) {
+                    if (it->type().t() == Osmium::Ser::ItemType::itemtype_tag_list) {
+                        return reinterpret_cast<const Osmium::Ser::TagList&>(*it);
+                    }
+                }
+                throw std::runtime_error("no tags in way"); // XXX should return empty tag list
+            }
+
         private:
 
             int64_t m_id;
@@ -339,7 +391,7 @@ namespace Osmium {
             uint32_t m_uid;
             uint32_t m_changeset;
 
-        };
+        }; // class Object
 
         // serialized form of OSM node
         class Node : public Object {
@@ -366,49 +418,6 @@ namespace Osmium {
             static const uint32_t itemtype = Osmium::Ser::ItemType::itemtype_node;
         };
 
-
-        template <class TMember>
-        class Collection : public TypedItem {
-
-        public:
-
-            typedef CollectionIterator<TMember> iterator;
-
-            iterator begin() const {
-                return iterator(self() + sizeof(Collection<TMember>));
-            }
-
-            iterator end() const {
-                return iterator(self() + size());
-            }
-
-        }; // class Collection
-
-        class Tag : public Item {
-
-        public:
-
-            const char* key() const {
-                return self();
-            }
-
-            const char* value() const {
-                return self() + strlen(self()) + 1;
-            }
-
-            const char* next() const {
-                const char* data = value();
-                return data + strlen(data) + 1;
-            }
-
-        }; // class Tag
-
-        typedef Collection<Tag> TagList;
-
-        template <>
-        struct item_traits<TagList> {
-            static const uint32_t itemtype = Osmium::Ser::ItemType::itemtype_tag_list;
-        };
 
         class WayNode : public Item {
 

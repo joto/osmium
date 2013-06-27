@@ -57,6 +57,10 @@ namespace Osmium {
                 m_add_relation_member_objects = true;
             }
 
+            void update_mode(bool mode=true) {
+                m_update_mode = mode;
+            }
+
             void init(Osmium::OSM::Meta&) const {
             }
 
@@ -71,6 +75,7 @@ namespace Osmium {
 
             void after_nodes() {
                 m_buffer_manager.flush_buffer();
+                m_update_handler.after_nodes();
             }
 
             void way(const shared_ptr<Osmium::OSM::Way const>& way) {
@@ -84,6 +89,7 @@ namespace Osmium {
 
             void after_ways() {
                 m_buffer_manager.flush_buffer();
+                m_update_handler.after_ways();
             }
 
             void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
@@ -95,8 +101,13 @@ namespace Osmium {
                 }
             }
 
-            void final() {
+            void after_relations() {
                 m_buffer_manager.flush_buffer();
+                m_update_handler.after_relations();
+            }
+
+            void final() {
+                m_update_handler.final();
             }
 
         private:

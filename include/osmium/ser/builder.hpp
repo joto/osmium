@@ -58,8 +58,8 @@ namespace Osmium {
             }
 
             void add_item(const Osmium::Ser::TypedItem* item) {
-                memcpy(m_buffer.get_space(item->size()), item, item->size()); 
-                add_size(item->size());
+                memcpy(m_buffer.get_space(item->padded_size()), item, item->padded_size()); 
+                add_size(item->padded_size());
             }
 
             /**
@@ -120,6 +120,10 @@ namespace Osmium {
                 add_size(m_buffer.append(key) + m_buffer.append(value));
             }
 
+            void add_tags(const Osmium::Ser::TagList& tags) {
+                add_item(&tags);
+            }
+
             void add_tags(const Osmium::OSM::TagList& tags) {
                 Osmium::Ser::ObjectBuilder<Osmium::Ser::TagList> builder(m_buffer, this);
 
@@ -158,6 +162,16 @@ namespace Osmium {
                 }
 
                 builder.add_padding();
+            }
+
+            void add_member(Osmium::Ser::ItemType type, osm_object_id_t ref, const char* role, const Osmium::Ser::Object* full_member = NULL) {
+                Osmium::Ser::RelationMember* member = m_buffer.get_space_for<Osmium::Ser::RelationMember>();
+                new (member) Osmium::Ser::RelationMember(ref, type, full_member != NULL);
+                add_size(sizeof(RelationMember));
+                add_string(role);
+                if (full_member) {
+                    add_item(full_member);
+                }
             }
 
             void add_member(char type, osm_object_id_t ref, const char* role, const Osmium::Ser::Object* full_member = NULL) {
