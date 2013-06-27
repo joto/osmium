@@ -33,6 +33,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <sys/mman.h>
 
 #include <osmium/osm/types.hpp>
+#include <osmium/ser/utils.hpp>
 
 namespace Osmium {
 
@@ -131,10 +132,7 @@ namespace Osmium {
                 }
 
                 void dump(int fd) const {
-                    ssize_t count = ::write(fd, &m_offsets[0], sizeof(size_t) * m_offsets.size());
-                    if (count != sizeof(size_t) * m_offsets.size()) {
-                        throw std::runtime_error("Write error");
-                    }
+                    Osmium::Ser::write(fd, &m_offsets[0], sizeof(size_t) * m_offsets.size());
                 }
 
             private:
@@ -179,10 +177,7 @@ namespace Osmium {
                 }
 
                 void dump(int fd) const {
-                    ssize_t count = ::write(fd, &m_list[0], sizeof(list_entry_t) * m_list.size());
-                    if (count != sizeof(list_entry_t) * m_list.size()) {
-                        throw std::runtime_error("Write error");
-                    }
+                    Osmium::Ser::write(fd, &m_list[0], sizeof(list_entry_t) * m_list.size());
                 }
 
             private:

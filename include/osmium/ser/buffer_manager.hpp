@@ -36,6 +36,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <boost/utility.hpp>
 
 #include <osmium/ser/buffer.hpp>
+#include <osmium/ser/utils.hpp>
 
 namespace Osmium {
 
@@ -115,10 +116,7 @@ namespace Osmium {
                 }
 
                 void flush_buffer() {
-                    ssize_t len = ::write(m_output_fd, m_output_buffer.data(), m_output_buffer.committed());
-                    if (len != m_output_buffer.committed()) {
-                        throw std::runtime_error(std::string("Can't write to dump file ") + m_output_filename);
-                    }
+                    Osmium::Ser::write(m_output_fd, m_output_buffer.data(), m_output_buffer.committed());
                     m_output_offset += m_output_buffer.clear();
                 }
 
