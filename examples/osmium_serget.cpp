@@ -6,35 +6,64 @@
 
 */
 
-#include <fcntl.h>
+#include <getopt.h>
 #include <iostream>
 #include <string>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
 
 #include <osmium.hpp>
-#include <osmium/handler/debug.hpp>
 #include <osmium/ser/buffer_manager.hpp>
 #include <osmium/ser/index.hpp>
-#include <osmium/ser/deserializer.hpp>
+#include <osmium/ser/debug.hpp>
+
+void print_help() {
+    std::cout << "osmium_serget [OPTIONS] DUMPFILE INDEXFILE ID\n" \
+              << "\nOptions:\n" \
+              << "  -h, --help       This help message\n" \
+              << "  -s, --with-size  Report sizes of objects\n";
+}
 
 int main(int argc, char* argv[]) {
     std::ios_base::sync_with_stdio(false);
 
-    if (argc != 4) {
-        std::cerr << "Usage: " << argv[0] << " DUMPFILE INDEXFILE ID\n";
+    static struct option long_options[] = {
+        {"help",      no_argument, 0, 'h'},
+        {"with-size", no_argument, 0, 's'},
+        {0, 0, 0, 0}
+    };
+
+    bool with_size = false;
+
+    while (true) {
+        int c = getopt_long(argc, argv, "hs", long_options, 0);
+        if (c == -1) {
+            break;
+        }
+
+        switch (c) {
+            case 'h':
+                print_help();
+                exit(0);
+            case 's':
+                with_size = true;
+                break;
+            default:
+                exit(1);
+        }
+    }
+
+    int remaining_args = argc - optind;
+    if (remaining_args != 3) {
+        std::cerr << "Usage: " << argv[0] << " [OPTIONS] DUMPFILE INDEXFILE ID\n";
         exit(1);
     }
 
-    std::string dumpfile(argv[1]);
-    const char* indexfile = argv[2];
-    osm_object_id_t id = atol(argv[3]);
+    std::string dumpfile(argv[optind]);
+    const char* indexfile = argv[optind+1];
+    osm_object_id_t id = atol(argv[optind+2]);
 
     int index_fd = ::open(indexfile, O_RDONLY);
     if (index_fd < 0) {
-        std::cerr << "Can't read file " << indexfile << "\n";
+        std::cerr << "Can't read index file " << indexfile << "\n";
         exit(1);
     }
 
@@ -44,8 +73,7 @@ int main(int argc, char* argv[]) {
     typedef Osmium::Ser::BufferManager::FileInput manager_t;
     manager_t manager(dumpfile);
 
-    Osmium::Handler::Debug debug;
-    Osmium::Ser::Deserializer<manager_t, Osmium::Handler::Debug> deser(manager, debug);
-    deser.parse_item(manager.get<Osmium::Ser::TypedItem>(pos));
+    Osmium::Ser::Dump dump(std::cout, with_size);
+    dump(manager.get<Osmium::Ser::TypedItem>(pos));
 }
 
