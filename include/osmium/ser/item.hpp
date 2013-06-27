@@ -22,6 +22,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
+#include <boost/utility.hpp>
+
 #include <osmium/osm/types.hpp>
 #include <osmium/osm/node.hpp>
 #include <osmium/osm/way.hpp>
@@ -120,7 +122,7 @@ namespace Osmium {
         };
 
         // any kind of item in a buffer
-        class Item {
+        class Item : boost::noncopyable {
 
         protected:
 
