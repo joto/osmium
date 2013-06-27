@@ -47,6 +47,8 @@ namespace Osmium {
          * - Suitability for dense or for sparse indexes
          * - How they can be serialized to disk / deserialized from disk.
          *
+         * XXX Note that these indexes only work for positive IDs!
+         *
          * XXX Note that there is a log of overlap between these classes and
          * the Osmium::Storage::ByID classes. This needs to be sorted out.
          */
@@ -56,7 +58,7 @@ namespace Osmium {
 
             public:
 
-                NotFound(osm_object_id_t) : std::runtime_error("object not found: ") {
+                NotFound(uint64_t) : std::runtime_error("object not found: ") {
                 }
 
             }; // class NotFound
@@ -73,11 +75,11 @@ namespace Osmium {
                 Null() {
                 }
 
-                void set(const osm_object_id_t, const size_t) const {
+                void set(const uint64_t, const size_t) const {
                     // intentionally left blank
                 }
 
-                size_t get(const osm_object_id_t id) {
+                size_t get(const uint64_t id) {
                     throw NotFound(id);
                 }
 
@@ -90,11 +92,11 @@ namespace Osmium {
                 Map() : m_map() {
                 }
 
-                void set(const osm_object_id_t id, const size_t offset) {
+                void set(const uint64_t id, const size_t offset) {
                     m_map[id] = offset;
                 }
 
-                size_t get(const osm_object_id_t id) {
+                size_t get(const uint64_t id) {
                     try {
                         return m_map.at(id);
                     } catch (std::out_of_range&) {
@@ -104,7 +106,7 @@ namespace Osmium {
 
             private:
 
-                std::map<osm_object_id_t, size_t> m_map;
+                std::map<uint64_t, size_t> m_map;
 
             }; // class Map
 
@@ -115,14 +117,14 @@ namespace Osmium {
                 Vector() : m_offsets() {
                 }
 
-                void set(const osm_object_id_t id, const size_t offset) {
+                void set(const uint64_t id, const size_t offset) {
                     if (id >= m_offsets.size()) {
                         m_offsets.resize(id, -1); // use -1 as marker for uninitialized offset
                     }
                     m_offsets[id] = offset;
                 }
 
-                size_t get(const osm_object_id_t id) {
+                size_t get(const uint64_t id) {
                     if (id < m_offsets.size()) {
                         if (m_offsets[id] != -1) {
                             return m_offsets[id];
@@ -132,20 +134,20 @@ namespace Osmium {
                 }
 
                 void dump(int fd) const {
-                    Osmium::Ser::write(fd, &m_offsets[0], sizeof(size_t) * m_offsets.size());
+                    Osmium::Ser::write(fd, &m_offsets[0], sizeof(ssize_t) * m_offsets.size());
                 }
 
             private:
 
-                std::vector<size_t> m_offsets;
+                std::vector<ssize_t> m_offsets;
 
             }; // class Vector
 
             struct list_entry_t {
-                osm_object_id_t id;
+                uint64_t id;
                 size_t offset;
 
-                list_entry_t(osm_object_id_t i, size_t o = 0) :
+                list_entry_t(uint64_t i, size_t o = 0) :
                     id(i),
                     offset(o) {
                 }
@@ -163,11 +165,11 @@ namespace Osmium {
                 VectorWithId() : m_list() {
                 }
 
-                void set(const osm_object_id_t id, const size_t offset) {
+                void set(const uint64_t id, const size_t offset) {
                     m_list.push_back(list_entry_t(id, offset));
                 }
 
-                size_t get(const osm_object_id_t id) {
+                size_t get(const uint64_t id) {
                     std::vector<list_entry_t>::iterator it = std::lower_bound(m_list.begin(), m_list.end(), list_entry_t(id));
                     if (it != m_list.end() && it->id == id) {
                         return it->offset;
@@ -215,7 +217,7 @@ namespace Osmium {
                     }
                 }
 
-                size_t get(const osm_object_id_t id) const {
+                size_t get(const uint64_t id) const {
                     const list_entry_t* it = std::lower_bound(&m_list[0], &m_list[m_size], list_entry_t(id));
                     if (it != &m_list[m_size] && it->id == id) {
                         return it->offset;
