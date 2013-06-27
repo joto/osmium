@@ -50,10 +50,11 @@ namespace Osmium {
                     return m_map.equal_range(id);
                 }
 
-                void dump(const char* prefix) const {
-                    for (id_map_t::const_iterator it = m_map.begin(); it != m_map.end(); ++it) {
-                        std::cout << prefix << it->first << ":" << it->second << "\n"; 
-                    }
+                void dump(int fd) const {
+                    typedef std::pair<osm_object_id_t, osm_object_id_t> pair_t;
+                    std::vector<pair_t> v;
+                    std::copy(m_map.begin(), m_map.end(), std::back_inserter(v));
+                    Osmium::Ser::write(fd, &v[0], sizeof(pair_t) * v.size());
                 }
 
             private:

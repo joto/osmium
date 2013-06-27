@@ -7,7 +7,13 @@
 
 */
 
+#include <cerrno>
+#include <cstring>
+#include <getopt.h>
 #include <iostream>
+#include <string>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #define OSMIUM_WITH_PBF_INPUT
 #define OSMIUM_WITH_XML_INPUT
@@ -22,73 +28,156 @@
 typedef Osmium::Ser::Index::VectorWithId index_t;
 typedef Osmium::Storage::Member::MultiMap map_t;
 
+void print_help() {
+    std::cout << "osmium_serdump OSMFILE DIR\n" \
+              << "Serialize content of OSMFILE into data file in DIR.\n" \
+              << "\nOptions:\n" \
+              << "  -h, --help       This help message\n";
+}
+
 int main(int argc, char* argv[]) {
     std::ios_base::sync_with_stdio(false);
 
-    assert(sizeof(Osmium::Ser::TypedItem) % 8 == 0);
-    assert(sizeof(Osmium::Ser::Object)    % 8 == 0);
-    assert(sizeof(Osmium::Ser::Node)      % 8 == 0);
-    assert(sizeof(Osmium::Ser::Way)       % 8 == 0);
-    assert(sizeof(Osmium::Ser::Relation)  % 8 == 0);
+    static struct option long_options[] = {
+        {"help",      no_argument, 0, 'h'},
+        {0, 0, 0, 0}
+    };
 
-    if (argc != 3) {
-        std::cerr << "Usage: " << argv[0] << " OSMFILE DUMPFILE\n";
-        exit(1);
+    while (true) {
+        int c = getopt_long(argc, argv, "h", long_options, 0);
+        if (c == -1) {
+            break;
+        }
+
+        switch (c) {
+            case 'h':
+                print_help();
+                exit(0);
+            default:
+                exit(2);
+        }
     }
 
-    Osmium::OSMFile infile(argv[1]);
+    int remaining_args = argc - optind;
 
-    std::string dumpfile(argv[2]);
-    int dump_fd = ::open(dumpfile.c_str(), O_WRONLY | O_CREAT, 0666);
-    if (dump_fd < 0) {
-        throw std::runtime_error(std::string("Can't open dump file ") + dumpfile);
+    if (remaining_args != 2) {
+        std::cerr << "Usage: " << argv[0] << " OSMFILE DIR\n";
+        exit(2);
+    }
+
+    Osmium::OSMFile infile(argv[optind]);
+
+    std::string dir(argv[optind+1]);
+
+    int result = ::mkdir(dir.c_str(), 0777);
+    if (result == -1 && errno != EEXIST) {
+        std::cerr << "Problem creating directory '" << dir << "': " << strerror(errno) << "\n";
+        exit(2);
+    }
+
+    std::string data_file(dir + "/data.osm.ser");
+    int data_fd = ::open(data_file.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+    if (data_fd < 0) {
+        std::cerr << "Can't open data file '" << data_file << "': " << strerror(errno) << "\n";
+        exit(2);
     }
 
     typedef Osmium::Ser::BufferManager::File manager_t;
-    manager_t manager(dumpfile, 10 * 1024 * 1024);
+    manager_t manager(data_file, 10 * 1024 * 1024);
 
     index_t node_index;
     index_t way_index;
     index_t relation_index;
 
-    map_t map_way2node;
+    map_t map_node2way;
     map_t map_node2relation;
     map_t map_way2relation;
     map_t map_relation2relation;
 
     typedef Osmium::Ser::UpdateHandler::ObjectsWithDeps<map_t, map_t, map_t, map_t> update_handler_t;
-    update_handler_t update_handler(map_way2node, map_node2relation, map_way2relation, map_relation2relation);
+    update_handler_t update_handler(map_node2way, map_node2relation, map_way2relation, map_relation2relation);
 
     Osmium::Ser::Handler<manager_t, update_handler_t, index_t, index_t, index_t>
         handler(manager, update_handler, false, node_index, way_index, relation_index);
 
     Osmium::Input::read(infile, handler);
 
-    int fd = ::open("nodes.idx", O_WRONLY | O_CREAT | O_TRUNC, 0666);
-    if (fd < 0) {
-        throw std::runtime_error("Can't open nodes.idx");
+    {
+        std::string index_file(dir + "/nodes.idx");
+        int fd = ::open(index_file.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+        if (fd < 0) {
+            std::cerr << "Can't open nodes index file '" << index_file << "': " << strerror(errno) << "\n";
+            exit(2);
+        }
+        node_index.dump(fd);
+        close(fd);
     }
-    node_index.dump(fd);
-    close(fd);
 
-    fd = ::open("ways.idx", O_WRONLY | O_CREAT | O_TRUNC, 0666);
-    if (fd < 0) {
-        throw std::runtime_error("Can't open ways.idx");
+    {
+        std::string index_file(dir + "/ways.idx");
+        int fd = ::open(index_file.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+        if (fd < 0) {
+            std::cerr << "Can't open ways index file '" << index_file << "': " << strerror(errno) << "\n";
+            exit(2);
+        }
+        way_index.dump(fd);
+        close(fd);
     }
-    way_index.dump(fd);
-    close(fd);
 
-    fd = ::open("relations.idx", O_WRONLY | O_CREAT | O_TRUNC, 0666);
-    if (fd < 0) {
-        throw std::runtime_error("Can't open relations.idx");
+    {
+        std::string index_file(dir + "/relations.idx");
+        int fd = ::open(index_file.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+        if (fd < 0) {
+            std::cerr << "Can't open relations index file '" << index_file << "': " << strerror(errno) << "\n";
+            exit(2);
+        }
+        relation_index.dump(fd);
+        close(fd);
     }
-    relation_index.dump(fd);
-    close(fd);
 
-    map_way2node.dump("n-w ");
-    map_node2relation.dump("n-r ");
-    map_way2relation.dump("w-r ");
-    map_relation2relation.dump("r-r ");
+    {
+        std::string index_file(dir + "/node2way.map");
+        int fd = ::open(index_file.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+        if (fd < 0) {
+            std::cerr << "Can't open node->way map file '" << index_file << "': " << strerror(errno) << "\n";
+            exit(2);
+        }
+        map_node2way.dump(fd);
+        close(fd);
+    }
+
+    {
+        std::string index_file(dir + "/node2rel.map");
+        int fd = ::open(index_file.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+        if (fd < 0) {
+            std::cerr << "Can't open node->rel map file '" << index_file << "': " << strerror(errno) << "\n";
+            exit(2);
+        }
+        map_node2relation.dump(fd);
+        close(fd);
+    }
+
+    {
+        std::string index_file(dir + "/way2rel.map");
+        int fd = ::open(index_file.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+        if (fd < 0) {
+            std::cerr << "Can't open way->rel map file '" << index_file << "': " << strerror(errno) << "\n";
+            exit(2);
+        }
+        map_way2relation.dump(fd);
+        close(fd);
+    }
+
+    {
+        std::string index_file(dir + "/rel2rel.map");
+        int fd = ::open(index_file.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+        if (fd < 0) {
+            std::cerr << "Can't open rel->rel map file '" << index_file << "': " << strerror(errno) << "\n";
+            exit(2);
+        }
+        map_relation2relation.dump(fd);
+        close(fd);
+    }
 
     google::protobuf::ShutdownProtobufLibrary();
 }

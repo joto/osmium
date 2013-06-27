@@ -16,7 +16,9 @@
 #include <osmium/ser/debug.hpp>
 
 void print_help() {
-    std::cout << "osmium_serdebug [OPTIONS] DUMPFILE\n" \
+    std::cout << "osmium_serdebug [OPTIONS] [DIR]\n" \
+              << "Print content of data file in DIR to stdout.\n" \
+              << "\nIf no DIR is given, current dir is assumed.\n" \
               << "\nOptions:\n" \
               << "  -h, --help       This help message\n" \
               << "  -s, --with-size  Report sizes of objects\n";
@@ -47,20 +49,27 @@ int main(int argc, char* argv[]) {
                 with_size = true;
                 break;
             default:
-                exit(1);
+                exit(2);
         }
     }
 
     int remaining_args = argc - optind;
-    if (remaining_args != 1) {
-        std::cerr << "Usage: " << argv[0] << " [OPTIONS] DUMPFILE\n";
-        exit(1);
+
+    std::string dir(".");
+
+    if (remaining_args == 0) {
+        // nothing
+    } else if (remaining_args == 1) {
+        dir = argv[optind];
+    } else {
+        std::cerr << "Usage: " << argv[0] << " [OPTIONS] [DIR]\n";
+        exit(2);
     }
 
-    std::string infile(argv[optind]);
+    std::string data_file(dir + "/data.osm.ser");
 
     typedef Osmium::Ser::BufferManager::FileInput manager_t;
-    manager_t manager(infile);
+    manager_t manager(data_file);
 
     Osmium::Ser::Dump dump(std::cout, with_size);
     std::for_each(manager.begin(), manager.end(), dump);

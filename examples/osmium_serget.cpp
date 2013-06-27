@@ -6,6 +6,8 @@
 
 */
 
+#include <cerrno>
+#include <cstring>
 #include <getopt.h>
 #include <iostream>
 #include <string>
@@ -16,7 +18,9 @@
 #include <osmium/ser/debug.hpp>
 
 void print_help() {
-    std::cout << "osmium_serget [OPTIONS] DUMPFILE INDEXFILE ID\n" \
+    std::cout << "osmium_serget [OPTIONS] DIR TYPE ID\n" \
+              << "Output object of type TYPE with ID from data files/indexes in DIR.\n" \
+              << "TYPE is one of 'n', 'w', and 'r'.\n" \
               << "\nOptions:\n" \
               << "  -h, --help       This help message\n" \
               << "  -s, --with-size  Report sizes of objects\n";
@@ -47,33 +51,53 @@ int main(int argc, char* argv[]) {
                 with_size = true;
                 break;
             default:
-                exit(1);
+                exit(2);
         }
     }
 
     int remaining_args = argc - optind;
     if (remaining_args != 3) {
-        std::cerr << "Usage: " << argv[0] << " [OPTIONS] DUMPFILE INDEXFILE ID\n";
-        exit(1);
+        std::cerr << "Usage: " << argv[0] << " [OPTIONS] DIR TYPE ID\n";
+        exit(2);
     }
 
-    std::string dumpfile(argv[optind]);
-    const char* indexfile = argv[optind+1];
-    osm_object_id_t id = atol(argv[optind+2]);
+    std::string dir(argv[optind]);
+    std::string data_file(dir + "/data.osm.ser");
 
-    int index_fd = ::open(indexfile, O_RDONLY);
+    std::string index_type(argv[optind+1]);
+
+    std::string index_file;
+    if (index_type == "n") {
+        index_file = dir + "/nodes.idx";
+    } else if (index_type == "w") {
+        index_file = dir + "/ways.idx";
+    } else if (index_type == "r") {
+        index_file = dir + "/relations.idx";
+    } else {
+        std::cerr << "Unknown index type '" << index_type << "'. (Allowed are 'n', 'w', and 'r'.)\n";
+        exit(2);
+    }
+
+    osm_object_id_t id = atoll(argv[optind+2]);
+
+    int index_fd = ::open(index_file.c_str(), O_RDONLY);
     if (index_fd < 0) {
-        std::cerr << "Can't read index file " << indexfile << "\n";
-        exit(1);
+        std::cerr << "Can't open index file '" << index_file << "': " << strerror(errno) << "\n";
+        exit(2);
     }
 
     Osmium::Ser::Index::MemMapWithId index(index_fd);
-    size_t pos = index.get(id);
+    try {
+        size_t pos = index.get(id);
 
-    typedef Osmium::Ser::BufferManager::FileInput manager_t;
-    manager_t manager(dumpfile);
+        typedef Osmium::Ser::BufferManager::FileInput manager_t;
+        manager_t manager(data_file);
 
-    Osmium::Ser::Dump dump(std::cout, with_size);
-    dump(manager.get<Osmium::Ser::TypedItem>(pos));
+        Osmium::Ser::Dump dump(std::cout, with_size);
+        dump(manager.get<Osmium::Ser::TypedItem>(pos));
+    } catch (Osmium::Ser::Index::NotFound&) {
+        std::cerr << "No object of type '" << index_type << "' with id " << id << " found.\n";
+        exit(1);
+    }
 }
 
