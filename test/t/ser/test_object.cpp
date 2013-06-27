@@ -7,6 +7,16 @@
 
 BOOST_AUTO_TEST_SUITE(SerObject)
 
+BOOST_AUTO_TEST_CASE(ser_sizeof) {
+    BOOST_CHECK_EQUAL(sizeof(Osmium::Ser::TypedItem) % 8, 0);
+    BOOST_CHECK_EQUAL(sizeof(Osmium::Ser::Object)    % 8, 0);
+    BOOST_CHECK_EQUAL(sizeof(Osmium::Ser::Node)      % 8, 0);
+    BOOST_CHECK_EQUAL(sizeof(Osmium::Ser::Way)       % 8, 0);
+    BOOST_CHECK_EQUAL(sizeof(Osmium::Ser::Relation)  % 8, 0);
+
+    BOOST_CHECK_EQUAL(sizeof(Osmium::Ser::Collection<Osmium::Ser::Tag>) % 8, 0);
+}
+
 BOOST_AUTO_TEST_CASE(ser_object) {
     Osmium::Ser::Object o;
 

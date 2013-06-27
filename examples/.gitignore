@@ -7,6 +7,9 @@ osmium_progress
 osmium_range_from_history
 osmium_relation_members
 osmium_sizeof
+osmium_serdump
+osmium_serdebug
+osmium_serget
 osmium_store_and_debug
 osmium_time
 osmium_toogr
