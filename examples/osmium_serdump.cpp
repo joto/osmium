@@ -17,10 +17,10 @@
 #include <osmium/ser/update_handler.hpp>
 #include <osmium/ser/handler.hpp>
 #include <osmium/ser/index.hpp>
-#include <osmium/storage/member/map_vector.hpp>
+#include <osmium/storage/member/multimap.hpp>
 
 typedef Osmium::Ser::Index::VectorWithId index_t;
-typedef Osmium::Storage::Member::MapVector map_t;
+typedef Osmium::Storage::Member::MultiMap map_t;
 
 int main(int argc, char* argv[]) {
     std::ios_base::sync_with_stdio(false);
