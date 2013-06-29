@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
     } else if (index_type == "r2r") {
         map_file = dir + "/rel2rel.map";
     } else {
-        std::cerr << "Unknown index type '" << index_type << "'. (Allowed are 'n', 'w', and 'r'.)\n";
+        std::cerr << "Unknown index type '" << index_type << "'. (Allowed are 'n', 'w', 'r', 'n2w', 'n2r', 'w2r', and 'r2r'.)\n";
         exit(2);
     }
 
@@ -107,7 +107,6 @@ int main(int argc, char* argv[]) {
             Osmium::Ser::Dump dump(std::cout, with_size);
             dump(manager.get<Osmium::Ser::TypedItem>(pos));
         } catch (Osmium::Ser::Index::NotFound&) {
-            std::cerr << "No object of type '" << index_type << "' with id " << id << " found.\n";
             exit(1);
         }
     } else if (!map_file.empty()) {
@@ -120,6 +119,10 @@ int main(int argc, char* argv[]) {
         Osmium::Storage::Member::Mmap map(map_fd);
 
         std::pair<Osmium::Storage::Member::Mmap::id_id_t*, Osmium::Storage::Member::Mmap::id_id_t*> result = map.get(id);
+        if (result.first == result.second) {
+            exit(1);
+        }
+
         for (Osmium::Storage::Member::Mmap::id_id_t* it = result.first; it != result.second; ++it) {
             std::cout << it->second << "\n";
         }
