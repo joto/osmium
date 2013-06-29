@@ -144,6 +144,7 @@ namespace Osmium {
                 Osmium::Ser::Node& sn = builder.object();
                 sn.id(node->id());
                 sn.version(node->version());
+                sn.visible(node->visible());
                 sn.timestamp(node->timestamp());
                 sn.uid(node->uid());
                 sn.changeset(node->changeset());
@@ -170,6 +171,7 @@ namespace Osmium {
                 Osmium::Ser::Way& sn = builder.object();
                 sn.id(way->id());
                 sn.version(way->version());
+                sn.visible(way->visible());
                 sn.timestamp(way->timestamp());
                 sn.uid(way->uid());
                 sn.changeset(way->changeset());
@@ -196,6 +198,7 @@ namespace Osmium {
                 Osmium::Ser::Relation& sn = builder.object();
                 sn.id(relation->id());
                 sn.version(relation->version());
+                sn.visible(relation->visible());
                 sn.timestamp(relation->timestamp());
                 sn.uid(relation->uid());
                 sn.changeset(relation->changeset());

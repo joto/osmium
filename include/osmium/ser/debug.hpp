@@ -58,6 +58,7 @@ namespace Osmium {
                 m_out << m_prefix << "  user=|"     << object.user() << "|\n";
                 m_out << m_prefix << "  changeset=" << object.changeset() << "\n";
                 m_out << m_prefix << "  timestamp=" << Osmium::Timestamp::to_iso(object.timestamp()) << "\n";
+                m_out << m_prefix << "  visible="   << (object.visible() ? "yes" : "no") << "\n";
                 Dump dump(m_out, m_with_size, m_prefix + "  ");
                 std::for_each(object.begin(), object.end(), dump);
             }
