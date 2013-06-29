@@ -40,6 +40,10 @@ called with the name of the data directory created with osmium_serdump:
 
   osmium_serdebug dumpdir
 
+or with the name of the data file:
+
+  osmium_serdebug dumpdir/data.osm.ser
+
 ## osmium_serget
 
 This programm does lookups using the index and map files in the data directory.

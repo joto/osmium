@@ -10,15 +10,17 @@
 #include <getopt.h>
 #include <iostream>
 #include <string>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include <osmium.hpp>
 #include <osmium/ser/buffer_manager.hpp>
 #include <osmium/ser/debug.hpp>
 
 void print_help() {
-    std::cout << "osmium_serdebug [OPTIONS] [DIR]\n" \
-              << "Print content of data file in DIR to stdout.\n" \
-              << "\nIf no DIR is given, current dir is assumed.\n" \
+    std::cout << "osmium_serdebug [OPTIONS] DIR|FILE\n" \
+              << "Print content of data file FILE (or 'data.osm.ser' in DIR) to stdout.\n" \
               << "\nOptions:\n" \
               << "  -h, --help       This help message\n" \
               << "  -s, --with-size  Report sizes of objects\n";
@@ -55,18 +57,23 @@ int main(int argc, char* argv[]) {
 
     int remaining_args = argc - optind;
 
-    std::string dir(".");
-
-    if (remaining_args == 0) {
-        // nothing
-    } else if (remaining_args == 1) {
-        dir = argv[optind];
-    } else {
-        std::cerr << "Usage: " << argv[0] << " [OPTIONS] [DIR]\n";
+    if (remaining_args != 1) {
+        std::cerr << "Usage: " << argv[0] << " [OPTIONS] DIR|FILE\n";
         exit(2);
     }
 
-    std::string data_file(dir + "/data.osm.ser");
+    std::string dir(argv[optind]);
+
+    struct stat file_stat;
+    if (::stat(dir.c_str(), &file_stat) < 0) {
+        std::cerr << "Can't stat '" << dir << "': " << strerror(errno) << "\n";
+        exit(2);
+    }
+    
+    std::string data_file(dir);
+    if ((file_stat.st_mode & S_IFMT) == S_IFDIR) {
+        data_file += "/data.osm.ser";
+    }
 
     typedef Osmium::Ser::BufferManager::FileInput manager_t;
     manager_t manager(data_file);
