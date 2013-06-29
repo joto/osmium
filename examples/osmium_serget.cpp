@@ -15,6 +15,7 @@
 #include <osmium.hpp>
 #include <osmium/ser/buffer_manager.hpp>
 #include <osmium/ser/index.hpp>
+#include <osmium/storage/member/mmap.hpp>
 #include <osmium/ser/debug.hpp>
 
 void print_help() {
@@ -67,12 +68,21 @@ int main(int argc, char* argv[]) {
     std::string index_type(argv[optind+1]);
 
     std::string index_file;
+    std::string map_file;
     if (index_type == "n") {
         index_file = dir + "/nodes.idx";
     } else if (index_type == "w") {
         index_file = dir + "/ways.idx";
     } else if (index_type == "r") {
         index_file = dir + "/relations.idx";
+    } else if (index_type == "n2w") {
+        map_file = dir + "/node2way.map";
+    } else if (index_type == "n2r") {
+        map_file = dir + "/node2rel.map";
+    } else if (index_type == "w2r") {
+        map_file = dir + "/way2rel.map";
+    } else if (index_type == "r2r") {
+        map_file = dir + "/rel2rel.map";
     } else {
         std::cerr << "Unknown index type '" << index_type << "'. (Allowed are 'n', 'w', and 'r'.)\n";
         exit(2);
@@ -80,24 +90,39 @@ int main(int argc, char* argv[]) {
 
     osm_object_id_t id = atoll(argv[optind+2]);
 
-    int index_fd = ::open(index_file.c_str(), O_RDONLY);
-    if (index_fd < 0) {
-        std::cerr << "Can't open index file '" << index_file << "': " << strerror(errno) << "\n";
-        exit(2);
-    }
+    if (!index_file.empty()) {
+        int index_fd = ::open(index_file.c_str(), O_RDONLY);
+        if (index_fd < 0) {
+            std::cerr << "Can't open index file '" << index_file << "': " << strerror(errno) << "\n";
+            exit(2);
+        }
 
-    Osmium::Ser::Index::MemMapWithId index(index_fd);
-    try {
-        size_t pos = index.get(id);
+        Osmium::Ser::Index::MemMapWithId index(index_fd);
+        try {
+            size_t pos = index.get(id);
 
-        typedef Osmium::Ser::BufferManager::FileInput manager_t;
-        manager_t manager(data_file);
+            typedef Osmium::Ser::BufferManager::FileInput manager_t;
+            manager_t manager(data_file);
 
-        Osmium::Ser::Dump dump(std::cout, with_size);
-        dump(manager.get<Osmium::Ser::TypedItem>(pos));
-    } catch (Osmium::Ser::Index::NotFound&) {
-        std::cerr << "No object of type '" << index_type << "' with id " << id << " found.\n";
-        exit(1);
+            Osmium::Ser::Dump dump(std::cout, with_size);
+            dump(manager.get<Osmium::Ser::TypedItem>(pos));
+        } catch (Osmium::Ser::Index::NotFound&) {
+            std::cerr << "No object of type '" << index_type << "' with id " << id << " found.\n";
+            exit(1);
+        }
+    } else if (!map_file.empty()) {
+        int map_fd = ::open(map_file.c_str(), O_RDONLY);
+        if (map_fd < 0) {
+            std::cerr << "Can't open map file '" << map_file << "': " << strerror(errno) << "\n";
+            exit(2);
+        }
+
+        Osmium::Storage::Member::Mmap map(map_fd);
+
+        std::pair<Osmium::Storage::Member::Mmap::id_id_t*, Osmium::Storage::Member::Mmap::id_id_t*> result = map.get(id);
+        for (Osmium::Storage::Member::Mmap::id_id_t* it = result.first; it != result.second; ++it) {
+            std::cout << it->second << "\n";
+        }
     }
 }
 
