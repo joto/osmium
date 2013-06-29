@@ -265,7 +265,7 @@ namespace Osmium {
              * XML encoding, compressed with gzip.
              */
             static FileEncoding* XMLgz() {
-                static FileEncoding instance(".gz", "gzip", "gzcat", false);
+                static FileEncoding instance(".gz", "gzip", "zcat", false);
                 return &instance;
             }
 
