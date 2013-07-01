@@ -35,9 +35,9 @@ namespace Osmium {
 
             class MultiMap {
 
-                typedef std::multimap<const osm_object_id_t, osm_object_id_t> id_map_t;
-
             public:
+
+                typedef std::multimap<const osm_object_id_t, osm_object_id_t> id_map_t;
 
                 MultiMap() : m_map() {
                 }
@@ -46,8 +46,18 @@ namespace Osmium {
                     m_map.insert(std::make_pair(member_id, object_id));
                 }
 
-                std::pair<id_map_t::const_iterator, id_map_t::const_iterator> get(const osm_object_id_t id) {
+                std::pair<id_map_t::iterator, id_map_t::iterator> get(const osm_object_id_t id) {
                     return m_map.equal_range(id);
+                }
+
+                void remove(const osm_object_id_t member_id, const osm_object_id_t object_id) {
+                    std::pair<id_map_t::iterator, id_map_t::iterator> r = get(member_id);
+                    for (id_map_t::iterator it = r.first; it != r.second; ++it) {
+                        if (it->second == object_id) {
+                            m_map.erase(it);
+                            return;
+                        }
+                    }
                 }
 
                 void dump(int fd) const {
