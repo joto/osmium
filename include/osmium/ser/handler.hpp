@@ -140,7 +140,7 @@ namespace Osmium {
 
             void write_node(const shared_ptr<Osmium::OSM::Node const>& node) {
                 Osmium::Ser::Node* old_node = get_old_version<Osmium::Ser::Node>(node, m_node_index);
-                if (old_node && old_node->version() >= node->version()) {
+                if (old_node && old_node->version() >= node->version() && old_node->visible() == node->visible()) {
                     // nothing to do if we have this or newer version already
                     return;
                 }
@@ -171,7 +171,7 @@ namespace Osmium {
 
             void write_way(const shared_ptr<Osmium::OSM::Way const>& way) {
                 Osmium::Ser::Way* old_way = get_old_version<Osmium::Ser::Way>(way, m_way_index);
-                if (old_way && old_way->version() >= way->version()) {
+                if (old_way && old_way->version() >= way->version() && old_way->visible() == way->visible()) {
                     // nothing to do if we have this or newer version already
                     return;
                 }
@@ -202,7 +202,7 @@ namespace Osmium {
 
             void write_relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
                 Osmium::Ser::Relation* old_relation = get_old_version<Osmium::Ser::Relation>(relation, m_relation_index);
-                if (old_relation && old_relation->version() >= relation->version()) {
+                if (old_relation && old_relation->version() >= relation->version() && old_relation->visible() == relation->visible()) {
                     // nothing to do if we have this or newer version already
                     return;
                 }
