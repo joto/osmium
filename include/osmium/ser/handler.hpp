@@ -127,10 +127,10 @@ namespace Osmium {
             }
 
             template <class T, class TIndex>
-            T* get_old_version(Osmium::Ser::Object& object, TIndex& index) {
-                if (m_update_mode && object.version() > 1) {
+            T* get_old_version(const shared_ptr<Osmium::OSM::Object const>& object, TIndex& index) {
+                if (m_update_mode && object->version() > 1) {
                     try {
-                        size_t offset = index.get(object.id());
+                        size_t offset = index.get(object->id());
                         return &m_buffer_manager.template get<T>(offset);
                     } catch (Osmium::Ser::Index::NotFound&) {
                     }
@@ -139,6 +139,12 @@ namespace Osmium {
             }
 
             void write_node(const shared_ptr<Osmium::OSM::Node const>& node) {
+                Osmium::Ser::Node* old_node = get_old_version<Osmium::Ser::Node>(node, m_node_index);
+                if (old_node && old_node->version() >= node->version()) {
+                    // nothing to do if we have this or newer version already
+                    return;
+                }
+
                 Osmium::Ser::ObjectBuilder<Osmium::Ser::Node> builder(buffer());
 
                 Osmium::Ser::Node& sn = builder.object();
@@ -158,14 +164,18 @@ namespace Osmium {
 
                 assert(buffer().is_aligned());
 
-                Osmium::Ser::Node* old_node = get_old_version<Osmium::Ser::Node>(sn, m_node_index);
-
                 m_node_index.set(node->id(), m_buffer_manager.commit());
 
                 m_update_handler.node(sn, old_node);
             }
 
             void write_way(const shared_ptr<Osmium::OSM::Way const>& way) {
+                Osmium::Ser::Way* old_way = get_old_version<Osmium::Ser::Way>(way, m_way_index);
+                if (old_way && old_way->version() >= way->version()) {
+                    // nothing to do if we have this or newer version already
+                    return;
+                }
+
                 Osmium::Ser::ObjectBuilder<Osmium::Ser::Way> builder(buffer());
 
                 Osmium::Ser::Way& sn = builder.object();
@@ -185,14 +195,18 @@ namespace Osmium {
                     builder.add_way_nodes(way->nodes());
                 }
 
-                Osmium::Ser::Way* old_way = get_old_version<Osmium::Ser::Way>(sn, m_way_index);
-
                 m_way_index.set(way->id(), m_buffer_manager.commit());
 
                 m_update_handler.way(sn, old_way);
             }
 
             void write_relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
+                Osmium::Ser::Relation* old_relation = get_old_version<Osmium::Ser::Relation>(relation, m_relation_index);
+                if (old_relation && old_relation->version() >= relation->version()) {
+                    // nothing to do if we have this or newer version already
+                    return;
+                }
+
                 Osmium::Ser::ObjectBuilder<Osmium::Ser::Relation> builder(buffer());
 
                 Osmium::Ser::Relation& sn = builder.object();
@@ -236,8 +250,6 @@ namespace Osmium {
                 } else {
                     builder.add_members(relation->members());
                 }
-
-                Osmium::Ser::Relation* old_relation = get_old_version<Osmium::Ser::Relation>(sn, m_relation_index);
 
                 m_relation_index.set(relation->id(), m_buffer_manager.commit());
 
