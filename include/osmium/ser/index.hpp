@@ -104,6 +104,13 @@ namespace Osmium {
                     }
                 }
 
+                void dump(int fd) const {
+                    typedef std::pair<osm_object_id_t, size_t> pair_t;
+                    std::vector<pair_t> v;
+                    std::copy(m_map.begin(), m_map.end(), std::back_inserter(v));
+                    Osmium::Ser::write(fd, &v[0], sizeof(pair_t) * v.size());
+                }
+
             private:
 
                 std::map<uint64_t, size_t> m_map;

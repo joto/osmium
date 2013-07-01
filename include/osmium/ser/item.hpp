@@ -456,6 +456,10 @@ namespace Osmium {
                 return m_position;
             }
 
+            void position(const Osmium::OSM::Position position) {
+                m_position = position;
+            }
+
             const char* next() const {
                 return reinterpret_cast<const char*>(this + 1);
             }
@@ -491,6 +495,35 @@ namespace Osmium {
                     }
                 }
                 throw std::runtime_error("no nodes in way");
+            }
+
+            const Osmium::Ser::WayNodeWithPositionList& nodes_with_position() const {
+                for (Osmium::Ser::Object::iterator it = begin(); it != end(); ++it) {
+                    if (it->type().t() == Osmium::Ser::ItemType::itemtype_way_node_with_position_list ) {
+                        return reinterpret_cast<const Osmium::Ser::WayNodeWithPositionList&>(*it);
+                    }
+                }
+                throw std::runtime_error("no nodes in way");
+            }
+
+            Osmium::Ser::WayNodeWithPositionList& nodes_with_position() {
+                for (Osmium::Ser::Object::iterator it = begin(); it != end(); ++it) {
+                    if (it->type().t() == Osmium::Ser::ItemType::itemtype_way_node_with_position_list ) {
+                        return reinterpret_cast<Osmium::Ser::WayNodeWithPositionList&>(const_cast<Osmium::Ser::TypedItem&>(*it)); // XXX
+                    }
+                }
+                throw std::runtime_error("no nodes in way");
+            }
+
+            void update_node_position(const Osmium::Ser::WayNodeWithPosition& wn) {
+                Osmium::Ser::WayNodeWithPositionList& wnl = nodes_with_position();
+                for (Osmium::Ser::WayNodeWithPositionList::iterator it = wnl.begin(); it != wnl.end(); ++it) {
+                    if (it->ref() == wn.ref()) {
+                        Osmium::Ser::WayNodeWithPosition& new_wn = const_cast<Osmium::Ser::WayNodeWithPosition&>(*it); // XXX
+                        new_wn.position(wn.position());
+                        return;
+                    }
+                }
             }
 
         }; // class Way
