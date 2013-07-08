@@ -67,8 +67,6 @@ namespace Osmium {
             }
 
             void parse() {
-                int done;
-
                 XML_Parser parser = XML_ParserCreate(0);
                 if (!parser) {
                     throw std::runtime_error("Error creating parser");
@@ -79,6 +77,7 @@ namespace Osmium {
                 XML_SetElementHandler(parser, Osmium::Input::XML<THandler>::start_element_wrapper, Osmium::Input::XML<THandler>::end_element_wrapper);
 
                 try {
+                    int done;
                     do {
                         void* buffer = XML_GetBuffer(parser, c_buffer_size);
                         if (buffer == 0) {

@@ -263,7 +263,7 @@ namespace Osmium {
             void add_attribute_with_truncate(const int field, const char* value) const {
                 char dest[max_dbf_field_length+1];
                 size_t length = m_fields[field].width();
-                memset(dest, 0, length+1);
+                dest[length+1] = '\0';
                 strncpy(dest, value, length);
                 size_t i = length-1;
                 if (dest[i] & 128) {

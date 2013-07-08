@@ -69,7 +69,13 @@ namespace Osmium {
             * @param handler Instance of THandler.
             */
             PBF(const OSMFile& file, THandler& handler) :
-                Base<THandler>(file, handler) {
+                Base<THandler>(file, handler),
+                m_input_buffer(),
+                m_unpack_buffer(),
+                m_pbf_blob(),
+                m_pbf_blob_header(),
+                m_pbf_primitive_block(),
+                m_date_factor() {
                 GOOGLE_PROTOBUF_VERIFY_VERSION;
             }
 
