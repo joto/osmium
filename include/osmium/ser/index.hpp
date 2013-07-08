@@ -49,7 +49,7 @@ namespace Osmium {
          *
          * XXX Note that these indexes only work for positive IDs!
          *
-         * XXX Note that there is a log of overlap between these classes and
+         * XXX Note that there is a lot of overlap between these classes and
          * the Osmium::Storage::ByID classes. This needs to be sorted out.
          */
         namespace Index {
@@ -121,12 +121,14 @@ namespace Osmium {
 
             public:
 
+                static const uint64_t size_increment = 10 * 1024 * 1024;
+
                 Vector() : m_offsets() {
                 }
 
                 void set(const uint64_t id, const size_t offset) {
                     if (id >= m_offsets.size()) {
-                        m_offsets.resize(id, -1); // use -1 as marker for uninitialized offset
+                        m_offsets.resize(id + size_increment, -1); // use -1 as marker for uninitialized offset
                     }
                     m_offsets[id] = offset;
                 }
