@@ -24,12 +24,12 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <algorithm>
 #include <iostream>
-#include <map>
 #include <vector>
 
 #include <boost/foreach.hpp>
 
 #include <osmium/osm/types.hpp>
+#include <osmium/ser/utils.hpp>
 
 namespace Osmium {
 
@@ -37,42 +37,54 @@ namespace Osmium {
 
         namespace Member {
 
-            class MapVector {
+            inline bool vcmp(const std::pair<const osm_object_id_t, osm_object_id_t>& lhs, const std::pair<const osm_object_id_t, osm_object_id_t>& rhs) {
+                return (lhs.first == rhs.first && lhs.second < rhs.second) || lhs.first < rhs.first;
+            }
 
-                typedef std::vector<osm_object_id_t> id_vector_t;
-                typedef std::map<osm_object_id_t, id_vector_t> id_to_vector_of_ids_map_t;
+            class Vector {
 
             public:
 
-                MapVector() : m_map() {
+                typedef std::pair<osm_object_id_t, osm_object_id_t> id_id_t;
+                typedef std::vector<id_id_t> v_t;
+
+                Vector() :
+                    m_data() {
                 }
 
                 void set(const osm_object_id_t member_id, const osm_object_id_t object_id) {
-                    id_vector_t& v = m_map[member_id];
-                    if (std::find(v.begin(), v.end(), object_id) == v.end()) {
-                        v.push_back(object_id);
-                    }
+                    m_data.push_back(std::make_pair(member_id, object_id));
                 }
 
-                id_vector_t& get(const osm_object_id_t id) {
-                    return m_map[id];
+                std::pair<v_t::iterator, v_t::iterator> get(const osm_object_id_t id) {
+                    id_id_t s(id, 0);
+                    return std::equal_range(m_data.begin(), m_data.end(), s, vcmp);
                 }
 
-                void dump(const char* prefix) const {
-                    for (id_to_vector_of_ids_map_t::const_iterator it = m_map.begin(); it != m_map.end(); ++it) {
-                        std::cout << prefix << it->first << ":"; 
-                        BOOST_FOREACH(const osm_object_id_t id, it->second) {
-                            std::cout << " " << id;
+                void remove(const osm_object_id_t member_id, const osm_object_id_t object_id) {
+                    std::pair<v_t::iterator, v_t::iterator> r = get(member_id);
+                    for (v_t::iterator it = r.first; it != r.second; ++it) {
+                        if (it->second == object_id) {
+                            it->second = 0;
+                            return;
                         }
-                        std::cout << "\n";
                     }
+                }
+
+                void dump(int fd) {
+                    sort();
+                    Osmium::Ser::write(fd, m_data.data(), sizeof(id_id_t) * m_data.size());
+                }
+
+                void sort() {
+                    std::sort(m_data.begin(), m_data.end(), vcmp);
                 }
 
             private:
-            
-                id_to_vector_of_ids_map_t m_map;
 
-            }; // MapVector
+                v_t m_data;
+
+            }; // Vector
 
         } // namespace Member
 

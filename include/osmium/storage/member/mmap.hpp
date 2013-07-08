@@ -38,7 +38,7 @@ namespace Osmium {
 
         namespace Member {
 
-            bool cmp(const std::pair<const osm_object_id_t, osm_object_id_t>& lhs, const std::pair<const osm_object_id_t, osm_object_id_t>& rhs) {
+            inline bool cmp(const std::pair<const osm_object_id_t, osm_object_id_t>& lhs, const std::pair<const osm_object_id_t, osm_object_id_t>& rhs) {
                 return lhs.first < rhs.first;
             }
 
