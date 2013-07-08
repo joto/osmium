@@ -23,6 +23,12 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 */
 
 #include <algorithm>
+#include <iostream>
+#include <stdexcept>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include <osmium/osm/types.hpp>
 

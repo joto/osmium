@@ -24,8 +24,10 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <iostream>
 #include <map>
+#include <vector>
 
 #include <osmium/osm/types.hpp>
+#include <osmium/ser/utils.hpp>
 
 namespace Osmium {
 
