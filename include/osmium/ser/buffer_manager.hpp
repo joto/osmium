@@ -53,7 +53,7 @@ namespace Osmium {
                 }
 
             protected:
-            
+
                 Output(const size_t buffer_size) :
                     m_output_data(buffer_size, '\0'),
                     m_output_buffer(&m_output_data[0], buffer_size, 0) {
@@ -67,7 +67,7 @@ namespace Osmium {
             class Memory : public Output {
 
             public:
-            
+
                 Memory(const size_t buffer_size) :
                     Output(buffer_size) {
                 }
@@ -88,7 +88,7 @@ namespace Osmium {
                 T& get(const size_t offset) {
                     return m_output_buffer.get<T>(offset);
                 }
-                
+
                 typedef Osmium::Ser::CollectionIterator<TypedItem> iterator;
 
                 iterator begin() {
@@ -160,7 +160,7 @@ namespace Osmium {
                     }
                     return m_input_buffer->get<T>(offset);
                 }
-                
+
                 typedef Osmium::Ser::CollectionIterator<TypedItem> iterator;
 
                 iterator begin() {
@@ -188,7 +188,7 @@ namespace Osmium {
                         char* data = m_input_buffer->data();
                         size_t size = m_input_buffer->size();
                         delete m_input_buffer;
-                        ::munmap(data, size); 
+                        ::munmap(data, size);
                     }
                 }
 
@@ -217,13 +217,96 @@ namespace Osmium {
 
             }; // class FileInput
 
-            class File : public FileInput, public FileOutput {
+            class File : boost::noncopyable {
 
             public:
 
-                File(const std::string& filename, size_t buffer_size) :
-                    FileInput(filename),
-                    FileOutput(filename, buffer_size) {
+                File(const std::string& filename, size_t buffer_size_increment) :
+                    m_filename(filename),
+                    m_buffer_size_increment(buffer_size_increment),
+                    m_fd(::open(filename.c_str(), O_RDWR | O_CREAT, 0666)),
+                    m_buffer(NULL) {
+                    if (m_fd == -1) {
+                        throw std::runtime_error(std::string("Cannot open file: ") + strerror(errno));
+                    }
+                    setup_buffer(0);
+                }
+
+                ~File() {
+                    size_t committed = 0;
+                    if (m_buffer) {
+                        committed = m_buffer->committed();
+                    }
+                    cleanup();
+                    if (committed != 0) {
+                        ::ftruncate(m_fd, committed); // ignore result
+                    }
+                    close(m_fd);
+                }
+
+                size_t committed() {
+                    return m_buffer->committed();
+                }
+
+                size_t commit() {
+                    return m_buffer->commit();
+                }
+
+                template <class T>
+                T& get(const size_t offset) {
+                    return m_buffer->get<T>(offset);
+                }
+
+                Osmium::Ser::Buffer& output_buffer() {
+                    return *m_buffer;
+                }
+
+                void flush_buffer() {
+                    setup_buffer(cleanup());
+                }
+
+                typedef Osmium::Ser::CollectionIterator<TypedItem> iterator;
+
+                iterator begin() {
+                    return m_buffer->begin();
+                }
+
+                iterator end() {
+                    return m_buffer->end();
+                }
+
+            private:
+
+                std::string m_filename;
+                size_t m_buffer_size_increment;
+                int m_fd;
+                Osmium::Ser::Buffer* m_buffer;
+
+                size_t cleanup() {
+                    if (m_buffer) {
+                        char* data = m_buffer->data();
+                        size_t size = m_buffer->size();
+                        size_t committed = m_buffer->committed();
+                        delete m_buffer;
+                        ::munmap(data, size);
+                        return committed;
+                    }
+                    return 0;
+                }
+
+                void setup_buffer(size_t committed) {
+                    size_t buffer_size = committed + m_buffer_size_increment;
+
+                    if (::ftruncate(m_fd, buffer_size) == -1) {
+                        throw std::runtime_error(std::string("can't resize dump file: ") + strerror(errno));
+                    }
+
+                    char* mem = reinterpret_cast<char*>(::mmap(NULL, buffer_size, PROT_READ | PROT_WRITE, MAP_SHARED, m_fd, 0));
+                    if (!mem) {
+                        throw std::runtime_error(std::string("can't mmap dump file: ") + strerror(errno));
+                    }
+
+                    m_buffer = new Osmium::Ser::Buffer(mem, buffer_size, committed);
                 }
 
             }; // class File
