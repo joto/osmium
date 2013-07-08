@@ -80,10 +80,6 @@ namespace Osmium {
             string_id_t interim_id;
         };
 
-        friend bool operator<(const string_info& lhs, const string_info& rhs) {
-            return lhs.count > rhs.count;
-        }
-
         /**
          * Interim StringTable, storing all strings that should be written to
          * the StringTable once the block is written to disk.
@@ -106,6 +102,10 @@ namespace Osmium {
             m_strings(),
             m_id2id_map(),
             m_size(0) {
+        }
+
+        friend bool operator<(const string_info& lhs, const string_info& rhs) {
+            return lhs.count > rhs.count;
         }
 
         /**

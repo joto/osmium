@@ -22,7 +22,7 @@ install: doc
 	cp --recursive doc/html $(DESTDIR)/usr/share/doc/libosmium-dev
 
 check:
-	cppcheck --enable=all -I include */*.cpp test/*/test_*.cpp
+	cppcheck --enable=all -I include */*.cpp test/t/*/test_*.cpp
 
 WARNINGFLAGS = -Wall -Wextra -Wredundant-decls -Wdisabled-optimization -pedantic -Wctor-dtor-privacy -Wnon-virtual-dtor -Woverloaded-virtual -Wsign-promo -Wno-long-long -Winline -Weffc++ -Wold-style-cast
 
