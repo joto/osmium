@@ -67,7 +67,7 @@ namespace Osmium {
                     }
                 }
 
-                dump() {
+                void dump() {
                     for (id_id_t* it = m_data; it != m_data + m_size; ++it) {
                         std::cout << it->first << ":" << it->second << "\n";
                     }
