@@ -197,32 +197,25 @@ void print_help() {
               << "If OUTFILE is not given 'ogr_out' is used.\n" \
               << "\nOptions:\n" \
               << "  -h, --help           This help message\n" \
-              << "  -d, --debug          Enable debugging output\n" \
               << "  -f, --format=FORMAT  Output OGR format (Default: 'SQLite')\n";
 }
 
 int main(int argc, char* argv[]) {
     static struct option long_options[] = {
-        {"debug",  no_argument, 0, 'd'},
         {"help",   no_argument, 0, 'h'},
         {"format", required_argument, 0, 'f'},
         {0, 0, 0, 0}
     };
 
-    bool debug = false;
-
     std::string output_format("SQLite");
 
     while (true) {
-        int c = getopt_long(argc, argv, "dhf:", long_options, 0);
+        int c = getopt_long(argc, argv, "hf:", long_options, 0);
         if (c == -1) {
             break;
         }
 
         switch (c) {
-            case 'd':
-                debug = true;
-                break;
             case 'h':
                 print_help();
                 exit(0);
