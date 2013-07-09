@@ -52,6 +52,11 @@ namespace Osmium {
                     m_data() {
                 }
 
+                Vector(size_t reserve_size) :
+                    m_data() {
+                    m_data.reserve(reserve_size);
+                }
+
                 void set(const osm_object_id_t member_id, const osm_object_id_t object_id) {
                     m_data.push_back(std::make_pair(member_id, object_id));
                 }
