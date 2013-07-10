@@ -139,6 +139,7 @@ namespace Osmium {
                 }
 
                 void consolidate() {
+                    m_vector.erase_removed();
                     m_vector.append(m_multimap.begin(), m_multimap.end());
                     m_multimap.clear();
                     m_vector.sort();

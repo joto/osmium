@@ -83,6 +83,10 @@ namespace Osmium {
                     m_map.clear();
                 }
 
+                void consolidate() {
+                    // intentionally left blank
+                }
+
                 typedef std::pair<osm_object_id_t, osm_object_id_t> non_const_value_type;
 
                 void dump(int fd) const {

@@ -97,11 +97,26 @@ namespace Osmium {
                     std::sort(m_data.begin(), m_data.end(), cmp_for_sort);
                 }
 
+                void erase_removed() {
+                    m_data.erase(
+                        std::remove_if(m_data.begin(), m_data.end(), is_removed),
+                        m_data.end()
+                    );
+                }
+
                 void append(const id_map_t::iterator& begin, const id_map_t::iterator& end) {
                     std::copy(begin, end, std::back_inserter(m_data));
                 }
 
+                void consolidate() {
+                    // intentionally left blank
+                }
+
             private:
+
+                static bool is_removed(value_type& value) {
+                    return value.second == 0;
+                }
 
                 collection_type m_data;
 
