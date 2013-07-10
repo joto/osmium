@@ -39,7 +39,9 @@ namespace Osmium {
 
             public:
 
-                typedef std::multimap<const osm_object_id_t, osm_object_id_t> id_map_t;
+                typedef std::multimap<const osm_object_id_t, osm_object_id_t> collection_type;
+                typedef collection_type::iterator iterator;
+                typedef collection_type::value_type value_type;
 
                 MultiMap() : m_map() {
                 }
@@ -55,13 +57,13 @@ namespace Osmium {
                     m_map.insert(std::make_pair(member_id, object_id));
                 }
 
-                std::pair<id_map_t::iterator, id_map_t::iterator> get(const osm_object_id_t id) {
+                std::pair<iterator, iterator> get(const osm_object_id_t id) {
                     return m_map.equal_range(id);
                 }
 
                 void remove(const osm_object_id_t member_id, const osm_object_id_t object_id) {
-                    std::pair<id_map_t::iterator, id_map_t::iterator> r = get(member_id);
-                    for (id_map_t::iterator it = r.first; it != r.second; ++it) {
+                    std::pair<iterator, iterator> r = get(member_id);
+                    for (iterator it = r.first; it != r.second; ++it) {
                         if (it->second == object_id) {
                             m_map.erase(it);
                             return;
@@ -69,11 +71,11 @@ namespace Osmium {
                     }
                 }
 
-                id_map_t::iterator begin() {
+                iterator begin() {
                     return m_map.begin();
                 }
 
-                id_map_t::iterator end() {
+                iterator end() {
                     return m_map.end();
                 }
 
@@ -81,16 +83,17 @@ namespace Osmium {
                     m_map.clear();
                 }
 
+                typedef std::pair<osm_object_id_t, osm_object_id_t> non_const_value_type;
+
                 void dump(int fd) const {
-                    typedef std::pair<osm_object_id_t, osm_object_id_t> pair_t;
-                    std::vector<pair_t> v;
+                    std::vector<non_const_value_type> v;
                     std::copy(m_map.begin(), m_map.end(), std::back_inserter(v));
-                    Osmium::Ser::write(fd, &v[0], sizeof(pair_t) * v.size());
+                    Osmium::Ser::write(fd, &v[0], sizeof(value_type) * v.size());
                 }
 
             private:
             
-                id_map_t m_map;
+                collection_type m_map;
 
             }; // MultiMap
 

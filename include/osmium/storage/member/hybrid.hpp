@@ -35,15 +35,16 @@ namespace Osmium {
 
         namespace Member {
 
-            typedef std::pair<osm_object_id_t, osm_object_id_t> id_id_t;
-            typedef std::vector<id_id_t> v_t;
-            typedef std::multimap<const osm_object_id_t, osm_object_id_t> id_map_t;
+            typedef Osmium::Storage::Member::Vector vector_t;
+            typedef Osmium::Storage::Member::MultiMap multimap_t;
 
             class HybridIterator {
 
             public:
 
-                HybridIterator(v_t::iterator begin1, v_t::iterator end1, id_map_t::iterator begin2, id_map_t::iterator end2) :
+                typedef multimap_t::value_type value_type;
+
+                HybridIterator(vector_t::iterator begin1, vector_t::iterator end1, multimap_t::iterator begin2, multimap_t::iterator end2) :
                      m_begin1(begin1),
                      m_end1(end1),
                      m_begin2(begin2),
@@ -68,7 +69,7 @@ namespace Osmium {
                     return tmp;
                 }
 
-                const v_t::value_type& operator*() {
+                const value_type& operator*() {
                     if (m_begin1 == m_end1) {
                         return *m_begin2;
                     } else {
@@ -76,22 +77,25 @@ namespace Osmium {
                     }
                 }
 
-                const v_t::value_type* operator->() {
+                const value_type* operator->() {
                     return &operator*();
                 }
 
             private:
 
-                v_t::iterator m_begin1;
-                v_t::iterator m_end1;
-                id_map_t::iterator m_begin2;
-                id_map_t::iterator m_end2;
+                vector_t::iterator m_begin1;
+                vector_t::iterator m_end1;
+                multimap_t::iterator m_begin2;
+                multimap_t::iterator m_end2;
 
             };
 
             class Hybrid {
 
             public:
+
+                typedef HybridIterator::value_type value_type;
+                typedef HybridIterator iterator;
 
                 Hybrid() :
                     m_multimap(),
@@ -111,9 +115,9 @@ namespace Osmium {
                     m_multimap.set(member_id, object_id);
                 }
 
-                std::pair<HybridIterator, HybridIterator> get(const osm_object_id_t id) {
-                    std::pair<v_t::iterator, v_t::iterator> result_vector = m_vector.get(id);
-                    std::pair<id_map_t::iterator, id_map_t::iterator> result_multimap = m_multimap.get(id);
+                std::pair<iterator, iterator> get(const osm_object_id_t id) {
+                    std::pair<vector_t::iterator, vector_t::iterator> result_vector = m_vector.get(id);
+                    std::pair<multimap_t::iterator, multimap_t::iterator> result_multimap = m_multimap.get(id);
                     return std::make_pair(HybridIterator(result_vector.first, result_vector.second, result_multimap.first, result_multimap.second),
                                           HybridIterator(result_vector.second, result_vector.second, result_multimap.second, result_multimap.second));
                 }

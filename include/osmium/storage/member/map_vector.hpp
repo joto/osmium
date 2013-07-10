@@ -44,11 +44,13 @@ namespace Osmium {
 
             class Vector {
 
+                typedef std::multimap<const osm_object_id_t, osm_object_id_t> id_map_t;
+
             public:
 
-                typedef std::multimap<const osm_object_id_t, osm_object_id_t> id_map_t;
-                typedef std::pair<osm_object_id_t, osm_object_id_t> id_id_t;
-                typedef std::vector<id_id_t> v_t;
+                typedef std::pair<osm_object_id_t, osm_object_id_t> value_type;
+                typedef std::vector<value_type> collection_type;
+                typedef collection_type::iterator iterator;
 
                 Vector() :
                     m_data() {
@@ -67,14 +69,14 @@ namespace Osmium {
                     m_data.push_back(std::make_pair(member_id, object_id));
                 }
 
-                std::pair<v_t::iterator, v_t::iterator> get(const osm_object_id_t id) {
-                    id_id_t s(id, 0);
+                std::pair<iterator, iterator> get(const osm_object_id_t id) {
+                    value_type s(id, 0);
                     return std::equal_range(m_data.begin(), m_data.end(), s, vcmp);
                 }
 
                 void remove(const osm_object_id_t member_id, const osm_object_id_t object_id) {
-                    std::pair<v_t::iterator, v_t::iterator> r = get(member_id);
-                    for (v_t::iterator it = r.first; it != r.second; ++it) {
+                    std::pair<iterator, iterator> r = get(member_id);
+                    for (iterator it = r.first; it != r.second; ++it) {
                         if (it->second == object_id) {
                             it->second = 0;
                             return;
@@ -84,7 +86,7 @@ namespace Osmium {
 
                 void dump(int fd) {
                     sort();
-                    Osmium::Ser::write(fd, m_data.data(), sizeof(id_id_t) * m_data.size());
+                    Osmium::Ser::write(fd, m_data.data(), sizeof(value_type) * m_data.size());
                 }
 
                 void sort() {
@@ -97,7 +99,7 @@ namespace Osmium {
 
             private:
 
-                v_t m_data;
+                collection_type m_data;
 
             }; // Vector
 
