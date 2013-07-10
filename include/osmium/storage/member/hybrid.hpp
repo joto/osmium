@@ -69,6 +69,17 @@ namespace Osmium {
                     return tmp;
                 }
 
+                bool operator==(const HybridIterator& rhs) const {
+                    return m_begin1 == rhs.m_begin1 &&
+                           m_end1   == rhs.m_end1 &&
+                           m_begin2 == rhs.m_begin2 &&
+                           m_end2   == rhs.m_end2;
+                }
+
+                bool operator!=(const HybridIterator& rhs) const {
+                    return ! operator==(rhs);
+                }
+
                 const value_type& operator*() {
                     if (m_begin1 == m_end1) {
                         return *m_begin2;
