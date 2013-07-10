@@ -24,6 +24,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <algorithm>
 #include <iostream>
+#include <map>
 #include <vector>
 
 #include <boost/foreach.hpp>
@@ -45,6 +46,7 @@ namespace Osmium {
 
             public:
 
+                typedef std::multimap<const osm_object_id_t, osm_object_id_t> id_map_t;
                 typedef std::pair<osm_object_id_t, osm_object_id_t> id_id_t;
                 typedef std::vector<id_id_t> v_t;
 
@@ -55,6 +57,10 @@ namespace Osmium {
                 Vector(size_t reserve_size) :
                     m_data() {
                     m_data.reserve(reserve_size);
+                }
+
+                void unsorted_set(const osm_object_id_t member_id, const osm_object_id_t object_id) {
+                    set(member_id, object_id);
                 }
 
                 void set(const osm_object_id_t member_id, const osm_object_id_t object_id) {
@@ -83,6 +89,10 @@ namespace Osmium {
 
                 void sort() {
                     std::sort(m_data.begin(), m_data.end(), vcmp);
+                }
+
+                void append(const id_map_t::iterator& begin, const id_map_t::iterator& end) {
+                    std::copy(begin, end, std::back_inserter(m_data));
                 }
 
             private:

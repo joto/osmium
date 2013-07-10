@@ -27,13 +27,15 @@
 
 #include <osmium/storage/member/multimap.hpp>
 #include <osmium/storage/member/map_vector.hpp>
+#include <osmium/storage/member/hybrid.hpp>
 
 // ==============================================================================
 // Choose the following depending on the size of the input OSM files:
 // ==============================================================================
 // for smaller OSM files (extracts)
-typedef Osmium::Ser::Index::VectorWithId index_t; // for smaller OSM files (extracts)
-typedef Osmium::Storage::Member::MultiMap map_t;
+typedef Osmium::Ser::Index::VectorWithId index_t;
+//typedef Osmium::Storage::Member::MultiMap map_t;
+typedef Osmium::Storage::Member::Hybrid map_t;
 const size_t reserve_for_node2way = 0;
 
 // ==============================================================================

@@ -47,6 +47,10 @@ namespace Osmium {
                 MultiMap(size_t) : m_map() {
                 }
 
+                void unsorted_set(const osm_object_id_t member_id, const osm_object_id_t object_id) {
+                    set(member_id, object_id);
+                }
+
                 void set(const osm_object_id_t member_id, const osm_object_id_t object_id) {
                     m_map.insert(std::make_pair(member_id, object_id));
                 }
@@ -63,6 +67,18 @@ namespace Osmium {
                             return;
                         }
                     }
+                }
+
+                id_map_t::iterator begin() {
+                    return m_map.begin();
+                }
+
+                id_map_t::iterator end() {
+                    return m_map.end();
+                }
+
+                void clear() {
+                    m_map.clear();
                 }
 
                 void dump(int fd) const {
