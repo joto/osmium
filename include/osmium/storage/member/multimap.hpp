@@ -88,6 +88,7 @@ namespace Osmium {
                 void dump(int fd) const {
                     std::vector<non_const_value_type> v;
                     std::copy(m_map.begin(), m_map.end(), std::back_inserter(v));
+                    std::sort(v.begin(), v.end());
                     Osmium::Ser::write(fd, &v[0], sizeof(value_type) * v.size());
                 }
 
