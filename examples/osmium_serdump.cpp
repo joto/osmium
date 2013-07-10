@@ -22,11 +22,26 @@
 #include <osmium/ser/buffer_manager.hpp>
 #include <osmium/ser/update_handler.hpp>
 #include <osmium/ser/handler.hpp>
-#include <osmium/ser/index.hpp>
-#include <osmium/storage/member/multimap.hpp>
 
-typedef Osmium::Ser::Index::VectorWithId index_t;
+#include <osmium/ser/index.hpp>
+
+#include <osmium/storage/member/multimap.hpp>
+#include <osmium/storage/member/map_vector.hpp>
+
+// ==============================================================================
+// Choose the following depending on the size of the input OSM files:
+// ==============================================================================
+// for smaller OSM files (extracts)
+typedef Osmium::Ser::Index::VectorWithId index_t; // for smaller OSM files (extracts)
 typedef Osmium::Storage::Member::MultiMap map_t;
+const size_t reserve_for_node2way = 0;
+
+// ==============================================================================
+// for very large OSM files (planet)
+//typedef Osmium::Ser::Index::Vector index_t;
+//typedef Osmium::Storage::Member::Vector map_t;
+//const size_t reserve_for_node2way = 3L * 1000L * 1000L * 1000L;
+// ==============================================================================
 
 void print_help() {
     std::cout << "osmium_serdump OSMFILE DIR\n" \
@@ -89,7 +104,7 @@ int main(int argc, char* argv[]) {
     index_t way_index;
     index_t relation_index;
 
-    map_t map_node2way;
+    map_t map_node2way(reserve_for_node2way);
     map_t map_node2relation;
     map_t map_way2relation;
     map_t map_relation2relation;

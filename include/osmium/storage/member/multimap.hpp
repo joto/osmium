@@ -44,6 +44,9 @@ namespace Osmium {
                 MultiMap() : m_map() {
                 }
 
+                MultiMap(size_t) : m_map() {
+                }
+
                 void set(const osm_object_id_t member_id, const osm_object_id_t object_id) {
                     m_map.insert(std::make_pair(member_id, object_id));
                 }
