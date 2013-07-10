@@ -38,7 +38,11 @@ namespace Osmium {
 
         namespace Member {
 
-            inline bool vcmp(const std::pair<const osm_object_id_t, osm_object_id_t>& lhs, const std::pair<const osm_object_id_t, osm_object_id_t>& rhs) {
+            inline bool cmp_for_search(const std::pair<const osm_object_id_t, osm_object_id_t>& lhs, const std::pair<const osm_object_id_t, osm_object_id_t>& rhs) {
+                return lhs.first < rhs.first;
+            }
+
+            inline bool cmp_for_sort(const std::pair<const osm_object_id_t, osm_object_id_t>& lhs, const std::pair<const osm_object_id_t, osm_object_id_t>& rhs) {
                 return (lhs.first == rhs.first && lhs.second < rhs.second) || lhs.first < rhs.first;
             }
 
@@ -71,7 +75,7 @@ namespace Osmium {
 
                 std::pair<iterator, iterator> get(const osm_object_id_t id) {
                     value_type s(id, 0);
-                    return std::equal_range(m_data.begin(), m_data.end(), s, vcmp);
+                    return std::equal_range(m_data.begin(), m_data.end(), s, cmp_for_search);
                 }
 
                 void remove(const osm_object_id_t member_id, const osm_object_id_t object_id) {
@@ -90,7 +94,7 @@ namespace Osmium {
                 }
 
                 void sort() {
-                    std::sort(m_data.begin(), m_data.end(), vcmp);
+                    std::sort(m_data.begin(), m_data.end(), cmp_for_sort);
                 }
 
                 void append(const id_map_t::iterator& begin, const id_map_t::iterator& end) {

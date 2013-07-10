@@ -38,7 +38,7 @@ namespace Osmium {
 
         namespace Member {
 
-            inline bool cmp(const std::pair<const osm_object_id_t, osm_object_id_t>& lhs, const std::pair<const osm_object_id_t, osm_object_id_t>& rhs) {
+            inline bool cmp_for_search(const std::pair<const osm_object_id_t, osm_object_id_t>& lhs, const std::pair<const osm_object_id_t, osm_object_id_t>& rhs) {
                 return lhs.first < rhs.first;
             }
 
@@ -46,7 +46,8 @@ namespace Osmium {
 
             public:
 
-                typedef std::pair<const osm_object_id_t, osm_object_id_t> id_id_t;
+                typedef std::pair<const osm_object_id_t, osm_object_id_t> value_type;
+                typedef value_type* iterator;
 
                 Mmap(int fd) :
                     m_memory(MAP_FAILED),
@@ -63,8 +64,8 @@ namespace Osmium {
                     if (m_memory == MAP_FAILED) {
                         throw std::runtime_error("Can't mmap index file");
                     }
-                    m_data = reinterpret_cast<id_id_t*>(m_memory);
-                    m_size = m_memory_size / sizeof(id_id_t);
+                    m_data = reinterpret_cast<value_type*>(m_memory);
+                    m_size = m_memory_size / sizeof(value_type);
                 }
 
                 ~Mmap() {
@@ -74,13 +75,13 @@ namespace Osmium {
                 }
 
                 void dump() {
-                    for (id_id_t* it = m_data; it != m_data + m_size; ++it) {
+                    for (iterator it = m_data; it != m_data + m_size; ++it) {
                         std::cout << it->first << ":" << it->second << "\n";
                     }
                 }
 
-                std::pair<id_id_t*, id_id_t*> get(const osm_object_id_t id) {
-                    return std::equal_range(m_data, m_data+m_size, std::make_pair<const osm_object_id_t, osm_object_id_t>(id, 0), cmp);
+                std::pair<iterator, iterator> get(const osm_object_id_t id) {
+                    return std::equal_range(m_data, m_data+m_size, std::make_pair<const osm_object_id_t, osm_object_id_t>(id, 0), cmp_for_search);
                 }
 
             private:
@@ -88,7 +89,7 @@ namespace Osmium {
                 void *m_memory;
                 size_t m_memory_size;
 
-                id_id_t* m_data;
+                value_type* m_data;
                 size_t m_size;
 
             }; // Mmap

@@ -140,7 +140,6 @@ namespace Osmium {
 
                 void consolidate() {
                     m_vector.append(m_multimap.begin(), m_multimap.end());
-//                    std::copy(m_multimap.begin(), m_multimap.end(), std::back_inserter(m_vector.m_data));
                     m_multimap.clear();
                     m_vector.sort();
                 }

@@ -18,6 +18,8 @@
 #include <osmium/storage/member/mmap.hpp>
 #include <osmium/ser/debug.hpp>
 
+typedef Osmium::Storage::Member::Mmap map_t;
+
 void print_help() {
     std::cout << "osmium_serget [OPTIONS] DIR TYPE ID\n" \
               << "Output object of type TYPE with ID from data files/indexes in DIR.\n" \
@@ -116,14 +118,14 @@ int main(int argc, char* argv[]) {
             exit(2);
         }
 
-        Osmium::Storage::Member::Mmap map(map_fd);
+        map_t map(map_fd);
 
-        std::pair<Osmium::Storage::Member::Mmap::id_id_t*, Osmium::Storage::Member::Mmap::id_id_t*> result = map.get(id);
+        std::pair<map_t::iterator, map_t::iterator> result = map.get(id);
         if (result.first == result.second) {
             exit(1);
         }
 
-        for (Osmium::Storage::Member::Mmap::id_id_t* it = result.first; it != result.second; ++it) {
+        for (map_t::iterator it = result.first; it != result.second; ++it) {
             std::cout << it->second << "\n";
         }
     }
