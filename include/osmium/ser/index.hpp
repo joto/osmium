@@ -126,6 +126,11 @@ namespace Osmium {
                 Vector() : m_offsets() {
                 }
 
+                Vector(size_t reserve_size) :
+                    m_offsets() {
+                    m_offsets.reserve(reserve_size);
+                }
+
                 void set(const uint64_t id, const size_t offset) {
                     if (id >= m_offsets.size()) {
                         m_offsets.resize(id + size_increment, -1); // use -1 as marker for uninitialized offset
