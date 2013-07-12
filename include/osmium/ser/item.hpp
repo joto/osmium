@@ -489,8 +489,7 @@ namespace Osmium {
 
             const Osmium::Ser::WayNodeList& nodes() const {
                 for (Osmium::Ser::Object::iterator it = begin(); it != end(); ++it) {
-                    if (it->type().t() == Osmium::Ser::ItemType::itemtype_way_node_list ||
-                        it->type().t() == Osmium::Ser::ItemType::itemtype_way_node_with_position_list ) {
+                    if (it->type().t() == Osmium::Ser::ItemType::itemtype_way_node_list) {
                         return reinterpret_cast<const Osmium::Ser::WayNodeList&>(*it);
                     }
                 }
