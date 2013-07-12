@@ -96,6 +96,10 @@ namespace Osmium {
                     Osmium::Ser::write(fd, &v[0], sizeof(value_type) * v.size());
                 }
 
+                size_t size() const {
+                    return m_map.size();
+                }
+
             private:
             
                 collection_type m_map;

@@ -150,6 +150,10 @@ namespace Osmium {
                     m_vector.dump(fd);
                 }
 
+                size_t size() const {
+                    return m_vector.size() + m_multimap.size();
+                }
+
             private:
 
                 Osmium::Storage::Member::MultiMap m_multimap;

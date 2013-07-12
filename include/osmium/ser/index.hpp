@@ -83,6 +83,10 @@ namespace Osmium {
                     throw NotFound(id);
                 }
 
+                size_t size() const {
+                    return 0;
+                }
+
             }; // class Null
 
             class Map {
@@ -109,6 +113,10 @@ namespace Osmium {
                     std::vector<pair_t> v;
                     std::copy(m_map.begin(), m_map.end(), std::back_inserter(v));
                     Osmium::Ser::write(fd, &v[0], sizeof(pair_t) * v.size());
+                }
+
+                size_t size() const {
+                    return m_map.size();
                 }
 
             private:
@@ -149,6 +157,10 @@ namespace Osmium {
 
                 void dump(int fd) const {
                     Osmium::Ser::write(fd, &m_offsets[0], sizeof(ssize_t) * m_offsets.size());
+                }
+
+                size_t size() const {
+                    return m_offsets.size();
                 }
 
             private:
@@ -196,6 +208,10 @@ namespace Osmium {
                     Osmium::Ser::write(fd, &m_list[0], sizeof(list_entry_t) * m_list.size());
                 }
 
+                size_t size() const {
+                    return m_list.size();
+                }
+
             private:
 
                 std::vector<list_entry_t> m_list;
@@ -238,6 +254,10 @@ namespace Osmium {
                     } else {
                         throw NotFound(id);
                     }
+                }
+
+                size_t size() const {
+                    return m_size;
                 }
 
             private:

@@ -84,6 +84,10 @@ namespace Osmium {
                     return std::equal_range(m_data, m_data+m_size, std::make_pair<const osm_object_id_t, osm_object_id_t>(id, 0), cmp_for_search);
                 }
 
+                size_t size() const {
+                    return m_size;
+                }
+
             private:
 
                 void *m_memory;

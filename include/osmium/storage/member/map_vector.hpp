@@ -112,6 +112,10 @@ namespace Osmium {
                     // intentionally left blank
                 }
 
+                size_t size() const {
+                    return m_data.size();
+                }
+
             private:
 
                 static bool is_removed(value_type& value) {
