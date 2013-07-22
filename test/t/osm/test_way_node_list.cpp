@@ -9,18 +9,18 @@ BOOST_AUTO_TEST_SUITE(WayNodeList)
 
 BOOST_AUTO_TEST_CASE(set_position) {
     Osmium::OSM::WayNodeList wnl;
-    BOOST_CHECK_EQUAL(wnl.size(), 0);
+    BOOST_CHECK_EQUAL(wnl.size(), 0u);
     BOOST_CHECK(!wnl.has_position());
     Osmium::OSM::WayNode wn(5);
     wnl.add(wn);
-    BOOST_CHECK_EQUAL(wnl.size(), 1);
+    BOOST_CHECK_EQUAL(wnl.size(), 1u);
     BOOST_CHECK(!wnl.has_position());
     BOOST_CHECK_EQUAL(wnl[0].ref(), 5);
     wnl.add(17);
-    BOOST_CHECK_EQUAL(wnl.size(), 2);
+    BOOST_CHECK_EQUAL(wnl.size(), 2u);
     BOOST_CHECK_EQUAL(wnl[1].ref(), 17);
     wnl.clear();
-    BOOST_CHECK_EQUAL(wnl.size(), 0);
+    BOOST_CHECK_EQUAL(wnl.size(), 0u);
 }
 
 BOOST_AUTO_TEST_CASE(closed_or_not) {

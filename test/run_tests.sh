@@ -39,7 +39,7 @@ test_file () {
 
     eval OPTS_CFLAGS=`../get_options.sh --cflags $FILES`
     eval OPTS_LIBS=`../get_options.sh --libs $FILES`
-    PARAMS="$OPTS_CFLAGS $OPTS_LIBS -DBOOST_TEST_DYN_LINK -lboost_unit_test_framework"
+    PARAMS="$OPTS_CFLAGS $OPTS_LIBS -DBOOST_TEST_DYN_LINK -lboost_unit_test_framework -lboost_regex -lboost_iostreams -lboost_filesystem -lboost_system"
 
     echo "Checking $BOLD$1$NORM..."
     echo $COMPILE $FILES $PARAMS
