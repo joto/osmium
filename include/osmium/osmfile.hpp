@@ -543,7 +543,9 @@ namespace Osmium {
                 int status;
                 pid_t pid = waitpid(m_childpid, &status, 0);
                 if (pid < 0 || !WIFEXITED(status) || WEXITSTATUS(status) != 0) {
-                    throw IOError("Subprocess returned error", "", errno);
+                    // global variable errno doesn't contain a valid value,
+                    // so we better set errno=0
+                    throw IOError("Subprocess returned error", m_filename, 0);
                 }
                 m_childpid = 0;
             }
@@ -647,7 +649,7 @@ namespace Osmium {
         }
 
         std::string filename_without_suffix() const {
-            return m_filename.substr(m_filename.find_first_of('.')+1);
+            return m_filename.substr(0, m_filename.find_first_of('.'));
         }
 
         std::string filename_with_default_suffix() const {
