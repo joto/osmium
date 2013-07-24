@@ -219,6 +219,8 @@ namespace Osmium {
             Object& visible(const char* visible) {
                 if (!strcmp(visible, "false")) {
                     m_visible = false;
+                } else {
+                    m_visible = true;
                 }
                 return *this;
             }
