@@ -20,7 +20,7 @@ struct TempBaseDirFixture {
 };
 
 struct TempDirFixture {
-    TempDirFixture(std::string name) {
+    TempDirFixture(const std::string& name) {
         path = tempdir_path / name;
     }
 
@@ -47,7 +47,7 @@ struct TempDirFixture {
 };
 
 struct TempFileFixture {
-    TempFileFixture(std::string name) {
+    TempFileFixture(const std::string& name) {
         path = tempdir_path / name;
     }
 
