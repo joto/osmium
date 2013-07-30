@@ -35,6 +35,7 @@ SCAN_DIRS = \
 	t/tags \
 
 ALL_TESTS = $(shell find $(SCAN_DIRS) -name "*.cpp" | sed -e "s/.cpp$$/.o/")
+ALL_TESTS_COVERAGE = $(shell find $(SCAN_DIRS) -name "*.cpp" | sed -e "s/.cpp$$/.ocov/")
 
 .PHONY: test_main clean coverage
 
@@ -43,9 +44,10 @@ ALL:	test_main
 
 clean:
 	find . -name "*.o" -exec rm {} ";"
+	find . -name "*.ocov" -exec rm {} ";"
 	find . -name "*.gcda" -exec rm {} ";"
 	find . -name "*.gcno" -exec rm {} ";"
-	rm -rf coverage gcov tests.info test_main tests
+	rm -rf coverage gcov tests.info test_main test_main_cov tests
 
 test_main: $(ALL_TESTS) test_main.o test_utils.o
 	$(CXX) $(LDFLAGS) $(LIB_SHAPE) $(LIB_OGR) $(LIB_GD) $(LIB_GEOS) $(LIB_XML2) -o $@ $^
@@ -53,19 +55,27 @@ test_main: $(ALL_TESTS) test_main.o test_utils.o
 %.o: %.cpp
 	$(CXX) -c $(CXXFLAGS) $(CXXFLAGS_LIBXML2) $(CXXFLAGS_GEOS) $(CXXFLAGS_OGR) -o $@ $< 
 
+%.ocov: %.cpp
+	$(CXX) -c $(CXXFLAGS) $(CXXFLAGS_LIBXML2) $(CXXFLAGS_GEOS) $(CXXFLAGS_OGR) --coverage -o $@ $< 
+
 %.test: %.o test_main.o test_utils.o
 	$(CXX) $(LDFLAGS) $(LIB_SHAPE) $(LIB_OGR) $(LIB_GD) $(LIB_GEOS) $(LIB_XML2) -o $@ $< test_main.o test_utils.o
 
-coverage:
+test_main_cov:	$(ALL_TESTS_COVERAGE) test_main.ocov test_utils.ocov
+	$(CXX) $(LDFLAGS) $(LIB_SHAPE) $(LIB_OGR) $(LIB_GD) $(LIB_GEOS) $(LIB_XML2) --coverage -o $@ $^
+
+coverage: test_main_cov
 	lcov --zerocounters --directory .
-	export CXXFLAGS="$(CXXFLAGS) --coverage" LDFLAGS="$(LDFLAGS) --coverage" && make ALL || echo "test errors"
+	#export CXXFLAGS="$(CXXFLAGS) --coverage" LDFLAGS="$(LDFLAGS) --coverage" && make ALL || echo "test errors"
+	./test_main_cov || true
 	lcov --capture --directory . --base-directory . -o tests.info
 	#lcov --extract -o tests-programcoverage 
 	genhtml -o coverage tests.info
 
-coverage-gcov:
+coverage-gcov: test_main_cov
 	lcov --zerocounters --directory .
-	export CXXFLAGS="$(CXXFLAGS) --coverage" LDFLAGS="$(LDFLAGS) --coverage" && make ALL || echo "test errors"
+	#export CXXFLAGS="$(CXXFLAGS) --coverage" LDFLAGS="$(LDFLAGS) --coverage" && make ALL || echo "test errors"
+	./test_main_cov || true
 	find . -name "*.cpp" | xargs gcov -r
 	mkdir gcov || true
 	mv *.gcov gcov/
