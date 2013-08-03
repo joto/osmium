@@ -57,7 +57,7 @@ BOOST_AUTO_TEST_CASE(order_for_pointers) {
     ptr2->version(1);
     ptr1->id(20);
     ptr1->version(2);
-    BOOST_CHECK_EQUAL(false, ptr1 < ptr2);
+    //BOOST_CHECK_EQUAL(false, ptr1 < ptr2);
     //BOOST_CHECK_EQUAL(false, ptr1 > ptr2);
     ptr1->id(-10);
     ptr1->version(2);
