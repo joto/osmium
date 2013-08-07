@@ -78,4 +78,23 @@ BOOST_AUTO_TEST_CASE(Relation_getMember_returnsPointerToMember) {
     BOOST_CHECK_EQUAL(fix.rel.get_member(4) == NULL, true);
 }
 
+BOOST_AUTO_TEST_CASE(Relation_comparisonOperator_comparesByIdThenByVersion) {
+    Osmium::OSM::Relation rel1, rel2;
+
+    BOOST_CHECK_EQUAL(rel1 < rel2, false);
+    BOOST_CHECK_EQUAL(rel1 > rel2, false);
+
+    rel1.id(12);
+    rel2.id(10);
+    BOOST_CHECK_EQUAL(rel1 < rel2, false);
+    BOOST_CHECK_EQUAL(rel1 > rel2, true);
+
+    rel1.id(12);
+    rel2.id(12);
+    rel1.version(1);
+    rel2.version(2);
+    BOOST_CHECK_EQUAL(rel1 < rel2, true);
+    BOOST_CHECK_EQUAL(rel1 > rel2, false);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
