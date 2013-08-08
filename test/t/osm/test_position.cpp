@@ -42,5 +42,38 @@ BOOST_AUTO_TEST_CASE(output) {
     BOOST_CHECK(out.is_equal("(-3.2,47.3)"));
 }
 
+BOOST_AUTO_TEST_CASE(Position_constructor_initializesFrom64int) {
+    int64_t x=12000000, y=45000000;
+    Osmium::OSM::Position position(x,y);
+
+    BOOST_CHECK_EQUAL(position.x(), 12000000);
+    BOOST_CHECK_EQUAL(position.y(), 45000000);
+}
+
+BOOST_AUTO_TEST_CASE(Position_comparisonOperator_comparesFirstByxThenByyCoordinate) {
+    Osmium::OSM::Position p1, p2;
+
+    p1.x(12000000);
+    p1.y(45000000);
+    p2.x(12000000);
+    p2.y(45000000);
+    BOOST_CHECK_EQUAL(p1 < p2, false);
+    BOOST_CHECK_EQUAL(p1 > p2, false);
+
+    p1.x(12000000);
+    p1.y(45000000);
+    p2.x(13000000);
+    p2.y(44000000);
+    BOOST_CHECK_EQUAL(p1 < p2, true);
+    BOOST_CHECK_EQUAL(p1 > p2, false);
+
+    p1.x(12000000);
+    p1.y(45000000);
+    p2.x(12000000);
+    p2.y(44000000);
+    BOOST_CHECK_EQUAL(p1 < p2, false);
+    BOOST_CHECK_EQUAL(p1 > p2, true);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 
