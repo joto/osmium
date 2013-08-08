@@ -28,6 +28,7 @@ LDFLAGS += $(LIB_EXPAT) $(LIB_PBF) -lboost_unit_test_framework -lboost_regex -lb
 SCAN_DIRS = \
 	t/geometry \
 	t/osm \
+	t/handler \
 	t/geometry_geos \
 	t/geometry_ogr \
 	t/osmfile \
@@ -76,6 +77,6 @@ coverage-gcov: test_main_cov
 	lcov --zerocounters --directory .
 	#export CXXFLAGS="$(CXXFLAGS) --coverage" LDFLAGS="$(LDFLAGS) --coverage" && make ALL || echo "test errors"
 	./test_main_cov || true
-	find . -name "*.cpp" | xargs gcov -r
+	find . -name "*.cpp" | xargs gcov -r -p -s ../include
 	mkdir gcov || true
 	mv *.gcov gcov/
