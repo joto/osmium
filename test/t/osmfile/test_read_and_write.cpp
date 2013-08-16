@@ -15,6 +15,11 @@
 
 #include <osmium/osmfile.hpp>
 
+// these tests work only if your boost library is new enough to have
+// boost_filesystem version 3
+// if that is not the case we disable the test and add a dummy test
+#if BOOST_FILESYSTEM_VERSION == 3
+
 std::string example_file_content("Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.\n");
 
 /* Test scenarios for OSMFile objects
@@ -24,9 +29,9 @@ std::string example_file_content("Lorem ipsum dolor sit amet, consetetur sadipsc
 
 // Disable the Boost.Test handling of SIGCHLD signals.
 #if defined(BOOST_POSIX_API)
-    #define DISABLE_SIGCHLD() signal(SIGCHLD, SIG_IGN)
+# define DISABLE_SIGCHLD() signal(SIGCHLD, SIG_IGN)
 #else
-    #define DISABLE_SIGCHLD()
+# define DISABLE_SIGCHLD()
 #endif
 
 BOOST_AUTO_TEST_SUITE(OSMFile_Output)
@@ -241,3 +246,11 @@ BOOST_AUTO_TEST_CASE( OSMFile_readingNonexistingFileWithGzip_shouldRaiseIOExcept
 }
 
 BOOST_AUTO_TEST_SUITE_END()
+
+#else
+BOOST_AUTO_TEST_SUITE(Dummy)
+BOOST_AUTO_TEST_CASE(DummyTest) {
+}
+BOOST_AUTO_TEST_SUITE_END()
+#endif
+
