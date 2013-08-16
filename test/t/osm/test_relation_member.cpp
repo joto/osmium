@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_CASE(RelationMember_role_setsRole) {
 }
 
 BOOST_AUTO_TEST_CASE(RelationMember_role_throwsIfNameTooLong) {
-    // A username, which is too long (more than 256 4-byte characters = 1024 bytes)
+    // A role, which is too long (more than 256 4-byte characters = 1024 bytes)
     std::string role_too_long("\
 00 456789ABCDEF 123456789ABCDEF 123456789ABCDEF 123456789ABCDEF \
 01 456789ABCDEF 123456789ABCDEF 123456789ABCDEF 123456789ABCDEF \
