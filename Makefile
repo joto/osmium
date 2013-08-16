@@ -11,7 +11,8 @@ all:
 .PHONY: clean install check check-includes test indent
 
 clean:
-	rm -fr check-includes-report doc/html test/tests
+	rm -fr check-includes-report doc/html
+	$(MAKE) -C test clean
 
 install: doc
 	install -m 755 -g root -o root -d $(DESTDIR)/usr/include

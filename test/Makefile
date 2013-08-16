@@ -34,7 +34,6 @@ SCAN_DIRS = \
 	t/utils \
 	t/tags \
 
-PROBLEMS = t/geometry t/tags
 ALL_TESTS = $(shell find $(SCAN_DIRS) -name "*.cpp" | sed -e "s/.cpp$$/.o/")
 
 .PHONY: test_main clean coverage
@@ -46,6 +45,7 @@ clean:
 	find . -name "*.o" -exec rm {} ";"
 	find . -name "*.gcda" -exec rm {} ";"
 	find . -name "*.gcno" -exec rm {} ";"
+	rm -rf coverage gcov tests.info test_main tests
 
 test_main: $(ALL_TESTS) test_main.o test_utils.o
 	$(CXX) $(LDFLAGS) $(LIB_SHAPE) $(LIB_OGR) $(LIB_GD) $(LIB_GEOS) $(LIB_XML2) -o $@ $^

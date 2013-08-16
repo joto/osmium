@@ -2,10 +2,11 @@
 #
 #  Compile and run unit tests
 #
-#  ./run_tests.sh [-v]               -- compiles and runs all tests
-#  ./run_tests.sh [-v] SOME_FILE.CPP -- compiles and runs only one test
+#  ./run_tests.sh [-v] [-o]               -- compiles and runs all tests
+#  ./run_tests.sh [-v] [-o] SOME_FILE.CPP -- compiles and runs only one test
 #
 #  -v  -- Run tests under valgrind
+#  -o  -- Show standard output also if tests passed
 #  
 
 set -e
@@ -25,10 +26,17 @@ fi
 COMPILE="$CXX -I../include -I. $CXXFLAGS $CXXFLAGS_WARNINGS -o tests"
 
 if [ "x$1" = "x-v" ]; then
-    VALGRIND="valgrind --leak-check=full --show-reachable=yes"
+    VALGRIND="valgrind --leak-check=full --show-reachable=yes --error-exitcode=1"
     shift
 else
     VALGRIND=""
+fi
+
+if [ "x$1" = "x-o" ]; then
+    ALWAYS_SHOW_OUTPUT="1"
+    shift
+else
+    ALWAYS_SHOW_OUTPUT="0"
 fi
 
 BOLD="\033[1m"
@@ -67,9 +75,16 @@ test_file () {
         echo "$output"
         echo "=========================="
         return
+    else
+        echo "$GREEN[SUCCESS]$NORM"
+        TESTS_OK=$((TESTS_OK+1))
+        if [ $ALWAYS_SHOW_OUTPUT = 1 ]
+        then
+            echo "=========================="
+            echo "$output"
+            echo "=========================="
+        fi
     fi
-    echo "$GREEN[SUCCESS]$NORM"
-    TESTS_OK=$((TESTS_OK+1))
 }
 
 setup() {
