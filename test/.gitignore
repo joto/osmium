@@ -1,4 +1,11 @@
 tmp
 tests
 test_main
+test_main_cov
+tests.info
+coverage
+gcov
 *.o
+*.ocov
+*.gcda
+*.gcno
