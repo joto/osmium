@@ -39,98 +39,100 @@ namespace Osmium {
 
         public:
 
-            Debug(bool has_multiple_object_versions=false) :
+            Debug(bool has_multiple_object_versions=false, std::ostream &output_stream = std::cout) :
                 Base(),
-                m_has_multiple_object_versions(has_multiple_object_versions) {
+                m_has_multiple_object_versions(has_multiple_object_versions),
+                m_output_stream(output_stream) {
             }
 
             void init(Osmium::OSM::Meta& meta) {
-                std::cout << "meta:\n  generator=" << meta.generator() << "\n";
+                m_output_stream << "meta:\n  generator=" << meta.generator() << "\n";
                 if (meta.has_multiple_object_versions()) {
                     m_has_multiple_object_versions = true;
                 }
 
                 if (meta.bounds().defined()) {
-                    std::cout << "  bounds=" << meta.bounds() << "\n";
+                    m_output_stream << "  bounds=" << meta.bounds() << "\n";
                 }
             }
 
             void before_nodes() const {
-                std::cout << "before_nodes\n";
+                m_output_stream << "before_nodes\n";
             }
 
             void node(const shared_ptr<Osmium::OSM::Node const>& node) const {
-                std::cout << "node:\n";
+                m_output_stream << "node:\n";
                 print_meta(node);
                 const Osmium::OSM::Position& position = node->position();
-                std::cout << "  lon=" << std::fixed << std::setprecision(7) << position.lon() << "\n";
-                std::cout << "  lat=" << std::fixed << std::setprecision(7) << position.lat() << "\n";
+                m_output_stream << "  lon=" << std::fixed << std::setprecision(7) << position.lon() << "\n";
+                m_output_stream << "  lat=" << std::fixed << std::setprecision(7) << position.lat() << "\n";
             }
 
             void after_nodes() const {
-                std::cout << "after_nodes\n";
+                m_output_stream << "after_nodes\n";
             }
 
             void before_ways() const {
-                std::cout << "before_ways\n";
+                m_output_stream << "before_ways\n";
             }
 
             void way(const shared_ptr<Osmium::OSM::Way const>& way) const {
-                std::cout << "way:\n";
+                m_output_stream << "way:\n";
                 print_meta(way);
-                std::cout << "  node_count=" << way->nodes().size() << "\n";
-                std::cout << "  nodes:\n";
+                m_output_stream << "  node_count=" << way->nodes().size() << "\n";
+                m_output_stream << "  nodes:\n";
                 Osmium::OSM::WayNodeList::const_iterator end = way->nodes().end();
                 for (Osmium::OSM::WayNodeList::const_iterator it = way->nodes().begin(); it != end; ++it) {
-                    std::cout << "    ref=" << it->ref() << "\n";
+                    m_output_stream << "    ref=" << it->ref() << "\n";
                 }
             }
 
             void after_ways() const {
-                std::cout << "after_ways\n";
+                m_output_stream << "after_ways\n";
             }
 
             void before_relations() const {
-                std::cout << "before_relations\n";
+                m_output_stream << "before_relations\n";
             }
 
             void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) const {
-                std::cout << "relation:\n";
+                m_output_stream << "relation:\n";
                 print_meta(relation);
-                std::cout << "  members: (count=" << relation->members().size() << ")\n";
+                m_output_stream << "  members: (count=" << relation->members().size() << ")\n";
                 Osmium::OSM::RelationMemberList::const_iterator end = relation->members().end();
                 for (Osmium::OSM::RelationMemberList::const_iterator it = relation->members().begin(); it != end; ++it) {
-                    std::cout << "    type=" << it->type() << " ref=" << it->ref() << " role=|" << it->role() << "|" << "\n";
+                    m_output_stream << "    type=" << it->type() << " ref=" << it->ref() << " role=|" << it->role() << "|" << "\n";
                 }
             }
 
             void after_relations() const {
-                std::cout << "after_relations\n";
+                m_output_stream << "after_relations\n";
             }
 
             void final() const {
-                std::cout << "final\n";
+                m_output_stream << "final\n";
             }
 
         private:
 
             bool m_has_multiple_object_versions;
+            std::ostream& m_output_stream;
 
             void print_meta(const shared_ptr<Osmium::OSM::Object const>& object) const {
-                std::cout <<   "  id="        << object->id()
+                m_output_stream <<   "  id="        << object->id()
                           << "\n  version="   << object->version()
                           << "\n  uid="       << object->uid()
                           << "\n  user=|"     << object->user() << "|"
                           << "\n  changeset=" << object->changeset()
                           << "\n  timestamp=" << object->timestamp_as_string();
                 if (m_has_multiple_object_versions) {
-                    std::cout << "\n  visible=" << (object->visible() ? "yes" : "no")
+                    m_output_stream << "\n  visible=" << (object->visible() ? "yes" : "no")
                               << "\n  endtime=" << object->endtime_as_string();
                 }
-                std::cout << "\n  tags: (count=" << object->tags().size() << ")\n";
+                m_output_stream << "\n  tags: (count=" << object->tags().size() << ")\n";
                 Osmium::OSM::TagList::const_iterator end = object->tags().end();
                 for (Osmium::OSM::TagList::const_iterator it = object->tags().begin(); it != end; ++it) {
-                    std::cout << "    k=|" << it->key() << "| v=|" << it->value() << "|" << "\n";
+                    m_output_stream << "    k=|" << it->key() << "| v=|" << it->value() << "|" << "\n";
                 }
             }
 
