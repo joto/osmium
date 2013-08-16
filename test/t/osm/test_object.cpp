@@ -7,6 +7,19 @@
 
 BOOST_AUTO_TEST_SUITE(Object)
 
+void check_taglists_for_equality(const Osmium::OSM::TagList &tl1, const Osmium::OSM::TagList &tl2) {
+    Osmium::OSM::TagList::const_iterator it1 = tl1.begin(), end1=tl1.end();
+    Osmium::OSM::TagList::const_iterator it2 = tl2.begin(), end2=tl2.end();
+
+    while ( (it1 != end1) && (it2 != end2) ) {
+        BOOST_CHECK_EQUAL(it1->key(), it2->key());
+        BOOST_CHECK_EQUAL(it1->value(), it2->value());
+        ++it1;
+        ++it2;
+    }
+    BOOST_CHECK( (it1 == end1) && (it2 == end2));
+}
+
 BOOST_AUTO_TEST_CASE(Object_id_shouldDecodeStrings) {
     Osmium::OSM::Node obj;
 
@@ -87,6 +100,14 @@ BOOST_AUTO_TEST_CASE(Object_timestampCalledWithInvalidFormat_throwsInvalidArgume
     BOOST_CHECK_THROW(obj.timestamp("invalid_timestamp"), std::invalid_argument);
 }
 
+BOOST_AUTO_TEST_CASE(Object_endtime_setsEndtime) {
+    Osmium::OSM::Node obj;
+    time_t ts = 1362135600u;
+
+    obj.endtime(ts);
+    BOOST_CHECK_EQUAL(obj.endtime(), ts);
+}
+
 BOOST_AUTO_TEST_CASE(Object_endtimeAsString_convertsTimestampToIsoFormat) {
     Osmium::OSM::Node obj;
     time_t ts = 1362135600u;
@@ -104,12 +125,38 @@ BOOST_AUTO_TEST_CASE(Object_endtimeAsString_considersZeroAsUnset) {
 }
 
 
+BOOST_AUTO_TEST_CASE(Object_changeset_setsChangeset) {
+    Osmium::OSM::Node obj;
+
+    obj.changeset(14);
+    BOOST_CHECK_EQUAL(obj.changeset(), 14);
+}
+
+BOOST_AUTO_TEST_CASE(Object_uid_setsUid) {
+    Osmium::OSM::Node obj;
+
+    obj.uid(15);
+    BOOST_CHECK_EQUAL(obj.uid(), 15);
+}
+
 BOOST_AUTO_TEST_CASE(Object_user_setsUsername) {
     Osmium::OSM::Node obj;
 
     obj.user("L33t User");
     BOOST_CHECK_EQUAL(obj.user(), "L33t User");
 }
+
+
+BOOST_AUTO_TEST_CASE(Object_visible_setsVisible) {
+    Osmium::OSM::Node obj;
+
+    obj.visible(false);
+    BOOST_CHECK_EQUAL(obj.visible(), false);
+
+    obj.visible(true);
+    BOOST_CHECK_EQUAL(obj.visible(), true);
+}
+
 
 BOOST_AUTO_TEST_CASE(Object_userCalledWithTooLongName_shouldThrowLenghtError) {
     Osmium::OSM::Node obj;
@@ -149,6 +196,16 @@ BOOST_AUTO_TEST_CASE(Object_visible_shouldConvertStringValues) {
     BOOST_CHECK_EQUAL(obj.visible(), true);
 }
 
+BOOST_AUTO_TEST_CASE(Object_tags_setsTagList) {
+    Osmium::OSM::Node obj;
+
+    Osmium::OSM::TagList taglist;
+    taglist.add("example", "one");
+
+    obj.tags(taglist);
+    check_taglists_for_equality(obj.tags(), taglist);
+}
+
 BOOST_AUTO_TEST_CASE(Object_setAttribute_shouldSetAttributesByName) {
     Osmium::OSM::Node obj;
 
@@ -167,6 +224,30 @@ BOOST_AUTO_TEST_CASE(Object_setAttribute_shouldSetAttributesByName) {
     BOOST_CHECK_EQUAL(obj.uid(), 15);
     BOOST_CHECK_EQUAL(obj.user(), "L33t User");
     BOOST_CHECK_EQUAL(obj.visible(), false);
+}
+
+BOOST_AUTO_TEST_CASE(Object_copyConstructor_copiesAllAttributes) {
+    Osmium::OSM::Node src;
+
+    src.id(12);
+    src.version(13u);
+    src.changeset(14);
+    src.timestamp((time_t)1362135600u);
+    src.uid(15);
+    src.user("L33t User");
+    src.visible(false);
+    src.tags().add("example", "one");
+
+    Osmium::OSM::Node dst(src);
+    BOOST_CHECK_EQUAL(dst.id(), 12);
+    BOOST_CHECK_EQUAL(dst.version(), 13u);
+    BOOST_CHECK_EQUAL(dst.changeset(), 14);
+    BOOST_CHECK_EQUAL(dst.timestamp(), (time_t)1362135600u);
+    BOOST_CHECK_EQUAL(dst.uid(), 15);
+    BOOST_CHECK_EQUAL(dst.user(), "L33t User");
+    BOOST_CHECK_EQUAL(dst.visible(), false);
+    BOOST_CHECK_EQUAL(dst.tags()[0].key(), "example");
+    BOOST_CHECK_EQUAL(dst.tags()[0].value(), "one");
 }
 
 BOOST_AUTO_TEST_SUITE_END()
