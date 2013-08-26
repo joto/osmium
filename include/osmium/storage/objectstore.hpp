@@ -35,6 +35,7 @@ namespace Osmium {
         /**
          * Stores Nodes, Ways, and Relations in main memory. Can store multiple
          * versions of the same object. Storage is ordered by id and version.
+         * Stored objects are const, they can not be changed.
          *
          * The object store uses the handler interface, so storage is simply by
          * calling the node(), way(), and relation() methods like in any other
