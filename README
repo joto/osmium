@@ -75,6 +75,7 @@ Google sparsehash
 
 Google V8 Javascript engine (for Javascript support)
     http://code.google.com/apis/v8/
+    Osmium works with V8 version 3.14 and 3.15, but not with 3.21.
     Debian/Ubuntu: libv8-dev
     openSUSE: v8-devel
 
