@@ -40,6 +40,8 @@ namespace Osmium {
             * Use this node location store if the ID space is only sparsly
             * populated, such as when working with smaller OSM files (like
             * country extracts).
+            *
+            * SparseTable needs a 64bit architecture.
             */
             template <typename TValue>
             class SparseTable : public Osmium::Storage::ById::Base<TValue> {
@@ -57,6 +59,7 @@ namespace Osmium {
                     Base<TValue>(),
                     m_grow_size(grow_size),
                     m_items(grow_size) {
+                    assert(sizeof(typename google::sparsetable<TValue>::size_type) >= 8 && "google::sparsetable needs 64bit machine");
                 }
 
                 void set(const uint64_t id, const TValue value) {
