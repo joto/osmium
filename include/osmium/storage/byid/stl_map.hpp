@@ -30,7 +30,7 @@ namespace Osmium {
 
     namespace Storage {
 
-        namespace StlMap {
+        namespace ById {
 
             /**
              * The StlMap storage stores location in an STL map.
