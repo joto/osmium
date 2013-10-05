@@ -53,7 +53,7 @@ namespace Osmium {
                 }
 
                 const TValue operator[](const uint64_t id) const {
-                    return m_items[id];
+                    return m_items.at(id);
                 }
 
                 uint64_t size() const {
