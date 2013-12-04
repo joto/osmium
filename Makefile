@@ -4,6 +4,7 @@
 #
 #------------------------------------------------------------------------------
 
+PREFIX ?= /usr
 CXX=g++
 
 all:
@@ -15,12 +16,12 @@ clean:
 	$(MAKE) -C test clean
 
 install: doc
-	install -m 755 -g root -o root -d $(DESTDIR)/usr/include
-	install -m 755 -g root -o root -d $(DESTDIR)/usr/share/doc/libosmium-dev
-	install -m 644 -g root -o root README $(DESTDIR)/usr/share/doc/libosmium-dev/README
-	install -m 644 -g root -o root include/osmium.hpp $(DESTDIR)/usr/include
-	cp --recursive include/osmium $(DESTDIR)/usr/include
-	cp --recursive doc/html $(DESTDIR)/usr/share/doc/libosmium-dev
+	install -m 755 -g root -o root -d $(DESTDIR)$(PREFIX)/include
+	install -m 755 -g root -o root -d $(DESTDIR)$(PREFIX)/share/doc/libosmium-dev
+	install -m 644 -g root -o root README $(DESTDIR)$(PREFIX)/share/doc/libosmium-dev/README
+	install -m 644 -g root -o root include/osmium.hpp $(DESTDIR)$(PREFIX)/include
+	cp --recursive include/osmium $(DESTDIR)$(PREFIX)/include
+	cp --recursive doc/html $(DESTDIR)$(PREFIX)/share/doc/libosmium-dev
 
 check:
 	cppcheck --enable=all -I include */*.cpp test/t/*/test_*.cpp
