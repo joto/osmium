@@ -7,6 +7,12 @@
 PREFIX ?= /usr
 CXX=g++
 
+INSTALL_USER := root
+
+# We use the numeric id 0 here because different systems (Linux vs. BSD)
+# use different names for the "root group".
+INSTALL_GROUP := 0
+
 all:
 
 .PHONY: clean install check check-includes test indent
@@ -16,12 +22,12 @@ clean:
 	$(MAKE) -C test clean
 
 install: doc
-	install -m 755 -g root -o root -d $(DESTDIR)$(PREFIX)/include
-	install -m 755 -g root -o root -d $(DESTDIR)$(PREFIX)/share/doc/libosmium-dev
-	install -m 644 -g root -o root README $(DESTDIR)$(PREFIX)/share/doc/libosmium-dev/README
-	install -m 644 -g root -o root include/osmium.hpp $(DESTDIR)$(PREFIX)/include
-	cp --recursive include/osmium $(DESTDIR)$(PREFIX)/include
-	cp --recursive doc/html $(DESTDIR)$(PREFIX)/share/doc/libosmium-dev
+	install -m 755 -g $(INSTALL_GROUP) -o $(INSTALL_USER) -d $(DESTDIR)$(PREFIX)/include
+	install -m 755 -g $(INSTALL_GROUP) -o $(INSTALL_USER) -d $(DESTDIR)$(PREFIX)/share/doc/libosmium-dev
+	install -m 644 -g $(INSTALL_GROUP) -o $(INSTALL_USER) README $(DESTDIR)$(PREFIX)/share/doc/libosmium-dev/README
+	install -m 644 -g $(INSTALL_GROUP) -o $(INSTALL_USER) include/osmium.hpp $(DESTDIR)$(PREFIX)/include
+	cp -r include/osmium $(DESTDIR)$(PREFIX)/include
+	cp -r doc/html $(DESTDIR)$(PREFIX)/share/doc/libosmium-dev
 
 check:
 	cppcheck --enable=all -I include */*.cpp test/t/*/test_*.cpp
