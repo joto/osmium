@@ -642,17 +642,18 @@ namespace Osmium {
              * and some extra flags.
              */
             void assemble_ways(std::vector< shared_ptr<WayInfo> >& way_infos) {
+                std::map<osm_object_id_t, bool> added_ways;
+
                 BOOST_FOREACH(const shared_ptr<Osmium::OSM::Object const>& object, m_relation_info.members()) {
                     const shared_ptr<Osmium::OSM::Way const> way = static_pointer_cast<Osmium::OSM::Way const>(object);
 
                     // ignore members that are not ways and ways without nodes
-                    if (way && !way->nodes().empty()) {
+                    if (way && !way->nodes().empty() && (!m_attempt_repair || !added_ways[way->id()])) {
                         if (way->timestamp() > m_new_area->timestamp()) {
                             m_new_area->timestamp(way->timestamp());
                         }
-
+                        added_ways[way->id()] = true;
                         way_infos.push_back(make_shared<WayInfo>(way));
-                        // TODO drop duplicate ways automatically in repair mode?
                         // TODO maybe add INNER/OUTER instead of UNSET to enable later warnings on role mismatch
                     }
                 }
