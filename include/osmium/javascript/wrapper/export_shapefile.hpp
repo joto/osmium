@@ -51,7 +51,7 @@ namespace Osmium {
                         } else if (!strcmp(*type, "polygon")) {
                             oc = new Osmium::Export::PolygonShapefile(filename);
                         } else {
-                            throw std::runtime_error("unkown shapefile type");
+                            throw std::runtime_error("unknown shapefile type");
                         }
 
                         return Osmium::Javascript::Wrapper::ExportShapefile::get<Osmium::Javascript::Wrapper::ExportShapefile>().create_instance(static_cast<void*>(oc));
