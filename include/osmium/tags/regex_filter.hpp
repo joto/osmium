@@ -22,7 +22,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 */
 
-#define OSMIUM_LINK_WITH_LIBS_GEOS -lboost_regex
+#define OSMIUM_LINK_WITH_LIBS_REGEX -lboost_regex
 
 #include <functional>
 #include <vector>
