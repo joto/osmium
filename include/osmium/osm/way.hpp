@@ -114,7 +114,7 @@ namespace Osmium {
             if (lhs.id() == rhs.id()) {
                 return lhs.version() < rhs.version();
             } else {
-                return abs(lhs.id()) < abs(rhs.id());
+                return std::abs(lhs.id()) < std::abs(rhs.id());
             }
         }
 
