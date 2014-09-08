@@ -22,8 +22,7 @@
 
 std::string example_file_content("Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.\n");
 
-/* Test scenarios for OSMFile objects
- */
+// Test scenarios for OSMFile objects
 
 #include <temp_file_fixture.hpp>
 
@@ -42,7 +41,7 @@ BOOST_AUTO_TEST_SUITE(OSMFile_Output)
  */
 void compare_file_content(std::istream* inputfile, std::string& expected_content)
 {
-    std::string file_content((std::istreambuf_iterator<char>(*inputfile)),(std::istreambuf_iterator<char>()));
+    std::string file_content((std::istreambuf_iterator<char>(*inputfile)), (std::istreambuf_iterator<char>()));
 
     BOOST_CHECK_EQUAL(file_content, expected_content);
 }
@@ -50,7 +49,7 @@ void compare_file_content(std::istream* inputfile, std::string& expected_content
 /* Test basic file operations:
  * Open an output file and check if correct fd ist returned
  */
-BOOST_AUTO_TEST_CASE( write_to_xml_output_file ) {
+BOOST_AUTO_TEST_CASE(write_to_xml_output_file) {
     TempFileFixture test_osm("test.osm");
 
     Osmium::OSMFile file(test_osm);
@@ -72,7 +71,7 @@ BOOST_AUTO_TEST_CASE( write_to_xml_output_file ) {
  * Open output file with "osm.gz" extension 
  * and check if file written is gzip encoded
  */
-BOOST_AUTO_TEST_CASE( write_to_xml_gz_output_file ) {
+BOOST_AUTO_TEST_CASE(write_to_xml_gz_output_file) {
     TempFileFixture test_osm_gz("test.osm.gz");
 
     Osmium::OSMFile file(test_osm_gz);
@@ -92,7 +91,7 @@ BOOST_AUTO_TEST_CASE( write_to_xml_gz_output_file ) {
  * Open output file with "osm.bz2" extension
  * and check if file written is bzip2 encoded
  */
-BOOST_AUTO_TEST_CASE( write_to_xml_bz2_output_file ) {
+BOOST_AUTO_TEST_CASE(write_to_xml_bz2_output_file) {
     TempFileFixture test_osm_bz2("test.osm.bz2");
 
     Osmium::OSMFile file(test_osm_bz2);
@@ -113,7 +112,7 @@ BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE(OSMFile_Input)
 
-void read_from_fd_and_compare(int fd, std::string& expected_content) {
+void read_from_fd_and_compare(int fd, const std::string& expected_content) {
     const int buf_length = 1000;
     char buffer[buf_length];
 
@@ -125,7 +124,7 @@ void read_from_fd_and_compare(int fd, std::string& expected_content) {
 /* Test basic file input operations:
  * Open an input file and check if correct content ist returned
  */
-BOOST_AUTO_TEST_CASE( read_from_xml_file ) {
+BOOST_AUTO_TEST_CASE(read_from_xml_file) {
     TempFileFixture test_osm("test.osm");
 
     // write content
@@ -144,7 +143,7 @@ BOOST_AUTO_TEST_CASE( read_from_xml_file ) {
  * Write gzip compressed data
  * and read it back through OSMFile
  */
-BOOST_AUTO_TEST_CASE( read_from_xml_gz_file ) {
+BOOST_AUTO_TEST_CASE(read_from_xml_gz_file) {
     TempFileFixture test_osm_gz("test.osm.gz");
 
     // write content
@@ -165,7 +164,7 @@ BOOST_AUTO_TEST_CASE( read_from_xml_gz_file ) {
  * Write bzip2 compressed data
  * and read it back through OSMFile
  */
-BOOST_AUTO_TEST_CASE( read_from_xml_bz2_file ) {
+BOOST_AUTO_TEST_CASE(read_from_xml_bz2_file) {
     TempFileFixture test_osm_bz2("test.osm.bz2");
     // write content
     std::ofstream outputfile(test_osm_bz2, std::ios::binary);
@@ -185,23 +184,23 @@ BOOST_AUTO_TEST_CASE( read_from_xml_bz2_file ) {
 BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE(OSMFile_Errors)
 
-BOOST_AUTO_TEST_CASE( OSMFile_writingToReadonlyDirectory_shouldRaiseIOException ) {
+BOOST_AUTO_TEST_CASE(OSMFile_writingToReadonlyDirectory_shouldRaiseIOException) {
     TempDirFixture ro_dir("ro_dir");
     ro_dir.create_ro();
 
     Osmium::OSMFile file((ro_dir.path / "test.osm").c_str());
     try {
         file.open_for_output();
-        BOOST_ERROR( "open_for_output didn't raise IOError" );
-    } catch ( Osmium::OSMFile::IOError const& ex ) {
-        BOOST_CHECK_EQUAL( ex.filename(), (ro_dir.path / "test.osm").native() );
-        BOOST_CHECK_EQUAL( ex.system_errno(), 13 );  // errno 13: Permission denied
+        BOOST_ERROR("open_for_output didn't raise IOError");
+    } catch (Osmium::OSMFile::IOError const& ex) {
+        BOOST_CHECK_EQUAL(ex.filename(), (ro_dir.path / "test.osm").native());
+        BOOST_CHECK_EQUAL(ex.system_errno(), 13);  // errno 13: Permission denied
     }
 }
 
 /* the following test case generates memory leaks, so it is commented out for the moment
  */
-//BOOST_AUTO_TEST_CASE( OSMFile_writingToReadonlyDirectoryWithGzip_shouldRaiseIOException ) {
+//BOOST_AUTO_TEST_CASE(OSMFile_writingToReadonlyDirectoryWithGzip_shouldRaiseIOException) {
 //    DISABLE_SIGCHLD();
 //    TempDirFixture ro_dir("ro_dir");
 //    ro_dir.create_ro();
@@ -210,28 +209,28 @@ BOOST_AUTO_TEST_CASE( OSMFile_writingToReadonlyDirectory_shouldRaiseIOException 
 //    file.open_for_output();
 //    try {
 //        file.close();
-//        BOOST_ERROR( "file.close() didn't raise IOError" );
-//    } catch ( Osmium::OSMFile::IOError const& ex ) {
-//        BOOST_CHECK_EQUAL( ex.filename(), (ro_dir.path / "test.osm.gz").native() );
-//        BOOST_CHECK_EQUAL( ex.system_errno(), 0 ); // subprocess error has no valid errno code
+//        BOOST_ERROR("file.close() didn't raise IOError");
+//    } catch (Osmium::OSMFile::IOError const& ex ) {
+//        BOOST_CHECK_EQUAL(ex.filename(), (ro_dir.path / "test.osm.gz").native());
+//        BOOST_CHECK_EQUAL(ex.system_errno(), 0); // subprocess error has no valid errno code
 //    }
 //}
 
-BOOST_AUTO_TEST_CASE( OSMFile_readingNonexistingFile_shouldRaiseException ) {
+BOOST_AUTO_TEST_CASE(OSMFile_readingNonexistingFile_shouldRaiseException) {
     TempFileFixture nonexisting_osm("nonexisting.osm");
     Osmium::OSMFile file(nonexisting_osm);
 
     try {
         file.open_for_input();
-        BOOST_ERROR( "open_for_input didn't raise IOError" );
-    } catch ( Osmium::OSMFile::IOError const& ex ) {
-        BOOST_CHECK_EQUAL( ex.filename(), (std::string&)nonexisting_osm );
-        BOOST_CHECK_EQUAL( ex.system_errno(), 2 );  // errno 2: No such file or directory
+        BOOST_ERROR("open_for_input didn't raise IOError");
+    } catch (Osmium::OSMFile::IOError const& ex) {
+        BOOST_CHECK_EQUAL(ex.filename(), (std::string&)nonexisting_osm);
+        BOOST_CHECK_EQUAL(ex.system_errno(), 2);  // errno 2: No such file or directory
     }
 
 }
 
-BOOST_AUTO_TEST_CASE( OSMFile_readingNonexistingFileWithGzip_shouldRaiseIOException ) {
+BOOST_AUTO_TEST_CASE(OSMFile_readingNonexistingFileWithGzip_shouldRaiseIOException) {
     DISABLE_SIGCHLD();
     TempFileFixture nonexisting_osm_gz("nonexisting.osm.gz");
     Osmium::OSMFile file(nonexisting_osm_gz);
@@ -239,9 +238,9 @@ BOOST_AUTO_TEST_CASE( OSMFile_readingNonexistingFileWithGzip_shouldRaiseIOExcept
     file.open_for_input();
     try {
         file.close();
-    } catch ( Osmium::OSMFile::IOError const& ex ) {
-        BOOST_CHECK_EQUAL( ex.filename(), (std::string&)nonexisting_osm_gz );
-        BOOST_CHECK_EQUAL( ex.system_errno(), 0 );  // subprocess error has no valid errno code
+    } catch (Osmium::OSMFile::IOError const& ex) {
+        BOOST_CHECK_EQUAL(ex.filename(), (std::string&)nonexisting_osm_gz);
+        BOOST_CHECK_EQUAL(ex.system_errno(), 0);  // subprocess error has no valid errno code
     }
 }
 
