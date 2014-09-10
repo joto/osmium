@@ -52,8 +52,8 @@ TESTS_OK=0
 OPTS_CFLAGS="$(geos-config --cflags) $(gdal-config --cflags)"
 OPTS_LIBS="$(geos-config --libs) $(gdal-config --libs) -lboost_regex -lboost_iostreams -lboost_filesystem -lboost_system"
 
-// Without this we have test failures on FreeBSD
-// see https://github.com/joto/osmium/issues/94
+# Without this we have test failures on FreeBSD
+# see https://github.com/joto/osmium/issues/94
 export BOOST_TEST_CATCH_SYSTEM_ERRORS=no
 
 test_file () {
