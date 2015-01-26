@@ -2,6 +2,15 @@
 Osmium
 ======
 
+============================================================================
+
+    THIS IS THE "OLD" OSMIUM WHICH IS NOT BEING DEVELOPED ANY MORE!
+
+   You almost certainly want the "new" Osmium at http://osmcode.org/
+
+============================================================================
+
+
 http://wiki.openstreetmap.org/wiki/Osmium
 
 Osmium is a C++ framework for working with OSM data files. Osmium can read OSM
