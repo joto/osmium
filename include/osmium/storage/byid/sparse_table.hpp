@@ -70,6 +70,9 @@ namespace Osmium {
                 }
 
                 const TValue operator[](const uint64_t id) const {
+                    if (id >= m_items.size()) {
+                        return TValue();
+                    }
                     return m_items[id];
                 }
 

@@ -44,8 +44,8 @@ namespace Osmium {
             * There is no range checking on accessing the store.
             *
             * If you are storing node coordinates, you'll need 8 bytes for each node.
-            * At the time of writing this, the largest node ID is about 1.3 billion,
-            * so you'll need about 10 GB of memory.
+            * At the time of writing this, the largest node ID is over 3 billion,
+            * so you'll need over 24 GB of memory.
             *
             * Note that this storage class will only work on 64 bit systems if
             * used for storing node coordinates. 32 bit systems just can't address
