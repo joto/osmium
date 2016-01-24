@@ -59,7 +59,7 @@ struct TempFileFixture {
         return path.c_str();
     }
 
-    operator const std::string&() const {
+    const std::string& to_string() const {
         return path.native();
     }
 

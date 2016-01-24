@@ -52,7 +52,7 @@ void compare_file_content(std::istream* inputfile, std::string& expected_content
 BOOST_AUTO_TEST_CASE(write_to_xml_output_file) {
     TempFileFixture test_osm("test.osm");
 
-    Osmium::OSMFile file(test_osm);
+    Osmium::OSMFile file(test_osm.to_string());
     BOOST_REQUIRE_EQUAL(file.fd(), -1);
 
     file.open_for_output();
@@ -74,7 +74,7 @@ BOOST_AUTO_TEST_CASE(write_to_xml_output_file) {
 BOOST_AUTO_TEST_CASE(write_to_xml_gz_output_file) {
     TempFileFixture test_osm_gz("test.osm.gz");
 
-    Osmium::OSMFile file(test_osm_gz);
+    Osmium::OSMFile file(test_osm_gz.to_string());
     file.open_for_output();
     write(file.fd(), example_file_content.c_str(), example_file_content.size());
     file.close();
@@ -94,7 +94,7 @@ BOOST_AUTO_TEST_CASE(write_to_xml_gz_output_file) {
 BOOST_AUTO_TEST_CASE(write_to_xml_bz2_output_file) {
     TempFileFixture test_osm_bz2("test.osm.bz2");
 
-    Osmium::OSMFile file(test_osm_bz2);
+    Osmium::OSMFile file(test_osm_bz2.to_string());
     file.open_for_output();
     write(file.fd(), example_file_content.c_str(), example_file_content.size());
     file.close();
@@ -132,7 +132,7 @@ BOOST_AUTO_TEST_CASE(read_from_xml_file) {
     outputfile << example_file_content;
     outputfile.close();
 
-    Osmium::OSMFile file(test_osm);
+    Osmium::OSMFile file(test_osm.to_string());
     file.open_for_input();
 
     read_from_fd_and_compare(file.fd(), example_file_content);
@@ -154,7 +154,7 @@ BOOST_AUTO_TEST_CASE(read_from_xml_gz_file) {
     out << example_file_content;
     boost::iostreams::close(out);
 
-    Osmium::OSMFile file(test_osm_gz);
+    Osmium::OSMFile file(test_osm_gz.to_string());
     file.open_for_input();
     read_from_fd_and_compare(file.fd(), example_file_content);
     file.close();
@@ -174,7 +174,7 @@ BOOST_AUTO_TEST_CASE(read_from_xml_bz2_file) {
     out << example_file_content;
     boost::iostreams::close(out);
 
-    Osmium::OSMFile file(test_osm_bz2);
+    Osmium::OSMFile file(test_osm_bz2.to_string());
     file.open_for_input();
     read_from_fd_and_compare(file.fd(), example_file_content);
     file.close();
@@ -218,7 +218,7 @@ BOOST_AUTO_TEST_CASE(OSMFile_writingToReadonlyDirectory_shouldRaiseIOException) 
 
 BOOST_AUTO_TEST_CASE(OSMFile_readingNonexistingFile_shouldRaiseException) {
     TempFileFixture nonexisting_osm("nonexisting.osm");
-    Osmium::OSMFile file(nonexisting_osm);
+    Osmium::OSMFile file(nonexisting_osm.to_string());
 
     try {
         file.open_for_input();
@@ -233,7 +233,7 @@ BOOST_AUTO_TEST_CASE(OSMFile_readingNonexistingFile_shouldRaiseException) {
 BOOST_AUTO_TEST_CASE(OSMFile_readingNonexistingFileWithGzip_shouldRaiseIOException) {
     DISABLE_SIGCHLD();
     TempFileFixture nonexisting_osm_gz("nonexisting.osm.gz");
-    Osmium::OSMFile file(nonexisting_osm_gz);
+    Osmium::OSMFile file(nonexisting_osm_gz.to_string());
 
     file.open_for_input();
     try {
