@@ -67,6 +67,6 @@ struct TempFileFixture {
 };
 
 
-BOOST_GLOBAL_FIXTURE(TempBaseDirFixture)
+BOOST_GLOBAL_FIXTURE(TempBaseDirFixture);
 
 #endif
