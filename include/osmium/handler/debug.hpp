@@ -50,7 +50,20 @@ namespace Osmium {
                 if (meta.has_multiple_object_versions()) {
                     m_has_multiple_object_versions = true;
                 }
-
+                if (meta.osmosis_replication_timestamp()) {
+                    time_t timestamp = *meta.osmosis_replication_timestamp();
+                    std::cout << "  replication timestamp=";
+                    std::cout << ctime(&timestamp);
+                }
+                if (meta.osmosis_replication_sequence_number()) {
+                    uint64_t sequence = *meta.osmosis_replication_sequence_number();
+                    std::cout << "  replication sequence number=";
+                    std::cout << sequence << std::endl;
+                }
+                if (!meta.osmosis_replication_base_url().empty()) {
+                    std::cout << "  replication base url=";
+                    std::cout << meta.osmosis_replication_base_url() << std::endl;
+                }
                 if (meta.bounds().defined()) {
                     m_output_stream << "  bounds=" << meta.bounds() << "\n";
                 }

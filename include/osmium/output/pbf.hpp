@@ -892,6 +892,16 @@ namespace Osmium {
                     bbox->set_top(meta.bounds().top_right().lat() * OSMPBF::lonlat_resolution);
                 }
 
+                if (meta.osmosis_replication_timestamp()) {
+                    pbf_header_block.set_osmosis_replication_timestamp(*meta.osmosis_replication_timestamp());
+                }
+                if (meta.osmosis_replication_sequence_number()) {
+                    pbf_header_block.set_osmosis_replication_sequence_number(*meta.osmosis_replication_sequence_number());
+                }
+                if (meta.osmosis_replication_base_url().length()) {
+                    pbf_header_block.set_osmosis_replication_base_url(meta.osmosis_replication_base_url());
+                }
+
                 store_header_block();
             }
 

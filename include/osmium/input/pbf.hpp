@@ -132,6 +132,15 @@ namespace Osmium {
                             if (pbf_header_block.has_writingprogram()) {
                                 this->meta().generator(pbf_header_block.writingprogram());
                             }
+                            if (pbf_header_block.has_osmosis_replication_timestamp()) {
+                                this->meta().osmosis_replication_timestamp(pbf_header_block.osmosis_replication_timestamp());
+                            }
+                            if (pbf_header_block.has_osmosis_replication_sequence_number()) {
+                                this->meta().osmosis_replication_sequence_number(pbf_header_block.osmosis_replication_sequence_number());
+                            }
+                            if (pbf_header_block.has_osmosis_replication_base_url()) {
+                                this->meta().osmosis_replication_base_url(pbf_header_block.osmosis_replication_base_url());
+                            }
                             if (pbf_header_block.has_bbox()) {
                                 const OSMPBF::HeaderBBox& bbox = pbf_header_block.bbox();
                                 const int64_t resolution_convert = OSMPBF::lonlat_resolution / Osmium::OSM::coordinate_precision;

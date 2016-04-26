@@ -38,13 +38,19 @@ namespace Osmium {
             Meta() :
                 m_bounds(),
                 m_has_multiple_object_versions(false),
-                m_generator() {
+                m_generator(),
+                m_osmosis_replication_timestamp(),
+                m_osmosis_replication_sequence_number(),
+                m_osmosis_replication_base_url() {
             }
 
             Meta(const Bounds& bounds) :
                 m_bounds(bounds),
                 m_has_multiple_object_versions(false),
-                m_generator() {
+                m_generator(),
+                m_osmosis_replication_timestamp(),
+                m_osmosis_replication_sequence_number(), 
+                m_osmosis_replication_base_url() {
             }
 
             Bounds& bounds() {
@@ -73,6 +79,35 @@ namespace Osmium {
                 return *this;
             }
 
+            boost::shared_ptr<time_t> osmosis_replication_timestamp() const {
+                return m_osmosis_replication_timestamp;
+            }
+
+            Meta& osmosis_replication_timestamp(const time_t timestamp) {
+                boost::shared_ptr<time_t> newptr(new time_t(timestamp));
+                m_osmosis_replication_timestamp = newptr;
+                return *this;
+            }
+
+            boost::shared_ptr<uint64_t> osmosis_replication_sequence_number() const {
+                return m_osmosis_replication_sequence_number;
+            }
+
+            Meta& osmosis_replication_sequence_number(const uint64_t sequence_number) {
+                boost::shared_ptr<uint64_t> newptr(new uint64_t(sequence_number));
+                m_osmosis_replication_sequence_number = newptr;
+                return *this;
+            }
+
+            const std::string& osmosis_replication_base_url() const {
+                return m_osmosis_replication_base_url;
+            }
+
+            Meta& osmosis_replication_base_url(const std::string& base_url) {
+                m_osmosis_replication_base_url = base_url;
+                return *this;
+            }
+
         private:
 
             Bounds m_bounds;
@@ -85,6 +120,13 @@ namespace Osmium {
 
             /// Program that generated this file.
             std::string m_generator;
+
+            /// timestamp for replication
+            boost::shared_ptr<time_t> m_osmosis_replication_timestamp;
+            /// sequence number for replication
+            boost::shared_ptr<uint64_t> m_osmosis_replication_sequence_number;
+            /// base URL for replication
+            std::string m_osmosis_replication_base_url;
 
         }; // class Meta
 
