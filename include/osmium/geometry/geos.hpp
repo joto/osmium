@@ -51,8 +51,8 @@ namespace Osmium {
          */
         inline geos::geom::GeometryFactory* geos_geometry_factory() {
             static geos::geom::PrecisionModel pm;
-            static geos::geom::GeometryFactory factory(&pm, -1);
-            return &factory;
+            static auto factory = geos::geom::GeometryFactory::create(&pm, -1);
+            return factory.get();
         }
 
         /**
